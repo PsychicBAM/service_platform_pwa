@@ -24,7 +24,8 @@ api/
     main.py          # FastAPI app entry
     config.py        # Pydantic settings
     database.py      # Async engine, Base, get_db
-    routers/         # Route modules (health only for now)
+    routers/         # health, auth
+    dependencies/    # auth guards
     models/          # SQLAlchemy ORM models (core tenant tables)
     schemas/         # Pydantic request/response models
     repositories/    # Data access (later)
@@ -132,17 +133,69 @@ alembic revision --autogenerate -m "describe change"
 - Core tenant models: `users`, `businesses`, `business_members`, `subscriptions`
 - Migration `0002_core_tenant_models.py`
 - Minimal read schemas: `UserRead`, `BusinessRead`, `SubscriptionRead`
+- **Auth foundation:** register business owner, login, refresh, `/auth/me`
+- Password hashing (bcrypt), JWT access/refresh tokens
 
 ### Not implemented
 
-- Auth endpoints (register/login/JWT)
+- Email verification
+- Password reset / magic links
+- Auth logout (refresh token revocation)
 - Services, bookings, orders, clients
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
 - Redis, Celery, background workers
 
-Next slice: auth routes and user registration per `MVP_PLAN.md` Phase 1.
+Next slice: services CRUD and public business catalog per `MVP_PLAN.md` Phase 1.
+
+## Auth API examples
+
+Register a business owner:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "maria@salon.com",
+    "password": "securePass123",
+    "full_name": "Maria Garcia",
+    "phone": "+15550100",
+    "business": {
+      "name": "Joe'\''s Salon",
+      "slug": "joes-salon",
+      "operating_mode": "both",
+      "timezone": "America/New_York"
+    }
+  }'
+```
+
+Login:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "maria@salon.com", "password": "securePass123"}'
+```
+
+Get current user (replace `TOKEN`):
+
+```bash
+curl http://localhost:8000/api/v1/auth/me \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Refresh access token:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{"refresh_token": "REFRESH_TOKEN"}'
+```
+
+## Tests and PostgreSQL
+
+Integration auth tests use PostgreSQL at `localhost:5433` by default (`TEST_DATABASE_URL` override). Start Docker Compose before running pytest.
 
 ## Previously documented — not implemented in skeleton
 

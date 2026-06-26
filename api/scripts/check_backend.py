@@ -43,6 +43,18 @@ def main() -> int:
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"model import failed: {exc}")
 
+    print("==> Verifying auth router in OpenAPI ...")
+    try:
+        from app.main import app
+
+        paths = app.openapi()["paths"]
+        if "/api/v1/auth/register" not in paths:
+            errors.append("/api/v1/auth/register missing from OpenAPI schema")
+        if "/api/v1/auth/login" not in paths:
+            errors.append("/api/v1/auth/login missing from OpenAPI schema")
+    except Exception as exc:  # pragma: no cover - diagnostic script
+        errors.append(f"OpenAPI auth check failed: {exc}")
+
     print("==> Checking required files ...")
     if not alembic_ini.is_file():
         errors.append("alembic.ini not found")
