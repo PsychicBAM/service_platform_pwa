@@ -110,7 +110,7 @@ alembic upgrade head
 alembic revision --autogenerate -m "describe change"
 ```
 
-Initial migration `0001_initial_empty` is a placeholder. Core tenant tables are in `0002_core_tenant_models`. Services table is in `0003_services`. Schedule tables are in `0004_schedule`.
+Initial migration `0001_initial_empty` is a placeholder. Core tenant tables are in `0002_core_tenant_models`. Services table is in `0003_services`. Schedule tables are in `0004_schedule`. Clients and bookings are in `0005_clients_bookings`.
 
 ```bash
 # From project root (Docker)
@@ -142,20 +142,24 @@ alembic revision --autogenerate -m "describe change"
 - **Schedule CRUD** (working hours, breaks, unavailable times)
 - **Availability foundation** (`/api/v1/public/b/{slug}/availability`)
 - Migration `0004_schedule.py`
+- **Clients and bookings models** (`clients`, `bookings` tables)
+- **Availability blocks existing bookings** (pending, pending_payment, confirmed)
+- Migration `0005_clients_bookings.py`
 
 ### Not implemented
 
 - Email verification
 - Password reset / magic links
 - Auth logout (refresh token revocation)
-- Booking creation
+- Public booking creation endpoint
+- Admin booking CRUD
 - Order creation
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
 - Redis, Celery, background workers
 
-Next slice: booking and order creation per `MVP_PLAN.md` Phase 1.
+Next slice: public booking creation and admin booking management per `MVP_PLAN.md` Phase 1.
 
 ## Auth API examples
 

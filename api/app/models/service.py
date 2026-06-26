@@ -75,3 +75,4 @@ class Service(Base, TimestampMixin):
     )
 
     business: Mapped["Business"] = relationship(back_populates="services")
+    bookings: Mapped[list["Booking"]] = relationship(back_populates="service")

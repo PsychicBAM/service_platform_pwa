@@ -50,3 +50,24 @@ class PriceType(str, enum.Enum):
     fixed = "fixed"
     free = "free"
     quote = "quote"
+
+
+class ClientSource(str, enum.Enum):
+    registered = "registered"
+    guest = "guest"
+    admin_created = "admin_created"
+
+
+class BookingStatus(str, enum.Enum):
+    pending = "pending"
+    pending_payment = "pending_payment"
+    confirmed = "confirmed"
+    completed = "completed"
+    cancelled = "cancelled"
+    no_show = "no_show"
+
+
+class CancelledBy(str, enum.Enum):
+    client = "client"
+    admin = "admin"
+    system = "system"

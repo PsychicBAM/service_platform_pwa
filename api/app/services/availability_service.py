@@ -9,6 +9,7 @@ from app.exceptions.business import NotFoundError, ServiceNotBookableError
 from app.models.business import Business
 from app.models.enums import OperatingMode, ServiceType
 from app.models.service import Service
+from app.repositories.booking_repository import BookingRepository
 from app.repositories.schedule_repository import ScheduleRepository
 from app.repositories.service_repository import ServiceRepository
 from app.schemas.schedule import AvailabilityResponse, AvailabilitySlot
@@ -36,6 +37,7 @@ class AvailabilityService:
         self.session = session
         self.schedule_repo = ScheduleRepository(session)
         self.service_repo = ServiceRepository(session)
+        self.booking_repo = BookingRepository(session)
 
     async def get_availability(
         self,
@@ -92,6 +94,11 @@ class AvailabilityService:
             day_start,
             day_end,
         )
+        blocking_bookings = await self.booking_repo.list_overlapping_bookings(
+            business.id,
+            day_start,
+            day_end,
+        )
 
         slots: list[AvailabilitySlot] = []
         cursor = day_open
@@ -100,8 +107,8 @@ class AvailabilityService:
             if cursor >= earliest:
                 if not self._overlaps_break(cursor, slot_end, target_date, tz, applicable_breaks):
                     if not self._overlaps_unavailable(cursor, slot_end, unavailable):
-                        # TODO: subtract existing bookings when bookings table exists.
-                        slots.append(AvailabilitySlot(starts_at=cursor, ends_at=slot_end))
+                        if not self._overlaps_booking(cursor, slot_end, blocking_bookings):
+                            slots.append(AvailabilitySlot(starts_at=cursor, ends_at=slot_end))
             cursor += step
 
         return AvailabilityResponse(
@@ -154,5 +161,16 @@ class AvailabilityService:
     ) -> bool:
         for block in unavailable:
             if intervals_overlap(slot_start, slot_end, block.starts_at, block.ends_at):
+                return True
+        return False
+
+    def _overlaps_booking(
+        self,
+        slot_start: datetime,
+        slot_end: datetime,
+        bookings,
+    ) -> bool:
+        for booking in bookings:
+            if intervals_overlap(slot_start, slot_end, booking.starts_at, booking.ends_at):
                 return True
         return False

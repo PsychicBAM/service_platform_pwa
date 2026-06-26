@@ -1,10 +1,15 @@
 """ORM models — import all modules so Alembic metadata is complete."""
 
+from app.models.booking import Booking
 from app.models.business import Business
 from app.models.business_member import BusinessMember
+from app.models.client import Client
 from app.models.enums import (
+    BookingStatus,
     BusinessMemberRole,
     BusinessStatus,
+    CancelledBy,
+    ClientSource,
     OperatingMode,
     PriceType,
     ServiceType,
@@ -20,10 +25,15 @@ from app.models.working_break import WorkingBreak
 from app.models.working_hour import WorkingHour
 
 __all__ = [
+    "Booking",
+    "BookingStatus",
     "Business",
     "BusinessMember",
     "BusinessMemberRole",
     "BusinessStatus",
+    "CancelledBy",
+    "Client",
+    "ClientSource",
     "OperatingMode",
     "PriceType",
     "Service",

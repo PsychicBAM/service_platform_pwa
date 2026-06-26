@@ -47,3 +47,4 @@ class User(Base, TimestampMixin):
     business_members: Mapped[list["BusinessMember"]] = relationship(
         back_populates="user",
     )
+    clients: Mapped[list["Client"]] = relationship(back_populates="user")

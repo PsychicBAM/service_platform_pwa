@@ -69,3 +69,9 @@ class Business(Base, TimestampMixin):
     unavailable_times: Mapped[list["UnavailableTime"]] = relationship(
         back_populates="business",
     )
+    clients: Mapped[list["Client"]] = relationship(
+        back_populates="business",
+    )
+    bookings: Mapped[list["Booking"]] = relationship(
+        back_populates="business",
+    )

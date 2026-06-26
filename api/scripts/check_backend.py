@@ -45,6 +45,8 @@ def main() -> int:
             "working_hours",
             "working_breaks",
             "unavailable_times",
+            "clients",
+            "bookings",
         }
         missing = required_tables - set(Base.metadata.tables.keys())
         if missing:
