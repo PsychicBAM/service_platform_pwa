@@ -11,12 +11,16 @@ from app.models.enums import (
     CancelledBy,
     ClientSource,
     OperatingMode,
+    OrderMessageSenderType,
+    OrderStatus,
     PriceType,
     ServiceType,
     SubscriptionPlan,
     SubscriptionStatus,
     UserRole,
 )
+from app.models.order import Order
+from app.models.order_message import OrderMessage
 from app.models.service import Service
 from app.models.subscription import Subscription
 from app.models.unavailable_time import UnavailableTime
@@ -35,6 +39,10 @@ __all__ = [
     "Client",
     "ClientSource",
     "OperatingMode",
+    "Order",
+    "OrderMessage",
+    "OrderMessageSenderType",
+    "OrderStatus",
     "PriceType",
     "Service",
     "ServiceType",

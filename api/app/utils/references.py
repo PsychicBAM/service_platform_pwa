@@ -7,6 +7,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.booking_repository import BookingRepository
+from app.repositories.order_repository import OrderRepository
 
 # TODO: replace count+1 with a race-safe sequence or advisory lock for high concurrency.
 
@@ -19,3 +20,13 @@ async def generate_booking_reference(
     repo = BookingRepository(session)
     count = await repo.count_for_business_year(business_id, year)
     return f"BKG-{year}-{count + 1:04d}"
+
+
+async def generate_order_reference(
+    session: AsyncSession,
+    business_id: uuid.UUID,
+    year: int,
+) -> str:
+    repo = OrderRepository(session)
+    count = await repo.count_for_business_year(business_id, year)
+    return f"ORD-{year}-{count + 1:04d}"

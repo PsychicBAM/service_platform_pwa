@@ -48,3 +48,6 @@ class User(Base, TimestampMixin):
         back_populates="user",
     )
     clients: Mapped[list["Client"]] = relationship(back_populates="user")
+    order_messages: Mapped[list["OrderMessage"]] = relationship(
+        back_populates="sender_user",
+    )

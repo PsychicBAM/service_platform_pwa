@@ -47,3 +47,4 @@ class Client(Base, TimestampMixin):
     business: Mapped["Business"] = relationship(back_populates="clients")
     user: Mapped["User | None"] = relationship(back_populates="clients")
     bookings: Mapped[list["Booking"]] = relationship(back_populates="client")
+    orders: Mapped[list["Order"]] = relationship(back_populates="client")

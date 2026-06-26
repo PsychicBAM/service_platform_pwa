@@ -148,6 +148,8 @@ alembic revision --autogenerate -m "describe change"
 - **Public booking creation** (`POST /api/v1/public/b/{slug}/bookings`)
 - **Admin booking management** (list, detail, status update, cancel)
 - **Client booking self-service** (`/api/v1/me/bookings` — list, detail, cancel, reschedule)
+- **Orders and order_messages database foundation** (models, migration `0006_orders.py`, repositories)
+- Migration `0006_orders.py`
 
 ### Not implemented
 
@@ -155,14 +157,15 @@ alembic revision --autogenerate -m "describe change"
 - Password reset / magic links
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
-- Order creation
+- Public order creation API
+- Admin order workflow
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
 - Guest booking claim / magic link
 - Redis, Celery, background workers
 
-Next slice: orders or payments per `MVP_PLAN.md` Phase 1.
+Next slice: public order creation or admin order workflow per `MVP_PLAN.md` Phase 1.
 
 ## Auth API examples
 

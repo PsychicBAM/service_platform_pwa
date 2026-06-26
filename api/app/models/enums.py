@@ -71,3 +71,18 @@ class CancelledBy(str, enum.Enum):
     client = "client"
     admin = "admin"
     system = "system"
+
+
+class OrderStatus(str, enum.Enum):
+    submitted = "submitted"
+    pending_payment = "pending_payment"
+    accepted = "accepted"
+    in_progress = "in_progress"
+    completed = "completed"
+    declined = "declined"
+    cancelled = "cancelled"
+
+
+class OrderMessageSenderType(str, enum.Enum):
+    client = "client"
+    admin = "admin"
