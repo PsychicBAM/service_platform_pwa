@@ -68,6 +68,7 @@ async def _setup_user_linked_order(
     headers = await _login_client(async_client, user.email)
     return {
         **biz_ctx,
+        "owner_user_id": biz_ctx["user_id"],
         "user_id": str(user.id),
         "order_id": str(order.id),
         "client_headers": headers,

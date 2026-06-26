@@ -8,6 +8,8 @@ from app.models.enums import OrderMessageSenderType, OrderStatus, PriceType, Ser
 
 MAX_FORM_DATA_KEYS = 20
 MAX_FORM_DATA_TEXT_LENGTH = 2000
+MAX_ORDER_MESSAGE_BODY_LENGTH = 5000
+ORDER_MESSAGE_PREVIEW_LENGTH = 120
 
 
 class OrderRead(BaseModel):
@@ -40,6 +42,33 @@ class OrderMessageRead(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class OrderMessageCreate(BaseModel):
+    body: str
+
+    @field_validator("body")
+    @classmethod
+    def validate_body(cls, value: str) -> str:
+        text = value.strip()
+        if not text:
+            raise ValueError("body must not be empty")
+        if len(text) > MAX_ORDER_MESSAGE_BODY_LENGTH:
+            raise ValueError(
+                f"body must not exceed {MAX_ORDER_MESSAGE_BODY_LENGTH} characters"
+            )
+        return text
+
+
+class OrderMessageListMeta(BaseModel):
+    page: int
+    limit: int
+    total: int
+
+
+class OrderMessageListResponse(BaseModel):
+    data: list[OrderMessageRead]
+    meta: OrderMessageListMeta
 
 
 class PublicOrderClientInput(BaseModel):

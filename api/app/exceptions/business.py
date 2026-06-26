@@ -72,3 +72,8 @@ class InvalidOrderStatusTransitionError(AppError):
 class OrderDeclineReasonRequiredError(AppError):
     def __init__(self, message: str = "Decline reason is required.") -> None:
         super().__init__(message=message, code="DECLINE_REASON_REQUIRED", status_code=400)
+
+
+class OrderMessagesClosedError(AppError):
+    def __init__(self, message: str = "Messaging is closed for this order.") -> None:
+        super().__init__(message=message, code="ORDER_MESSAGES_CLOSED", status_code=400)

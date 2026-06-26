@@ -9,6 +9,7 @@ from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.models.user import User
 from app.repositories.order_repository import OrderRepository, UserOrderStatusFilter
+from app.services.order_message_service import OrderMessageService
 from app.schemas.order import (
     MyOrderBusinessSummary,
     MyOrderDetail,
@@ -49,8 +50,11 @@ class ClientOrderService:
             limit=limit,
         )
         total = await self.repo.count_for_user(user.id, status_filter=status_filter)
+        previews = await OrderMessageService(self.session).get_last_message_previews(
+            [o.id for o in orders]
+        )
         return MyOrderListResponse(
-            data=[self._to_list_item(o) for o in orders],
+            data=[self._to_list_item(o, previews.get(o.id)) for o in orders],
             meta=MyOrderListMeta(page=page, limit=limit, total=total),
         )
 
@@ -87,7 +91,11 @@ class ClientOrderService:
         assert order is not None
         return self._to_detail(order)
 
-    def _to_list_item(self, order: Order) -> MyOrderListItem:
+    def _to_list_item(
+        self,
+        order: Order,
+        last_message_preview: str | None = None,
+    ) -> MyOrderListItem:
         return MyOrderListItem(
             id=order.id,
             reference=order.reference,
@@ -107,7 +115,7 @@ class ClientOrderService:
             ),
             created_at=order.created_at,
             updated_at=order.updated_at,
-            last_message_preview=None,
+            last_message_preview=last_message_preview,
             can_cancel=can_client_cancel_order(order),
         )
 

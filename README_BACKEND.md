@@ -152,6 +152,7 @@ alembic revision --autogenerate -m "describe change"
 - **Public order creation** (`POST /api/v1/public/b/{slug}/orders`)
 - **Admin order workflow** (list, detail, accept, decline, in-progress, complete, cancel)
 - **Client my orders** (`/api/v1/me/orders` — list, detail, cancel)
+- **Order messaging API** (client + admin REST message list/send)
 - Migration `0006_orders.py`
 
 ### Not implemented
@@ -160,14 +161,14 @@ alembic revision --autogenerate -m "describe change"
 - Password reset / magic links
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
-- Order messaging API
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
 - Guest booking claim / magic link
+- WebSocket realtime chat
 - Redis, Celery, background workers
 
-Next slice: order messaging or payments per `MVP_PLAN.md` Phase 1.
+Next slice: payments or notifications per `MVP_PLAN.md` Phase 1.
 
 ## Auth API examples
 
@@ -488,6 +489,40 @@ curl -X POST http://localhost:8000/api/v1/me/orders/ORDER_ID/cancel \
   -H "Authorization: Bearer CLIENT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reason": "No longer needed"}'
+```
+
+## Order messaging examples
+
+Client list messages:
+
+```bash
+curl http://localhost:8000/api/v1/me/orders/ORDER_ID/messages \
+  -H "Authorization: Bearer CLIENT_TOKEN"
+```
+
+Client send message:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/me/orders/ORDER_ID/messages \
+  -H "Authorization: Bearer CLIENT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Can you share a draft timeline?"}'
+```
+
+Admin list messages:
+
+```bash
+curl http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/messages \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Admin send message:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/messages \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "We will send a draft by Friday."}'
 ```
 
 ## Tests and PostgreSQL
