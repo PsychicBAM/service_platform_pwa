@@ -147,6 +147,7 @@ alembic revision --autogenerate -m "describe change"
 - Migration `0005_clients_bookings.py`
 - **Public booking creation** (`POST /api/v1/public/b/{slug}/bookings`)
 - **Admin booking management** (list, detail, status update, cancel)
+- **Client booking self-service** (`/api/v1/me/bookings` — list, detail, cancel, reschedule)
 
 ### Not implemented
 
@@ -154,11 +155,11 @@ alembic revision --autogenerate -m "describe change"
 - Password reset / magic links
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
-- Client booking cancel/reschedule
 - Order creation
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
+- Guest booking claim / magic link
 - Redis, Celery, background workers
 
 Next slice: orders or payments per `MVP_PLAN.md` Phase 1.
@@ -347,6 +348,40 @@ curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/bookings/BOOKIN
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reason": "Client requested cancellation"}'
+```
+
+## Client self-service booking examples
+
+List your bookings (requires client user linked to bookings via `clients.user_id`):
+
+```bash
+curl http://localhost:8000/api/v1/me/bookings?status=upcoming \
+  -H "Authorization: Bearer CLIENT_TOKEN"
+```
+
+Get booking detail:
+
+```bash
+curl http://localhost:8000/api/v1/me/bookings/BOOKING_ID \
+  -H "Authorization: Bearer CLIENT_TOKEN"
+```
+
+Cancel your booking:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/me/bookings/BOOKING_ID/cancel \
+  -H "Authorization: Bearer CLIENT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Schedule conflict"}'
+```
+
+Reschedule your booking:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/me/bookings/BOOKING_ID/reschedule \
+  -H "Authorization: Bearer CLIENT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"starts_at": "2026-06-25T14:00:00-04:00"}'
 ```
 
 ## Tests and PostgreSQL

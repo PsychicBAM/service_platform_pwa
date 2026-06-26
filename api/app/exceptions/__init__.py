@@ -7,6 +7,7 @@ from app.exceptions.auth import (
     SlugAlreadyExistsError,
 )
 from app.exceptions.business import (
+    BookingCancelTooLateError,
     ForbiddenError,
     NotFoundError,
     PlanLimitExceededError,
@@ -18,6 +19,7 @@ from app.exceptions.business import (
 
 __all__ = [
     "AppError",
+    "BookingCancelTooLateError",
     "EmailAlreadyExistsError",
     "ForbiddenError",
     "InactiveUserError",

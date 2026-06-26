@@ -31,6 +31,11 @@ class SlotUnavailableError(AppError):
         super().__init__(message=message, code="SLOT_UNAVAILABLE", status_code=409)
 
 
+class BookingCancelTooLateError(AppError):
+    def __init__(self, message: str = "Cancellation or reschedule window has passed.") -> None:
+        super().__init__(message=message, code="BOOKING_CANCEL_TOO_LATE", status_code=400)
+
+
 class InvalidBookingStatusTransitionError(AppError):
     def __init__(self, message: str = "Invalid booking status transition.") -> None:
         super().__init__(

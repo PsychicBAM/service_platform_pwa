@@ -1,7 +1,8 @@
 import uuid
-from datetime import date, datetime
+from datetime import UTC, date, datetime
+from enum import Enum
 
-from sqlalchemy import cast, func, or_, select
+from sqlalchemy import and_, cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.types import Date
@@ -16,6 +17,16 @@ BLOCKING_BOOKING_STATUSES = (
     BookingStatus.pending_payment,
     BookingStatus.confirmed,
 )
+
+
+def _now_utc() -> datetime:
+    return datetime.now(UTC)
+
+
+class UserBookingStatusFilter(str, Enum):
+    upcoming = "upcoming"
+    past = "past"
+    cancelled = "cancelled"
 
 
 class BookingRepository:
@@ -49,6 +60,34 @@ class BookingRepository:
                     Booking.reference.ilike(term),
                 )
             )
+        return stmt
+
+    def _user_booking_filters(self, stmt, user_id: uuid.UUID, status_filter: UserBookingStatusFilter | None):
+        stmt = stmt.join(Booking.client).where(Client.user_id == user_id)
+        now = _now_utc()
+        if status_filter == UserBookingStatusFilter.upcoming:
+            stmt = stmt.where(
+                Booking.status.in_(
+                    (
+                        BookingStatus.pending,
+                        BookingStatus.pending_payment,
+                        BookingStatus.confirmed,
+                    )
+                ),
+                Booking.starts_at >= now,
+            )
+        elif status_filter == UserBookingStatusFilter.past:
+            stmt = stmt.where(
+                or_(
+                    Booking.status.in_((BookingStatus.completed, BookingStatus.no_show)),
+                    and_(
+                        Booking.starts_at < now,
+                        Booking.status != BookingStatus.cancelled,
+                    ),
+                )
+            )
+        elif status_filter == UserBookingStatusFilter.cancelled:
+            stmt = stmt.where(Booking.status == BookingStatus.cancelled)
         return stmt
 
     async def get_by_id(self, booking_id: uuid.UUID) -> Booking | None:
@@ -137,11 +176,62 @@ class BookingRepository:
         result = await self.session.execute(stmt)
         return int(result.scalar_one())
 
+    async def get_for_user(
+        self,
+        user_id: uuid.UUID,
+        booking_id: uuid.UUID,
+    ) -> Booking | None:
+        stmt = (
+            select(Booking)
+            .join(Booking.client)
+            .where(Client.user_id == user_id, Booking.id == booking_id)
+            .options(
+                selectinload(Booking.client),
+                selectinload(Booking.service),
+                selectinload(Booking.business),
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def list_for_user(
+        self,
+        user_id: uuid.UUID,
+        *,
+        status_filter: UserBookingStatusFilter | None = None,
+        page: int = 1,
+        limit: int = 20,
+    ) -> list[Booking]:
+        stmt = select(Booking).options(
+            selectinload(Booking.client),
+            selectinload(Booking.service),
+            selectinload(Booking.business),
+        )
+        stmt = self._user_booking_filters(stmt, user_id, status_filter)
+        stmt = stmt.order_by(Booking.starts_at.desc())
+        offset = max(page - 1, 0) * limit
+        stmt = stmt.offset(offset).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().unique().all())
+
+    async def count_for_user(
+        self,
+        user_id: uuid.UUID,
+        *,
+        status_filter: UserBookingStatusFilter | None = None,
+    ) -> int:
+        stmt = select(func.count()).select_from(Booking)
+        stmt = self._user_booking_filters(stmt, user_id, status_filter)
+        result = await self.session.execute(stmt)
+        return int(result.scalar_one())
+
     async def list_overlapping_bookings(
         self,
         business_id: uuid.UUID,
         starts_at: datetime,
         ends_at: datetime,
+        *,
+        exclude_booking_id: uuid.UUID | None = None,
     ) -> list[Booking]:
         stmt = select(Booking).where(
             Booking.business_id == business_id,
@@ -149,6 +239,8 @@ class BookingRepository:
             Booking.starts_at < ends_at,
             Booking.ends_at > starts_at,
         )
+        if exclude_booking_id is not None:
+            stmt = stmt.where(Booking.id != exclude_booking_id)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
@@ -157,11 +249,14 @@ class BookingRepository:
         business_id: uuid.UUID,
         starts_at: datetime,
         ends_at: datetime,
+        *,
+        exclude_booking_id: uuid.UUID | None = None,
     ) -> bool:
         overlapping = await self.list_overlapping_bookings(
             business_id,
             starts_at,
             ends_at,
+            exclude_booking_id=exclude_booking_id,
         )
         return len(overlapping) > 0
 
@@ -216,10 +311,37 @@ class BookingRepository:
         *,
         reason: str | None,
         cancelled_at: datetime,
+        cancelled_by: CancelledBy = CancelledBy.admin,
     ) -> Booking:
         booking.status = BookingStatus.cancelled
         booking.cancelled_at = cancelled_at
-        booking.cancelled_by = CancelledBy.admin
+        booking.cancelled_by = cancelled_by
         booking.cancellation_reason = reason
+        await self.session.flush()
+        return booking
+
+    async def cancel_by_client(
+        self,
+        booking: Booking,
+        *,
+        reason: str | None,
+        cancelled_at: datetime,
+    ) -> Booking:
+        return await self.cancel_booking(
+            booking,
+            reason=reason,
+            cancelled_at=cancelled_at,
+            cancelled_by=CancelledBy.client,
+        )
+
+    async def reschedule_by_client(
+        self,
+        booking: Booking,
+        *,
+        starts_at: datetime,
+        ends_at: datetime,
+    ) -> Booking:
+        booking.starts_at = starts_at
+        booking.ends_at = ends_at
         await self.session.flush()
         return booking

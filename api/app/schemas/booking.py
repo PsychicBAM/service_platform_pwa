@@ -211,3 +211,63 @@ class AdminBookingUpdate(BaseModel):
 
 class AdminBookingCancelRequest(BaseModel):
     reason: str | None = None
+
+
+class MyBookingBusinessSummary(BaseModel):
+    id: uuid.UUID
+    name: str
+    slug: str
+
+
+class MyBookingServiceSummary(BaseModel):
+    id: uuid.UUID
+    name: str
+
+
+class MyBookingListItem(BaseModel):
+    id: uuid.UUID
+    reference: str
+    status: BookingStatus
+    business: MyBookingBusinessSummary
+    service: MyBookingServiceSummary
+    starts_at: datetime
+    ends_at: datetime
+    can_cancel: bool
+    can_reschedule: bool
+
+
+class MyBookingDetail(BaseModel):
+    id: uuid.UUID
+    reference: str
+    status: BookingStatus
+    business: MyBookingBusinessSummary
+    service: MyBookingServiceSummary
+    starts_at: datetime
+    ends_at: datetime
+    client_notes: str | None
+    cancelled_at: datetime | None
+    cancelled_by: str | None
+    cancellation_reason: str | None
+    can_cancel: bool
+    can_reschedule: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class ClientBookingCancelRequest(BaseModel):
+    reason: str | None = None
+
+
+class ClientBookingRescheduleRequest(BaseModel):
+    starts_at: datetime
+
+
+class ClientBookingListMeta(BaseModel):
+    page: int
+    limit: int
+    total: int
+
+
+class ClientBookingListResponse(BaseModel):
+    data: list[MyBookingListItem]
+    meta: ClientBookingListMeta
