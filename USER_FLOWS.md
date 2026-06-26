@@ -86,7 +86,7 @@ flowchart TD
 3. **Time picker** — grid of available slots; greyed = unavailable.
 4. **Review** — summary card + optional notes field.
 5. **Payment** (if `service.price > 0` and `require_payment: true`) → Stripe Checkout.
-6. **Confirm** — POST booking → status `pending` or `confirmed` (based on `auto_confirm` setting).
+6. **Confirm** — POST booking → status `pending`, `pending_payment` (if checkout required), or `confirmed` (based on `auto_confirm_bookings` business setting).
 7. **Confirmation screen** — reference number, add to calendar link (ICS post-MVP), link to "My bookings".
 
 **Validation:**
@@ -157,7 +157,7 @@ flowchart TD
 4. Tap card → **booking detail**: full info, cancel/reschedule buttons (if allowed).
 
 **States shown:**
-- `pending`, `confirmed`, `completed`, `cancelled`, `no_show`
+- `pending`, `pending_payment`, `confirmed`, `completed`, `cancelled`, `no_show`
 
 ---
 
@@ -170,7 +170,7 @@ flowchart TD
 4. Tap card → **order detail** + message thread.
 
 **States shown:**
-- `submitted`, `accepted`, `in_progress`, `completed`, `declined`, `cancelled`
+- `submitted`, `pending_payment`, `accepted`, `in_progress`, `completed`, `declined`, `cancelled`
 
 ---
 
@@ -244,7 +244,7 @@ flowchart TD
 1. Admin → **Services** → **Add service**.
 2. Choose type: **Booking** or **Order** (cannot change after creation).
 3. Fill: name, description, duration (booking only), price, price type (order: fixed/quote).
-4. Options: active/inactive, require payment, auto-confirm bookings.
+4. Options: active/inactive, require payment. (Auto-confirm is a **business** setting in `settings.auto_confirm_bookings`, not per-service.)
 5. Save → service appears in client catalog.
 
 **Validation:**

@@ -89,7 +89,13 @@ Tenant root entity.
   "slot_interval_minutes": 30,
   "booking_buffer_minutes": 0,
   "require_payment_default": false,
-  "notification_email_enabled": true
+  "notification_email_enabled": true,
+  "notification_settings": {
+    "booking_created": true,
+    "order_submitted": true,
+    "order_message": true,
+    "payment_succeeded": true
+  }
 }
 ```
 
@@ -173,6 +179,12 @@ End-customer record per business (CRM).
 ```
 
 **Status values:** `is_active` true/false (no separate status enum)
+
+**Type constraints:**
+| type | duration_minutes | availability / schedule | creates | messaging |
+|------|------------------|-------------------------|---------|-----------|
+| `booking` | required | uses `working_hours`, breaks, `unavailable_times` | `bookings` | none (MVP) |
+| `order` | must be null | none | `orders` | `order_messages` thread |
 
 ---
 
@@ -459,3 +471,39 @@ Store counters on `subscriptions` or compute with COUNT for period (prefer count
 - Services: `is_active = false` instead of delete.
 - Clients: retain; archive post-MVP.
 - Businesses: `status = suspended` instead of delete.
+
+---
+
+## Tenant Isolation & Security
+
+### business_id scoping
+
+Every tenant-scoped table **must** include `business_id` and every query **must** filter by it:
+
+| Table | business_id |
+|-------|-------------|
+| business_members | ✓ |
+| clients | ✓ |
+| services | ✓ |
+| bookings | ✓ |
+| orders | ✓ |
+| order_messages | ✓ (denormalized) |
+| payments | ✓ |
+| working_hours | ✓ |
+| working_breaks | ✓ |
+| unavailable_times | ✓ |
+| notifications | ✓ (nullable only for platform-wide superadmin notices) |
+
+**Global tables (no business_id):** `users`, `audit_logs` (business_id nullable for platform actions).
+
+### Access rules
+
+| Role | Scope |
+|------|-------|
+| **Client** | Own `bookings` and `orders` only (via `user_id` → `clients` → records); cannot read other clients' data |
+| **Business admin** | All data where `business_id` matches a `business_members` row for that user; **cannot** access another business |
+| **Superadmin** | Cross-tenant read/write for platform ops; **every action** written to `audit_logs` |
+
+### Public data exposure
+
+Public endpoints (`/public/b/{slug}/...`) may return only: business profile fields, active services (no `admin_notes`), availability slots, and schedule summary. Never expose client PII, payment IDs, or internal notes.

@@ -407,7 +407,7 @@ Notation: `[Button]`, `(input)`, `*` = required, `---` = divider.
 │ ┌─────────────────────────────┐ │
 │ │ 16:00 · Pending             │ │
 │ │ Consultation · Dana         │ │
-│ │ [Confirm] [Decline]      →  │ │
+│ │ [Confirm] [Cancel]       →  │ │
 │ └─────────────────────────────┘ │
 │                                 │
 ├─────────────────────────────────┤
@@ -538,7 +538,7 @@ Notation: `[Button]`, `(input)`, `*` = required, `---` = divider.
 │ Schedule & hours            →   │
 │ Payments (Stripe)           →   │
 │ Notifications               →   │
-│ Team members                →   │
+│ Team members (post-MVP)     →   │
 │ Plan & billing              →   │
 │ ─────────────────────────────   │
 │ Account & password          →   │

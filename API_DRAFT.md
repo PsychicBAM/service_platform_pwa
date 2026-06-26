@@ -19,6 +19,24 @@ REST API v1. Base URL: `https://api.example.com/v1`
 
 `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION_ERROR`, `CONFLICT`, `PLAN_LIMIT_EXCEEDED`, `SLOT_UNAVAILABLE`, `PAYMENT_REQUIRED`
 
+### Security & Access Control
+
+| Rule | Implementation |
+|------|----------------|
+| Tenant isolation | All business-scoped routes verify `business_id` via `business_members` membership |
+| Admin cross-tenant | Admin requests for a `business_id` the user does not belong to → `403 FORBIDDEN` |
+| Client data scope | `/me/*` routes return only records linked to the authenticated user's `clients` rows |
+| Superadmin audit | All `PATCH /superadmin/*` mutations append to `audit_logs` |
+| Public endpoints | `/public/b/{slug}/*` — no auth; expose only safe fields (no client PII, admin notes, or Stripe IDs) |
+| Guest clients | Public booking/order may create `clients` with `user_id: null`; messages use session/token binding post-create |
+
+### Payments (MVP rules)
+
+- **Stripe Checkout only** — no in-app card form (no Stripe Elements).
+- Each payment links to exactly one `booking_id` **or** `order_id`.
+- `POST /webhooks/stripe` must be **idempotent** (store processed event IDs; ignore duplicates).
+- Refunds: processed in Stripe dashboard only in MVP; no refund API or admin refund UI.
+
 ---
 
 ## Auth
@@ -259,6 +277,38 @@ REST API v1. Base URL: `https://api.example.com/v1`
 
 ---
 
+### GET /public/b/{slug}/services/{serviceId}
+
+**Purpose:** Public service detail for booking or order flow entry (MC3, MC4).
+
+**Response `200`:**
+```json
+{
+  "id": "s1...",
+  "name": "Haircut",
+  "type": "booking",
+  "description": "Classic cut and style",
+  "duration_minutes": 30,
+  "price_cents": 2500,
+  "currency": "USD",
+  "price_type": "fixed",
+  "require_payment": true,
+  "metadata": null
+}
+```
+
+For `type: order`, `metadata` includes `form_fields` for the order form.
+
+---
+
+### GET /businesses/{businessId}/services/{serviceId}
+
+**Purpose:** Admin get single service (edit form).
+
+**Response `200`:** Full service object including `is_active`, `metadata`, `sort_order`.
+
+---
+
 ### GET /businesses/{businessId}/services
 
 **Purpose:** Admin list all services including inactive.
@@ -385,6 +435,13 @@ REST API v1. Base URL: `https://api.example.com/v1`
 
 **Query:** `?status=upcoming|past|cancelled`
 
+**Status filter mapping:**
+| Filter | Includes booking statuses |
+|--------|---------------------------|
+| `upcoming` | `pending`, `pending_payment`, `confirmed` (future `starts_at`) |
+| `past` | `completed`, `no_show`, `confirmed` (past `starts_at`) |
+| `cancelled` | `cancelled` |
+
 **Response `200`:**
 ```json
 {
@@ -495,6 +552,14 @@ REST API v1. Base URL: `https://api.example.com/v1`
 
 ---
 
+### GET /businesses/{businessId}/bookings/{bookingId}
+
+**Purpose:** Admin booking detail (MA2, DA3 tap-through).
+
+**Response `200`:** Full booking with client contact, service, status, notes, and action eligibility flags.
+
+---
+
 ## Orders
 
 ### POST /public/b/{slug}/orders
@@ -535,6 +600,13 @@ REST API v1. Base URL: `https://api.example.com/v1`
 **Purpose:** Client's orders.
 
 **Query:** `?status=active|completed|declined`
+
+**Status filter mapping:**
+| Filter | Includes order statuses |
+|--------|-------------------------|
+| `active` | `submitted`, `pending_payment`, `accepted`, `in_progress` |
+| `completed` | `completed`, `cancelled` |
+| `declined` | `declined` |
 
 **Response `200`:** Paginated order list.
 
@@ -717,6 +789,26 @@ REST API v1. Base URL: `https://api.example.com/v1`
 **Query:** `?status=succeeded&date_from=2026-06-01`
 
 **Response `200`:** Paginated payments.
+
+---
+
+### GET /payments/checkout/verify
+
+**Purpose:** Verify Stripe Checkout session after client redirect (`/payment/success?session_id=...`).
+
+**Query:** `?session_id=cs_...`
+
+**Response `200`:**
+```json
+{
+  "payment_id": "pay1...",
+  "status": "succeeded",
+  "booking_id": "bk1...",
+  "order_id": null
+}
+```
+
+Returns `202` if webhook not yet processed (client may poll).
 
 ---
 

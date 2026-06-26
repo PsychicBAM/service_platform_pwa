@@ -35,7 +35,7 @@ Establish API foundation, database, auth, and core CRUD with no payment or notif
 | 1.5 | Services CRUD with booking/order type enforcement |
 | 1.6 | Schedule CRUD (working hours, breaks, unavailable times) |
 | 1.7 | Slot availability engine (`GET .../availability`) |
-| 1.8 | Bookings CRUD + overlap prevention (transactional) |
+| 1.8 | Bookings CRUD + overlap prevention (transactional); include `GET .../bookings/{bookingId}` |
 | 1.9 | Orders CRUD + order messages |
 | 1.10 | Clients auto-create on booking/order |
 | 1.11 | Plan limit middleware (hard checks on Free/Starter) |
@@ -44,6 +44,7 @@ Establish API foundation, database, auth, and core CRUD with no payment or notif
 | 1.14 | OpenAPI/Swagger spec generated from routes |
 | 1.15 | Docker Compose for local dev (API + Postgres) |
 | 1.16 | Seed script: demo business with services + schedule |
+| 1.17 | Public service detail: `GET /public/b/{slug}/services/{serviceId}` |
 
 ### Tests
 
@@ -166,10 +167,12 @@ Business admin dashboard on mobile and desktop to operate bookings, orders, serv
 | 3.6 | Services CRUD — MA4, DA2 |
 | 3.7 | Clients list + profile — MA5, DA5 |
 | 3.8 | Schedule editor — DA7 |
-| 3.9 | Settings pages — MA7, DA8 |
+| 3.9 | Settings pages — MA7, DA8 (team members UI hidden until post-MVP) |
 | 3.10 | Manual booking creation form |
 | 3.11 | Plan usage banner + upgrade CTA |
 | 3.12 | Desktop breakpoints ≥ 1024px for tables |
+
+**Post-MVP stretch (Phase 3):** week calendar view on desktop (USER_FLOWS A2); team member invite UI (Business plan+).
 
 ### Tests
 

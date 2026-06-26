@@ -83,7 +83,7 @@ Services are explicitly tagged as `booking` or `order` type — never both on th
 - Full control over their business tenant
 - Manages services, schedule, bookings, orders, clients
 - Accepts/declines orders, updates statuses
-- Views and refunds payments (within plan limits)
+- Views payments (refunds via Stripe dashboard in MVP; refund UI post-MVP)
 - Configures business settings, notifications, operating mode
 - Invites staff members (Business plan+)
 
@@ -111,7 +111,7 @@ Services are explicitly tagged as `booking` or `order` type — never both on th
 - Service catalog filtered to `type: booking`
 - Calendar date picker respecting working hours, breaks, unavailable blocks
 - Time slot generation based on service duration + buffer
-- Booking lifecycle: `pending` → `confirmed` → `completed` / `cancelled` / `no_show`
+- Booking lifecycle: `pending` / `pending_payment` → `confirmed` → `completed` / `cancelled` / `no_show`
 - Client self-service cancel/reschedule within policy window
 - Admin manual create/edit/cancel bookings
 - Optional deposit or full prepayment at booking time
@@ -129,7 +129,7 @@ Services are explicitly tagged as `booking` or `order` type — never both on th
 **Capabilities:**
 - Service catalog filtered to `type: order`
 - Custom fields per service (text, number, select, file upload post-MVP)
-- Order lifecycle: `submitted` → `accepted` / `declined` → `in_progress` → `completed` / `cancelled`
+- Order lifecycle: `submitted` / `pending_payment` → `accepted` / `declined` → `in_progress` → `completed` / `cancelled`
 - Threaded messaging between client and admin per order
 - Optional quoted price before payment
 - Admin can convert accepted order to booking (post-MVP)
@@ -318,9 +318,11 @@ Subscription per business. Billed monthly. Annual discount (post-MVP).
 
 | Term | Definition |
 |------|------------|
-| **Booking** | Time-bound appointment tied to a calendar slot |
-| **Order** | Async service request without scheduled time |
-| **Service** | Something a business offers; either booking or order type |
-| **Client** | End customer of a business (may or may not have login) |
-| **Tenant** | A business account on the platform |
+| **Booking** | Time-bound appointment tied to a calendar slot (entity/API name; UI may say "appointment") |
+| **Order** | Async service request without scheduled time (entity/API name; UI may say "request") |
+| **Service** | Something a business offers; either `booking` or `order` type |
+| **Client** | End customer of a business (may or may not have login); always **client**, never "customer" in code |
+| **Business** | A tenant account on the platform (`businesses` table); **tenant** is an alias in architecture docs |
 | **Slot** | Available time window for a booking service |
+| **price_type** | Service pricing mode: `fixed`, `free`, or `quote` (not `price_mode`) |
+| **operating_mode** | Business mode: `booking_only`, `orders_only`, or `both` |
