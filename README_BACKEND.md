@@ -25,7 +25,7 @@ api/
     config.py        # Pydantic settings
     database.py      # Async engine, Base, get_db
     routers/         # Route modules (health only for now)
-    models/          # SQLAlchemy models (empty scaffold)
+    models/          # SQLAlchemy ORM models (core tenant tables)
     schemas/         # Pydantic request/response models
     repositories/    # Data access (later)
     services/        # Business logic (later)
@@ -109,19 +109,42 @@ alembic upgrade head
 alembic revision --autogenerate -m "describe change"
 ```
 
-Initial migration `0001_initial_empty` is a placeholder. Business tables will be added in later revisions per `DATA_MODEL_DRAFT.md`.
+Initial migration `0001_initial_empty` is a placeholder. Core tenant tables are in `0002_core_tenant_models`.
 
-## Not implemented in this step
+```bash
+# From project root (Docker)
+docker compose exec api alembic upgrade head
 
-- Auth logic (JWT wiring only in settings)
-- Business domain models (users, businesses, services, …)
-- Bookings and orders
+# From api/ with local Postgres
+cd api
+alembic upgrade head
+alembic revision --autogenerate -m "describe change"
+```
+
+## Current implementation status
+
+### Completed
+
+- FastAPI skeleton
+- Health endpoints (`/health`, `/api/v1/health`)
+- PostgreSQL via Docker Compose
+- Alembic configured
+- Core tenant models: `users`, `businesses`, `business_members`, `subscriptions`
+- Migration `0002_core_tenant_models.py`
+- Minimal read schemas: `UserRead`, `BusinessRead`, `SubscriptionRead`
+
+### Not implemented
+
+- Auth endpoints (register/login/JWT)
+- Services, bookings, orders, clients
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
 - Redis, Celery, background workers
 
-Next slices: auth + `users` / `businesses` tables, then services and schedule per `MVP_PLAN.md` Phase 1.
+Next slice: auth routes and user registration per `MVP_PLAN.md` Phase 1.
+
+## Previously documented — not implemented in skeleton
 
 ## API prefix
 

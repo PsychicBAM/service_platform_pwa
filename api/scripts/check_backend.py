@@ -31,6 +31,18 @@ def main() -> int:
         errors.append(f"import app.main failed: {exc}")
         return 1
 
+    print("==> Importing core models ...")
+    try:
+        from app.database import Base
+        import app.models  # noqa: F401
+
+        required_tables = {"users", "businesses", "business_members", "subscriptions"}
+        missing = required_tables - set(Base.metadata.tables.keys())
+        if missing:
+            errors.append(f"missing tables in metadata: {sorted(missing)}")
+    except Exception as exc:  # pragma: no cover - diagnostic script
+        errors.append(f"model import failed: {exc}")
+
     print("==> Checking required files ...")
     if not alembic_ini.is_file():
         errors.append("alembic.ini not found")
