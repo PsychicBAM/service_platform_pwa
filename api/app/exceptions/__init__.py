@@ -10,6 +10,7 @@ from app.exceptions.business import (
     ForbiddenError,
     NotFoundError,
     PlanLimitExceededError,
+    ServiceNotBookableError,
     ValidationAppError,
 )
 
@@ -22,6 +23,7 @@ __all__ = [
     "InvalidTokenError",
     "NotFoundError",
     "PlanLimitExceededError",
+    "ServiceNotBookableError",
     "SlugAlreadyExistsError",
     "ValidationAppError",
 ]

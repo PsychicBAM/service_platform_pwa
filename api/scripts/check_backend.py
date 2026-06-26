@@ -36,7 +36,16 @@ def main() -> int:
         from app.database import Base
         import app.models  # noqa: F401
 
-        required_tables = {"users", "businesses", "business_members", "subscriptions", "services"}
+        required_tables = {
+            "users",
+            "businesses",
+            "business_members",
+            "subscriptions",
+            "services",
+            "working_hours",
+            "working_breaks",
+            "unavailable_times",
+        }
         missing = required_tables - set(Base.metadata.tables.keys())
         if missing:
             errors.append(f"missing tables in metadata: {sorted(missing)}")
@@ -56,6 +65,10 @@ def main() -> int:
             errors.append("/api/v1/businesses/{business_id}/services missing from OpenAPI")
         if "/api/v1/public/b/{slug}/services" not in paths:
             errors.append("/api/v1/public/b/{slug}/services missing from OpenAPI")
+        if "/api/v1/businesses/{business_id}/schedule" not in paths:
+            errors.append("/api/v1/businesses/{business_id}/schedule missing from OpenAPI")
+        if "/api/v1/public/b/{slug}/availability" not in paths:
+            errors.append("/api/v1/public/b/{slug}/availability missing from OpenAPI")
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"OpenAPI auth check failed: {exc}")
 

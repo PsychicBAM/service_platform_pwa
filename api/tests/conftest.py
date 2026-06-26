@@ -43,6 +43,9 @@ async def db_session(db_engine):
 @pytest_asyncio.fixture
 async def clean_auth_tables(db_session):
     yield
+    await db_session.execute(text("DELETE FROM unavailable_times"))
+    await db_session.execute(text("DELETE FROM working_breaks"))
+    await db_session.execute(text("DELETE FROM working_hours"))
     await db_session.execute(text("DELETE FROM services"))
     await db_session.execute(text("DELETE FROM subscriptions"))
     await db_session.execute(text("DELETE FROM business_members"))
@@ -113,3 +116,32 @@ ORDER_SERVICE_PAYLOAD = {
     "currency": "USD",
     "price_type": "fixed",
 }
+
+
+def weekday_working_hours_payload() -> dict:
+    hours = []
+    for day in range(7):
+        is_open = day in (1, 2, 3, 4, 5)
+        hours.append(
+            {
+                "day_of_week": day,
+                "is_open": is_open,
+                "opens_at": "09:00" if is_open else None,
+                "closes_at": "17:00" if is_open else None,
+            }
+        )
+    return {"working_hours": hours}
+
+
+async def activate_business(db_session, slug: str) -> None:
+    from sqlalchemy import update
+
+    from app.models.business import Business
+    from app.models.enums import BusinessStatus
+
+    await db_session.execute(
+        update(Business)
+        .where(Business.slug == slug)
+        .values(status=BusinessStatus.active)
+    )
+    await db_session.commit()

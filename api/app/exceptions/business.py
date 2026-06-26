@@ -19,3 +19,8 @@ class PlanLimitExceededError(AppError):
 class ValidationAppError(AppError):
     def __init__(self, message: str) -> None:
         super().__init__(message=message, code="VALIDATION_ERROR", status_code=400)
+
+
+class ServiceNotBookableError(AppError):
+    def __init__(self, message: str = "Service is not bookable.") -> None:
+        super().__init__(message=message, code="SERVICE_NOT_BOOKABLE", status_code=400)

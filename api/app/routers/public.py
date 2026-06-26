@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +8,9 @@ from app.database import get_db
 from app.dependencies.business import get_active_business_by_slug
 from app.models.business import Business
 from app.models.enums import ServiceType
+from app.schemas.schedule import AvailabilityResponse
 from app.schemas.service import PublicServiceRead
+from app.services.availability_service import AvailabilityService
 from app.services.service_service import ServiceService
 
 router = APIRouter(prefix="/public/b", tags=["public"])
@@ -37,3 +40,20 @@ async def get_public_service(
         raise ValueError("slug mismatch")  # pragma: no cover
     service = await ServiceService(db).get_public(business, service_id)
     return PublicServiceRead.from_service(service)
+
+
+@router.get("/{slug}/availability", response_model=AvailabilityResponse)
+async def get_availability(
+    slug: str,
+    service_id: uuid.UUID = Query(...),
+    date: date = Query(..., alias="date"),
+    business: Business = Depends(get_active_business_by_slug),
+    db: AsyncSession = Depends(get_db),
+) -> AvailabilityResponse:
+    if business.slug != slug.lower():
+        raise ValueError("slug mismatch")  # pragma: no cover
+    return await AvailabilityService(db).get_availability_for_service_id(
+        business,
+        service_id,
+        date,
+    )

@@ -110,7 +110,7 @@ alembic upgrade head
 alembic revision --autogenerate -m "describe change"
 ```
 
-Initial migration `0001_initial_empty` is a placeholder. Core tenant tables are in `0002_core_tenant_models`. Services table is in `0003_services`.
+Initial migration `0001_initial_empty` is a placeholder. Core tenant tables are in `0002_core_tenant_models`. Services table is in `0003_services`. Schedule tables are in `0004_schedule`.
 
 ```bash
 # From project root (Docker)
@@ -139,6 +139,9 @@ alembic revision --autogenerate -m "describe change"
 - **Public service catalog** (`/api/v1/public/b/{slug}/services`)
 - Free plan service limit (max 3 services)
 - Migration `0003_services.py`
+- **Schedule CRUD** (working hours, breaks, unavailable times)
+- **Availability foundation** (`/api/v1/public/b/{slug}/availability`)
+- Migration `0004_schedule.py`
 
 ### Not implemented
 
@@ -147,7 +150,6 @@ alembic revision --autogenerate -m "describe change"
 - Auth logout (refresh token revocation)
 - Booking creation
 - Order creation
-- Availability / scheduling
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
@@ -239,6 +241,55 @@ List public services for an active business:
 ```bash
 curl http://localhost:8000/api/v1/public/b/joes-salon/services
 curl "http://localhost:8000/api/v1/public/b/joes-salon/services?type=booking"
+```
+
+## Schedule and availability API examples
+
+Replace working hours:
+
+```bash
+curl -X PUT http://localhost:8000/api/v1/businesses/BUSINESS_ID/schedule/working-hours \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "working_hours": [
+      {"day_of_week": 0, "is_open": false},
+      {"day_of_week": 1, "is_open": true, "opens_at": "09:00", "closes_at": "17:00"},
+      {"day_of_week": 2, "is_open": true, "opens_at": "09:00", "closes_at": "17:00"},
+      {"day_of_week": 3, "is_open": true, "opens_at": "09:00", "closes_at": "17:00"},
+      {"day_of_week": 4, "is_open": true, "opens_at": "09:00", "closes_at": "17:00"},
+      {"day_of_week": 5, "is_open": true, "opens_at": "09:00", "closes_at": "17:00"},
+      {"day_of_week": 6, "is_open": false}
+    ]
+  }'
+```
+
+Add a lunch break:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/schedule/breaks \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"label": "Lunch", "day_of_week": 1, "starts_at": "12:00", "ends_at": "13:00"}'
+```
+
+Add unavailable time:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/schedule/unavailable-times \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "starts_at": "2026-06-25T10:00:00-04:00",
+    "ends_at": "2026-06-25T11:00:00-04:00",
+    "reason": "Staff meeting"
+  }'
+```
+
+Get availability for a booking service (business must be active):
+
+```bash
+curl "http://localhost:8000/api/v1/public/b/joes-salon/availability?service_id=SERVICE_ID&date=2026-06-25"
 ```
 
 ## Tests and PostgreSQL

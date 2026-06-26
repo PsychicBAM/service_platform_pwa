@@ -60,3 +60,12 @@ class Business(Base, TimestampMixin):
     services: Mapped[list["Service"]] = relationship(
         back_populates="business",
     )
+    working_hours: Mapped[list["WorkingHour"]] = relationship(
+        back_populates="business",
+    )
+    working_breaks: Mapped[list["WorkingBreak"]] = relationship(
+        back_populates="business",
+    )
+    unavailable_times: Mapped[list["UnavailableTime"]] = relationship(
+        back_populates="business",
+    )
