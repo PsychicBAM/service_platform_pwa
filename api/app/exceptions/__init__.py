@@ -12,6 +12,7 @@ from app.exceptions.business import (
     PlanLimitExceededError,
     ServiceNotBookableError,
     SlotUnavailableError,
+    InvalidBookingStatusTransitionError,
     ValidationAppError,
 )
 
@@ -20,6 +21,7 @@ __all__ = [
     "EmailAlreadyExistsError",
     "ForbiddenError",
     "InactiveUserError",
+    "InvalidBookingStatusTransitionError",
     "InvalidCredentialsError",
     "InvalidTokenError",
     "NotFoundError",

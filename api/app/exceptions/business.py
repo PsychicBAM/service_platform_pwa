@@ -29,3 +29,12 @@ class ServiceNotBookableError(AppError):
 class SlotUnavailableError(AppError):
     def __init__(self, message: str = "Requested slot is not available.") -> None:
         super().__init__(message=message, code="SLOT_UNAVAILABLE", status_code=409)
+
+
+class InvalidBookingStatusTransitionError(AppError):
+    def __init__(self, message: str = "Invalid booking status transition.") -> None:
+        super().__init__(
+            message=message,
+            code="INVALID_BOOKING_STATUS_TRANSITION",
+            status_code=400,
+        )

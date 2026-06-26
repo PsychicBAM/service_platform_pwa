@@ -146,20 +146,22 @@ alembic revision --autogenerate -m "describe change"
 - **Availability blocks existing bookings** (pending, pending_payment, confirmed)
 - Migration `0005_clients_bookings.py`
 - **Public booking creation** (`POST /api/v1/public/b/{slug}/bookings`)
+- **Admin booking management** (list, detail, status update, cancel)
 
 ### Not implemented
 
 - Email verification
 - Password reset / magic links
 - Auth logout (refresh token revocation)
-- Admin booking CRUD
+- Admin manual booking creation
+- Client booking cancel/reschedule
 - Order creation
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
 - Redis, Celery, background workers
 
-Next slice: admin booking management per `MVP_PLAN.md` Phase 1.
+Next slice: orders or payments per `MVP_PLAN.md` Phase 1.
 
 ## Auth API examples
 
@@ -311,6 +313,40 @@ curl -X POST http://localhost:8000/api/v1/public/b/joes-salon/bookings \
       "phone": "+15550101"
     }
   }'
+```
+
+## Admin booking API examples
+
+List bookings (replace `TOKEN` and `BUSINESS_ID`):
+
+```bash
+curl "http://localhost:8000/api/v1/businesses/BUSINESS_ID/bookings?page=1&limit=20" \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Get booking detail:
+
+```bash
+curl http://localhost:8000/api/v1/businesses/BUSINESS_ID/bookings/BOOKING_ID \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Confirm a pending booking:
+
+```bash
+curl -X PATCH http://localhost:8000/api/v1/businesses/BUSINESS_ID/bookings/BOOKING_ID \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "confirmed"}'
+```
+
+Cancel a booking:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/bookings/BOOKING_ID/cancel \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Client requested cancellation"}'
 ```
 
 ## Tests and PostgreSQL

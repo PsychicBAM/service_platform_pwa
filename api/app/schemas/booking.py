@@ -103,3 +103,111 @@ class PublicBookingCreateResponse(BaseModel):
             payment_required=False,
             payment=None,
         )
+
+
+class BookingClientSummary(BaseModel):
+    id: uuid.UUID
+    full_name: str
+    email: str | None
+    phone: str | None
+
+
+class BookingServiceSummary(BaseModel):
+    id: uuid.UUID
+    name: str
+    type: ServiceType
+    duration_minutes: int | None
+
+
+class AdminBookingRead(BaseModel):
+    id: uuid.UUID
+    business_id: uuid.UUID
+    reference: str
+    status: BookingStatus
+    starts_at: datetime
+    ends_at: datetime
+    client_notes: str | None
+    admin_notes: str | None
+    cancelled_at: datetime | None
+    cancelled_by: str | None
+    cancellation_reason: str | None
+    service: BookingServiceSummary
+    client: BookingClientSummary
+    created_at: datetime
+    updated_at: datetime
+
+    @classmethod
+    def from_booking(cls, booking) -> "AdminBookingRead":
+        return cls(
+            id=booking.id,
+            business_id=booking.business_id,
+            reference=booking.reference,
+            status=booking.status,
+            starts_at=booking.starts_at,
+            ends_at=booking.ends_at,
+            client_notes=booking.client_notes,
+            admin_notes=booking.admin_notes,
+            cancelled_at=booking.cancelled_at,
+            cancelled_by=booking.cancelled_by.value if booking.cancelled_by else None,
+            cancellation_reason=booking.cancellation_reason,
+            service=BookingServiceSummary(
+                id=booking.service.id,
+                name=booking.service.name,
+                type=booking.service.type,
+                duration_minutes=booking.service.duration_minutes,
+            ),
+            client=BookingClientSummary(
+                id=booking.client.id,
+                full_name=booking.client.full_name,
+                email=booking.client.email,
+                phone=booking.client.phone,
+            ),
+            created_at=booking.created_at,
+            updated_at=booking.updated_at,
+        )
+
+
+class AdminBookingListItem(BaseModel):
+    id: uuid.UUID
+    reference: str
+    status: BookingStatus
+    starts_at: datetime
+    ends_at: datetime
+    service_name: str
+    client_name: str
+    client_email: str | None
+    client_phone: str | None
+
+    @classmethod
+    def from_booking(cls, booking) -> "AdminBookingListItem":
+        return cls(
+            id=booking.id,
+            reference=booking.reference,
+            status=booking.status,
+            starts_at=booking.starts_at,
+            ends_at=booking.ends_at,
+            service_name=booking.service.name,
+            client_name=booking.client.full_name,
+            client_email=booking.client.email,
+            client_phone=booking.client.phone,
+        )
+
+
+class AdminBookingListMeta(BaseModel):
+    page: int
+    limit: int
+    total: int
+
+
+class AdminBookingListResponse(BaseModel):
+    data: list[AdminBookingListItem]
+    meta: AdminBookingListMeta
+
+
+class AdminBookingUpdate(BaseModel):
+    status: BookingStatus | None = None
+    admin_notes: str | None = None
+
+
+class AdminBookingCancelRequest(BaseModel):
+    reason: str | None = None
