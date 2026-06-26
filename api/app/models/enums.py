@@ -39,3 +39,14 @@ class SubscriptionStatus(str, enum.Enum):
     past_due = "past_due"
     cancelled = "cancelled"
     trialing = "trialing"
+
+
+class ServiceType(str, enum.Enum):
+    booking = "booking"
+    order = "order"
+
+
+class PriceType(str, enum.Enum):
+    fixed = "fixed"
+    free = "free"
+    quote = "quote"

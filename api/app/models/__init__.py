@@ -6,10 +6,13 @@ from app.models.enums import (
     BusinessMemberRole,
     BusinessStatus,
     OperatingMode,
+    PriceType,
+    ServiceType,
     SubscriptionPlan,
     SubscriptionStatus,
     UserRole,
 )
+from app.models.service import Service
 from app.models.subscription import Subscription
 from app.models.user import User
 
@@ -19,6 +22,9 @@ __all__ = [
     "BusinessMemberRole",
     "BusinessStatus",
     "OperatingMode",
+    "PriceType",
+    "Service",
+    "ServiceType",
     "Subscription",
     "SubscriptionPlan",
     "SubscriptionStatus",

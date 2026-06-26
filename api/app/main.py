@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import get_settings
 from app.exceptions.auth import AppError
-from app.routers import auth, health
+from app.routers import auth, health, public, services
 
 settings = get_settings()
 
@@ -36,3 +36,5 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(health.router, prefix=settings.api_v1_prefix)
 app.include_router(auth.router, prefix=settings.api_v1_prefix)
+app.include_router(services.router, prefix=settings.api_v1_prefix)
+app.include_router(public.router, prefix=settings.api_v1_prefix)

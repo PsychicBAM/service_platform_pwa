@@ -24,12 +24,12 @@ api/
     main.py          # FastAPI app entry
     config.py        # Pydantic settings
     database.py      # Async engine, Base, get_db
-    routers/         # health, auth
-    dependencies/    # auth guards
-    models/          # SQLAlchemy ORM models (core tenant tables)
+    routers/         # health, auth, services, public
+    dependencies/    # auth and business guards
+    models/          # SQLAlchemy ORM models (core tenant + services)
     schemas/         # Pydantic request/response models
-    repositories/    # Data access (later)
-    services/        # Business logic (later)
+    repositories/    # Data access
+    services/        # Business logic
   alembic/           # Migrations
   tests/
   scripts/check_backend.py
@@ -110,7 +110,7 @@ alembic upgrade head
 alembic revision --autogenerate -m "describe change"
 ```
 
-Initial migration `0001_initial_empty` is a placeholder. Core tenant tables are in `0002_core_tenant_models`.
+Initial migration `0001_initial_empty` is a placeholder. Core tenant tables are in `0002_core_tenant_models`. Services table is in `0003_services`.
 
 ```bash
 # From project root (Docker)
@@ -135,19 +135,25 @@ alembic revision --autogenerate -m "describe change"
 - Minimal read schemas: `UserRead`, `BusinessRead`, `SubscriptionRead`
 - **Auth foundation:** register business owner, login, refresh, `/auth/me`
 - Password hashing (bcrypt), JWT access/refresh tokens
+- **Services CRUD** for business admins (`/api/v1/businesses/{businessId}/services`)
+- **Public service catalog** (`/api/v1/public/b/{slug}/services`)
+- Free plan service limit (max 3 services)
+- Migration `0003_services.py`
 
 ### Not implemented
 
 - Email verification
 - Password reset / magic links
 - Auth logout (refresh token revocation)
-- Services, bookings, orders, clients
+- Booking creation
+- Order creation
+- Availability / scheduling
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
 - Redis, Celery, background workers
 
-Next slice: services CRUD and public business catalog per `MVP_PLAN.md` Phase 1.
+Next slice: booking and order creation per `MVP_PLAN.md` Phase 1.
 
 ## Auth API examples
 
@@ -191,6 +197,48 @@ Refresh access token:
 curl -X POST http://localhost:8000/api/v1/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{"refresh_token": "REFRESH_TOKEN"}'
+```
+
+## Services API examples
+
+Create a booking service (replace `TOKEN` and `BUSINESS_ID`):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/services \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Haircut",
+    "description": "Standard haircut",
+    "type": "booking",
+    "duration_minutes": 30,
+    "price_cents": 2500,
+    "currency": "USD",
+    "price_type": "fixed"
+  }'
+```
+
+Create an order service:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/services \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Logo Design",
+    "description": "Custom logo package",
+    "type": "order",
+    "price_cents": 15000,
+    "currency": "USD",
+    "price_type": "fixed"
+  }'
+```
+
+List public services for an active business:
+
+```bash
+curl http://localhost:8000/api/v1/public/b/joes-salon/services
+curl "http://localhost:8000/api/v1/public/b/joes-salon/services?type=booking"
 ```
 
 ## Tests and PostgreSQL

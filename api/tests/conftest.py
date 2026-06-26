@@ -43,6 +43,7 @@ async def db_session(db_engine):
 @pytest_asyncio.fixture
 async def clean_auth_tables(db_session):
     yield
+    await db_session.execute(text("DELETE FROM services"))
     await db_session.execute(text("DELETE FROM subscriptions"))
     await db_session.execute(text("DELETE FROM business_members"))
     await db_session.execute(text("DELETE FROM businesses"))
@@ -76,3 +77,39 @@ def register_payload(suffix: str | None = None) -> dict:
             "timezone": "America/New_York",
         },
     }
+
+
+async def register_and_get_context(client, suffix: str | None = None) -> dict:
+    payload = register_payload(suffix)
+    response = await client.post("/api/v1/auth/register", json=payload)
+    assert response.status_code == 201
+    body = response.json()
+    token = body["tokens"]["access_token"]
+    return {
+        "payload": payload,
+        "token": token,
+        "headers": {"Authorization": f"Bearer {token}"},
+        "business_id": body["business"]["id"],
+        "slug": body["business"]["slug"],
+        "user_id": body["user"]["id"],
+    }
+
+
+BOOKING_SERVICE_PAYLOAD = {
+    "name": "Haircut",
+    "description": "Standard haircut",
+    "type": "booking",
+    "duration_minutes": 30,
+    "price_cents": 2500,
+    "currency": "USD",
+    "price_type": "fixed",
+}
+
+ORDER_SERVICE_PAYLOAD = {
+    "name": "Logo Design",
+    "description": "Custom logo package",
+    "type": "order",
+    "price_cents": 15000,
+    "currency": "USD",
+    "price_type": "fixed",
+}

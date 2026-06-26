@@ -57,3 +57,6 @@ class Business(Base, TimestampMixin):
         back_populates="business",
         uselist=False,
     )
+    services: Mapped[list["Service"]] = relationship(
+        back_populates="business",
+    )

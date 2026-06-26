@@ -38,6 +38,28 @@ class BusinessRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_by_id(self, business_id: uuid.UUID) -> Business | None:
+        stmt = select(Business).where(Business.id == business_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_member(
+        self,
+        business_id: uuid.UUID,
+        user_id: uuid.UUID,
+    ) -> BusinessMember | None:
+        stmt = select(BusinessMember).where(
+            BusinessMember.business_id == business_id,
+            BusinessMember.user_id == user_id,
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_subscription(self, business_id: uuid.UUID) -> Subscription | None:
+        stmt = select(Subscription).where(Subscription.business_id == business_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def create_business(
         self,
         *,
