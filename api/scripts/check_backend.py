@@ -78,6 +78,32 @@ def main() -> int:
             errors.append(f"{bookings_path} missing from OpenAPI")
         elif "post" not in paths[bookings_path]:
             errors.append(f"POST {bookings_path} missing from OpenAPI")
+        orders_path = "/api/v1/public/b/{slug}/orders"
+        if orders_path not in paths:
+            errors.append(f"{orders_path} missing from OpenAPI")
+        elif "post" not in paths[orders_path]:
+            errors.append(f"POST {orders_path} missing from OpenAPI")
+        admin_orders_list = "/api/v1/businesses/{business_id}/orders"
+        if admin_orders_list not in paths:
+            errors.append(f"{admin_orders_list} missing from OpenAPI")
+        admin_order_detail = "/api/v1/businesses/{business_id}/orders/{order_id}"
+        if admin_order_detail not in paths:
+            errors.append(f"{admin_order_detail} missing from OpenAPI")
+        admin_order_accept = "/api/v1/businesses/{business_id}/orders/{order_id}/accept"
+        if admin_order_accept not in paths:
+            errors.append(f"{admin_order_accept} missing from OpenAPI")
+        elif "post" not in paths[admin_order_accept]:
+            errors.append(f"POST {admin_order_accept} missing from OpenAPI")
+        admin_order_decline = "/api/v1/businesses/{business_id}/orders/{order_id}/decline"
+        if admin_order_decline not in paths:
+            errors.append(f"{admin_order_decline} missing from OpenAPI")
+        elif "post" not in paths[admin_order_decline]:
+            errors.append(f"POST {admin_order_decline} missing from OpenAPI")
+        admin_order_complete = "/api/v1/businesses/{business_id}/orders/{order_id}/complete"
+        if admin_order_complete not in paths:
+            errors.append(f"{admin_order_complete} missing from OpenAPI")
+        elif "post" not in paths[admin_order_complete]:
+            errors.append(f"POST {admin_order_complete} missing from OpenAPI")
         admin_list = "/api/v1/businesses/{business_id}/bookings"
         if admin_list not in paths:
             errors.append(f"{admin_list} missing from OpenAPI")
@@ -105,6 +131,17 @@ def main() -> int:
             errors.append(f"{me_reschedule} missing from OpenAPI")
         elif "post" not in paths[me_reschedule]:
             errors.append(f"POST {me_reschedule} missing from OpenAPI")
+        me_orders_list = "/api/v1/me/orders"
+        if me_orders_list not in paths:
+            errors.append(f"{me_orders_list} missing from OpenAPI")
+        me_order_detail = "/api/v1/me/orders/{order_id}"
+        if me_order_detail not in paths:
+            errors.append(f"{me_order_detail} missing from OpenAPI")
+        me_order_cancel = "/api/v1/me/orders/{order_id}/cancel"
+        if me_order_cancel not in paths:
+            errors.append(f"{me_order_cancel} missing from OpenAPI")
+        elif "post" not in paths[me_order_cancel]:
+            errors.append(f"POST {me_order_cancel} missing from OpenAPI")
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"OpenAPI auth check failed: {exc}")
 

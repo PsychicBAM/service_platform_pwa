@@ -9,10 +9,12 @@ from app.dependencies.business import get_active_business_by_slug
 from app.models.business import Business
 from app.models.enums import ServiceType
 from app.schemas.booking import PublicBookingCreate, PublicBookingCreateResponse
+from app.schemas.order import PublicOrderCreate, PublicOrderCreateResponse
 from app.schemas.schedule import AvailabilityResponse
 from app.schemas.service import PublicServiceRead
 from app.services.availability_service import AvailabilityService
 from app.services.booking_service import BookingService
+from app.services.order_service import OrderService
 from app.services.service_service import ServiceService
 
 router = APIRouter(prefix="/public/b", tags=["public"])
@@ -76,3 +78,17 @@ async def create_public_booking(
         payload,
     )
     return PublicBookingCreateResponse.from_entities(booking, service, client)
+
+
+@router.post(
+    "/{slug}/orders",
+    response_model=PublicOrderCreateResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_public_order(
+    slug: str,
+    payload: PublicOrderCreate,
+    db: AsyncSession = Depends(get_db),
+) -> PublicOrderCreateResponse:
+    order, service, client = await OrderService(db).create_public_order(slug, payload)
+    return PublicOrderCreateResponse.from_entities(order, service, client)

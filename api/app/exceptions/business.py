@@ -26,6 +26,16 @@ class ServiceNotBookableError(AppError):
         super().__init__(message=message, code="SERVICE_NOT_BOOKABLE", status_code=400)
 
 
+class ServiceNotOrderableError(AppError):
+    def __init__(self, message: str = "Service is not orderable.") -> None:
+        super().__init__(message=message, code="SERVICE_NOT_ORDERABLE", status_code=400)
+
+
+class OrdersDisabledError(AppError):
+    def __init__(self, message: str = "Business operating mode does not allow orders.") -> None:
+        super().__init__(message=message, code="ORDERS_DISABLED", status_code=400)
+
+
 class SlotUnavailableError(AppError):
     def __init__(self, message: str = "Requested slot is not available.") -> None:
         super().__init__(message=message, code="SLOT_UNAVAILABLE", status_code=409)
@@ -43,3 +53,22 @@ class InvalidBookingStatusTransitionError(AppError):
             code="INVALID_BOOKING_STATUS_TRANSITION",
             status_code=400,
         )
+
+
+class OrderNotFoundError(AppError):
+    def __init__(self, message: str = "Order not found.") -> None:
+        super().__init__(message=message, code="NOT_FOUND", status_code=404)
+
+
+class InvalidOrderStatusTransitionError(AppError):
+    def __init__(self, message: str = "Invalid order status transition.") -> None:
+        super().__init__(
+            message=message,
+            code="INVALID_ORDER_STATUS_TRANSITION",
+            status_code=400,
+        )
+
+
+class OrderDeclineReasonRequiredError(AppError):
+    def __init__(self, message: str = "Decline reason is required.") -> None:
+        super().__init__(message=message, code="DECLINE_REASON_REQUIRED", status_code=400)

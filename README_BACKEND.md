@@ -149,6 +149,9 @@ alembic revision --autogenerate -m "describe change"
 - **Admin booking management** (list, detail, status update, cancel)
 - **Client booking self-service** (`/api/v1/me/bookings` — list, detail, cancel, reschedule)
 - **Orders and order_messages database foundation** (models, migration `0006_orders.py`, repositories)
+- **Public order creation** (`POST /api/v1/public/b/{slug}/orders`)
+- **Admin order workflow** (list, detail, accept, decline, in-progress, complete, cancel)
+- **Client my orders** (`/api/v1/me/orders` — list, detail, cancel)
 - Migration `0006_orders.py`
 
 ### Not implemented
@@ -157,15 +160,14 @@ alembic revision --autogenerate -m "describe change"
 - Password reset / magic links
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
-- Public order creation API
-- Admin order workflow
+- Order messaging API
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
 - Guest booking claim / magic link
 - Redis, Celery, background workers
 
-Next slice: public order creation or admin order workflow per `MVP_PLAN.md` Phase 1.
+Next slice: order messaging or payments per `MVP_PLAN.md` Phase 1.
 
 ## Auth API examples
 
@@ -319,6 +321,82 @@ curl -X POST http://localhost:8000/api/v1/public/b/joes-salon/bookings \
   }'
 ```
 
+Create a public order (business must be active, service type must be `order`):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/public/b/joes-salon/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "service_id": "SERVICE_ID",
+    "form_data": {
+      "brief": "Need a logo redesign",
+      "colors": "blue and white"
+    },
+    "client": {
+      "full_name": "Jane Doe",
+      "email": "jane@example.com",
+      "phone": "+15550101"
+    }
+  }'
+```
+
+## Admin order API examples
+
+List orders:
+
+```bash
+curl "http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders?page=1&limit=20" \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Get order detail:
+
+```bash
+curl http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Accept an order:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/accept \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"quoted_price_cents": 12000, "start_work": false}'
+```
+
+Decline an order:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/decline \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"decline_reason": "Out of scope for our team"}'
+```
+
+Mark order in progress:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/in-progress \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Complete an order:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/complete \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Cancel an order:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/cancel \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Client withdrew"}'
+```
+
 ## Admin booking API examples
 
 List bookings (replace `TOKEN` and `BUSINESS_ID`):
@@ -385,6 +463,31 @@ curl -X POST http://localhost:8000/api/v1/me/bookings/BOOKING_ID/reschedule \
   -H "Authorization: Bearer CLIENT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"starts_at": "2026-06-25T14:00:00-04:00"}'
+```
+
+## Client self-service order examples
+
+List your orders (requires client user linked to orders via `clients.user_id`):
+
+```bash
+curl http://localhost:8000/api/v1/me/orders?status=active \
+  -H "Authorization: Bearer CLIENT_TOKEN"
+```
+
+Get order detail:
+
+```bash
+curl http://localhost:8000/api/v1/me/orders/ORDER_ID \
+  -H "Authorization: Bearer CLIENT_TOKEN"
+```
+
+Cancel your order:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/me/orders/ORDER_ID/cancel \
+  -H "Authorization: Bearer CLIENT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "No longer needed"}'
 ```
 
 ## Tests and PostgreSQL
