@@ -1,16 +1,18 @@
 import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies.business import get_active_business_by_slug
 from app.models.business import Business
 from app.models.enums import ServiceType
+from app.schemas.booking import PublicBookingCreate, PublicBookingCreateResponse
 from app.schemas.schedule import AvailabilityResponse
 from app.schemas.service import PublicServiceRead
 from app.services.availability_service import AvailabilityService
+from app.services.booking_service import BookingService
 from app.services.service_service import ServiceService
 
 router = APIRouter(prefix="/public/b", tags=["public"])
@@ -57,3 +59,20 @@ async def get_availability(
         service_id,
         date,
     )
+
+
+@router.post(
+    "/{slug}/bookings",
+    response_model=PublicBookingCreateResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_public_booking(
+    slug: str,
+    payload: PublicBookingCreate,
+    db: AsyncSession = Depends(get_db),
+) -> PublicBookingCreateResponse:
+    booking, service, client = await BookingService(db).create_public_booking(
+        slug,
+        payload,
+    )
+    return PublicBookingCreateResponse.from_entities(booking, service, client)

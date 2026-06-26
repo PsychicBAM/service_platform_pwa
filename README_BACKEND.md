@@ -145,13 +145,13 @@ alembic revision --autogenerate -m "describe change"
 - **Clients and bookings models** (`clients`, `bookings` tables)
 - **Availability blocks existing bookings** (pending, pending_payment, confirmed)
 - Migration `0005_clients_bookings.py`
+- **Public booking creation** (`POST /api/v1/public/b/{slug}/bookings`)
 
 ### Not implemented
 
 - Email verification
 - Password reset / magic links
 - Auth logout (refresh token revocation)
-- Public booking creation endpoint
 - Admin booking CRUD
 - Order creation
 - Payments (Stripe)
@@ -159,7 +159,7 @@ alembic revision --autogenerate -m "describe change"
 - Frontend PWA
 - Redis, Celery, background workers
 
-Next slice: public booking creation and admin booking management per `MVP_PLAN.md` Phase 1.
+Next slice: admin booking management per `MVP_PLAN.md` Phase 1.
 
 ## Auth API examples
 
@@ -294,6 +294,23 @@ Get availability for a booking service (business must be active):
 
 ```bash
 curl "http://localhost:8000/api/v1/public/b/joes-salon/availability?service_id=SERVICE_ID&date=2026-06-25"
+```
+
+Create a public booking (business must be active, slot must match availability):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/public/b/joes-salon/bookings \
+  -H "Content-Type: application/json" \
+  -d '{
+    "service_id": "SERVICE_ID",
+    "starts_at": "2026-06-25T10:00:00-04:00",
+    "client_notes": "First visit",
+    "client": {
+      "full_name": "Jane Doe",
+      "email": "jane@example.com",
+      "phone": "+15550101"
+    }
+  }'
 ```
 
 ## Tests and PostgreSQL

@@ -71,6 +71,11 @@ def main() -> int:
             errors.append("/api/v1/businesses/{business_id}/schedule missing from OpenAPI")
         if "/api/v1/public/b/{slug}/availability" not in paths:
             errors.append("/api/v1/public/b/{slug}/availability missing from OpenAPI")
+        bookings_path = "/api/v1/public/b/{slug}/bookings"
+        if bookings_path not in paths:
+            errors.append(f"{bookings_path} missing from OpenAPI")
+        elif "post" not in paths[bookings_path]:
+            errors.append(f"POST {bookings_path} missing from OpenAPI")
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"OpenAPI auth check failed: {exc}")
 

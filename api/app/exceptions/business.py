@@ -24,3 +24,8 @@ class ValidationAppError(AppError):
 class ServiceNotBookableError(AppError):
     def __init__(self, message: str = "Service is not bookable.") -> None:
         super().__init__(message=message, code="SERVICE_NOT_BOOKABLE", status_code=400)
+
+
+class SlotUnavailableError(AppError):
+    def __init__(self, message: str = "Requested slot is not available.") -> None:
+        super().__init__(message=message, code="SLOT_UNAVAILABLE", status_code=409)

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.booking import Booking
@@ -49,6 +49,35 @@ class BookingRepository:
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
+
+    async def exists_overlap(
+        self,
+        business_id: uuid.UUID,
+        starts_at: datetime,
+        ends_at: datetime,
+    ) -> bool:
+        overlapping = await self.list_overlapping_bookings(
+            business_id,
+            starts_at,
+            ends_at,
+        )
+        return len(overlapping) > 0
+
+    async def count_for_business_year(
+        self,
+        business_id: uuid.UUID,
+        year: int,
+    ) -> int:
+        stmt = (
+            select(func.count())
+            .select_from(Booking)
+            .where(
+                Booking.business_id == business_id,
+                extract("year", Booking.starts_at) == year,
+            )
+        )
+        result = await self.session.execute(stmt)
+        return int(result.scalar_one())
 
     async def list_for_client(
         self,

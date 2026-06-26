@@ -11,6 +11,7 @@ from app.exceptions.business import (
     NotFoundError,
     PlanLimitExceededError,
     ServiceNotBookableError,
+    SlotUnavailableError,
     ValidationAppError,
 )
 
@@ -24,6 +25,7 @@ __all__ = [
     "NotFoundError",
     "PlanLimitExceededError",
     "ServiceNotBookableError",
+    "SlotUnavailableError",
     "SlugAlreadyExistsError",
     "ValidationAppError",
 ]
