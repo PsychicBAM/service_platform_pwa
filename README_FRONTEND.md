@@ -76,7 +76,7 @@ Wrappers:
 - `src/api/authApi.ts` — login, register, logout, `/auth/me`
 - `src/api/meApi.ts` — `/me/bookings`, `/me/orders`, order messages
 
-Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**.
+Token storage: `localStorage` keys `access_token`, `refresh_token`, and `token_type`. On 401, the API client calls `POST /auth/refresh` once (when a refresh token exists), stores the new access token, and retries the original request. Failed refresh clears tokens and protected routes redirect to login.
 
 ## Routes (client only)
 
@@ -277,7 +277,6 @@ cd web && npm run dev
 - Guest claim / magic link (guest public bookings/orders → account)
 - Booking reschedule UI
 - Register submit wiring
-- Token refresh
 - Stripe / payments
 - Email notifications
 - Mobile native wrapper
@@ -287,4 +286,4 @@ cd web && npm run dev
 
 ## Next slice (post-checkpoint)
 
-Token refresh, guest claim, frontend tests, or payments (Stripe) when budget allows.
+Guest claim, frontend tests, or payments (Stripe) when budget allows.

@@ -1,9 +1,9 @@
-import { hasAccessToken } from "@/utils/authStorage";
+import { isAuthenticated as hasAuthTokens } from "@/utils/authStorage";
 
 export function useHasToken(): boolean {
-  return hasAccessToken();
+  return hasAuthTokens();
 }
 
 export function isAuthenticated(): boolean {
-  return hasAccessToken();
+  return hasAuthTokens();
 }

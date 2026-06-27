@@ -1,9 +1,11 @@
-import { apiClient, setAccessToken } from "@/api/client";
-import { clearAccessToken } from "@/utils/authStorage";
+import { apiClient } from "@/api/client";
+import { refreshAccessToken as refreshAccessTokenRequest } from "@/api/authRefresh";
+import { clearTokens, setTokens } from "@/utils/authStorage";
 import type {
   LoginRequest,
   LoginResponse,
   MeResponse,
+  RefreshResponse,
   RegisterRequest,
   RegisterResponse,
 } from "@/types/api";
@@ -14,7 +16,7 @@ export async function login(payload: LoginRequest) {
     payload,
     { auth: false },
   );
-  setAccessToken(response.tokens.access_token);
+  setTokens(response.tokens);
   return response;
 }
 
@@ -24,7 +26,7 @@ export async function register(payload: RegisterRequest) {
     payload,
     { auth: false },
   );
-  setAccessToken(response.tokens.access_token);
+  setTokens(response.tokens);
   return response;
 }
 
@@ -32,6 +34,10 @@ export function getMe() {
   return apiClient.get<MeResponse>("/auth/me");
 }
 
+export function refreshAccessToken(refresh_token: string): Promise<RefreshResponse> {
+  return refreshAccessTokenRequest(refresh_token);
+}
+
 export function logout() {
-  clearAccessToken();
+  clearTokens();
 }

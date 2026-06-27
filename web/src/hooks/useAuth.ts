@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMe, logout as authLogout } from "@/api/authApi";
 import { ApiClientError } from "@/api/client";
-import { clearAccessToken, hasAccessToken } from "@/utils/authStorage";
+import { clearTokens, isAuthenticated } from "@/utils/authStorage";
+
 export function useAuth() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const tokenPresent = hasAccessToken();
+  const tokenPresent = isAuthenticated();
 
   const meQuery = useQuery({
     queryKey: ["auth", "me"],
@@ -18,7 +19,7 @@ export function useAuth() {
 
   useEffect(() => {
     if (meQuery.error instanceof ApiClientError && meQuery.error.status === 401) {
-      clearAccessToken();
+      clearTokens();
       queryClient.removeQueries({ queryKey: ["auth"] });
     }
   }, [meQuery.error, queryClient]);
@@ -40,5 +41,3 @@ export function useAuth() {
     logout,
   };
 }
-
-// TODO: refresh token — call /auth/refresh when access token expires.

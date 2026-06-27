@@ -1,8 +1,6 @@
 import type { ApiErrorBody } from "@/types/api";
-
-export const ACCESS_TOKEN_KEY = "access_token";
-
-const DEFAULT_BASE_URL = "http://localhost:8000/api/v1";
+import { getApiBaseUrl, isAuthRefreshEligible, tryRefreshStoredAccessToken } from "@/api/authRefresh";
+import { getAccessToken } from "@/utils/authStorage";
 
 export class ApiClientError extends Error {
   status: number;
@@ -14,22 +12,6 @@ export class ApiClientError extends Error {
     this.status = status;
     this.code = code;
   }
-}
-
-function getBaseUrl(): string {
-  return import.meta.env.VITE_API_BASE_URL ?? DEFAULT_BASE_URL;
-}
-
-export function getAccessToken(): string | null {
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
-}
-
-export function setAccessToken(token: string): void {
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
-}
-
-export function clearAccessToken(): void {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
 }
 
 type RequestOptions = {
@@ -61,6 +43,7 @@ async function request<T>(
   method: string,
   path: string,
   options: RequestOptions = {},
+  retried = false,
 ): Promise<T> {
   const headers: Record<string, string> = {
     Accept: "application/json",
@@ -77,11 +60,23 @@ async function request<T>(
     }
   }
 
-  const response = await fetch(`${getBaseUrl()}${path}`, {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     method,
     headers,
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
   });
+
+  if (
+    response.status === 401 &&
+    !retried &&
+    options.auth !== false &&
+    isAuthRefreshEligible(path)
+  ) {
+    const refreshed = await tryRefreshStoredAccessToken();
+    if (refreshed) {
+      return request<T>(method, path, options, true);
+    }
+  }
 
   if (!response.ok) {
     throw await parseError(response);
@@ -107,4 +102,4 @@ export const apiClient = {
     request<T>("DELETE", path, options),
 };
 
-// TODO: refresh token handling — call /auth/refresh when access token expires.
+export { ACCESS_TOKEN_KEY } from "@/utils/authStorage";
