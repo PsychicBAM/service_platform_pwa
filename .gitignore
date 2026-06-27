@@ -38,6 +38,8 @@ web/node_modules/
 web/dist/
 web/.env
 web/.env.local
+web/playwright-report/
+web/test-results/
 
 # IDE
 .idea/

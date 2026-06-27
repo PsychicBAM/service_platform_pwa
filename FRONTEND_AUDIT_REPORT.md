@@ -112,26 +112,27 @@ Manual UI walkthrough (recommended after `npm run dev` + seed):
 | `npm run typecheck` | **Pass** |
 | `npm run build` | **Pass** |
 | `npm run check:routes` | **Pass** |
+| `npm run test` (Vitest) | **16 passed** (post-slice 12) |
+| `npm run test:e2e` (Playwright) | **9 passed** (post-slice 13; requires seeded backend) |
 
 ## Known limitations (unchanged)
 
 - No Stripe / payments UI or backend billing
 - No email notification sending
-- No JWT refresh token flow
+- JWT refresh handled on frontend (access token refresh on 401)
 - No guest claim / magic link (guest bookings/orders not linked to accounts)
 - No service worker / offline mode
 - No mobile native wrapper
-- No frontend automated browser tests (Playwright/Vitest) yet
+- Vitest smoke tests (16) and Playwright browser E2E (9) — **not** a full regression suite; critical flows only
 - Register page UI only — submit not wired
 - No booking reschedule UI
 - No charts/analytics dashboard backend
 
 ## Next recommended phase
 
-1. **Token refresh** — reduce forced re-login when access token expires.
-2. **Guest claim / magic link** — link guest bookings/orders to client accounts.
-3. **Frontend tests** — Vitest for forms/guards; optional Playwright smoke later.
-4. **Payments slice** (when budget allows) — Stripe Connect, separate from this checkpoint.
+1. **Guest claim / magic link** — link guest bookings/orders to client accounts.
+2. **Payments slice** (when budget allows) — Stripe Connect, separate from this checkpoint.
+3. **Expand E2E** — optional CI job, more browsers, or deeper form flows when budget allows.
 
 ## Related docs
 

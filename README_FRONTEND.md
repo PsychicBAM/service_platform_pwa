@@ -57,6 +57,8 @@ Open http://localhost:5173
 | `npm run typecheck` | TypeScript check (`tsc --noEmit`) |
 | `npm run test` | Vitest smoke tests (jsdom, mocked APIs) |
 | `npm run test:watch` | Vitest in watch mode |
+| `npm run test:e2e` | Playwright browser E2E (requires seeded backend) |
+| `npm run test:e2e:headed` | Playwright E2E with visible browser |
 | `npm run check:routes` | Static route/page smoke check (no browser) |
 | `npm run preview` | Preview production build |
 
@@ -68,6 +70,13 @@ npm run test
 npm run typecheck
 npm run build
 npm run check:routes
+```
+
+Playwright E2E (after backend is up and seeded — see below):
+
+```bash
+cd web
+npm run test:e2e
 ```
 
 Lint is **not configured** in this slice — add ESLint in a later slice if needed.
@@ -84,6 +93,36 @@ Coverage (16 tests):
 - Superadmin guards: role check, businesses list, audit logs
 
 `npm run check:routes` remains the static route file check; Vitest complements it with rendered component smoke tests.
+
+## Playwright E2E (browser smoke)
+
+Browser tests live in `web/e2e/` using **Playwright** (Chromium only). They hit the real Vite dev server and backend API via the dev proxy — **no API mocks**.
+
+**Prerequisites:** Docker backend running and demo data seeded. Run `seed_demo.py` **after** `pytest` (tests truncate auth tables).
+
+```bash
+# From project root
+docker compose up -d --build
+docker compose exec api alembic upgrade head
+docker compose exec api python -m pytest
+docker compose exec api python scripts/seed_demo.py
+
+cd web
+npm install
+npx playwright install chromium
+npm run test:e2e
+```
+
+Coverage (9 tests A–I):
+
+- Public: business home, services list, order validation, booking date screen
+- Client: login, `/me/bookings`, `/me/orders`
+- Admin: owner dashboard/services; client blocked
+- Superadmin: superadmin businesses; owner blocked
+
+Use `npm run test:e2e:headed` to watch the browser. Vitest (`npm run test`) remains fast unit/smoke tests without a backend.
+
+Playwright starts the Vite dev server with `VITE_API_BASE_URL=/api/v1` so API calls use the dev proxy (avoids CORS issues). If you already have `npm run dev` running on port 5173 **without** that env var, stop it first — `reuseExistingServer` will reuse the existing process and E2E may fail to reach the API.
 
 ## PWA
 
@@ -307,8 +346,7 @@ cd web && npm run dev
 - Mobile native wrapper
 - Frontend Docker / CI
 - Service worker / offline mode
-- Playwright browser E2E
 
 ## Next slice (post-checkpoint)
 
-Guest claim, Playwright browser E2E, or payments (Stripe) when budget allows.
+Guest claim or payments (Stripe) when budget allows.
