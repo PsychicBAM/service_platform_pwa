@@ -467,6 +467,63 @@ export interface AdminOrderListResponse {
   meta: ListMeta;
 }
 
+export interface AdminOrderClientSummary {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+}
+
+export interface AdminOrderServiceSummary {
+  id: string;
+  name: string;
+  type: ServiceType;
+  price_cents: number | null;
+  price_type: PriceType;
+  currency: string;
+}
+
+export interface AdminOrderRead {
+  id: string;
+  business_id: string;
+  reference: string;
+  status: OrderStatus;
+  form_data: Record<string, unknown>;
+  quoted_price_cents: number | null;
+  admin_notes: string | null;
+  decline_reason: string | null;
+  accepted_at: string | null;
+  completed_at: string | null;
+  service: AdminOrderServiceSummary;
+  client: AdminOrderClientSummary;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminOrderUpdatePayload {
+  admin_notes?: string | null;
+  quoted_price_cents?: number | null;
+}
+
+export interface AdminOrderAcceptPayload {
+  quoted_price_cents?: number | null;
+  admin_notes?: string | null;
+  start_work?: boolean;
+}
+
+export interface AdminOrderDeclinePayload {
+  decline_reason: string;
+  admin_notes?: string | null;
+}
+
+export interface AdminOrderCancelPayload {
+  reason?: string | null;
+}
+
+export interface OrderMessageCreatePayload {
+  body: string;
+}
+
 export interface ClientListItem {
   id: string;
   full_name: string;

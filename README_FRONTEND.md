@@ -122,7 +122,8 @@ Read-only admin area at `/admin` for business members:
 - **adminApi.ts** — lightweight wrappers for next slices
 - **Admin Services CRUD** — create/edit booking & request services, activate/deactivate, soft delete
 - **Admin Bookings actions** — list with filters, detail view, confirm/complete/no-show/cancel, admin notes
-- No order admin action buttons yet
+- **Admin Orders actions** — list with filters, detail view, accept/decline/in-progress/complete/cancel, admin notes & quoted price, order messages
+- Payments and email notifications still TODO
 
 ### Manual test: Admin
 

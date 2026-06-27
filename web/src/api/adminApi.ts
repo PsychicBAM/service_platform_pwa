@@ -4,11 +4,19 @@ import type {
   AdminBookingListResponse,
   AdminBookingRead,
   AdminBookingUpdatePayload,
+  AdminOrderAcceptPayload,
+  AdminOrderCancelPayload,
+  AdminOrderDeclinePayload,
   AdminOrderListResponse,
+  AdminOrderRead,
+  AdminOrderUpdatePayload,
   AdminServiceListResponse,
   AdminServiceRead,
   BusinessAdminRead,
   ClientListResponse,
+  OrderMessageCreatePayload,
+  OrderMessageListResponse,
+  OrderMessageRead,
   ScheduleRead,
   ServiceCreatePayload,
   ServiceUpdatePayload,
@@ -122,8 +130,83 @@ export function listAdminOrders(
 }
 
 export function getAdminOrder(businessId: string, orderId: string) {
-  return apiClient.get<unknown>(
+  return apiClient.get<AdminOrderRead>(
     `/businesses/${encodeURIComponent(businessId)}/orders/${encodeURIComponent(orderId)}`,
+  );
+}
+
+export function updateAdminOrder(
+  businessId: string,
+  orderId: string,
+  payload: AdminOrderUpdatePayload,
+) {
+  return apiClient.patch<AdminOrderRead>(
+    `/businesses/${encodeURIComponent(businessId)}/orders/${encodeURIComponent(orderId)}`,
+    payload,
+  );
+}
+
+export function acceptAdminOrder(
+  businessId: string,
+  orderId: string,
+  payload: AdminOrderAcceptPayload = {},
+) {
+  return apiClient.post<AdminOrderRead>(
+    `/businesses/${encodeURIComponent(businessId)}/orders/${encodeURIComponent(orderId)}/accept`,
+    payload,
+  );
+}
+
+export function declineAdminOrder(
+  businessId: string,
+  orderId: string,
+  payload: AdminOrderDeclinePayload,
+) {
+  return apiClient.post<AdminOrderRead>(
+    `/businesses/${encodeURIComponent(businessId)}/orders/${encodeURIComponent(orderId)}/decline`,
+    payload,
+  );
+}
+
+export function markAdminOrderInProgress(businessId: string, orderId: string) {
+  return apiClient.post<AdminOrderRead>(
+    `/businesses/${encodeURIComponent(businessId)}/orders/${encodeURIComponent(orderId)}/in-progress`,
+    {},
+  );
+}
+
+export function completeAdminOrder(businessId: string, orderId: string) {
+  return apiClient.post<AdminOrderRead>(
+    `/businesses/${encodeURIComponent(businessId)}/orders/${encodeURIComponent(orderId)}/complete`,
+    {},
+  );
+}
+
+export function cancelAdminOrder(
+  businessId: string,
+  orderId: string,
+  payload: AdminOrderCancelPayload = {},
+) {
+  return apiClient.post<AdminOrderRead>(
+    `/businesses/${encodeURIComponent(businessId)}/orders/${encodeURIComponent(orderId)}/cancel`,
+    payload,
+  );
+}
+
+export function listAdminOrderMessages(businessId: string, orderId: string) {
+  return apiClient.get<OrderMessageListResponse>(
+    `/businesses/${encodeURIComponent(businessId)}/orders/${encodeURIComponent(orderId)}/messages`,
+  );
+}
+
+export function sendAdminOrderMessage(
+  businessId: string,
+  orderId: string,
+  payload: OrderMessageCreatePayload,
+) {
+  return apiClient.post<OrderMessageRead>(
+    `/businesses/${encodeURIComponent(businessId)}/orders/${encodeURIComponent(orderId)}/messages`,
+    payload,
   );
 }
 
