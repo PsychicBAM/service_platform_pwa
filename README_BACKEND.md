@@ -122,6 +122,19 @@ CI creates `.env` from `.env.example` — **no GitHub secrets required**.
 
 Playwright browser E2E is **not** in CI yet (needs backend + browser deps). Run locally — see [README_FRONTEND.md](./README_FRONTEND.md).
 
+## Deployment readiness (VPS)
+
+Docs-only in this phase — no automated deploy yet.
+
+| Doc | Purpose |
+|-----|---------|
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Server requirements, first deploy, HTTPS options, updates, rollback |
+| [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) | Manual Postgres backup/restore (bash + PowerShell) |
+| [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) | Security, ops, and app checks before go-live |
+| [.env.production.example](./.env.production.example) | Production env template (placeholders only — copy to `.env` on VPS) |
+
+Local development continues to use [.env.example](./.env.example).
+
 ## Migrations
 
 From `api/` (with Postgres running and `DATABASE_URL` set):

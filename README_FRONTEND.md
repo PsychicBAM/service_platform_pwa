@@ -165,13 +165,18 @@ npm run check:routes
 
 Backend checks run in the parallel **backend-tests** job via Docker Compose — see [README_BACKEND.md](./README_BACKEND.md).
 
-**Playwright is local/manual for now** — not part of default CI. After seeding the backend:
+## Deployment readiness (VPS)
 
-```bash
-docker compose up -d --build
-docker compose exec api python scripts/seed_demo.py
-cd web && npm run test:e2e
-```
+Production frontend is served by the `web` Docker service (nginx). For a future VPS deploy, see:
+
+| Doc | Purpose |
+|-----|---------|
+| [DEPLOYMENT.md](../DEPLOYMENT.md) | Full stack deploy, HTTPS, updates |
+| [BACKUP_RESTORE.md](../BACKUP_RESTORE.md) | Postgres backup/restore |
+| [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md) | Pre-launch checklist |
+| [.env.production.example](../.env.production.example) | Backend production env template |
+
+Docker production uses same-origin `/api/v1` through nginx — no `localhost` in the built bundle.
 
 ## PWA
 
@@ -393,8 +398,15 @@ cd web && npm run dev
 - Stripe / payments
 - Email notifications
 - Mobile native wrapper
-- Frontend Docker packaging
 - Service worker / offline mode
+
+**Playwright is local/manual for now** — not part of default CI. After seeding the backend:
+
+```bash
+docker compose up -d --build
+docker compose exec api python scripts/seed_demo.py
+cd web && npm run test:e2e
+```
 
 ## Next slice (post-checkpoint)
 

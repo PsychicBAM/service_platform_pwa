@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: service_platform_postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: service_platform
       POSTGRES_PASSWORD: service_platform
@@ -19,6 +20,7 @@ services:
   api:
     build: ./api
     container_name: service_platform_api
+    restart: unless-stopped
     ports:
       - "8000:8000"
     env_file:
@@ -39,6 +41,7 @@ services:
       args:
         VITE_API_BASE_URL: /api/v1
     container_name: service_platform_web
+    restart: unless-stopped
     ports:
       - "5173:80"
     depends_on:
