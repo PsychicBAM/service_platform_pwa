@@ -4,6 +4,7 @@ import { LoginPage } from "@/pages/LoginPage";
 import { MyBookingsPage } from "@/pages/MyBookingsPage";
 import { MyOrdersPage } from "@/pages/MyOrdersPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
+import { OrderRequestPage } from "@/pages/OrderRequestPage";
 import { PublicHomePage } from "@/pages/PublicHomePage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { ServiceDetailPage } from "@/pages/ServiceDetailPage";
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
       { path: "b/:slug", element: <PublicHomePage /> },
       { path: "b/:slug/services", element: <ServicesPage /> },
       { path: "b/:slug/services/:serviceId", element: <ServiceDetailPage /> },
+      { path: "b/:slug/services/:serviceId/request", element: <OrderRequestPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "register", element: <RegisterPage /> },
       { path: "me/bookings", element: <MyBookingsPage /> },

@@ -77,18 +77,27 @@ export function ServiceDetailPage() {
             </div>
           </div>
 
-          <button
-            type="button"
-            disabled
-            className="w-full cursor-not-allowed rounded-xl bg-slate-200 px-4 py-3 text-center text-sm font-medium text-slate-600"
-          >
-            {isBooking ? "📅 Continue to booking" : "📝 Continue to request"}
-          </button>
-          <p className="text-center text-sm text-slate-500">
-            {isBooking
-              ? "Booking flow coming in the next slice."
-              : "Request form coming in the next slice."}
-          </p>
+          {isBooking ? (
+            <>
+              <button
+                type="button"
+                disabled
+                className="w-full cursor-not-allowed rounded-xl bg-slate-200 px-4 py-3 text-center text-sm font-medium text-slate-600"
+              >
+                📅 Continue to booking
+              </button>
+              <p className="text-center text-sm text-slate-500">
+                Booking flow coming in the next slice.
+              </p>
+            </>
+          ) : (
+            <Link
+              to={`/b/${slug}/services/${serviceId}/request`}
+              className="block w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700"
+            >
+              📝 Submit request
+            </Link>
+          )}
         </>
       ) : null}
     </section>

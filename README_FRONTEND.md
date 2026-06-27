@@ -1,6 +1,6 @@
-# Service Platform — Client PWA (Phase 2 skeleton)
+# Service Platform — Client PWA (Phase 2)
 
-Mobile-first client-facing Progressive Web App for browsing businesses, booking services, and placing orders. This slice is a **skeleton only** — routes, API client, and placeholder pages.
+Mobile-first client-facing Progressive Web App for browsing businesses, booking services, and placing orders.
 
 ## Stack
 
@@ -84,16 +84,22 @@ Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**
 | `/b/:slug` | Public business home (API) |
 | `/b/:slug/services` | Services list (API) |
 | `/b/:slug/services/:serviceId` | Service detail (API) |
+| `/b/:slug/services/:serviceId/request` | Public order request form (order services only) |
 | `/login` | Login form |
 | `/register` | Register form (UI only) |
 | `/me/bookings` | Auth-gated placeholder |
 | `/me/orders` | Auth-gated placeholder |
 
+## Implemented (Phase 2)
+
+- Public business home, services list, and service detail (API)
+- Public order request form for order-type services (guest, no login required)
+- Inline form validation and success screen with order reference
+
 ## Intentionally not implemented
 
 - Admin or superadmin dashboards
-- Full booking/order checkout flows
-- Availability picker UI
+- Booking date/time flow and availability picker
 - Register submit wiring
 - Token refresh
 - Stripe / payments
@@ -104,7 +110,7 @@ Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**
 
 ## Next slice
 
-Wire availability selection and guest booking/order form submission on the client routes above.
+Wire availability selection and guest booking form submission for booking-type services.
 
 ## TODO
 

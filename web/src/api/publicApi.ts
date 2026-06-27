@@ -4,6 +4,7 @@ import type {
   PublicBookingCreate,
   PublicBusiness,
   PublicOrderCreate,
+  PublicOrderCreateResponse,
   PublicService,
   ServiceType,
 } from "@/types/api";
@@ -49,7 +50,9 @@ export function createPublicBooking(slug: string, payload: PublicBookingCreate) 
 }
 
 export function createPublicOrder(slug: string, payload: PublicOrderCreate) {
-  return apiClient.post<unknown>(`/public/b/${encodeSlug(slug)}/orders`, payload, {
-    auth: false,
-  });
+  return apiClient.post<PublicOrderCreateResponse>(
+    `/public/b/${encodeSlug(slug)}/orders`,
+    payload,
+    { auth: false },
+  );
 }

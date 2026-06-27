@@ -64,6 +64,36 @@ export interface PublicOrderCreate {
   client: PublicBookingClientInput;
 }
 
+export type OrderStatus =
+  | "submitted"
+  | "pending_payment"
+  | "accepted"
+  | "in_progress"
+  | "completed"
+  | "declined"
+  | "cancelled";
+
+export interface PublicOrderCreateResponse {
+  id: string;
+  reference: string;
+  status: OrderStatus;
+  service: {
+    id: string;
+    name: string;
+    type: ServiceType;
+  };
+  client: {
+    id: string;
+    full_name: string;
+    email: string | null;
+    phone: string | null;
+  };
+  form_data: Record<string, unknown>;
+  created_at: string;
+  payment_required: boolean;
+  payment: null;
+}
+
 export interface TokenPair {
   access_token: string;
   refresh_token: string;
