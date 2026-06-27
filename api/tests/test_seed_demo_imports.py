@@ -18,6 +18,7 @@ def test_seed_demo_imports_cleanly() -> None:
     assert hasattr(module, "seed_demo")
     assert module.DEMO_PASSWORD
     assert module.BUSINESS_SLUG == "demo-business"
+    assert module.LINKED_CLIENT_EMAIL == "client@example.com"
 
 
 def test_e2e_backend_audit_imports_cleanly() -> None:
@@ -25,3 +26,9 @@ def test_e2e_backend_audit_imports_cleanly() -> None:
     assert hasattr(module, "main")
     assert hasattr(module, "run_audit")
     assert module.OWNER_EMAIL == "owner@example.com"
+    assert module.CLIENT_EMAIL == "client@example.com"
+    source = (Path(__file__).resolve().parents[1] / "scripts" / "e2e_backend_audit.py").read_text(
+        encoding="utf-8"
+    )
+    assert "/me/bookings" in source
+    assert "/me/orders" in source

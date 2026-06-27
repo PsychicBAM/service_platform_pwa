@@ -22,6 +22,7 @@ from app.models.enums import (
     BusinessStatus,
     ClientSource,
     OperatingMode,
+    OrderMessageSenderType,
     OrderStatus,
     PriceType,
     ServiceType,
@@ -30,6 +31,7 @@ from app.models.enums import (
     UserRole,
 )
 from app.models.order import Order
+from app.models.order_message import OrderMessage
 from app.models.service import Service
 from app.models.working_break import WorkingBreak
 from app.repositories.business_repository import BusinessRepository
@@ -45,6 +47,13 @@ OWNER_EMAIL = "owner@example.com"
 BUSINESS_SLUG = "demo-business"
 CLIENT_EMAIL = "john.demo@example.com"
 CLIENT_NAME = "John Demo"
+LINKED_CLIENT_EMAIL = "client@example.com"
+LINKED_CLIENT_NAME = "Client Demo"
+LINKED_CLIENT_PHONE = "+10000000003"
+LINKED_ORDER_FORM_DATA = {
+    "details": "I need a Telegram bot with booking and notifications.",
+}
+LINKED_ORDER_MESSAGE_BODY = "Hello, I added more details for the project."
 
 
 def demo_working_hours() -> list[dict]:
@@ -75,7 +84,7 @@ def demo_working_hours() -> list[dict]:
     return hours
 
 
-def _future_booking_start() -> tuple[datetime, datetime]:
+def _future_booking_start(*, hour: int = 10) -> tuple[datetime, datetime]:
     from zoneinfo import ZoneInfo
 
     tz = ZoneInfo("Europe/Moscow")
@@ -83,12 +92,12 @@ def _future_booking_start() -> tuple[datetime, datetime]:
     candidate_date = now.date() + timedelta(days=3)
     while candidate_date.weekday() >= 5:
         candidate_date += timedelta(days=1)
-    starts_at = datetime.combine(candidate_date, time(10, 0), tzinfo=tz)
+    starts_at = datetime.combine(candidate_date, time(hour, 0), tzinfo=tz)
     if starts_at <= now + timedelta(hours=3):
         candidate_date += timedelta(days=1)
         while candidate_date.weekday() >= 5:
             candidate_date += timedelta(days=1)
-        starts_at = datetime.combine(candidate_date, time(10, 0), tzinfo=tz)
+        starts_at = datetime.combine(candidate_date, time(hour, 0), tzinfo=tz)
     ends_at = starts_at + timedelta(minutes=60)
     return starts_at, ends_at
 
@@ -101,6 +110,7 @@ async def _ensure_user(
     password: str,
     role: UserRole,
     full_name: str,
+    phone: str | None = None,
 ) -> tuple[object, str]:
     user = await users.get_by_email(email)
     password_hash = hash_password(password)
@@ -109,13 +119,14 @@ async def _ensure_user(
             email=email,
             password_hash=password_hash,
             full_name=full_name,
-            phone=None,
+            phone=phone,
             role=role,
         )
         return user, "created"
     user.password_hash = password_hash
     user.role = role
     user.full_name = full_name
+    user.phone = phone
     user.is_active = True
     await session.flush()
     return user, "updated"
@@ -357,6 +368,114 @@ async def seed_demo() -> dict:
         else:
             summary["sample_order"] = "skipped"
 
+        client_user, client_user_action = await _ensure_user(
+            session,
+            users,
+            email=LINKED_CLIENT_EMAIL,
+            password=DEMO_PASSWORD,
+            role=UserRole.client,
+            full_name=LINKED_CLIENT_NAME,
+            phone=LINKED_CLIENT_PHONE,
+        )
+        summary["client_user"] = client_user_action
+
+        linked_client = await clients.find_by_email(business.id, LINKED_CLIENT_EMAIL)
+        if linked_client is None:
+            linked_client = await clients.create(
+                Client(
+                    business_id=business.id,
+                    user_id=client_user.id,
+                    full_name=LINKED_CLIENT_NAME,
+                    email=LINKED_CLIENT_EMAIL,
+                    phone=LINKED_CLIENT_PHONE,
+                    source=ClientSource.registered,
+                )
+            )
+            summary["linked_client"] = "created"
+        else:
+            linked_client.user_id = client_user.id
+            linked_client.full_name = LINKED_CLIENT_NAME
+            linked_client.phone = LINKED_CLIENT_PHONE
+            linked_client.source = ClientSource.registered
+            await session.flush()
+            summary["linked_client"] = "updated"
+
+        linked_booking_stmt = select(Booking).where(
+            Booking.business_id == business.id,
+            Booking.client_id == linked_client.id,
+            Booking.service_id == booking_service.id,
+            Booking.starts_at > datetime.now(UTC),
+        )
+        linked_booking = (await session.execute(linked_booking_stmt)).scalar_one_or_none()
+        if linked_booking is None:
+            starts_at, ends_at = _future_booking_start(hour=11)
+            year = starts_at.year
+            reference = await generate_booking_reference(session, business.id, year)
+            session.add(
+                Booking(
+                    business_id=business.id,
+                    service_id=booking_service.id,
+                    client_id=linked_client.id,
+                    reference=reference,
+                    status=BookingStatus.confirmed,
+                    starts_at=starts_at,
+                    ends_at=ends_at,
+                )
+            )
+            summary["linked_booking"] = "created"
+        else:
+            summary["linked_booking"] = "skipped"
+
+        linked_order_stmt = select(Order).where(
+            Order.business_id == business.id,
+            Order.client_id == linked_client.id,
+            Order.service_id == order_service.id,
+            Order.status.in_((OrderStatus.accepted, OrderStatus.in_progress)),
+        )
+        linked_order = (await session.execute(linked_order_stmt)).scalar_one_or_none()
+        if linked_order is None:
+            year = datetime.now(UTC).year
+            reference = await generate_order_reference(session, business.id, year)
+            linked_order = Order(
+                business_id=business.id,
+                service_id=order_service.id,
+                client_id=linked_client.id,
+                reference=reference,
+                status=OrderStatus.in_progress,
+                form_data=LINKED_ORDER_FORM_DATA,
+            )
+            session.add(linked_order)
+            await session.flush()
+            summary["linked_order"] = "created"
+        else:
+            linked_order.form_data = LINKED_ORDER_FORM_DATA
+            if linked_order.status not in (
+                OrderStatus.accepted,
+                OrderStatus.in_progress,
+            ):
+                linked_order.status = OrderStatus.in_progress
+            await session.flush()
+            summary["linked_order"] = "updated"
+
+        message_stmt = select(OrderMessage).where(
+            OrderMessage.order_id == linked_order.id,
+            OrderMessage.body == LINKED_ORDER_MESSAGE_BODY,
+        )
+        existing_message = (await session.execute(message_stmt)).scalar_one_or_none()
+        if existing_message is None:
+            session.add(
+                OrderMessage(
+                    order_id=linked_order.id,
+                    business_id=business.id,
+                    sender_type=OrderMessageSenderType.client,
+                    sender_user_id=client_user.id,
+                    body=LINKED_ORDER_MESSAGE_BODY,
+                )
+            )
+            summary["linked_order_message"] = "created"
+        else:
+            summary["linked_order_message"] = "skipped"
+
         await session.commit()
 
         return {
@@ -376,6 +495,7 @@ def _print_summary(result: dict) -> None:
     print("\nDemo credentials:")
     print(f"  Superadmin: {SUPERADMIN_EMAIL} / {DEMO_PASSWORD}")
     print(f"  Owner:      {OWNER_EMAIL} / {DEMO_PASSWORD}")
+    print(f"  Client:     {LINKED_CLIENT_EMAIL} / {DEMO_PASSWORD}")
 
     print("\nUseful URLs (host machine):")
     print("  API health:     http://localhost:8000/health")

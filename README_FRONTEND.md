@@ -107,7 +107,27 @@ Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**
 
 `/me/bookings` and `/me/orders` only show items where the backend `Client.user_id` matches the logged-in user. **Guest bookings and orders created without login do not appear yet** — guest claim / magic link is not implemented.
 
-Demo seed creates guest client records (`john.demo@example.com`) but does not link them to a login user. To test `/me` pages manually, use a client-role user whose `Client.user_id` is set (see backend tests in `test_me_bookings_routes.py`).
+Demo seed creates:
+- **Guest** sample data for `john.demo@example.com` (public flows only)
+- **Linked client login** for manual `/me` testing:
+
+| Email | Password |
+|-------|----------|
+| client@example.com | ChangeMe123! |
+
+### Manual test: My Bookings / My Orders
+
+```bash
+docker compose up -d
+docker compose exec api python scripts/seed_demo.py
+cd web && npm run dev
+```
+
+1. Open http://localhost:5173/login
+2. Sign in as **client@example.com** / **ChangeMe123!**
+3. Open http://localhost:5173/me/bookings — expect Arabic Lesson booking
+4. Open http://localhost:5173/me/orders — expect Build Telegram Bot request
+5. Open order detail → view messages → send a reply
 
 ## Intentionally not implemented
 

@@ -16,6 +16,7 @@ API = f"{BASE_URL}/api/v1"
 DEMO_PASSWORD = "ChangeMe123!"
 SUPERADMIN_EMAIL = "superadmin@example.com"
 OWNER_EMAIL = "owner@example.com"
+CLIENT_EMAIL = "client@example.com"
 BUSINESS_SLUG = "demo-business"
 BUSINESS_TZ = "Europe/Moscow"
 
@@ -248,8 +249,65 @@ def run_audit() -> int:
             if response.json()["status"] != "confirmed":
                 raise AuditError("booking not confirmed")
 
-        def p_client_self_service() -> str:
-            return "SKIP"
+        def p_client_self_service() -> None:
+            try:
+                state["client_token"] = _login(client, CLIENT_EMAIL, DEMO_PASSWORD)
+            except AuditError as exc:
+                raise AuditError(
+                    f"{exc}. Run: docker compose exec api python scripts/seed_demo.py"
+                ) from exc
+
+            bookings_response = client.get(
+                f"{API}/me/bookings",
+                headers=_auth_headers(state["client_token"]),
+                params={"status": "upcoming"},
+            )
+            if bookings_response.status_code != 200:
+                raise AuditError(
+                    f"/me/bookings failed ({bookings_response.status_code}): "
+                    f"{bookings_response.text}. "
+                    "Run: docker compose exec api python scripts/seed_demo.py"
+                )
+            bookings = bookings_response.json().get("data", [])
+            if not bookings:
+                raise AuditError(
+                    "no linked bookings in /me/bookings — "
+                    "run: docker compose exec api python scripts/seed_demo.py"
+                )
+
+            orders_response = client.get(
+                f"{API}/me/orders",
+                headers=_auth_headers(state["client_token"]),
+                params={"status": "active"},
+            )
+            if orders_response.status_code != 200:
+                raise AuditError(
+                    f"/me/orders failed ({orders_response.status_code}): "
+                    f"{orders_response.text}. "
+                    "Run: docker compose exec api python scripts/seed_demo.py"
+                )
+            orders = orders_response.json().get("data", [])
+            if not orders:
+                raise AuditError(
+                    "no linked orders in /me/orders — "
+                    "run: docker compose exec api python scripts/seed_demo.py"
+                )
+
+            order_id = orders[0]["id"]
+            messages_response = client.get(
+                f"{API}/me/orders/{order_id}/messages",
+                headers=_auth_headers(state["client_token"]),
+            )
+            if messages_response.status_code != 200:
+                raise AuditError(f"/me/orders/{{id}}/messages failed: {messages_response.text}")
+
+            send_response = client.post(
+                f"{API}/me/orders/{order_id}/messages",
+                headers=_auth_headers(state["client_token"]),
+                json={"body": "E2E audit client follow-up message."},
+            )
+            if send_response.status_code != 201:
+                raise AuditError(f"client message send failed: {send_response.text}")
 
         def q_public_order() -> None:
             response = client.post(
@@ -333,8 +391,7 @@ def run_audit() -> int:
 
         print(f"E2E backend audit against {BASE_URL}\n")
         for label, fn in steps:
-            allow_skip = label.startswith("P.")
-            step(label, fn, allow_skip=allow_skip)
+            step(label, fn)
 
     print("\n--- Summary ---")
     passed = len(steps) - len(failures) - len(skips)

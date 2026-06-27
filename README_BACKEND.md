@@ -179,7 +179,7 @@ Next recommended phase: **Phase 2 Client PWA skeleton**, or optionally a small *
 
 ## Demo data (local development)
 
-Seed idempotent demo users, business, services, schedule, and sample client/booking/order:
+Seed idempotent demo users, business, services, schedule, guest sample data, and **linked client user data for `/me` pages**:
 
 ```bash
 docker compose exec api python scripts/seed_demo.py
@@ -191,6 +191,9 @@ docker compose exec api python scripts/seed_demo.py
 |------|-------|----------|
 | Superadmin | superadmin@example.com | ChangeMe123! |
 | Business owner | owner@example.com | ChangeMe123! |
+| Client (linked `/me` data) | client@example.com | ChangeMe123! |
+
+The seed also creates guest client `john.demo@example.com` with sample booking/order (not linked to a login). Use **client@example.com** to test `/me/bookings`, `/me/orders`, and order messages.
 
 Demo business slug: `demo-business` (timezone `Europe/Moscow`, status `active`).
 
