@@ -153,6 +153,7 @@ alembic revision --autogenerate -m "describe change"
 - **Admin order workflow** (list, detail, accept, decline, in-progress, complete, cancel)
 - **Client my orders** (`/api/v1/me/orders` — list, detail, cancel)
 - **Order messaging API** (client + admin REST message list/send)
+- **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
 - Migration `0006_orders.py`
 
 ### Not implemented
@@ -163,6 +164,7 @@ alembic revision --autogenerate -m "describe change"
 - Admin manual booking creation
 - Payments (Stripe)
 - Notifications (email/push)
+- Dashboard analytics
 - Frontend PWA
 - Guest booking claim / magic link
 - WebSocket realtime chat
@@ -523,6 +525,43 @@ curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"body": "We will send a draft by Friday."}'
+```
+
+## Admin clients CRM examples
+
+List clients:
+
+```bash
+curl http://localhost:8000/api/v1/businesses/BUSINESS_ID/clients \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Search clients:
+
+```bash
+curl "http://localhost:8000/api/v1/businesses/BUSINESS_ID/clients?search=jane@example.com" \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Get client detail (includes recent bookings and orders):
+
+```bash
+curl http://localhost:8000/api/v1/businesses/BUSINESS_ID/clients/CLIENT_ID \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Update client contact and notes:
+
+```bash
+curl -X PATCH http://localhost:8000/api/v1/businesses/BUSINESS_ID/clients/CLIENT_ID \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "full_name": "Jane Doe",
+    "email": "jane@example.com",
+    "phone": "+15550101",
+    "notes": "Prefers morning appointments"
+  }'
 ```
 
 ## Tests and PostgreSQL

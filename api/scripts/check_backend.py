@@ -152,6 +152,12 @@ def main() -> int:
             errors.append(f"{admin_order_messages} missing from OpenAPI")
         elif "post" not in paths[admin_order_messages]:
             errors.append(f"POST {admin_order_messages} missing from OpenAPI")
+        admin_clients_list = "/api/v1/businesses/{business_id}/clients"
+        if admin_clients_list not in paths:
+            errors.append(f"{admin_clients_list} missing from OpenAPI")
+        admin_client_detail = "/api/v1/businesses/{business_id}/clients/{client_id}"
+        if admin_client_detail not in paths:
+            errors.append(f"{admin_client_detail} missing from OpenAPI")
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"OpenAPI auth check failed: {exc}")
 

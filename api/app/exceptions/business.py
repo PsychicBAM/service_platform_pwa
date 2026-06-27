@@ -77,3 +77,13 @@ class OrderDeclineReasonRequiredError(AppError):
 class OrderMessagesClosedError(AppError):
     def __init__(self, message: str = "Messaging is closed for this order.") -> None:
         super().__init__(message=message, code="ORDER_MESSAGES_CLOSED", status_code=400)
+
+
+class ClientNotFoundError(AppError):
+    def __init__(self, message: str = "Client not found.") -> None:
+        super().__init__(message=message, code="NOT_FOUND", status_code=404)
+
+
+class ClientEmailExistsError(AppError):
+    def __init__(self, message: str = "A client with this email already exists.") -> None:
+        super().__init__(message=message, code="CLIENT_EMAIL_EXISTS", status_code=409)
