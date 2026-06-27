@@ -292,6 +292,26 @@ export interface MyOrderListResponse {
   meta: ListMeta;
 }
 
+export interface ClaimGuestBookingPayload {
+  reference: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface ClaimGuestOrderPayload {
+  reference: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface ClaimGuestBookingResponse {
+  booking: MyBookingDetail;
+}
+
+export interface ClaimGuestOrderResponse {
+  order: MyOrderDetail;
+}
+
 export type OrderMessageSenderType = "client" | "admin";
 
 export interface OrderMessageRead {

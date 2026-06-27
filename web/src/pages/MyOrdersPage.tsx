@@ -65,8 +65,14 @@ export function MyOrdersPage() {
     <section className="space-y-4">
       <h1 className="text-xl font-bold">My orders</h1>
       <p className="text-sm text-slate-600">
-        Guest requests made without login will not appear here yet.
+        Submitted a request as a guest? Claim it to see it here.
       </p>
+      <Link
+        to="/me/claim?type=order"
+        className="inline-flex text-sm font-medium text-brand-700 hover:text-brand-800"
+      >
+        Claim a guest request
+      </Link>
 
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((filter) => (

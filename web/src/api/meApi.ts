@@ -1,5 +1,9 @@
 import { apiClient } from "@/api/client";
 import type {
+  ClaimGuestBookingPayload,
+  ClaimGuestBookingResponse,
+  ClaimGuestOrderPayload,
+  ClaimGuestOrderResponse,
   MyBookingDetail,
   MyBookingListResponse,
   MyBookingStatusFilter,
@@ -60,4 +64,12 @@ export function sendOrderMessage(orderId: string, body: string) {
     `/me/orders/${encodeURIComponent(orderId)}/messages`,
     { body },
   );
+}
+
+export function claimGuestBooking(payload: ClaimGuestBookingPayload) {
+  return apiClient.post<ClaimGuestBookingResponse>("/me/claims/bookings", payload);
+}
+
+export function claimGuestOrder(payload: ClaimGuestOrderPayload) {
+  return apiClient.post<ClaimGuestOrderResponse>("/me/claims/orders", payload);
 }

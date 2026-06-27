@@ -3,6 +3,7 @@ import type {
   AuditLogRead,
   BusinessAdminRead,
   MeResponse,
+  MyBookingDetail,
   MyOrderDetail,
   MyOrderListItem,
   OrderMessageRead,
@@ -107,6 +108,31 @@ export const mockMyOrder: MyOrderListItem = {
   updated_at: "2026-06-30T10:00:00Z",
   last_message_preview: "Hello from client",
   can_cancel: true,
+};
+
+export const mockMyBookingDetail: MyBookingDetail = {
+  id: "booking-id-001",
+  reference: "BKG-2026-0002",
+  status: "pending",
+  business: {
+    id: BUSINESS_ID,
+    name: "Demo Service Business",
+    slug: DEMO_SLUG,
+  },
+  service: {
+    id: BOOKING_SERVICE_ID,
+    name: "Arabic Lesson",
+  },
+  starts_at: "2026-07-01T10:00:00Z",
+  ends_at: "2026-07-01T11:00:00Z",
+  client_notes: null,
+  cancelled_at: null,
+  cancelled_by: null,
+  cancellation_reason: null,
+  can_cancel: true,
+  can_reschedule: true,
+  created_at: "2026-06-30T10:00:00Z",
+  updated_at: "2026-06-30T10:00:00Z",
 };
 
 export const mockMyOrderDetail: MyOrderDetail = {

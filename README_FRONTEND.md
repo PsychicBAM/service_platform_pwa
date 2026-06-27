@@ -196,7 +196,7 @@ Wrappers:
 
 - `src/api/publicApi.ts` — public business, services, availability, bookings, orders
 - `src/api/authApi.ts` — login, register, logout, `/auth/me`
-- `src/api/meApi.ts` — `/me/bookings`, `/me/orders`, order messages
+- `src/api/meApi.ts` — `/me/bookings`, `/me/orders`, order messages, guest claim
 
 Token storage: `localStorage` keys `access_token`, `refresh_token`, and `token_type`. On 401, the API client calls `POST /auth/refresh` once (when a refresh token exists), stores the new access token, and retries the original request. Failed refresh clears tokens and protected routes redirect to login.
 
@@ -214,6 +214,7 @@ Token storage: `localStorage` keys `access_token`, `refresh_token`, and `token_t
 | `/register` | Register form (UI only) |
 | `/me/bookings` | My bookings list (auth required) |
 | `/me/orders` | My orders list (auth required) |
+| `/me/claim` | Claim guest booking or request (auth required) |
 | `/me/orders/:orderId` | Order detail + messages (auth required) |
 
 ## Admin routes (Phase 3)
@@ -310,6 +311,7 @@ npm run check:routes
 - Public order request form for order-type services (guest, no login required)
 - Public booking flow for booking-type services: date selection, time slots, guest form
 - My Bookings and My Orders pages wired to `/me/*` APIs
+- Guest claim page at `/me/claim` (reference + email/phone; no magic-link email yet)
 - Order detail with message list (15s polling) and send form
 - Login/logout with JWT in `localStorage`
 - Inline form validation and success screens with reference numbers
@@ -370,10 +372,10 @@ Superadmin demo credentials: **superadmin@example.com** / **ChangeMe123!**
 
 ### Guest vs account-linked data
 
-`/me/bookings` and `/me/orders` only show items where the backend `Client.user_id` matches the logged-in user. **Guest bookings and orders created without login do not appear yet** — guest claim / magic link is not implemented.
+`/me/bookings` and `/me/orders` only show items where the backend `Client.user_id` matches the logged-in user. **Guest claim UI** is at `/me/claim` — the user must enter the reference plus the same email or phone used at guest checkout. **Magic-link email delivery is not implemented yet.**
 
 Demo seed creates:
-- **Guest** sample data for `john.demo@example.com` (public flows only)
+- **Guest** sample data for `john.demo@example.com` (unclaimed — use `/me/claim` or admin bookings/orders to find references)
 - **Linked client login** for manual `/me` testing:
 
 | Email | Password |
@@ -394,9 +396,18 @@ cd web && npm run dev
 4. Open http://localhost:5173/me/orders — expect Build Telegram Bot request
 5. Open order detail → view messages → send a reply
 
+### Manual test: Guest claim
+
+1. Seed backend and start dev frontend (see above)
+2. Sign in as **client@example.com** / **ChangeMe123!**
+3. Open http://localhost:5173/me/claim (or use links from `/me/bookings` / `/me/orders`)
+4. Find an unclaimed guest reference — e.g. log in as **owner@example.com**, open `/admin/bookings` or `/admin/orders`, look for `john.demo@example.com` guest records
+5. On `/me/claim`, choose Booking or Request, enter reference + **john.demo@example.com**
+6. After success, open `/me/bookings` or `/me/orders` — claimed item should appear
+
 ## Intentionally not implemented
 
-- Guest claim / magic link (guest public bookings/orders → account)
+- Magic-link email for guest claim (user must know reference + contact)
 - Booking reschedule UI
 - Register submit wiring
 - Stripe / payments

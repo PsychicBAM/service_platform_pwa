@@ -12,6 +12,7 @@ import { AdminSchedulePage } from "@/pages/admin/AdminSchedulePage";
 import { AdminServicesPage } from "@/pages/admin/AdminServicesPage";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
 import { BookingPage } from "@/pages/BookingPage";
+import { ClaimGuestPage } from "@/pages/ClaimGuestPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { MyBookingsPage } from "@/pages/MyBookingsPage";
 import { MyOrderDetailPage } from "@/pages/MyOrderDetailPage";
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: "register", element: <RegisterPage /> },
       { path: "me/bookings", element: <MyBookingsPage /> },
       { path: "me/orders", element: <MyOrdersPage /> },
+      { path: "me/claim", element: <ClaimGuestPage /> },
       { path: "me/orders/:orderId", element: <MyOrderDetailPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],

@@ -44,7 +44,9 @@ Related docs:
 | Schedule / availability | Working hours, breaks, public availability |
 | Public booking | Guest and authenticated booking creation |
 | Public order | Guest and authenticated order requests |
-| Guest claim API | Backend only — `POST /me/claims/bookings` and `/orders` with reference + contact |
+| Guest claim API | Backend — `POST /me/claims/bookings` and `/orders` with reference + contact |
+| Guest claim UI | `/me/claim` page — reference + email/phone |
+| Email foundation | `EmailService`, templates, dry-run/disabled by default — no event wiring yet |
 | Admin bookings | List, confirm, cancel, reschedule |
 | Admin orders | List, accept, decline, complete, messages |
 | Admin clients | CRM list and detail |
@@ -67,6 +69,7 @@ Related docs:
 | Order request flow | Form-based order submit |
 | Login / token refresh | JWT in localStorage, 401 refresh |
 | Client bookings / orders / messages | `/me/bookings`, `/me/orders`, order detail |
+| Guest claim UI | `/me/claim` — reference + email/phone (no magic-link email yet) |
 | Admin dashboard | Stats and quick links |
 | Admin services CRUD | Create, edit, activate/deactivate |
 | Admin bookings actions | List, filter, confirm, cancel |
@@ -75,8 +78,8 @@ Related docs:
 | Admin schedule edit | Weekly hours and breaks |
 | Admin settings edit | Business settings form |
 | Superadmin UI | Overview, businesses, audit logs |
-| Vitest smoke tests | 16 tests — mocked API |
-| Playwright local smoke | 9 browser tests — manual/local only |
+| Vitest smoke tests | 22 tests — mocked API |
+| Playwright local smoke | 10 browser tests — manual/local only |
 
 ### Infrastructure
 
@@ -248,8 +251,8 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | Limitation | Impact |
 |------------|--------|
 | No payments / Stripe | Bookings and orders are not paid online |
-| No email notifications | No transactional email on booking/order events |
-| Guest claim backend only | API implemented; no frontend claim UI or magic-link email yet |
+| Email foundation only | Service + templates exist; disabled/dry-run by default; no booking/order event emails yet |
+| Guest claim backend + frontend UI | `/me/claim` — reference + contact; magic-link email not yet |
 | No production domain / HTTPS yet | Docs and compose prepared; VPS deploy is manual |
 | No automated backups | Commands documented only in `BACKUP_RESTORE.md` |
 | No monitoring / alerting | No uptime or error tracking service |
@@ -268,8 +271,8 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 
 Prioritized for ~$5000 budget — infrastructure and high-value product gaps before polish:
 
-1. **Guest claim frontend UI + magic-link email** — UI for claim flow and optional email delivery
-2. **Email notifications** — booking/order event emails (SMTP)
+1. **Wire booking/order email events** — connect `EmailService` to business flows when `notification_email_enabled`
+2. **Magic-link email for guest claim** — optional email delivery instead of manual reference entry
 3. **Payment foundation** — Stripe Checkout for deposits or full payment
 4. **Production deployment to VPS** — domain, HTTPS (Caddy/NPM), real `.env`, strict env check
 5. **Automated backups** — cron + off-site `pg_dump`

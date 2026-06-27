@@ -320,3 +320,25 @@ export function getBookingSubmitErrorMessage(error: unknown): string {
   }
   return "Something went wrong. Please try again.";
 }
+
+export function getClaimErrorMessage(error: unknown, fallback = "Something went wrong"): string {
+  if (error instanceof ApiClientError) {
+    if (error.status === 401) {
+      return "Please log in first.";
+    }
+    if (error.code === "CLAIM_NOT_FOUND_OR_MISMATCH") {
+      return "We could not find a matching guest item. Check the reference and contact.";
+    }
+    if (error.status === 422) {
+      return "Check the reference and contact fields.";
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Could not reach the server. Check your connection and try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
