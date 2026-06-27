@@ -3,6 +3,7 @@ import { Layout } from "@/components/Layout";
 import { BookingPage } from "@/pages/BookingPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { MyBookingsPage } from "@/pages/MyBookingsPage";
+import { MyOrderDetailPage } from "@/pages/MyOrderDetailPage";
 import { MyOrdersPage } from "@/pages/MyOrdersPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { OrderRequestPage } from "@/pages/OrderRequestPage";
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
       { path: "register", element: <RegisterPage /> },
       { path: "me/bookings", element: <MyBookingsPage /> },
       { path: "me/orders", element: <MyOrdersPage /> },
+      { path: "me/orders/:orderId", element: <MyOrderDetailPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

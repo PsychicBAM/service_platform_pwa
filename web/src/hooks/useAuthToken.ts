@@ -1,9 +1,9 @@
-import { getAccessToken } from "@/api/client";
+import { hasAccessToken } from "@/utils/authStorage";
 
 export function useHasToken(): boolean {
-  return Boolean(getAccessToken());
+  return hasAccessToken();
 }
 
 export function isAuthenticated(): boolean {
-  return Boolean(getAccessToken());
+  return hasAccessToken();
 }

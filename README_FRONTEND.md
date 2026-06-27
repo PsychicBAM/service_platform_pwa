@@ -72,7 +72,8 @@ All data comes from the Phase 1 FastAPI backend. The frontend does not embed bus
 Wrappers:
 
 - `src/api/publicApi.ts` — public business, services, availability, bookings, orders
-- `src/api/authApi.ts` — login, register, `/auth/me`
+- `src/api/authApi.ts` — login, register, logout, `/auth/me`
+- `src/api/meApi.ts` — `/me/bookings`, `/me/orders`, order messages
 
 Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**.
 
@@ -88,20 +89,31 @@ Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**
 | `/b/:slug/services/:serviceId/book` | Public booking flow (booking services only) |
 | `/login` | Login form |
 | `/register` | Register form (UI only) |
-| `/me/bookings` | Auth-gated placeholder |
-| `/me/orders` | Auth-gated placeholder |
+| `/me/bookings` | My bookings list (auth required) |
+| `/me/orders` | My orders list (auth required) |
+| `/me/orders/:orderId` | Order detail + messages (auth required) |
 
 ## Implemented (Phase 2)
 
 - Public business home, services list, and service detail (API)
 - Public order request form for order-type services (guest, no login required)
 - Public booking flow for booking-type services: date selection, time slots, guest form
+- My Bookings and My Orders pages wired to `/me/*` APIs
+- Order detail with message list (15s polling) and send form
+- Login/logout with JWT in `localStorage`
 - Inline form validation and success screens with reference numbers
+
+### Guest vs account-linked data
+
+`/me/bookings` and `/me/orders` only show items where the backend `Client.user_id` matches the logged-in user. **Guest bookings and orders created without login do not appear yet** — guest claim / magic link is not implemented.
+
+Demo seed creates guest client records (`john.demo@example.com`) but does not link them to a login user. To test `/me` pages manually, use a client-role user whose `Client.user_id` is set (see backend tests in `test_me_bookings_routes.py`).
 
 ## Intentionally not implemented
 
 - Admin or superadmin dashboards
-- Login-required booking / my bookings integration after guest submit
+- Guest claim / magic link (guest public bookings/orders → account)
+- Booking reschedule UI
 - Register submit wiring
 - Token refresh
 - Stripe / payments
@@ -112,9 +124,10 @@ Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**
 
 ## Next slice
 
-Wire authenticated client views (`/me/bookings`, `/me/orders`) and register submit.
+Register submit wiring and guest claim flow (if prioritized).
 
 ## TODO
 
-- Vitest / component tests for public pages
+- Vitest / component tests for public and account pages
 - Token refresh
+- Reschedule booking UI

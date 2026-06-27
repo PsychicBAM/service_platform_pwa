@@ -1,11 +1,13 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { login } from "@/api/authApi";
 import { ApiClientError } from "@/api/client";
 import { ErrorState } from "@/components/ErrorState";
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("owner@example.com");
   const [password, setPassword] = useState("ChangeMe123!");
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +19,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       await login({ email, password });
+      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       navigate("/me/bookings");
     } catch (err) {
       const message =

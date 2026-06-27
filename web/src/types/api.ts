@@ -182,3 +182,124 @@ export interface MeResponse {
   role: UserRole;
   businesses: MeBusinessItem[];
 }
+
+export type MyBookingStatusFilter = "upcoming" | "past" | "cancelled";
+export type MyOrderStatusFilter = "active" | "completed" | "declined" | "cancelled";
+
+export interface ListMeta {
+  page: number;
+  limit: number;
+  total: number;
+}
+
+export interface MyBookingBusinessSummary {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface MyBookingServiceSummary {
+  id: string;
+  name: string;
+}
+
+export interface MyBookingListItem {
+  id: string;
+  reference: string;
+  status: BookingStatus;
+  business: MyBookingBusinessSummary;
+  service: MyBookingServiceSummary;
+  starts_at: string;
+  ends_at: string;
+  can_cancel: boolean;
+  can_reschedule: boolean;
+}
+
+export interface MyBookingDetail {
+  id: string;
+  reference: string;
+  status: BookingStatus;
+  business: MyBookingBusinessSummary;
+  service: MyBookingServiceSummary;
+  starts_at: string;
+  ends_at: string;
+  client_notes: string | null;
+  cancelled_at: string | null;
+  cancelled_by: string | null;
+  cancellation_reason: string | null;
+  can_cancel: boolean;
+  can_reschedule: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MyBookingListResponse {
+  data: MyBookingListItem[];
+  meta: ListMeta;
+}
+
+export interface MyOrderBusinessSummary {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface MyOrderServiceSummary {
+  id: string;
+  name: string;
+  type: ServiceType;
+  price_cents: number | null;
+  price_type: PriceType;
+  currency: string;
+}
+
+export interface MyOrderListItem {
+  id: string;
+  reference: string;
+  status: OrderStatus;
+  business: MyOrderBusinessSummary;
+  service: MyOrderServiceSummary;
+  created_at: string;
+  updated_at: string;
+  last_message_preview: string | null;
+  can_cancel: boolean;
+}
+
+export interface MyOrderDetail {
+  id: string;
+  reference: string;
+  status: OrderStatus;
+  business: MyOrderBusinessSummary;
+  service: MyOrderServiceSummary;
+  form_data: Record<string, unknown>;
+  quoted_price_cents: number | null;
+  decline_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  accepted_at: string | null;
+  completed_at: string | null;
+  can_cancel: boolean;
+}
+
+export interface MyOrderListResponse {
+  data: MyOrderListItem[];
+  meta: ListMeta;
+}
+
+export type OrderMessageSenderType = "client" | "admin";
+
+export interface OrderMessageRead {
+  id: string;
+  order_id: string;
+  business_id: string;
+  sender_type: OrderMessageSenderType;
+  sender_user_id: string | null;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface OrderMessageListResponse {
+  data: OrderMessageRead[];
+  meta: ListMeta;
+}

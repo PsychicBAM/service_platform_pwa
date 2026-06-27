@@ -1,4 +1,5 @@
 import { apiClient, setAccessToken } from "@/api/client";
+import { clearAccessToken } from "@/utils/authStorage";
 import type {
   LoginRequest,
   LoginResponse,
@@ -29,4 +30,8 @@ export async function register(payload: RegisterRequest) {
 
 export function getMe() {
   return apiClient.get<MeResponse>("/auth/me");
+}
+
+export function logout() {
+  clearAccessToken();
 }
