@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
+    "check:routes": "node scripts/check_frontend_routes.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

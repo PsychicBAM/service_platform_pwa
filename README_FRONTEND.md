@@ -55,6 +55,7 @@ Open http://localhost:5173
 | `npm run dev` | Vite dev server (port 5173) |
 | `npm run build` | Production build to `dist/` |
 | `npm run typecheck` | TypeScript check (`tsc --noEmit`) |
+| `npm run check:routes` | Static route/page smoke check (no browser) |
 | `npm run preview` | Preview production build |
 
 Lint is **not configured** in this slice — add ESLint in a later slice if needed.
@@ -93,7 +94,95 @@ Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**
 | `/me/orders` | My orders list (auth required) |
 | `/me/orders/:orderId` | Order detail + messages (auth required) |
 
-## Implemented (Phase 2)
+## Admin routes (Phase 3)
+
+| Path | Page |
+|------|------|
+| `/admin` | Dashboard overview |
+| `/admin/services` | Services CRUD |
+| `/admin/bookings` | Bookings list + actions |
+| `/admin/orders` | Orders list + actions + messages |
+| `/admin/clients` | Clients CRM |
+| `/admin/schedule` | Schedule edit |
+| `/admin/settings` | Business settings edit |
+
+## Superadmin routes (Phase 3)
+
+| Path | Page |
+|------|------|
+| `/superadmin` | Platform overview |
+| `/superadmin/businesses` | Business list + status/plan edit |
+| `/superadmin/audit-logs` | Audit log viewer |
+
+See **[FRONTEND_AUDIT_REPORT.md](../FRONTEND_AUDIT_REPORT.md)** for the Phase 3 checkpoint audit (routes, roles, flows, test results).
+
+## Demo credentials (local)
+
+| Role | Email | Password |
+|------|-------|----------|
+| Superadmin | superadmin@example.com | ChangeMe123! |
+| Business owner | owner@example.com | ChangeMe123! |
+| Client (linked `/me` data) | client@example.com | ChangeMe123! |
+
+Demo business slug: **`demo-business`**
+
+## Manual audit checklist
+
+Prerequisites:
+
+```bash
+docker compose up -d
+docker compose exec api alembic upgrade head
+docker compose exec api python scripts/seed_demo.py
+cd web && npm run dev
+```
+
+**Important:** If you ran `pytest` first, run `seed_demo.py` again before manual or E2E testing (tests truncate auth tables).
+
+### Public / guest
+
+- [ ] `/b/demo-business` loads business info
+- [ ] Services list shows Arabic Lesson + Build Telegram Bot
+- [ ] Book Arabic Lesson → pick date/slot → submit → success reference
+- [ ] Request Build Telegram Bot → submit → success reference
+
+### Client (`client@example.com`)
+
+- [ ] `/me/bookings` shows linked booking
+- [ ] `/me/orders` shows linked order
+- [ ] Order detail → send message
+
+### Owner (`owner@example.com`)
+
+- [ ] `/admin` dashboard loads with stats
+- [ ] Services: create/edit, activate/deactivate
+- [ ] Bookings: filter, detail, confirm/notes
+- [ ] Orders: filter, detail, accept/decline/message
+- [ ] Clients: search, edit notes
+- [ ] Schedule: edit hours/break/unavailable
+- [ ] Settings: save profile/mode
+
+### Superadmin (`superadmin@example.com`)
+
+- [ ] `/superadmin/businesses` lists demo business
+- [ ] Suspend business → public page fails → restore active
+- [ ] Change plan → visible in audit logs
+
+### Access denied
+
+- [ ] `owner@example.com` → `/superadmin` blocked
+- [ ] `client@example.com` → `/admin` blocked
+
+### Automated checks
+
+```bash
+cd web
+npm run typecheck
+npm run build
+npm run check:routes
+```
+
+## Implemented (Phase 2 + Phase 3)
 
 - Public business home, services list, and service detail (API)
 - Public order request form for order-type services (guest, no login required)
@@ -185,9 +274,6 @@ cd web && npm run dev
 
 ## Intentionally not implemented
 
-- Full admin order action forms (accept, decline, complete, etc.)
-- Manual admin booking creation
-- Admin or superadmin dashboards with analytics
 - Guest claim / magic link (guest public bookings/orders → account)
 - Booking reschedule UI
 - Register submit wiring
@@ -197,17 +283,8 @@ cd web && npm run dev
 - Mobile native wrapper
 - Frontend Docker / CI
 - Service worker / offline mode
+- Playwright / Vitest automated frontend tests
 
-## Next slice
+## Next slice (post-checkpoint)
 
-Admin order actions and schedule editing.
-
-## TODO
-
-- Vitest / component tests for public and account pages
-- Token refresh
-- Reschedule booking UI
-- Admin order action UI
-- Manual admin booking creation
-- Booking list search
-- Payments (Stripe)
+Token refresh, guest claim, frontend tests, or payments (Stripe) when budget allows.

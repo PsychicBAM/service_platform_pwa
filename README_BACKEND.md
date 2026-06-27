@@ -213,7 +213,9 @@ docker compose exec api env API_BASE_URL=http://127.0.0.1:8000 python scripts/e2
 
 The script prints `PASS`/`FAIL`/`SKIP` per step and exits non-zero on critical failures.
 
-See also `PHASE1_BACKEND_REPORT.md` for the full Phase 1 checkpoint summary.
+**Checkpoint order:** Run `seed_demo.py` **after** `pytest` if you need demo users/data for manual testing or E2E — the test suite truncates auth-related tables between tests.
+
+See also `PHASE1_BACKEND_REPORT.md` for the full Phase 1 checkpoint summary and `FRONTEND_AUDIT_REPORT.md` for the Phase 3 frontend checkpoint.
 
 ## Auth API examples
 
