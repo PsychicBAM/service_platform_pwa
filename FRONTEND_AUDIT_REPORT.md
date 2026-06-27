@@ -115,6 +115,17 @@ Manual UI walkthrough (recommended after `npm run dev` + seed):
 | `npm run test` (Vitest) | **16 passed** (post-slice 12) |
 | `npm run test:e2e` (Playwright) | **9 passed** (post-slice 13; requires seeded backend) |
 
+## Continuous integration
+
+GitHub Actions workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on push/PR to `main`:
+
+| Job | Checks |
+|-----|--------|
+| **backend-tests** | Docker Compose, pytest, check_backend, seed_demo, e2e_backend_audit |
+| **frontend-tests** | Vitest, typecheck, build, check:routes |
+
+No repository secrets required. Playwright browser E2E remains **local/manual** (not in CI) — optional future job when stable in headless CI.
+
 ## Known limitations (unchanged)
 
 - No Stripe / payments UI or backend billing
@@ -132,7 +143,7 @@ Manual UI walkthrough (recommended after `npm run dev` + seed):
 
 1. **Guest claim / magic link** — link guest bookings/orders to client accounts.
 2. **Payments slice** (when budget allows) — Stripe Connect, separate from this checkpoint.
-3. **Expand E2E** — optional CI job, more browsers, or deeper form flows when budget allows.
+3. **Expand E2E** — optional Playwright CI job when headless browser setup is worth the CI time.
 
 ## Related docs
 

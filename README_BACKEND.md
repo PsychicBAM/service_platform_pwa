@@ -100,6 +100,21 @@ python -m pytest
 python scripts/check_backend.py
 ```
 
+## Continuous integration (GitHub Actions)
+
+On push and pull requests to `main`, [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs two jobs:
+
+| Job | What it runs |
+|-----|----------------|
+| **backend-tests** | `docker compose up`, migrations, `pytest`, `check_backend.py`, `seed_demo.py`, `e2e_backend_audit.py` |
+| **frontend-tests** | `npm ci`, Vitest, typecheck, build, `check:routes` in `web/` |
+
+CI creates `.env` from `.env.example` — **no GitHub secrets required**.
+
+**Important:** `seed_demo.py` runs after `pytest` in CI because tests truncate auth tables. The E2E audit depends on seeded demo users.
+
+Playwright browser E2E is **not** in CI yet (needs backend + browser deps). Run locally — see [README_FRONTEND.md](./README_FRONTEND.md).
+
 ## Migrations
 
 From `api/` (with Postgres running and `DATABASE_URL` set):

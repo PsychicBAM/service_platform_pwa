@@ -124,6 +124,28 @@ Use `npm run test:e2e:headed` to watch the browser. Vitest (`npm run test`) rema
 
 Playwright starts the Vite dev server with `VITE_API_BASE_URL=/api/v1` so API calls use the dev proxy (avoids CORS issues). If you already have `npm run dev` running on port 5173 **without** that env var, stop it first — `reuseExistingServer` will reuse the existing process and E2E may fail to reach the API.
 
+## Continuous integration (GitHub Actions)
+
+On push and pull requests to `main`, [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs **frontend-tests**:
+
+```bash
+npm ci
+npm run test          # Vitest smoke (mocked APIs)
+npm run typecheck
+npm run build
+npm run check:routes
+```
+
+Backend checks run in the parallel **backend-tests** job via Docker Compose — see [README_BACKEND.md](./README_BACKEND.md).
+
+**Playwright is local/manual for now** — not part of default CI. After seeding the backend:
+
+```bash
+docker compose up -d --build
+docker compose exec api python scripts/seed_demo.py
+cd web && npm run test:e2e
+```
+
 ## PWA
 
 - `public/manifest.webmanifest` — app name, theme color, placeholder SVG icon
@@ -344,7 +366,7 @@ cd web && npm run dev
 - Stripe / payments
 - Email notifications
 - Mobile native wrapper
-- Frontend Docker / CI
+- Frontend Docker packaging
 - Service worker / offline mode
 
 ## Next slice (post-checkpoint)
