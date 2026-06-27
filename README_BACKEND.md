@@ -157,6 +157,7 @@ alembic revision --autogenerate -m "describe change"
 - **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
 - **Superadmin business management** (list/detail, status and plan overrides)
 - **Audit logs** for superadmin status/plan changes
+- **Demo seed script** (`scripts/seed_demo.py`) and **E2E backend audit** (`scripts/e2e_backend_audit.py`)
 - Migration `0006_orders.py`, `0007_audit_logs.py`
 
 ### Not implemented
@@ -166,14 +167,50 @@ alembic revision --autogenerate -m "describe change"
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
 - Dashboard analytics
-- Payments (Stripe)
-- Notifications (email/push)
+- Payments (Stripe billing)
+- Email/push notifications
 - Frontend PWA
 - Guest booking claim / magic link
 - WebSocket realtime chat
+- Mobile wrapper
 - Redis, Celery, background workers
 
-Next slice: payments or notifications per `MVP_PLAN.md` Phase 1.
+Next recommended phase: **Phase 2 Client PWA skeleton**, or optionally a small **dashboard summary endpoint** backend slice.
+
+## Demo data (local development)
+
+Seed idempotent demo users, business, services, schedule, and sample client/booking/order:
+
+```bash
+docker compose exec api python scripts/seed_demo.py
+```
+
+**Demo credentials** (local only — change in production):
+
+| Role | Email | Password |
+|------|-------|----------|
+| Superadmin | superadmin@example.com | ChangeMe123! |
+| Business owner | owner@example.com | ChangeMe123! |
+
+Demo business slug: `demo-business` (timezone `Europe/Moscow`, status `active`).
+
+## E2E backend audit
+
+Runs HTTP checks against the running API (requires Docker API + demo seed):
+
+```bash
+docker compose exec api python scripts/e2e_backend_audit.py
+```
+
+Optional base URL override:
+
+```bash
+docker compose exec api env API_BASE_URL=http://127.0.0.1:8000 python scripts/e2e_backend_audit.py
+```
+
+The script prints `PASS`/`FAIL`/`SKIP` per step and exits non-zero on critical failures.
+
+See also `PHASE1_BACKEND_REPORT.md` for the full Phase 1 checkpoint summary.
 
 ## Auth API examples
 
