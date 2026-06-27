@@ -21,6 +21,9 @@ jobs:
       - name: Create .env from example
         run: cp .env.example .env
 
+      - name: Validate production env script (example template)
+        run: python scripts/check_production_env.py --env-file .env.production.example
+
       - name: Start Docker Compose services
         run: docker compose up -d --build postgres api
 

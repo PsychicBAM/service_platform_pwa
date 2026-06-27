@@ -8,6 +8,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 
 ## Security
 
+- [ ] **Production env validated** — `python scripts/check_production_env.py --env-file .env --strict` exits 0
 - [ ] **JWT_SECRET_KEY** is a long random value (≥ 32 bytes), not `change_me`
 - [ ] **Postgres password** is strong and matches `DATABASE_URL` in `.env`
 - [ ] **`.env` is not in git** and file permissions are restrictive (`chmod 600 .env`)

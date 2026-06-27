@@ -131,6 +131,7 @@ Playwright browser E2E is **not** in CI yet (needs backend + browser deps). Run 
 | [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) | Postgres backup/restore (dev + prod compose) |
 | [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) | Pre-launch checks |
 | [.env.production.example](./.env.production.example) | Production env template |
+| [scripts/check_production_env.py](./scripts/check_production_env.py) | Validate `.env` before deploy |
 
 **Local dev:** `docker compose up -d --build` ([docker-compose.yml](./docker-compose.yml))
 
@@ -138,6 +139,8 @@ Playwright browser E2E is **not** in CI yet (needs backend + browser deps). Run 
 
 ```bash
 cp .env.production.example .env
+# edit .env, then:
+python scripts/check_production_env.py --env-file .env --strict
 docker compose -p service_platform_prod -f docker-compose.prod.yml up -d --build
 docker compose -p service_platform_prod -f docker-compose.prod.yml exec api alembic upgrade head
 ```

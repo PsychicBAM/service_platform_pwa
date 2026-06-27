@@ -72,7 +72,23 @@ Postgres credentials are read from `.env` by `docker-compose.prod.yml` — no ha
 
 **Do not** use demo passwords or `seed_demo.py` on a real production site unless this is a private demo.
 
-### 3. Build and start
+### 3. Validate environment (before first deploy and after edits)
+
+From project root on the VPS (or locally while preparing `.env`):
+
+```bash
+python scripts/check_production_env.py --env-file .env --strict
+```
+
+This checks required variables, JWT length, placeholder passwords, and `DATABASE_URL` host (`postgres` for Compose). Optional Stripe/SMTP keys warn only.
+
+Template sanity (placeholders allowed — **do not** use `--strict`):
+
+```bash
+python scripts/check_production_env.py --env-file .env.production.example
+```
+
+### 4. Build and start
 
 ```bash
 docker compose -p service_platform_prod -f docker-compose.prod.yml up -d --build
@@ -85,7 +101,7 @@ Optional **demo only**:
 docker compose -p service_platform_prod -f docker-compose.prod.yml exec api python scripts/seed_demo.py
 ```
 
-### 4. Verify health
+### 5. Verify health
 
 ```bash
 curl -s http://localhost/health              # via web nginx proxy
@@ -102,7 +118,7 @@ WEB_HTTP_PORT=8080
 
 Then use `http://localhost:8080`.
 
-### 5. Local development (unchanged)
+### 6. Local development (unchanged)
 
 For day-to-day development, use the dev compose file:
 
