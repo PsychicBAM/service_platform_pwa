@@ -11,6 +11,8 @@ POSTGRES_DB=service_platform
 DATABASE_URL=postgresql+asyncpg://service_platform:super_secure_random_password_value_123@postgres:5432/service_platform
 JWT_SECRET_KEY=0123456789abcdef0123456789abcdef0123456789ab
 WEB_HTTP_PORT=80
+CORS_ORIGINS=https://example.com
+API_DOCS_ENABLED=false
 STRIPE_SECRET_KEY=
 SMTP_HOST=
 SMTP_USER=
@@ -68,6 +70,8 @@ def test_fail_short_jwt_secret() -> None:
         ),
         "JWT_SECRET_KEY": "too_short",
         "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
     }
 
     result = module.validate_production_env(parsed, strict=True)
@@ -84,6 +88,8 @@ def test_fail_missing_database_url() -> None:
         "POSTGRES_DB": "service_platform",
         "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
         "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
     }
 
     result = module.validate_production_env(parsed, strict=True)
@@ -104,11 +110,34 @@ def test_strict_fails_placeholder_password() -> None:
         ),
         "JWT_SECRET_KEY": "CHANGE_ME_GENERATE_A_LONG_RANDOM_SECRET",
         "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
     }
 
     result = module.validate_production_env(parsed, strict=True)
     assert not result.passed
     assert any("POSTGRES_PASSWORD" in failure for failure in result.failures)
+
+
+def test_strict_fails_missing_cors_origins() -> None:
+    module = _load_module()
+    parsed = {
+        "APP_ENV": "production",
+        "POSTGRES_USER": "service_platform",
+        "POSTGRES_PASSWORD": "super_secure_random_password_value_123",
+        "POSTGRES_DB": "service_platform",
+        "DATABASE_URL": (
+            "postgresql+asyncpg://service_platform:super_secure_random_password_value_123"
+            "@postgres:5432/service_platform"
+        ),
+        "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
+        "WEB_HTTP_PORT": "80",
+        "API_DOCS_ENABLED": "false",
+    }
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert any("CORS_ORIGINS" in failure for failure in result.failures)
 
 
 def test_parse_env_file_ignores_comments(tmp_path: Path) -> None:
