@@ -1,5 +1,12 @@
 import { Link, useParams } from "react-router-dom";
-import { EmptyState } from "@/components/EmptyState";
+import { useQuery } from "@tanstack/react-query";
+import { getPublicService } from "@/api/publicApi";
+import { ErrorState } from "@/components/ErrorState";
+import { LoadingState } from "@/components/LoadingState";
+import { PriceLabel } from "@/components/PriceLabel";
+import { TypeBadge } from "@/components/TypeBadge";
+import { formatDuration, serviceTypeIcon } from "@/utils/format";
+import { getApiErrorMessage, isNotFoundError } from "@/utils/errors";
 
 export function ServiceDetailPage() {
   const { slug = "", serviceId = "" } = useParams<{
@@ -7,25 +14,83 @@ export function ServiceDetailPage() {
     serviceId: string;
   }>();
 
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["public-service", slug, serviceId],
+    queryFn: () => getPublicService(slug, serviceId),
+    enabled: Boolean(slug && serviceId),
+  });
+
+  const isBooking = data?.type === "booking";
+  const duration = isBooking ? formatDuration(data?.duration_minutes) : null;
+
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Service detail</h1>
-        <Link
-          to={`/b/${slug}/services`}
-          className="text-sm text-brand-700 hover:underline"
-        >
-          Back
-        </Link>
-      </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-xs uppercase tracking-wide text-slate-500">Placeholder</p>
-        <p className="mt-2 font-mono text-sm text-slate-700">{serviceId}</p>
-      </div>
-      <EmptyState
-        title="Booking & order UI not implemented"
-        description="Availability picker and checkout will be added in a future slice."
-      />
+      <Link
+        to={`/b/${slug}/services`}
+        className="inline-block text-sm text-brand-700 hover:underline"
+      >
+        ← Back to services
+      </Link>
+
+      {isLoading ? <LoadingState message="Loading service…" /> : null}
+
+      {isError ? (
+        <ErrorState
+          title={isNotFoundError(error) ? "Service not found" : "Could not load service"}
+          message={getApiErrorMessage(error, "Unable to load service")}
+        />
+      ) : null}
+
+      {!isLoading && !isError && data ? (
+        <>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="text-3xl" aria-hidden>
+                {serviceTypeIcon(data.type)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-xl font-bold text-slate-900">{data.name}</h1>
+                  <TypeBadge type={data.type} />
+                </div>
+                <p className="mt-1 text-sm text-slate-500">
+                  {isBooking ? "Appointment service" : "Service request"}
+                </p>
+              </div>
+            </div>
+
+            {data.description ? (
+              <p className="mt-4 text-sm leading-relaxed text-slate-600">{data.description}</p>
+            ) : null}
+
+            <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-slate-100 pt-4">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">Price</p>
+                <PriceLabel service={data} className="mt-1 text-base" />
+              </div>
+              {duration ? (
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Duration</p>
+                  <p className="mt-1 text-sm font-medium text-slate-900">{duration}</p>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            disabled
+            className="w-full cursor-not-allowed rounded-xl bg-slate-200 px-4 py-3 text-center text-sm font-medium text-slate-600"
+          >
+            {isBooking ? "📅 Continue to booking" : "📝 Continue to request"}
+          </button>
+          <p className="text-center text-sm text-slate-500">
+            {isBooking
+              ? "Booking flow coming in the next slice."
+              : "Request form coming in the next slice."}
+          </p>
+        </>
+      ) : null}
     </section>
   );
 }
