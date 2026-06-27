@@ -2,6 +2,8 @@
 
 Mobile-first client-facing Progressive Web App for browsing businesses, booking services, and placing orders.
 
+**MVP release checkpoint:** [MVP_RELEASE_REPORT.md](../MVP_RELEASE_REPORT.md) — implemented UI, smoke checklist, and known limitations.
+
 ## Stack
 
 | Layer | Choice |

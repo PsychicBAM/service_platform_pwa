@@ -2,6 +2,8 @@
 
 FastAPI backend for the Service Platform PWA: appointment bookings, service orders, clients, payments, and admin operations. Planning docs live in the project root (`PRODUCT_SPEC.md`, `API_DRAFT.md`, etc.).
 
+**MVP release checkpoint:** [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) — what is done, how to run/test, and what remains before production.
+
 ## Stack
 
 | Layer | Choice |
