@@ -9,8 +9,12 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [PRODUCTION_CHECKLIST.md](./PRODUCTIO
 ## Before you start
 
 - Backups contain **all user and business data** — store encrypted, restrict permissions.
-- Default compose DB: user `service_platform`, database `service_platform`, container `service_platform_postgres`.
-- Adjust names if you changed `.env` / `docker-compose.yml`.
+- Default DB: user `service_platform`, database `service_platform`.
+- **Dev stack:** container `service_platform_postgres`, compose file `docker-compose.yml`.
+- **Prod stack:** container `service_platform_postgres_prod`, compose file `docker-compose.prod.yml` with `-p service_platform_prod`.
+- Adjust names if you changed `.env` or container names.
+
+Use `-f` and `-p` flags consistently with how you started the stack (see [DEPLOYMENT.md](./DEPLOYMENT.md)).
 
 **Suggested backup location on VPS:**
 
@@ -29,7 +33,9 @@ sudo chown "$USER:$USER" /var/backups/service_platform
 
 ## Backup Postgres
 
-### Linux / macOS (bash)
+### Local dev compose (`docker-compose.yml`)
+
+#### Linux / macOS (bash)
 
 From project root with stack running:
 
@@ -48,13 +54,7 @@ docker compose exec -T postgres pg_dump \
 ls -lh "$BACKUP_DIR/service_platform_${TIMESTAMP}.sql.gz"
 ```
 
-Copy off-server (example):
-
-```bash
-scp "$BACKUP_DIR/service_platform_${TIMESTAMP}.sql.gz" user@backup-host:/backups/
-```
-
-### Windows (PowerShell)
+#### Windows (PowerShell)
 
 From project root:
 
@@ -72,13 +72,51 @@ Get-Item $outFile
 
 > If `gzip` is not available in PowerShell, pipe to a plain `.sql` file or install gzip via WSL/Git Bash.
 
+### Production compose (`docker-compose.prod.yml`)
+
+Use the same project name as deployment (`-p service_platform_prod`):
+
+**Linux / bash:**
+
+```bash
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="${BACKUP_DIR:-./backups}"
+mkdir -p "$BACKUP_DIR"
+
+docker compose -p service_platform_prod -f docker-compose.prod.yml exec -T postgres pg_dump \
+  -U service_platform \
+  -d service_platform \
+  --no-owner \
+  --no-acl \
+  | gzip > "$BACKUP_DIR/service_platform_prod_${TIMESTAMP}.sql.gz"
+```
+
+**Windows (PowerShell):**
+
+```powershell
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$backupDir = if ($env:BACKUP_DIR) { $env:BACKUP_DIR } else { ".\backups" }
+New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
+$outFile = Join-Path $backupDir "service_platform_prod_$timestamp.sql.gz"
+
+docker compose -p service_platform_prod -f docker-compose.prod.yml exec -T postgres `
+  pg_dump -U service_platform -d service_platform --no-owner --no-acl |
+  gzip > $outFile
+```
+
+Copy off-server (example):
+
+```bash
+scp "$BACKUP_DIR/service_platform_${TIMESTAMP}.sql.gz" user@backup-host:/backups/
+```
+
 ### What to back up besides SQL
 
-| Item | Location |
-|------|----------|
-| Postgres volume | Docker volume `service_platform_postgres_data` |
-| Environment | `.env` (secure copy, **not** in git) |
-| Uploaded files | None in current MVP (future: media volume) |
+| Item | Dev | Prod |
+|------|-----|------|
+| Postgres volume | `service_platform_postgres_data` | `service_platform_postgres_prod_data` |
+| Environment | `.env` (secure copy, **not** in git) | same |
+| Uploaded files | None in MVP | None in MVP |
 
 ---
 
@@ -86,7 +124,9 @@ Get-Item $outFile
 
 **Warning: restore is destructive.** It replaces data in the target database. Stop writers first.
 
-### 1. Stop API and web (keep postgres running)
+### Local dev compose
+
+#### 1. Stop API and web (keep postgres running)
 
 ```bash
 docker compose stop api web
@@ -98,7 +138,7 @@ PowerShell:
 docker compose stop api web
 ```
 
-### 2. Restore from `.sql.gz`
+#### 2. Restore from `.sql.gz`
 
 **Linux / bash** (replace filename):
 
@@ -130,16 +170,44 @@ $backupFile = ".\backups\service_platform_20260101_120000.sql"
 Get-Content $backupFile | docker compose exec -T postgres psql -U service_platform -d service_platform
 ```
 
-### 3. Start services and verify
+#### 3. Start services and verify (dev)
 
 ```bash
 docker compose up -d api web
-docker compose exec api alembic upgrade head   # ensure schema matches code
+docker compose exec api alembic upgrade head
 curl -s http://localhost:8000/health
-docker compose exec api python scripts/check_backend.py   # optional full check
+docker compose exec api python scripts/check_backend.py   # optional
 ```
 
-### 4. After restore
+### Production compose
+
+#### 1. Stop writers
+
+```bash
+docker compose -p service_platform_prod -f docker-compose.prod.yml stop api web
+```
+
+#### 2. Restore
+
+```bash
+BACKUP_FILE="./backups/service_platform_prod_20260101_120000.sql.gz"
+
+gunzip -c "$BACKUP_FILE" | docker compose -p service_platform_prod -f docker-compose.prod.yml exec -T postgres psql \
+  -U service_platform \
+  -d service_platform
+```
+
+#### 3. Start and verify (prod)
+
+```bash
+docker compose -p service_platform_prod -f docker-compose.prod.yml up -d api web
+docker compose -p service_platform_prod -f docker-compose.prod.yml exec api alembic upgrade head
+curl -s http://localhost/health
+```
+
+Use `http://localhost:8080/health` if `WEB_HTTP_PORT=8080`.
+
+### After restore (both stacks)
 
 - Test login and one public business page.
 - If restore was to match an **older** app version, run the app image from that git commit — do not run new code on an old schema without migrating.

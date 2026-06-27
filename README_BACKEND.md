@@ -124,16 +124,23 @@ Playwright browser E2E is **not** in CI yet (needs backend + browser deps). Run 
 
 ## Deployment readiness (VPS)
 
-Docs-only in this phase — no automated deploy yet.
+| File / doc | Purpose |
+|------------|---------|
+| [docker-compose.prod.yml](./docker-compose.prod.yml) | Production stack — no reload, no api bind mount, web on port 80 |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | First deploy, HTTPS, logs, updates, dev vs prod |
+| [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) | Postgres backup/restore (dev + prod compose) |
+| [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) | Pre-launch checks |
+| [.env.production.example](./.env.production.example) | Production env template |
 
-| Doc | Purpose |
-|-----|---------|
-| [DEPLOYMENT.md](./DEPLOYMENT.md) | Server requirements, first deploy, HTTPS options, updates, rollback |
-| [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) | Manual Postgres backup/restore (bash + PowerShell) |
-| [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) | Security, ops, and app checks before go-live |
-| [.env.production.example](./.env.production.example) | Production env template (placeholders only — copy to `.env` on VPS) |
+**Local dev:** `docker compose up -d --build` ([docker-compose.yml](./docker-compose.yml))
 
-Local development continues to use [.env.example](./.env.example).
+**VPS / staging:**
+
+```bash
+cp .env.production.example .env
+docker compose -p service_platform_prod -f docker-compose.prod.yml up -d --build
+docker compose -p service_platform_prod -f docker-compose.prod.yml exec api alembic upgrade head
+```
 
 ## Migrations
 

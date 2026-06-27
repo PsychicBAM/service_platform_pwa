@@ -1,0 +1,68 @@
+# Production Compose — VPS / staging. No bind mounts, no uvicorn --reload.
+#
+# Recommended (separate project from local dev):
+#   cp .env.production.example .env
+#   docker compose -p service_platform_prod -f docker-compose.prod.yml up -d --build
+#
+# Local dev continues to use docker-compose.yml (port 5173, api reload, bind mount).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: service_platform_postgres_prod
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-service_platform}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-service_platform}
+      POSTGRES_DB: ${POSTGRES_DB:-service_platform}
+    volumes:
+      - service_platform_postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./api
+    container_name: service_platform_api_prod
+    restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - "8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api/v1
+    container_name: service_platform_web_prod
+    restart: unless-stopped
+    ports:
+      - "${WEB_HTTP_PORT:-80}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  service_platform_postgres_prod_data:

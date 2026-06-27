@@ -96,6 +96,12 @@ jobs:
       - name: Verify production Docker image builds
         run: docker compose -f ../docker-compose.yml build web
 
+      - name: Validate production compose file
+        run: |
+          cp ../.env.example ../.env
+          docker compose -f ../docker-compose.prod.yml config
+          docker compose -p service_platform_prod -f ../docker-compose.prod.yml build
+
       # TODO: Optional Playwright job (disabled) — requires Docker backend, seed_demo.py,
       # and `npx playwright install chromium`. Run locally:
       #   docker compose up -d --build
