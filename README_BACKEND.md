@@ -154,6 +154,7 @@ alembic revision --autogenerate -m "describe change"
 - **Client my orders** (`/api/v1/me/orders` — list, detail, cancel)
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
+- **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
 - Migration `0006_orders.py`
 
 ### Not implemented
@@ -162,9 +163,10 @@ alembic revision --autogenerate -m "describe change"
 - Password reset / magic links
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
+- Dashboard analytics
+- Superadmin management
 - Payments (Stripe)
 - Notifications (email/push)
-- Dashboard analytics
 - Frontend PWA
 - Guest booking claim / magic link
 - WebSocket realtime chat
@@ -562,6 +564,40 @@ curl -X PATCH http://localhost:8000/api/v1/businesses/BUSINESS_ID/clients/CLIENT
     "phone": "+15550101",
     "notes": "Prefers morning appointments"
   }'
+```
+
+## Business profile and settings examples
+
+Get business profile (admin):
+
+```bash
+curl http://localhost:8000/api/v1/businesses/BUSINESS_ID \
+  -H "Authorization: Bearer TOKEN"
+```
+
+Update business profile and settings:
+
+```bash
+curl -X PATCH http://localhost:8000/api/v1/businesses/BUSINESS_ID \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Joe'\''s Salon",
+    "description": "Walk-ins welcome",
+    "operating_mode": "both",
+    "timezone": "America/New_York",
+    "settings": {
+      "cancellation_hours": 48,
+      "slot_interval_minutes": 30,
+      "auto_confirm_bookings": true
+    }
+  }'
+```
+
+Get public business page (no auth, active businesses only):
+
+```bash
+curl http://localhost:8000/api/v1/public/b/joes-salon
 ```
 
 ## Tests and PostgreSQL

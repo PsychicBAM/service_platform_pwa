@@ -158,6 +158,16 @@ def main() -> int:
         admin_client_detail = "/api/v1/businesses/{business_id}/clients/{client_id}"
         if admin_client_detail not in paths:
             errors.append(f"{admin_client_detail} missing from OpenAPI")
+        admin_business_detail = "/api/v1/businesses/{business_id}"
+        if admin_business_detail not in paths:
+            errors.append(f"{admin_business_detail} missing from OpenAPI")
+        elif "patch" not in paths[admin_business_detail]:
+            errors.append(f"PATCH {admin_business_detail} missing from OpenAPI")
+        public_business = "/api/v1/public/b/{slug}"
+        if public_business not in paths:
+            errors.append(f"{public_business} missing from OpenAPI")
+        elif "get" not in paths[public_business]:
+            errors.append(f"GET {public_business} missing from OpenAPI")
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"OpenAPI auth check failed: {exc}")
 

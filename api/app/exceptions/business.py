@@ -87,3 +87,22 @@ class ClientNotFoundError(AppError):
 class ClientEmailExistsError(AppError):
     def __init__(self, message: str = "A client with this email already exists.") -> None:
         super().__init__(message=message, code="CLIENT_EMAIL_EXISTS", status_code=409)
+
+
+class BusinessNotFoundError(AppError):
+    def __init__(self, message: str = "Business not found.") -> None:
+        super().__init__(message=message, code="NOT_FOUND", status_code=404)
+
+
+class InvalidBusinessSettingsError(AppError):
+    def __init__(self, message: str = "Invalid business settings.") -> None:
+        super().__init__(
+            message=message,
+            code="INVALID_BUSINESS_SETTINGS",
+            status_code=400,
+        )
+
+
+class InvalidTimezoneError(AppError):
+    def __init__(self, message: str = "Invalid timezone.") -> None:
+        super().__init__(message=message, code="INVALID_TIMEZONE", status_code=400)

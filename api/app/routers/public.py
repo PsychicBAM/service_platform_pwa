@@ -9,15 +9,28 @@ from app.dependencies.business import get_active_business_by_slug
 from app.models.business import Business
 from app.models.enums import ServiceType
 from app.schemas.booking import PublicBookingCreate, PublicBookingCreateResponse
+from app.schemas.business import PublicBusinessRead
 from app.schemas.order import PublicOrderCreate, PublicOrderCreateResponse
 from app.schemas.schedule import AvailabilityResponse
 from app.schemas.service import PublicServiceRead
 from app.services.availability_service import AvailabilityService
 from app.services.booking_service import BookingService
+from app.services.business_service import BusinessService
 from app.services.order_service import OrderService
 from app.services.service_service import ServiceService
 
 router = APIRouter(prefix="/public/b", tags=["public"])
+
+
+@router.get("/{slug}", response_model=PublicBusinessRead)
+async def get_public_business(
+    slug: str,
+    business: Business = Depends(get_active_business_by_slug),
+    db: AsyncSession = Depends(get_db),
+) -> PublicBusinessRead:
+    if business.slug != slug.lower():
+        raise ValueError("slug mismatch")  # pragma: no cover
+    return await BusinessService(db).get_public_business(slug)
 
 
 @router.get("/{slug}/services", response_model=list[PublicServiceRead])

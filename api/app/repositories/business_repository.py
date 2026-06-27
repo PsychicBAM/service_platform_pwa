@@ -4,6 +4,7 @@ from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.models.business import Business
 from app.models.business_member import BusinessMember
@@ -37,6 +38,31 @@ class BusinessRepository:
         stmt = select(Business).where(Business.slug == slug.lower())
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_public_by_slug(self, slug: str) -> Business | None:
+        stmt = select(Business).where(
+            Business.slug == slug.lower(),
+            Business.status == BusinessStatus.active,
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def update_business(self, business: Business, data: dict[str, Any]) -> Business:
+        for key, value in data.items():
+            setattr(business, key, value)
+        await self.session.flush()
+        return business
+
+    async def update_settings(
+        self,
+        business: Business,
+        settings_patch: dict[str, Any],
+    ) -> Business:
+        merged = {**(business.settings or {}), **settings_patch}
+        business.settings = merged
+        flag_modified(business, "settings")
+        await self.session.flush()
+        return business
 
     async def get_by_id(self, business_id: uuid.UUID) -> Business | None:
         stmt = select(Business).where(Business.id == business_id)
