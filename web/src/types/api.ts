@@ -365,6 +365,33 @@ export interface AdminServiceListResponse {
   meta: ListMeta;
 }
 
+export interface ServiceCreatePayload {
+  name: string;
+  description?: string | null;
+  type: ServiceType;
+  duration_minutes?: number | null;
+  price_cents?: number | null;
+  currency?: string;
+  price_type?: PriceType;
+  require_payment?: boolean;
+  is_active?: boolean;
+  sort_order?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ServiceUpdatePayload {
+  name?: string;
+  description?: string | null;
+  duration_minutes?: number | null;
+  price_cents?: number | null;
+  currency?: string;
+  price_type?: PriceType;
+  require_payment?: boolean;
+  is_active?: boolean;
+  sort_order?: number;
+  metadata?: Record<string, unknown>;
+}
+
 export interface AdminBookingListItem {
   id: string;
   reference: string;

@@ -3,9 +3,12 @@ import type {
   AdminBookingListResponse,
   AdminOrderListResponse,
   AdminServiceListResponse,
+  AdminServiceRead,
   BusinessAdminRead,
   ClientListResponse,
   ScheduleRead,
+  ServiceCreatePayload,
+  ServiceUpdatePayload,
 } from "@/types/api";
 
 function buildQuery(params?: Record<string, string | number | boolean | undefined>): string {
@@ -40,7 +43,31 @@ export function listAdminServices(businessId: string) {
 }
 
 export function getAdminService(businessId: string, serviceId: string) {
-  return apiClient.get<AdminServiceListResponse["data"][number]>(
+  return apiClient.get<AdminServiceRead>(
+    `/businesses/${encodeURIComponent(businessId)}/services/${encodeURIComponent(serviceId)}`,
+  );
+}
+
+export function createAdminService(businessId: string, payload: ServiceCreatePayload) {
+  return apiClient.post<AdminServiceRead>(
+    `/businesses/${encodeURIComponent(businessId)}/services`,
+    payload,
+  );
+}
+
+export function updateAdminService(
+  businessId: string,
+  serviceId: string,
+  payload: ServiceUpdatePayload,
+) {
+  return apiClient.patch<AdminServiceRead>(
+    `/businesses/${encodeURIComponent(businessId)}/services/${encodeURIComponent(serviceId)}`,
+    payload,
+  );
+}
+
+export function deleteAdminService(businessId: string, serviceId: string) {
+  return apiClient.delete<AdminServiceRead>(
     `/businesses/${encodeURIComponent(businessId)}/services/${encodeURIComponent(serviceId)}`,
   );
 }

@@ -59,6 +59,31 @@ export function getMeErrorMessage(error: unknown, fallback = "Something went wro
   return fallback;
 }
 
+export function getAdminServiceErrorMessage(error: unknown, fallback = "Something went wrong"): string {
+  if (error instanceof ApiClientError) {
+    if (error.status === 401) {
+      return "Please log in again.";
+    }
+    if (error.status === 403) {
+      return "You do not have access.";
+    }
+    if (error.code === "PLAN_LIMIT_EXCEEDED") {
+      return "Your current plan has reached the service limit.";
+    }
+    if (error.status === 422) {
+      return "Please check the service fields.";
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Could not reach the server. Check your connection and try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export function getOrderSubmitErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.code === "SERVICE_NOT_ORDERABLE") {

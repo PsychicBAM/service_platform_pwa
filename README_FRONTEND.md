@@ -120,7 +120,8 @@ Read-only admin area at `/admin` for business members:
 - **AdminGuard** — requires login + business membership from `/auth/me`
 - **AdminLayout** — mobile nav + desktop sidebar
 - **adminApi.ts** — lightweight wrappers for next slices
-- No CRUD forms or action buttons yet
+- **Admin Services CRUD** — create/edit booking & request services, activate/deactivate, soft delete
+- No booking/order admin action buttons yet
 
 ### Manual test: Admin
 
@@ -165,7 +166,7 @@ cd web && npm run dev
 
 ## Intentionally not implemented
 
-- Full admin CRUD / action forms (confirm, accept, edit schedule, etc.)
+- Full admin booking/order action forms (confirm, accept, decline, etc.)
 - Superadmin UI
 - Admin or superadmin dashboards with analytics
 - Guest claim / magic link (guest public bookings/orders → account)
@@ -180,11 +181,12 @@ cd web && npm run dev
 
 ## Next slice
 
-Admin CRUD and action forms (services, bookings, orders, schedule editing).
+Admin schedule editing and booking/order admin actions.
 
 ## TODO
 
 - Vitest / component tests for public and account pages
 - Token refresh
 - Reschedule booking UI
-- Admin create/edit forms and booking/order actions
+- Admin booking/order action UI
+- Payments (Stripe)
