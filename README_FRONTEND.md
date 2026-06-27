@@ -127,8 +127,9 @@ Read-only admin area at `/admin` for business members:
 - **Admin Settings edit** — business profile, operating mode, booking settings (slug/status read-only)
 - **Admin Clients CRM** — search, client detail, edit contact/notes, recent bookings & orders
 - **Admin Dashboard overview** — stats, attention items, recent bookings/orders, quick links (no charts)
+- **Superadmin UI** — business list/detail, status & plan management, audit logs view
+- Stripe billing still TODO
 - Payments and email sending still TODO
-- Superadmin UI still TODO
 - No charts/analytics backend yet
 
 ### Manual test: Admin
@@ -145,6 +146,16 @@ cd web && npm run dev
 5. Login as **client@example.com** — `/admin` shows “No business access”
 
 Owner demo credentials: **owner@example.com** / **ChangeMe123!**
+
+Superadmin demo credentials: **superadmin@example.com** / **ChangeMe123!**
+
+### Manual test: Superadmin
+
+1. Login as **superadmin@example.com** / **ChangeMe123!**
+2. Open `/superadmin` — overview counts and quick links
+3. Open `/superadmin/businesses` — find demo business, suspend/restore status, change plan
+4. Open `/superadmin/audit-logs` — confirm status/plan changes appear
+5. Login as **owner@example.com** — `/superadmin` shows “Superadmin access required”
 
 ### Guest vs account-linked data
 
@@ -176,7 +187,6 @@ cd web && npm run dev
 
 - Full admin order action forms (accept, decline, complete, etc.)
 - Manual admin booking creation
-- Superadmin UI
 - Admin or superadmin dashboards with analytics
 - Guest claim / magic link (guest public bookings/orders → account)
 - Booking reschedule UI

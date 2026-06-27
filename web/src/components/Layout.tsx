@@ -14,6 +14,11 @@ export function Layout() {
           <nav className="flex items-center gap-3 text-sm">
             {isAuthenticated ? (
               <>
+                {user?.role === "superadmin" ? (
+                  <Link to="/superadmin" className="text-slate-600 hover:text-brand-700">
+                    Superadmin
+                  </Link>
+                ) : null}
                 {(user?.businesses?.length ?? 0) > 0 ? (
                   <Link to="/admin" className="text-slate-600 hover:text-brand-700">
                     Admin

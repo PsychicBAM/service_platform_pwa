@@ -691,3 +691,79 @@ export interface UnavailableTimeUpdatePayload {
   ends_at?: string;
   reason?: string | null;
 }
+
+export type SuperadminBusinessStatus = "active" | "suspended" | "pending_setup";
+
+export type SubscriptionPlan = "free" | "starter" | "business" | "pro";
+
+export type SubscriptionStatus = "active" | "past_due" | "cancelled" | "trialing";
+
+export interface SuperadminBusinessListItem {
+  id: string;
+  name: string;
+  slug: string;
+  status: SuperadminBusinessStatus;
+  operating_mode: OperatingMode;
+  owner_email: string | null;
+  plan: SubscriptionPlan;
+  subscription_status: SubscriptionStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SuperadminBusinessListResponse {
+  data: SuperadminBusinessListItem[];
+  meta: ListMeta;
+}
+
+export interface SuperadminOwnerRead {
+  id: string;
+  email: string;
+  full_name: string | null;
+}
+
+export interface SuperadminSubscriptionRead {
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  usage_bookings_count: number;
+  usage_orders_count: number;
+}
+
+export interface SuperadminBusinessDetail {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  status: SuperadminBusinessStatus;
+  operating_mode: OperatingMode;
+  timezone: string;
+  contact_email: string | null;
+  contact_phone: string | null;
+  address: string | null;
+  settings: BusinessSettingsRead;
+  subscription: SuperadminSubscriptionRead | null;
+  owner: SuperadminOwnerRead | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SuperadminBusinessUpdatePayload {
+  status?: SuperadminBusinessStatus;
+  plan?: SubscriptionPlan;
+}
+
+export interface AuditLogRead {
+  id: string;
+  actor_user_id: string | null;
+  business_id: string | null;
+  action: string;
+  target_type: string | null;
+  target_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface AuditLogListResponse {
+  data: AuditLogRead[];
+  meta: ListMeta;
+}

@@ -1,6 +1,8 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AdminGuard } from "@/components/AdminGuard";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { SuperadminGuard } from "@/components/SuperadminGuard";
+import { SuperadminLayout } from "@/components/superadmin/SuperadminLayout";
 import { Layout } from "@/components/Layout";
 import { AdminBookingsPage } from "@/pages/admin/AdminBookingsPage";
 import { AdminClientsPage } from "@/pages/admin/AdminClientsPage";
@@ -20,6 +22,9 @@ import { PublicHomePage } from "@/pages/PublicHomePage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { ServiceDetailPage } from "@/pages/ServiceDetailPage";
 import { ServicesPage } from "@/pages/ServicesPage";
+import { SuperadminAuditLogsPage } from "@/pages/superadmin/SuperadminAuditLogsPage";
+import { SuperadminBusinessesPage } from "@/pages/superadmin/SuperadminBusinessesPage";
+import { SuperadminDashboardPage } from "@/pages/superadmin/SuperadminDashboardPage";
 
 export const router = createBrowserRouter([
   {
@@ -54,6 +59,20 @@ export const router = createBrowserRouter([
           { path: "clients", element: <AdminClientsPage /> },
           { path: "schedule", element: <AdminSchedulePage /> },
           { path: "settings", element: <AdminSettingsPage /> },
+        ],
+      },
+    ],
+  },
+  {
+    path: "/superadmin",
+    element: <SuperadminGuard />,
+    children: [
+      {
+        element: <SuperadminLayout />,
+        children: [
+          { index: true, element: <SuperadminDashboardPage /> },
+          { path: "businesses", element: <SuperadminBusinessesPage /> },
+          { path: "audit-logs", element: <SuperadminAuditLogsPage /> },
         ],
       },
     ],

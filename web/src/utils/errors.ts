@@ -242,6 +242,34 @@ export function getAdminClientErrorMessage(
   return fallback;
 }
 
+export function getSuperadminErrorMessage(
+  error: unknown,
+  fallback = "Something went wrong",
+): string {
+  if (error instanceof ApiClientError) {
+    if (error.status === 401) {
+      return "Please log in again.";
+    }
+    if (error.status === 403) {
+      return "Superadmin access required.";
+    }
+    if (error.status === 404) {
+      return "Business not found.";
+    }
+    if (error.status === 422) {
+      return "Please check the fields and try again.";
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Could not reach the server. Check your connection and try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export function getOrderSubmitErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.code === "SERVICE_NOT_ORDERABLE") {
