@@ -22,7 +22,7 @@ jobs:
         run: cp .env.example .env
 
       - name: Start Docker Compose services
-        run: docker compose up -d --build
+        run: docker compose up -d --build postgres api
 
       - name: Wait for API health
         run: |
@@ -92,6 +92,9 @@ jobs:
 
       - name: Route smoke check
         run: npm run check:routes
+
+      - name: Verify production Docker image builds
+        run: docker compose -f ../docker-compose.yml build web
 
       # TODO: Optional Playwright job (disabled) — requires Docker backend, seed_demo.py,
       # and `npx playwright install chromium`. Run locally:

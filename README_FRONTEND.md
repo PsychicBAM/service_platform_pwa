@@ -28,13 +28,15 @@ cp .env.example .env.local
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `VITE_API_BASE_URL` | `http://localhost:8000/api/v1` | Backend API base URL |
+| `VITE_API_BASE_URL` | `http://localhost:8000/api/v1` (dev) | Backend API base URL |
 
 **Do not commit** `.env` or `.env.local`.
 
-During `npm run dev`, Vite proxies `/api` to `http://localhost:8000` so you can also omit the env file and use relative URLs via proxy (set `VITE_API_BASE_URL=/api/v1` if needed).
+During `npm run dev`, Vite proxies `/api` to `http://localhost:8000`. You can use `VITE_API_BASE_URL=/api/v1` for same-origin requests through the dev proxy.
 
-## Install & run
+**Docker production** builds the app with `VITE_API_BASE_URL=/api/v1`. The `web` container nginx proxies `/api/` to the `api` service — no `localhost` in the production bundle.
+
+## Install & run (local dev)
 
 ```bash
 cd web
@@ -44,9 +46,32 @@ npm run dev
 
 Open http://localhost:5173
 
+Stop `npm run dev` before using Docker on port 5173 (same port as the production `web` container).
+
 - Landing: `/`
 - Demo business: `/b/demo-business` (loads public business API)
 - Login: `/login` (stores JWT in `localStorage`)
+
+## Production Docker frontend (full stack)
+
+From project root (postgres + api + web):
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+docker compose exec api alembic upgrade head
+docker compose exec api python scripts/seed_demo.py
+```
+
+Open http://localhost:5173 — nginx serves the built React app. API calls use `/api/v1` on the same host (proxied to `api:8000`).
+
+| URL | Purpose |
+|-----|---------|
+| http://localhost:5173 | Production frontend |
+| http://localhost:8000/health | API health (direct) |
+| http://localhost:8000/docs | API docs |
+
+For hot reload during UI work, use `npm run dev` instead of the `web` container.
 
 ## Scripts
 
@@ -123,6 +148,8 @@ Coverage (9 tests A–I):
 Use `npm run test:e2e:headed` to watch the browser. Vitest (`npm run test`) remains fast unit/smoke tests without a backend.
 
 Playwright starts the Vite dev server with `VITE_API_BASE_URL=/api/v1` so API calls use the dev proxy (avoids CORS issues). If you already have `npm run dev` running on port 5173 **without** that env var, stop it first — `reuseExistingServer` will reuse the existing process and E2E may fail to reach the API.
+
+**Playwright vs Docker frontend:** `npm run test:e2e` starts the Vite dev server, not the nginx `web` container. To smoke-test the Docker production frontend, use the manual URLs above or curl/browser after `docker compose up`.
 
 ## Continuous integration (GitHub Actions)
 

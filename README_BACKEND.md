@@ -51,13 +51,20 @@ Postgres is published on host port **5433** (not 5432) to avoid clashing with ot
 
 ### 2. Run with Docker (recommended)
 
-From project root:
+From project root — starts **postgres**, **api**, and **web** (production frontend on port 5173):
 
 ```bash
 docker compose down
 docker compose up -d --build
+docker compose exec api alembic upgrade head
+docker compose exec api python scripts/seed_demo.py
 docker compose logs -f api
 ```
+
+- Frontend: http://localhost:5173 (nginx + React build, `/api` proxied to api)
+- API: http://localhost:8000
+
+For frontend hot reload, use `cd web && npm run dev` instead of the `web` service (same port — stop one before starting the other).
 
 Stop:
 

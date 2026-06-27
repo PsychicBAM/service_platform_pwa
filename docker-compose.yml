@@ -32,5 +32,17 @@ services:
       - ./api:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api/v1
+    container_name: service_platform_web
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
 volumes:
   service_platform_postgres_data:

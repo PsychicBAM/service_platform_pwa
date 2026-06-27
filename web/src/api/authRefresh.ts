@@ -1,12 +1,20 @@
 import type { RefreshResponse } from "@/types/api";
 import { clearTokens, getRefreshToken, setTokens } from "@/utils/authStorage";
 
-const DEFAULT_BASE_URL = "http://localhost:8000/api/v1";
+const DEV_BASE_URL = "http://localhost:8000/api/v1";
+const PROD_BASE_URL = "/api/v1";
 
 const NO_REFRESH_PATHS = ["/auth/login", "/auth/register", "/auth/refresh"];
 
 export function getApiBaseUrl(): string {
-  return import.meta.env.VITE_API_BASE_URL ?? DEFAULT_BASE_URL;
+  const configured = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (configured) {
+    return configured.replace(/\/$/, "");
+  }
+  if (import.meta.env.PROD) {
+    return PROD_BASE_URL;
+  }
+  return DEV_BASE_URL;
 }
 
 export function isAuthRefreshEligible(path: string): boolean {
