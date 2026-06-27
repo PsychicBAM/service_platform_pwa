@@ -124,7 +124,9 @@ Read-only admin area at `/admin` for business members:
 - **Admin Bookings actions** — list with filters, detail view, confirm/complete/no-show/cancel, admin notes
 - **Admin Orders actions** — list with filters, detail view, accept/decline/in-progress/complete/cancel, admin notes & quoted price, order messages
 - **Admin Schedule edit** — weekly working hours, breaks, unavailable times
-- Payments and email notifications still TODO
+- **Admin Settings edit** — business profile, operating mode, booking settings (slug/status read-only)
+- **Admin Clients CRM** — search, client detail, edit contact/notes, recent bookings & orders
+- Payments and email sending still TODO
 - Superadmin UI still TODO
 
 ### Manual test: Admin

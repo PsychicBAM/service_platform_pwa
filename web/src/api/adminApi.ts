@@ -13,7 +13,10 @@ import type {
   AdminServiceListResponse,
   AdminServiceRead,
   BusinessAdminRead,
+  BusinessUpdatePayload,
   ClientListResponse,
+  ClientDetail,
+  ClientUpdatePayload,
   OrderMessageCreatePayload,
   OrderMessageListResponse,
   OrderMessageRead,
@@ -48,7 +51,7 @@ export function getBusiness(businessId: string) {
   return apiClient.get<BusinessAdminRead>(`/businesses/${encodeURIComponent(businessId)}`);
 }
 
-export function updateBusiness(businessId: string, payload: Record<string, unknown>) {
+export function updateBusiness(businessId: string, payload: BusinessUpdatePayload) {
   return apiClient.patch<BusinessAdminRead>(
     `/businesses/${encodeURIComponent(businessId)}`,
     payload,
@@ -228,8 +231,19 @@ export function listAdminClients(
 }
 
 export function getAdminClient(businessId: string, clientId: string) {
-  return apiClient.get<unknown>(
+  return apiClient.get<ClientDetail>(
     `/businesses/${encodeURIComponent(businessId)}/clients/${encodeURIComponent(clientId)}`,
+  );
+}
+
+export function updateAdminClient(
+  businessId: string,
+  clientId: string,
+  payload: ClientUpdatePayload,
+) {
+  return apiClient.patch<ClientDetail>(
+    `/businesses/${encodeURIComponent(businessId)}/clients/${encodeURIComponent(clientId)}`,
+    payload,
   );
 }
 

@@ -315,6 +315,32 @@ export interface BusinessSettingsRead {
   allow_guest_checkout: boolean;
   slot_interval_minutes: number;
   booking_buffer_minutes: number;
+  require_payment_default: boolean;
+  notification_email_enabled: boolean;
+}
+
+export interface BusinessSettingsUpdatePayload {
+  auto_confirm_bookings?: boolean;
+  cancellation_hours?: number;
+  max_advance_booking_days?: number;
+  min_advance_booking_hours?: number;
+  allow_guest_checkout?: boolean;
+  slot_interval_minutes?: number;
+  booking_buffer_minutes?: number;
+  require_payment_default?: boolean;
+  notification_email_enabled?: boolean;
+}
+
+export interface BusinessUpdatePayload {
+  name?: string;
+  description?: string | null;
+  logo_url?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  address?: string | null;
+  timezone?: string;
+  operating_mode?: OperatingMode;
+  settings?: BusinessSettingsUpdatePayload;
 }
 
 export interface BusinessSubscriptionSummary {
@@ -540,6 +566,49 @@ export interface ClientListItem {
 export interface ClientListResponse {
   data: ClientListItem[];
   meta: ListMeta;
+}
+
+export interface ClientBookingSummary {
+  id: string;
+  reference: string;
+  status: BookingStatus;
+  service_name: string;
+  starts_at: string;
+  ends_at: string;
+}
+
+export interface ClientOrderSummary {
+  id: string;
+  reference: string;
+  status: OrderStatus;
+  service_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientDetail {
+  id: string;
+  business_id: string;
+  user_id: string | null;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  notes: string | null;
+  source: ClientSource;
+  bookings_count: number;
+  orders_count: number;
+  last_activity_at: string | null;
+  bookings: ClientBookingSummary[];
+  orders: ClientOrderSummary[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientUpdatePayload {
+  full_name?: string;
+  email?: string | null;
+  phone?: string | null;
+  notes?: string | null;
 }
 
 export interface WorkingHourRead {

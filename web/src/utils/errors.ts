@@ -180,6 +180,68 @@ export function getAdminScheduleErrorMessage(
   return fallback;
 }
 
+export function getAdminSettingsErrorMessage(
+  error: unknown,
+  fallback = "Something went wrong",
+): string {
+  if (error instanceof ApiClientError) {
+    if (error.status === 401) {
+      return "Please log in again.";
+    }
+    if (error.status === 403) {
+      return "You do not have access.";
+    }
+    if (error.status === 404) {
+      return "Business not found.";
+    }
+    if (error.code === "INVALID_TIMEZONE") {
+      return "Please enter a valid timezone.";
+    }
+    if (error.status === 422) {
+      return "Please check settings values.";
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Could not reach the server. Check your connection and try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
+
+export function getAdminClientErrorMessage(
+  error: unknown,
+  fallback = "Something went wrong",
+): string {
+  if (error instanceof ApiClientError) {
+    if (error.status === 401) {
+      return "Please log in again.";
+    }
+    if (error.status === 403) {
+      return "You do not have access.";
+    }
+    if (error.status === 404) {
+      return "Client not found.";
+    }
+    if (error.code === "CLIENT_EMAIL_EXISTS") {
+      return "This email is already used by another client.";
+    }
+    if (error.status === 422) {
+      return "Please check the fields and try again.";
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Could not reach the server. Check your connection and try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export function getOrderSubmitErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.code === "SERVICE_NOT_ORDERABLE") {
