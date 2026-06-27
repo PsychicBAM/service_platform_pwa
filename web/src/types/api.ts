@@ -303,3 +303,160 @@ export interface OrderMessageListResponse {
   data: OrderMessageRead[];
   meta: ListMeta;
 }
+
+export type BusinessStatus = "draft" | "active" | "suspended";
+export type ClientSource = "registered" | "guest" | "admin_created";
+
+export interface BusinessSettingsRead {
+  auto_confirm_bookings: boolean;
+  cancellation_hours: number;
+  max_advance_booking_days: number;
+  min_advance_booking_hours: number;
+  allow_guest_checkout: boolean;
+  slot_interval_minutes: number;
+  booking_buffer_minutes: number;
+}
+
+export interface BusinessSubscriptionSummary {
+  plan: string;
+  status: string;
+  usage_bookings_count: number;
+  usage_orders_count: number;
+}
+
+export interface BusinessAdminRead {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  logo_url: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  address: string | null;
+  timezone: string;
+  operating_mode: OperatingMode;
+  status: BusinessStatus;
+  settings: BusinessSettingsRead;
+  subscription: BusinessSubscriptionSummary | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminServiceRead {
+  id: string;
+  business_id: string;
+  name: string;
+  description: string | null;
+  type: ServiceType;
+  duration_minutes: number | null;
+  price_cents: number | null;
+  currency: string;
+  price_type: PriceType;
+  require_payment: boolean;
+  is_active: boolean;
+  sort_order: number;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminServiceListResponse {
+  data: AdminServiceRead[];
+  meta: ListMeta;
+}
+
+export interface AdminBookingListItem {
+  id: string;
+  reference: string;
+  status: BookingStatus;
+  starts_at: string;
+  ends_at: string;
+  service_name: string;
+  client_name: string;
+  client_email: string | null;
+  client_phone: string | null;
+}
+
+export interface AdminBookingListResponse {
+  data: AdminBookingListItem[];
+  meta: ListMeta;
+}
+
+export interface AdminOrderListItem {
+  id: string;
+  reference: string;
+  status: OrderStatus;
+  service_name: string;
+  client_name: string;
+  client_email: string | null;
+  client_phone: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminOrderListResponse {
+  data: AdminOrderListItem[];
+  meta: ListMeta;
+}
+
+export interface ClientListItem {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  source: ClientSource;
+  bookings_count: number;
+  orders_count: number;
+  last_activity_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientListResponse {
+  data: ClientListItem[];
+  meta: ListMeta;
+}
+
+export interface WorkingHourRead {
+  id: string;
+  business_id: string;
+  day_of_week: number;
+  is_open: boolean;
+  opens_at: string | null;
+  closes_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkingBreakRead {
+  id: string;
+  business_id: string;
+  label: string | null;
+  day_of_week: number | null;
+  starts_at: string;
+  ends_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UnavailableTimeRead {
+  id: string;
+  business_id: string;
+  starts_at: string;
+  ends_at: string;
+  reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ScheduleSettingsRead {
+  slot_interval_minutes: number;
+  booking_buffer_minutes: number;
+}
+
+export interface ScheduleRead {
+  working_hours: WorkingHourRead[];
+  breaks: WorkingBreakRead[];
+  unavailable_times: UnavailableTimeRead[];
+  settings: ScheduleSettingsRead;
+}

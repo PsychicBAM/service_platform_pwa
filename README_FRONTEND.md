@@ -103,6 +103,40 @@ Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**
 - Login/logout with JWT in `localStorage`
 - Inline form validation and success screens with reference numbers
 
+## Admin PWA skeleton (Phase 3 slice 1)
+
+Read-only admin area at `/admin` for business members:
+
+| Path | Page |
+|------|------|
+| `/admin` | Dashboard |
+| `/admin/services` | Services list |
+| `/admin/bookings` | Bookings list |
+| `/admin/orders` | Orders list |
+| `/admin/clients` | Clients list |
+| `/admin/schedule` | Schedule summary |
+| `/admin/settings` | Business settings summary |
+
+- **AdminGuard** — requires login + business membership from `/auth/me`
+- **AdminLayout** — mobile nav + desktop sidebar
+- **adminApi.ts** — lightweight wrappers for next slices
+- No CRUD forms or action buttons yet
+
+### Manual test: Admin
+
+```bash
+docker compose exec api python scripts/seed_demo.py
+cd web && npm run dev
+```
+
+1. Login as **owner@example.com** / **ChangeMe123!**
+2. Open `/admin` — dashboard shows demo business name
+3. Browse services, bookings, orders, clients, schedule, settings
+4. Logout works
+5. Login as **client@example.com** — `/admin` shows “No business access”
+
+Owner demo credentials: **owner@example.com** / **ChangeMe123!**
+
 ### Guest vs account-linked data
 
 `/me/bookings` and `/me/orders` only show items where the backend `Client.user_id` matches the logged-in user. **Guest bookings and orders created without login do not appear yet** — guest claim / magic link is not implemented.
@@ -131,7 +165,9 @@ cd web && npm run dev
 
 ## Intentionally not implemented
 
-- Admin or superadmin dashboards
+- Full admin CRUD / action forms (confirm, accept, edit schedule, etc.)
+- Superadmin UI
+- Admin or superadmin dashboards with analytics
 - Guest claim / magic link (guest public bookings/orders → account)
 - Booking reschedule UI
 - Register submit wiring
@@ -144,10 +180,11 @@ cd web && npm run dev
 
 ## Next slice
 
-Register submit wiring and guest claim flow (if prioritized).
+Admin CRUD and action forms (services, bookings, orders, schedule editing).
 
 ## TODO
 
 - Vitest / component tests for public and account pages
 - Token refresh
 - Reschedule booking UI
+- Admin create/edit forms and booking/order actions

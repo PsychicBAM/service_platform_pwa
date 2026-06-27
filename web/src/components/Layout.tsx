@@ -14,6 +14,11 @@ export function Layout() {
           <nav className="flex items-center gap-3 text-sm">
             {isAuthenticated ? (
               <>
+                {(user?.businesses?.length ?? 0) > 0 ? (
+                  <Link to="/admin" className="text-slate-600 hover:text-brand-700">
+                    Admin
+                  </Link>
+                ) : null}
                 <Link to="/me/bookings" className="text-slate-600 hover:text-brand-700">
                   Bookings
                 </Link>
@@ -43,7 +48,7 @@ export function Layout() {
         <Outlet />
       </main>
       <footer className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-500">
-        Client PWA — Phase 2
+        Client PWA — Phase 2 · Admin skeleton — Phase 3
       </footer>
     </div>
   );
