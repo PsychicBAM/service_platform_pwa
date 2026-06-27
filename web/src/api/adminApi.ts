@@ -58,9 +58,12 @@ export function updateBusiness(businessId: string, payload: BusinessUpdatePayloa
   );
 }
 
-export function listAdminServices(businessId: string) {
+export function listAdminServices(
+  businessId: string,
+  params?: Record<string, string | number | boolean | undefined>,
+) {
   return apiClient.get<AdminServiceListResponse>(
-    `/businesses/${encodeURIComponent(businessId)}/services`,
+    `/businesses/${encodeURIComponent(businessId)}/services${buildQuery(params)}`,
   );
 }
 

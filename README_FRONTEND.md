@@ -126,8 +126,10 @@ Read-only admin area at `/admin` for business members:
 - **Admin Schedule edit** — weekly working hours, breaks, unavailable times
 - **Admin Settings edit** — business profile, operating mode, booking settings (slug/status read-only)
 - **Admin Clients CRM** — search, client detail, edit contact/notes, recent bookings & orders
+- **Admin Dashboard overview** — stats, attention items, recent bookings/orders, quick links (no charts)
 - Payments and email sending still TODO
 - Superadmin UI still TODO
+- No charts/analytics backend yet
 
 ### Manual test: Admin
 
