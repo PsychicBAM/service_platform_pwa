@@ -81,3 +81,4 @@ class Business(Base, TimestampMixin):
     order_messages: Mapped[list["OrderMessage"]] = relationship(
         back_populates="business",
     )
+    audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="business")

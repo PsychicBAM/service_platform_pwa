@@ -51,3 +51,4 @@ class User(Base, TimestampMixin):
     order_messages: Mapped[list["OrderMessage"]] = relationship(
         back_populates="sender_user",
     )
+    audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="actor_user")

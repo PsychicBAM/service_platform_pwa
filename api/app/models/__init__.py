@@ -1,5 +1,6 @@
 """ORM models — import all modules so Alembic metadata is complete."""
 
+from app.models.audit_log import AuditLog
 from app.models.booking import Booking
 from app.models.business import Business
 from app.models.business_member import BusinessMember
@@ -29,6 +30,7 @@ from app.models.working_break import WorkingBreak
 from app.models.working_hour import WorkingHour
 
 __all__ = [
+    "AuditLog",
     "Booking",
     "BookingStatus",
     "Business",

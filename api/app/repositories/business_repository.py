@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -16,6 +16,7 @@ from app.models.enums import (
     SubscriptionStatus,
 )
 from app.models.subscription import Subscription
+from app.models.user import User
 
 DEFAULT_BUSINESS_SETTINGS: dict[str, Any] = {
     "auto_confirm_bookings": False,
@@ -85,6 +86,96 @@ class BusinessRepository:
         stmt = select(Subscription).where(Subscription.business_id == business_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def update_subscription(
+        self,
+        subscription: Subscription,
+        data: dict[str, Any],
+    ) -> Subscription:
+        for key, value in data.items():
+            setattr(subscription, key, value)
+        await self.session.flush()
+        return subscription
+
+    async def get_owner_user(self, business_id: uuid.UUID) -> User | None:
+        stmt = (
+            select(User)
+            .join(BusinessMember, BusinessMember.user_id == User.id)
+            .where(
+                BusinessMember.business_id == business_id,
+                BusinessMember.role == BusinessMemberRole.owner,
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    def _superadmin_list_filters(
+        self,
+        stmt,
+        *,
+        search: str | None = None,
+        status: BusinessStatus | None = None,
+        plan: SubscriptionPlan | None = None,
+    ):
+        stmt = stmt.join(Subscription, Subscription.business_id == Business.id)
+        stmt = stmt.outerjoin(
+            BusinessMember,
+            (BusinessMember.business_id == Business.id)
+            & (BusinessMember.role == BusinessMemberRole.owner),
+        ).outerjoin(User, User.id == BusinessMember.user_id)
+        if status is not None:
+            stmt = stmt.where(Business.status == status)
+        if plan is not None:
+            stmt = stmt.where(Subscription.plan == plan)
+        if search:
+            term = f"%{search.strip()}%"
+            stmt = stmt.where(
+                or_(
+                    Business.name.ilike(term),
+                    Business.slug.ilike(term),
+                    User.email.ilike(term),
+                )
+            )
+        return stmt
+
+    async def list_for_superadmin(
+        self,
+        *,
+        search: str | None = None,
+        status: BusinessStatus | None = None,
+        plan: SubscriptionPlan | None = None,
+        page: int = 1,
+        limit: int = 20,
+    ) -> list[tuple[Business, Subscription, str | None]]:
+        stmt = select(Business, Subscription, User.email)
+        stmt = self._superadmin_list_filters(
+            stmt,
+            search=search,
+            status=status,
+            plan=plan,
+        )
+        stmt = stmt.order_by(Business.created_at.desc())
+        offset = max(page - 1, 0) * limit
+        stmt = stmt.offset(offset).limit(limit)
+        result = await self.session.execute(stmt)
+        return list(result.all())
+
+    async def count_for_superadmin(
+        self,
+        *,
+        search: str | None = None,
+        status: BusinessStatus | None = None,
+        plan: SubscriptionPlan | None = None,
+    ) -> int:
+        stmt = select(func.count(func.distinct(Business.id))).select_from(Business)
+        stmt = self._superadmin_list_filters(
+            stmt,
+            search=search,
+            status=status,
+            plan=plan,
+        )
+        result = await self.session.execute(stmt)
+        return int(result.scalar_one())
 
     async def create_business(
         self,

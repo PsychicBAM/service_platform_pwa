@@ -49,6 +49,7 @@ def main() -> int:
             "bookings",
             "orders",
             "order_messages",
+            "audit_logs",
         }
         missing = required_tables - set(Base.metadata.tables.keys())
         if missing:
@@ -168,6 +169,15 @@ def main() -> int:
             errors.append(f"{public_business} missing from OpenAPI")
         elif "get" not in paths[public_business]:
             errors.append(f"GET {public_business} missing from OpenAPI")
+        superadmin_businesses = "/api/v1/superadmin/businesses"
+        if superadmin_businesses not in paths:
+            errors.append(f"{superadmin_businesses} missing from OpenAPI")
+        superadmin_business_detail = "/api/v1/superadmin/businesses/{business_id}"
+        if superadmin_business_detail not in paths:
+            errors.append(f"{superadmin_business_detail} missing from OpenAPI")
+        superadmin_audit_logs = "/api/v1/superadmin/audit-logs"
+        if superadmin_audit_logs not in paths:
+            errors.append(f"{superadmin_audit_logs} missing from OpenAPI")
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"OpenAPI auth check failed: {exc}")
 

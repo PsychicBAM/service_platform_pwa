@@ -155,7 +155,9 @@ alembic revision --autogenerate -m "describe change"
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
 - **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
-- Migration `0006_orders.py`
+- **Superadmin business management** (list/detail, status and plan overrides)
+- **Audit logs** for superadmin status/plan changes
+- Migration `0006_orders.py`, `0007_audit_logs.py`
 
 ### Not implemented
 
@@ -164,7 +166,6 @@ alembic revision --autogenerate -m "describe change"
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
 - Dashboard analytics
-- Superadmin management
 - Payments (Stripe)
 - Notifications (email/push)
 - Frontend PWA
@@ -598,6 +599,40 @@ Get public business page (no auth, active businesses only):
 
 ```bash
 curl http://localhost:8000/api/v1/public/b/joes-salon
+```
+
+## Superadmin examples
+
+List all businesses (superadmin token required):
+
+```bash
+curl http://localhost:8000/api/v1/superadmin/businesses \
+  -H "Authorization: Bearer SUPERADMIN_TOKEN"
+```
+
+Activate a business:
+
+```bash
+curl -X PATCH http://localhost:8000/api/v1/superadmin/businesses/BUSINESS_ID \
+  -H "Authorization: Bearer SUPERADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "active"}'
+```
+
+Change subscription plan (manual MVP override, no Stripe):
+
+```bash
+curl -X PATCH http://localhost:8000/api/v1/superadmin/businesses/BUSINESS_ID \
+  -H "Authorization: Bearer SUPERADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"plan": "starter"}'
+```
+
+List audit logs:
+
+```bash
+curl "http://localhost:8000/api/v1/superadmin/audit-logs?business_id=BUSINESS_ID" \
+  -H "Authorization: Bearer SUPERADMIN_TOKEN"
 ```
 
 ## Tests and PostgreSQL

@@ -43,6 +43,7 @@ async def db_session(db_engine):
 @pytest_asyncio.fixture
 async def clean_auth_tables(db_session):
     yield
+    await db_session.execute(text("DELETE FROM audit_logs"))
     await db_session.execute(text("DELETE FROM order_messages"))
     await db_session.execute(text("DELETE FROM orders"))
     await db_session.execute(text("DELETE FROM bookings"))
