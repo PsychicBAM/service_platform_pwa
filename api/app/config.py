@@ -32,6 +32,16 @@ class Settings(BaseSettings):
         default="http://localhost:5173,http://localhost:3000",
     )
 
+    email_enabled: bool = False
+    email_dry_run: bool = True
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from_email: str | None = None
+    smtp_from_name: str = "Service Platform"
+    smtp_use_tls: bool = True
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [
@@ -57,13 +67,32 @@ class Settings(BaseSettings):
     def validate_production_security(self) -> Self:
         if self.app_env != "production":
             return self
+        self._validate_production_cors()
+        self._validate_production_email()
+        return self
 
+    def _validate_production_cors(self) -> None:
         origins = self.cors_origins_list
         if not origins:
             raise ValueError("CORS_ORIGINS must be set when APP_ENV=production")
         if any(origin == "*" for origin in origins):
             raise ValueError("Wildcard CORS origin is not allowed in production")
-        return self
+
+    def _validate_production_email(self) -> None:
+        if not self.email_enabled or self.email_dry_run:
+            return
+        if not self.smtp_host:
+            raise ValueError(
+                "SMTP_HOST is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
+            )
+        if not self.smtp_from_email:
+            raise ValueError(
+                "SMTP_FROM_EMAIL is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
+            )
+        if self.smtp_user and not self.smtp_password:
+            raise ValueError(
+                "SMTP_PASSWORD is required when SMTP_USER is set in production"
+            )
 
 
 @lru_cache

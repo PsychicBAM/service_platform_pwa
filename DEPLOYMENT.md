@@ -80,7 +80,7 @@ From project root on the VPS (or locally while preparing `.env`):
 python scripts/check_production_env.py --env-file .env --strict
 ```
 
-This checks required variables, JWT length, placeholder passwords, and `DATABASE_URL` host (`postgres` for Compose). Optional Stripe/SMTP keys warn only.
+This checks required variables, JWT length, placeholder passwords, and `DATABASE_URL` host (`postgres` for Compose). Stripe is optional. Email is optional: with `EMAIL_ENABLED=false` (default in `.env.production.example`) you get a warning only. If you set `EMAIL_ENABLED=true` and `EMAIL_DRY_RUN=false`, strict mode requires `SMTP_HOST`, `SMTP_FROM_EMAIL`, and `SMTP_PASSWORD` when `SMTP_USER` is set. Never commit real SMTP credentials.
 
 Template sanity (placeholders allowed — **do not** use `--strict`):
 

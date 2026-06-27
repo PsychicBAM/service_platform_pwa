@@ -154,6 +154,62 @@ def _validate_api_docs(env: dict[str, str], *, strict: bool, result: ValidationR
         result.ok.append("API docs disabled for production")
 
 
+def _is_truthy(value: str) -> bool:
+    return value.strip().lower() in {"true", "1", "yes"}
+
+
+def _validate_email(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
+    email_enabled = _is_truthy(env.get("EMAIL_ENABLED", ""))
+    email_dry_run_raw = env.get("EMAIL_DRY_RUN", "true").strip().lower()
+    email_dry_run = email_dry_run_raw in {"", "true", "1", "yes"}
+
+    if not email_enabled:
+        result.warnings.append("Email notifications disabled (EMAIL_ENABLED=false)")
+        return
+
+    result.ok.append("EMAIL_ENABLED is true")
+
+    if email_dry_run:
+        result.warnings.append(
+            "EMAIL_DRY_RUN is enabled — emails will not be sent over SMTP"
+        )
+        return
+
+    result.ok.append("EMAIL_DRY_RUN is false (live SMTP expected)")
+
+    smtp_host = env.get("SMTP_HOST", "").strip()
+    smtp_from = env.get("SMTP_FROM_EMAIL", "").strip()
+    smtp_user = env.get("SMTP_USER", "").strip()
+    smtp_password = env.get("SMTP_PASSWORD", "").strip()
+
+    if not smtp_host:
+        message = "SMTP_HOST is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
+        if strict:
+            result.failures.append(message)
+        else:
+            result.warnings.append(message)
+    else:
+        result.ok.append("SMTP_HOST is set")
+
+    if not smtp_from:
+        message = "SMTP_FROM_EMAIL is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
+        if strict:
+            result.failures.append(message)
+        else:
+            result.warnings.append(message)
+    else:
+        result.ok.append("SMTP_FROM_EMAIL is set")
+
+    if smtp_user and not smtp_password:
+        message = "SMTP_PASSWORD is required when SMTP_USER is set"
+        if strict:
+            result.failures.append(message)
+        else:
+            result.warnings.append(message)
+    elif smtp_user:
+        result.ok.append("SMTP_USER and SMTP_PASSWORD are set")
+
+
 def validate_production_env(env: dict[str, str], *, strict: bool = False) -> ValidationResult:
     result = ValidationResult()
 
@@ -242,10 +298,13 @@ def validate_production_env(env: dict[str, str], *, strict: bool = False) -> Val
 
     _validate_cors(env, strict=strict, result=result)
     _validate_api_docs(env, strict=strict, result=result)
+    _validate_email(env, strict=strict, result=result)
 
     if not env.get("STRIPE_SECRET_KEY", "").strip():
         result.warnings.append("Stripe not configured")
-    if not any(env.get(key, "").strip() for key in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD")):
+    if not _is_truthy(env.get("EMAIL_ENABLED", "")) and not any(
+        env.get(key, "").strip() for key in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD")
+    ):
         result.warnings.append("SMTP not configured")
 
     return result

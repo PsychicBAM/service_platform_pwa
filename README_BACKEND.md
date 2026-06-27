@@ -98,6 +98,26 @@ uvicorn app.main:app --reload --port 8000
 
 Requires a running Postgres matching `DATABASE_URL` in `.env`.
 
+### Email (disabled by default)
+
+Local and test environments use `EMAIL_ENABLED=false` and `EMAIL_DRY_RUN=true` (see `.env.example`). No real SMTP is required for development; the email service logs dry-run metadata only (recipient + subject, never passwords).
+
+To enable live SMTP on a VPS, set in `.env`:
+
+```bash
+EMAIL_ENABLED=true
+EMAIL_DRY_RUN=false
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=...
+SMTP_PASSWORD=...   # never commit
+SMTP_FROM_EMAIL=noreply@your-domain.example
+SMTP_FROM_NAME=Your Business Name
+SMTP_USE_TLS=true
+```
+
+Run `python scripts/check_production_env.py --env-file .env --strict` before deploy. Event wiring (booking confirmed, order messages, etc.) is a future slice.
+
 ## Tests
 
 From project root:
@@ -212,6 +232,7 @@ alembic revision --autogenerate -m "describe change"
 - **Admin order workflow** (list, detail, accept, decline, in-progress, complete, cancel)
 - **Client my orders** (`/api/v1/me/orders` — list, detail, cancel)
 - **Guest claim API** (`POST /api/v1/me/claims/bookings`, `POST /api/v1/me/claims/orders` — link guest records by reference + email/phone; no email delivery yet)
+- **Email notification foundation** (`EmailService`, templates, dry-run/disabled by default — no event wiring yet)
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
 - **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
@@ -222,16 +243,14 @@ alembic revision --autogenerate -m "describe change"
 
 ### Not implemented
 
+- Payments (Stripe billing)
+- Booking/order event email wiring (`notification_email_enabled` not connected yet)
 - Email verification
 - Password reset / magic links
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
 - Dashboard analytics
-- Payments (Stripe billing)
-- Email/push notifications
-- Frontend PWA
-- Guest claim frontend UI
-- Guest claim magic-link / email delivery
+- Guest claim magic-link email delivery
 - WebSocket realtime chat
 - Mobile wrapper
 - Redis, Celery, background workers

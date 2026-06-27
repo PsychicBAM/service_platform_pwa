@@ -14,9 +14,12 @@ WEB_HTTP_PORT=80
 CORS_ORIGINS=https://example.com
 API_DOCS_ENABLED=false
 STRIPE_SECRET_KEY=
+EMAIL_ENABLED=false
+EMAIL_DRY_RUN=true
 SMTP_HOST=
 SMTP_USER=
 SMTP_PASSWORD=
+SMTP_FROM_EMAIL=
 """
 
 
@@ -54,7 +57,60 @@ def test_validate_good_env_strict() -> None:
     result = module.validate_production_env(parsed, strict=True)
     assert result.passed, result.failures
     assert any("Stripe not configured" in warning for warning in result.warnings)
-    assert any("SMTP not configured" in warning for warning in result.warnings)
+    assert any(
+        "Email notifications disabled" in warning or "SMTP not configured" in warning
+        for warning in result.warnings
+    )
+
+
+def test_strict_fails_live_email_without_smtp_host() -> None:
+    module = _load_module()
+    parsed = {
+        "APP_ENV": "production",
+        "POSTGRES_USER": "service_platform",
+        "POSTGRES_PASSWORD": "super_secure_random_password_value_123",
+        "POSTGRES_DB": "service_platform",
+        "DATABASE_URL": (
+            "postgresql+asyncpg://service_platform:super_secure_random_password_value_123"
+            "@postgres:5432/service_platform"
+        ),
+        "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
+        "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
+        "EMAIL_ENABLED": "true",
+        "EMAIL_DRY_RUN": "false",
+        "SMTP_HOST": "",
+        "SMTP_FROM_EMAIL": "",
+    }
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert any("SMTP_HOST" in failure for failure in result.failures)
+    assert any("SMTP_FROM_EMAIL" in failure for failure in result.failures)
+
+
+def test_strict_warns_when_email_disabled() -> None:
+    module = _load_module()
+    parsed = {
+        "APP_ENV": "production",
+        "POSTGRES_USER": "service_platform",
+        "POSTGRES_PASSWORD": "super_secure_random_password_value_123",
+        "POSTGRES_DB": "service_platform",
+        "DATABASE_URL": (
+            "postgresql+asyncpg://service_platform:super_secure_random_password_value_123"
+            "@postgres:5432/service_platform"
+        ),
+        "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
+        "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
+        "EMAIL_ENABLED": "false",
+    }
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert result.passed, result.failures
+    assert any("Email notifications disabled" in warning for warning in result.warnings)
 
 
 def test_fail_short_jwt_secret() -> None:
