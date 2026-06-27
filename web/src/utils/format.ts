@@ -99,3 +99,24 @@ export function generateBookingDates(count = 14): Array<{
 
   return dates;
 }
+
+export function toTimeInputValue(value: string | null | undefined): string {
+  if (!value) {
+    return "";
+  }
+  return value.slice(0, 5);
+}
+
+export function isoToDatetimeLocal(iso: string): string {
+  const date = new Date(iso);
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function datetimeLocalToIso(value: string): string {
+  const [datePart, timePart] = value.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+  const date = new Date(year, month - 1, day, hour, minute, 0, 0);
+  return date.toISOString();
+}

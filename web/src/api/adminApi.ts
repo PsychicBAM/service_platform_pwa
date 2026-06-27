@@ -20,6 +20,14 @@ import type {
   ScheduleRead,
   ServiceCreatePayload,
   ServiceUpdatePayload,
+  UnavailableTimeCreatePayload,
+  UnavailableTimeRead,
+  UnavailableTimeUpdatePayload,
+  WorkingBreakCreatePayload,
+  WorkingBreakRead,
+  WorkingBreakUpdatePayload,
+  WorkingHourRead,
+  WorkingHoursReplaceRequest,
 } from "@/types/api";
 
 function buildQuery(params?: Record<string, string | number | boolean | undefined>): string {
@@ -228,5 +236,63 @@ export function getAdminClient(businessId: string, clientId: string) {
 export function getSchedule(businessId: string) {
   return apiClient.get<ScheduleRead>(
     `/businesses/${encodeURIComponent(businessId)}/schedule`,
+  );
+}
+
+export function replaceWorkingHours(businessId: string, payload: WorkingHoursReplaceRequest) {
+  return apiClient.put<WorkingHourRead[]>(
+    `/businesses/${encodeURIComponent(businessId)}/schedule/working-hours`,
+    payload,
+  );
+}
+
+export function createWorkingBreak(businessId: string, payload: WorkingBreakCreatePayload) {
+  return apiClient.post<WorkingBreakRead>(
+    `/businesses/${encodeURIComponent(businessId)}/schedule/breaks`,
+    payload,
+  );
+}
+
+export function updateWorkingBreak(
+  businessId: string,
+  breakId: string,
+  payload: WorkingBreakUpdatePayload,
+) {
+  return apiClient.patch<WorkingBreakRead>(
+    `/businesses/${encodeURIComponent(businessId)}/schedule/breaks/${encodeURIComponent(breakId)}`,
+    payload,
+  );
+}
+
+export function deleteWorkingBreak(businessId: string, breakId: string) {
+  return apiClient.delete<void>(
+    `/businesses/${encodeURIComponent(businessId)}/schedule/breaks/${encodeURIComponent(breakId)}`,
+  );
+}
+
+export function createUnavailableTime(
+  businessId: string,
+  payload: UnavailableTimeCreatePayload,
+) {
+  return apiClient.post<UnavailableTimeRead>(
+    `/businesses/${encodeURIComponent(businessId)}/schedule/unavailable-times`,
+    payload,
+  );
+}
+
+export function updateUnavailableTime(
+  businessId: string,
+  blockId: string,
+  payload: UnavailableTimeUpdatePayload,
+) {
+  return apiClient.patch<UnavailableTimeRead>(
+    `/businesses/${encodeURIComponent(businessId)}/schedule/unavailable-times/${encodeURIComponent(blockId)}`,
+    payload,
+  );
+}
+
+export function deleteUnavailableTime(businessId: string, blockId: string) {
+  return apiClient.delete<void>(
+    `/businesses/${encodeURIComponent(businessId)}/schedule/unavailable-times/${encodeURIComponent(blockId)}`,
   );
 }

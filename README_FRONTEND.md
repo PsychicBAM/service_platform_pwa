@@ -123,7 +123,9 @@ Read-only admin area at `/admin` for business members:
 - **Admin Services CRUD** — create/edit booking & request services, activate/deactivate, soft delete
 - **Admin Bookings actions** — list with filters, detail view, confirm/complete/no-show/cancel, admin notes
 - **Admin Orders actions** — list with filters, detail view, accept/decline/in-progress/complete/cancel, admin notes & quoted price, order messages
+- **Admin Schedule edit** — weekly working hours, breaks, unavailable times
 - Payments and email notifications still TODO
+- Superadmin UI still TODO
 
 ### Manual test: Admin
 

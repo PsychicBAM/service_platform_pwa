@@ -585,3 +585,40 @@ export interface ScheduleRead {
   unavailable_times: UnavailableTimeRead[];
   settings: ScheduleSettingsRead;
 }
+
+export interface WorkingHourUpdate {
+  day_of_week: number;
+  is_open: boolean;
+  opens_at?: string | null;
+  closes_at?: string | null;
+}
+
+export interface WorkingHoursReplaceRequest {
+  working_hours: WorkingHourUpdate[];
+}
+
+export interface WorkingBreakCreatePayload {
+  label?: string | null;
+  day_of_week?: number | null;
+  starts_at: string;
+  ends_at: string;
+}
+
+export interface WorkingBreakUpdatePayload {
+  label?: string | null;
+  day_of_week?: number | null;
+  starts_at?: string;
+  ends_at?: string;
+}
+
+export interface UnavailableTimeCreatePayload {
+  starts_at: string;
+  ends_at: string;
+  reason?: string | null;
+}
+
+export interface UnavailableTimeUpdatePayload {
+  starts_at?: string;
+  ends_at?: string;
+  reason?: string | null;
+}
