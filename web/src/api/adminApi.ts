@@ -1,6 +1,9 @@
 import { apiClient } from "@/api/client";
 import type {
+  AdminBookingCancelPayload,
   AdminBookingListResponse,
+  AdminBookingRead,
+  AdminBookingUpdatePayload,
   AdminOrderListResponse,
   AdminServiceListResponse,
   AdminServiceRead,
@@ -82,8 +85,30 @@ export function listAdminBookings(
 }
 
 export function getAdminBooking(businessId: string, bookingId: string) {
-  return apiClient.get<unknown>(
+  return apiClient.get<AdminBookingRead>(
     `/businesses/${encodeURIComponent(businessId)}/bookings/${encodeURIComponent(bookingId)}`,
+  );
+}
+
+export function updateAdminBooking(
+  businessId: string,
+  bookingId: string,
+  payload: AdminBookingUpdatePayload,
+) {
+  return apiClient.patch<AdminBookingRead>(
+    `/businesses/${encodeURIComponent(businessId)}/bookings/${encodeURIComponent(bookingId)}`,
+    payload,
+  );
+}
+
+export function cancelAdminBooking(
+  businessId: string,
+  bookingId: string,
+  payload: AdminBookingCancelPayload = {},
+) {
+  return apiClient.post<AdminBookingRead>(
+    `/businesses/${encodeURIComponent(businessId)}/bookings/${encodeURIComponent(bookingId)}/cancel`,
+    payload,
   );
 }
 

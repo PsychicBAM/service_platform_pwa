@@ -409,6 +409,47 @@ export interface AdminBookingListResponse {
   meta: ListMeta;
 }
 
+export interface AdminBookingClientSummary {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+}
+
+export interface AdminBookingServiceSummary {
+  id: string;
+  name: string;
+  type: ServiceType;
+  duration_minutes: number | null;
+}
+
+export interface AdminBookingRead {
+  id: string;
+  business_id: string;
+  reference: string;
+  status: BookingStatus;
+  starts_at: string;
+  ends_at: string;
+  client_notes: string | null;
+  admin_notes: string | null;
+  cancelled_at: string | null;
+  cancelled_by: string | null;
+  cancellation_reason: string | null;
+  service: AdminBookingServiceSummary;
+  client: AdminBookingClientSummary;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AdminBookingUpdatePayload = {
+  status?: "confirmed" | "completed" | "no_show";
+  admin_notes?: string | null;
+};
+
+export interface AdminBookingCancelPayload {
+  reason?: string | null;
+}
+
 export interface AdminOrderListItem {
   id: string;
   reference: string;

@@ -121,7 +121,8 @@ Read-only admin area at `/admin` for business members:
 - **AdminLayout** — mobile nav + desktop sidebar
 - **adminApi.ts** — lightweight wrappers for next slices
 - **Admin Services CRUD** — create/edit booking & request services, activate/deactivate, soft delete
-- No booking/order admin action buttons yet
+- **Admin Bookings actions** — list with filters, detail view, confirm/complete/no-show/cancel, admin notes
+- No order admin action buttons yet
 
 ### Manual test: Admin
 
@@ -166,7 +167,8 @@ cd web && npm run dev
 
 ## Intentionally not implemented
 
-- Full admin booking/order action forms (confirm, accept, decline, etc.)
+- Full admin order action forms (accept, decline, complete, etc.)
+- Manual admin booking creation
 - Superadmin UI
 - Admin or superadmin dashboards with analytics
 - Guest claim / magic link (guest public bookings/orders → account)
@@ -181,12 +183,14 @@ cd web && npm run dev
 
 ## Next slice
 
-Admin schedule editing and booking/order admin actions.
+Admin order actions and schedule editing.
 
 ## TODO
 
 - Vitest / component tests for public and account pages
 - Token refresh
 - Reschedule booking UI
-- Admin booking/order action UI
+- Admin order action UI
+- Manual admin booking creation
+- Booking list search
 - Payments (Stripe)
