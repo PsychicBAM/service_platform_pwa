@@ -44,6 +44,7 @@ Related docs:
 | Schedule / availability | Working hours, breaks, public availability |
 | Public booking | Guest and authenticated booking creation |
 | Public order | Guest and authenticated order requests |
+| Guest claim API | Backend only — `POST /me/claims/bookings` and `/orders` with reference + contact |
 | Admin bookings | List, confirm, cancel, reschedule |
 | Admin orders | List, accept, decline, complete, messages |
 | Admin clients | CRM list and detail |
@@ -248,7 +249,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 |------------|--------|
 | No payments / Stripe | Bookings and orders are not paid online |
 | No email notifications | No transactional email on booking/order events |
-| No guest claim / magic link | Guest public actions are not linked to accounts automatically |
+| Guest claim backend only | API implemented; no frontend claim UI or magic-link email yet |
 | No production domain / HTTPS yet | Docs and compose prepared; VPS deploy is manual |
 | No automated backups | Commands documented only in `BACKUP_RESTORE.md` |
 | No monitoring / alerting | No uptime or error tracking service |
@@ -267,7 +268,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 
 Prioritized for ~$5000 budget — infrastructure and high-value product gaps before polish:
 
-1. **Guest claim / magic link** — link public bookings/orders to client accounts
+1. **Guest claim frontend UI + magic-link email** — UI for claim flow and optional email delivery
 2. **Email notifications** — booking/order event emails (SMTP)
 3. **Payment foundation** — Stripe Checkout for deposits or full payment
 4. **Production deployment to VPS** — domain, HTTPS (Caddy/NPM), real `.env`, strict env check

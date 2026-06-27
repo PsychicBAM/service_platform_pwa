@@ -106,3 +106,15 @@ class InvalidBusinessSettingsError(AppError):
 class InvalidTimezoneError(AppError):
     def __init__(self, message: str = "Invalid timezone.") -> None:
         super().__init__(message=message, code="INVALID_TIMEZONE", status_code=400)
+
+
+class ClaimNotFoundOrMismatchError(AppError):
+    def __init__(
+        self,
+        message: str = "Claim target not found or contact does not match.",
+    ) -> None:
+        super().__init__(
+            message=message,
+            code="CLAIM_NOT_FOUND_OR_MISMATCH",
+            status_code=404,
+        )

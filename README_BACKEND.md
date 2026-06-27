@@ -211,6 +211,7 @@ alembic revision --autogenerate -m "describe change"
 - **Public order creation** (`POST /api/v1/public/b/{slug}/orders`)
 - **Admin order workflow** (list, detail, accept, decline, in-progress, complete, cancel)
 - **Client my orders** (`/api/v1/me/orders` — list, detail, cancel)
+- **Guest claim API** (`POST /api/v1/me/claims/bookings`, `POST /api/v1/me/claims/orders` — link guest records by reference + email/phone; no email delivery yet)
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
 - **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
@@ -229,7 +230,8 @@ alembic revision --autogenerate -m "describe change"
 - Payments (Stripe billing)
 - Email/push notifications
 - Frontend PWA
-- Guest booking claim / magic link
+- Guest claim frontend UI
+- Guest claim magic-link / email delivery
 - WebSocket realtime chat
 - Mobile wrapper
 - Redis, Celery, background workers
@@ -571,6 +573,30 @@ curl -X POST http://localhost:8000/api/v1/me/bookings/BOOKING_ID/reschedule \
   -H "Content-Type: application/json" \
   -d '{"starts_at": "2026-06-25T14:00:00-04:00"}'
 ```
+
+## Guest claim API (backend only)
+
+Link a guest booking or order to your account using the booking/order reference plus the guest email or phone used at creation. No email/magic-link delivery yet; no frontend UI yet.
+
+Claim a guest booking:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/me/claims/bookings \
+  -H "Authorization: Bearer CLIENT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reference": "BKG-2026-000001", "email": "guest@example.com"}'
+```
+
+Claim a guest order:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/me/claims/orders \
+  -H "Authorization: Bearer CLIENT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reference": "ORD-2026-000001", "phone": "+15550101"}'
+```
+
+Wrong reference or contact returns `404` with code `CLAIM_NOT_FOUND_OR_MISMATCH` (generic message — does not reveal which field failed).
 
 ## Client self-service order examples
 

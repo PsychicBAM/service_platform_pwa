@@ -194,6 +194,26 @@ class BookingRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_guest_booking_for_claim(self, reference: str) -> Booking | None:
+        normalized_reference = reference.strip()
+        if not normalized_reference:
+            return None
+        stmt = (
+            select(Booking)
+            .join(Booking.client)
+            .where(
+                Booking.reference == normalized_reference,
+                Client.user_id.is_(None),
+            )
+            .options(
+                selectinload(Booking.client),
+                selectinload(Booking.service),
+                selectinload(Booking.business),
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def list_for_user(
         self,
         user_id: uuid.UUID,

@@ -76,6 +76,8 @@ def main() -> int:
             "/api/v1/businesses/{business_id}/orders": {"get"},
             "/api/v1/me/bookings": {"get"},
             "/api/v1/me/orders": {"get"},
+            "/api/v1/me/claims/bookings": {"post"},
+            "/api/v1/me/claims/orders": {"post"},
             "/api/v1/businesses/{business_id}/clients": {"get"},
             "/api/v1/superadmin/businesses": {"get"},
             "/api/v1/superadmin/businesses/{business_id}": {"get", "patch"},
