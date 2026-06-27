@@ -51,3 +51,36 @@ export function formatOrderStatus(status: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
+
+export function formatBookingStatus(status: string): string {
+  return formatOrderStatus(status);
+}
+
+export function getBookingSubmitErrorMessage(error: unknown): string {
+  if (error instanceof ApiClientError) {
+    if (error.code === "SLOT_UNAVAILABLE") {
+      return "This time was just taken. Please choose another time.";
+    }
+    if (error.code === "SERVICE_NOT_BOOKABLE") {
+      const message = error.message.toLowerCase();
+      if (
+        message.includes("operating mode") ||
+        message.includes("does not allow bookings")
+      ) {
+        return "Bookings are currently disabled for this business.";
+      }
+      return "This service cannot be booked by date and time.";
+    }
+    if (error.status === 422) {
+      return "Please check the form and try again.";
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Could not reach the server. Check your connection and try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "Something went wrong. Please try again.";
+}

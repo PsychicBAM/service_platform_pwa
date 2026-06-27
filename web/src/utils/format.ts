@@ -39,3 +39,63 @@ export function serviceTypeIcon(type: PublicService["type"]): string {
 export function serviceActionLabel(type: PublicService["type"]): string {
   return type === "booking" ? "View & book" : "View & request";
 }
+
+function toLocalDateString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function formatDateLabel(date: Date, dayOffset = 0): string {
+  if (dayOffset === 0) {
+    return "Today";
+  }
+  if (dayOffset === 1) {
+    return "Tomorrow";
+  }
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
+export function formatTimeLabel(iso: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}
+
+export function formatDateTimeLabel(iso: string): string {
+  const date = new Date(iso);
+  const datePart = new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+  return `${datePart} at ${formatTimeLabel(iso)}`;
+}
+
+export function generateBookingDates(count = 14): Array<{
+  date: string;
+  label: string;
+  dayOffset: number;
+}> {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const dates: Array<{ date: string; label: string; dayOffset: number }> = [];
+
+  for (let offset = 0; offset < count; offset += 1) {
+    const date = new Date(start);
+    date.setDate(start.getDate() + offset);
+    dates.push({
+      date: toLocalDateString(date),
+      label: formatDateLabel(date, offset),
+      dayOffset: offset,
+    });
+  }
+
+  return dates;
+}

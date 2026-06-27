@@ -85,6 +85,7 @@ Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**
 | `/b/:slug/services` | Services list (API) |
 | `/b/:slug/services/:serviceId` | Service detail (API) |
 | `/b/:slug/services/:serviceId/request` | Public order request form (order services only) |
+| `/b/:slug/services/:serviceId/book` | Public booking flow (booking services only) |
 | `/login` | Login form |
 | `/register` | Register form (UI only) |
 | `/me/bookings` | Auth-gated placeholder |
@@ -94,12 +95,13 @@ Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**
 
 - Public business home, services list, and service detail (API)
 - Public order request form for order-type services (guest, no login required)
-- Inline form validation and success screen with order reference
+- Public booking flow for booking-type services: date selection, time slots, guest form
+- Inline form validation and success screens with reference numbers
 
 ## Intentionally not implemented
 
 - Admin or superadmin dashboards
-- Booking date/time flow and availability picker
+- Login-required booking / my bookings integration after guest submit
 - Register submit wiring
 - Token refresh
 - Stripe / payments
@@ -110,7 +112,7 @@ Token storage: `localStorage` key `access_token`. Refresh token flow is **TODO**
 
 ## Next slice
 
-Wire availability selection and guest booking form submission for booking-type services.
+Wire authenticated client views (`/me/bookings`, `/me/orders`) and register submit.
 
 ## TODO
 

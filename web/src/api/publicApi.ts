@@ -2,6 +2,7 @@ import { apiClient } from "@/api/client";
 import type {
   AvailabilityResponse,
   PublicBookingCreate,
+  PublicBookingCreateResponse,
   PublicBusiness,
   PublicOrderCreate,
   PublicOrderCreateResponse,
@@ -44,9 +45,11 @@ export function getAvailability(slug: string, serviceId: string, date: string) {
 }
 
 export function createPublicBooking(slug: string, payload: PublicBookingCreate) {
-  return apiClient.post<unknown>(`/public/b/${encodeSlug(slug)}/bookings`, payload, {
-    auth: false,
-  });
+  return apiClient.post<PublicBookingCreateResponse>(
+    `/public/b/${encodeSlug(slug)}/bookings`,
+    payload,
+    { auth: false },
+  );
 }
 
 export function createPublicOrder(slug: string, payload: PublicOrderCreate) {

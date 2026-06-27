@@ -58,6 +58,35 @@ export interface PublicBookingCreate {
   client: PublicBookingClientInput;
 }
 
+export type BookingStatus =
+  | "pending"
+  | "pending_payment"
+  | "confirmed"
+  | "completed"
+  | "cancelled"
+  | "no_show";
+
+export interface PublicBookingCreateResponse {
+  id: string;
+  reference: string;
+  status: BookingStatus;
+  service: {
+    id: string;
+    name: string;
+    type: ServiceType;
+  };
+  client: {
+    id: string;
+    full_name: string;
+    email: string | null;
+    phone: string | null;
+  };
+  starts_at: string;
+  ends_at: string;
+  payment_required: boolean;
+  payment: null;
+}
+
 export interface PublicOrderCreate {
   service_id: string;
   form_data?: Record<string, unknown>;
