@@ -95,6 +95,65 @@ def _database_host(value: str) -> str | None:
     return parsed.hostname
 
 
+def _parse_cors_origins(value: str) -> list[str]:
+    return [origin.strip() for origin in value.split(",") if origin.strip()]
+
+
+def _is_localhost_origin(origin: str) -> bool:
+    lowered = origin.lower()
+    return "localhost" in lowered or "127.0.0.1" in lowered
+
+
+def _validate_cors(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
+    raw = env.get("CORS_ORIGINS", "").strip()
+    origins = _parse_cors_origins(raw)
+
+    if not origins:
+        message = "CORS_ORIGINS is missing or empty"
+        if strict:
+            result.failures.append(message)
+        else:
+            result.warnings.append(message)
+        return
+
+    result.ok.append("CORS_ORIGINS is set")
+
+    if any(origin == "*" for origin in origins):
+        message = "CORS_ORIGINS must not use wildcard '*'"
+        if strict:
+            result.failures.append(message)
+        else:
+            result.warnings.append(message)
+        return
+
+    if strict:
+        result.ok.append("CORS_ORIGINS has no wildcard")
+        localhost_origins = [origin for origin in origins if _is_localhost_origin(origin)]
+        if localhost_origins:
+            result.warnings.append(
+                "CORS_ORIGINS includes localhost — use real domain in production "
+                "(localhost is OK for local prod smoke with WEB_HTTP_PORT=8080)"
+            )
+        else:
+            result.ok.append("CORS_ORIGINS has no localhost entries")
+    elif any(_is_localhost_origin(origin) for origin in origins):
+        result.warnings.append("CORS_ORIGINS includes localhost (expected for local dev)")
+
+
+def _validate_api_docs(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
+    raw = env.get("API_DOCS_ENABLED", "").strip().lower()
+    app_env = env.get("APP_ENV", "").strip().lower()
+
+    if raw in {"true", "1", "yes"} and app_env == "production":
+        message = "API_DOCS_ENABLED=true in production — OpenAPI UI will be public"
+        if strict:
+            result.warnings.append(message)
+        else:
+            result.warnings.append(message)
+    elif strict and app_env == "production" and raw in {"", "false", "0", "no"}:
+        result.ok.append("API docs disabled for production")
+
+
 def validate_production_env(env: dict[str, str], *, strict: bool = False) -> ValidationResult:
     result = ValidationResult()
 
@@ -180,6 +239,9 @@ def validate_production_env(env: dict[str, str], *, strict: bool = False) -> Val
                 result.failures.append(f"WEB_HTTP_PORT out of range: {port_num}")
             else:
                 result.ok.append(f"WEB_HTTP_PORT is valid ({port_num})")
+
+    _validate_cors(env, strict=strict, result=result)
+    _validate_api_docs(env, strict=strict, result=result)
 
     if not env.get("STRIPE_SECRET_KEY", "").strip():
         result.warnings.append("Stripe not configured")

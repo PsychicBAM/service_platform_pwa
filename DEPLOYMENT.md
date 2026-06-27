@@ -165,10 +165,37 @@ Block direct public access to API port 8000 on the firewall — prod compose doe
 | SPA routes | Hard refresh `/login`, `/admin`, `/b/<slug>` |
 | Login | Real admin account |
 | Public page | `/b/<business-slug>/services` |
-| `/docs` | Off when `APP_ENV=production` |
+| `/docs` | Off when `APP_ENV=production` and `API_DOCS_ENABLED=false` (default in `.env.production.example`) |
+| `/openapi.json`, `/redoc` | Same as `/docs` — disabled in production by default |
+| CORS | `CORS_ORIGINS` set to your HTTPS domain only — no `*` |
 | Secrets | `.env` not in git, `chmod 600` |
 
 See [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md).
+
+---
+
+## D2. Production security defaults
+
+| Control | Local dev | Production |
+|---------|-----------|------------|
+| **OpenAPI `/docs`** | Enabled (`APP_ENV=local`) | Disabled via `API_DOCS_ENABLED=false` |
+| **CORS** | `localhost:5173` allowed | Real domain(s) only; `*` rejected at startup |
+| **Nginx headers** | `web/nginx.conf` adds `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` |
+| **CSP** | Not set yet (TODO — validate against Vite bundle before enabling) |
+
+**Temporarily enable API docs on a staging VPS** (not recommended long term):
+
+```env
+API_DOCS_ENABLED=true
+```
+
+Restart the `api` container. Restrict access via firewall or reverse-proxy auth.
+
+**CORS:** Set `CORS_ORIGINS=https://your-domain.example` to match the browser origin (scheme + host + port). The strict env checker rejects `*` and empty values.
+
+```bash
+python scripts/check_production_env.py --env-file .env --strict
+```
 
 ---
 

@@ -65,6 +65,8 @@ docker compose exec api python scripts/seed_demo.py
 
 Open http://localhost:5173 — nginx serves the built React app. API calls use `/api/v1` on the same host (proxied to `api:8000`).
 
+The production `web` nginx config adds basic security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`). CSP is not enabled yet.
+
 | URL | Purpose |
 |-----|---------|
 | http://localhost:5173 | Production frontend |

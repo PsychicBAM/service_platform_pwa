@@ -1,7 +1,7 @@
 from functools import lru_cache
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     app_env: Literal["local", "dev", "staging", "production"] = "local"
     app_name: str = "Service Platform API"
     api_v1_prefix: str = "/api/v1"
+    api_docs_enabled: bool | None = Field(default=None)
 
     database_url: str = (
         "postgresql+asyncpg://service_platform:service_platform"
@@ -48,7 +49,21 @@ class Settings(BaseSettings):
 
     @property
     def docs_enabled(self) -> bool:
+        if self.api_docs_enabled is not None:
+            return self.api_docs_enabled
         return self.app_env in {"local", "dev"}
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> Self:
+        if self.app_env != "production":
+            return self
+
+        origins = self.cors_origins_list
+        if not origins:
+            raise ValueError("CORS_ORIGINS must be set when APP_ENV=production")
+        if any(origin == "*" for origin in origins):
+            raise ValueError("Wildcard CORS origin is not allowed in production")
+        return self
 
 
 @lru_cache

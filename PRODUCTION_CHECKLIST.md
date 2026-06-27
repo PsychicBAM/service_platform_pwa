@@ -15,8 +15,9 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [ ] **HTTPS enabled** on public domain (reverse proxy / Cloudflare)
 - [ ] **Demo credentials removed** — do not run `seed_demo.py` on real production, or change all demo passwords immediately
 - [ ] **Admin and superadmin accounts** reviewed — unique emails, strong passwords, least privilege
-- [ ] **CORS_ORIGINS** lists only your real frontend origin(s), not `*`
-- [ ] **Public `/docs` decision** — with `APP_ENV=production`, OpenAPI UI is disabled; confirm intentionally
+- [ ] **CORS_ORIGINS** lists only your real frontend origin(s), not `*` or `localhost` (except local smoke)
+- [ ] **API_DOCS_ENABLED=false** in production `.env` (OpenAPI UI off)
+- [ ] **Public `/docs` decision** — confirm `/docs`, `/redoc`, `/openapi.json` return 404 when disabled
 - [ ] **Firewall** — only 80/443 (and SSH) public; block direct `:8000` / `:5173` if proxied
 - [ ] **SSH** — key-based auth, non-root deploy user where possible
 - [ ] **Docker images** rebuilt after dependency updates
@@ -49,6 +50,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [ ] **Client area** — logged-in client sees bookings/orders at `/me/*`
 - [ ] **Superadmin** — platform overview accessible only to superadmin role
 - [ ] **Frontend SPA routes** — hard refresh on `/login`, `/admin`, `/b/<slug>` works (nginx fallback)
+- [ ] **Nginx security headers** — `X-Content-Type-Options`, `X-Frame-Options`, etc. present on frontend responses
 
 ---
 

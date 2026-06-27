@@ -145,6 +145,18 @@ docker compose -p service_platform_prod -f docker-compose.prod.yml up -d --build
 docker compose -p service_platform_prod -f docker-compose.prod.yml exec api alembic upgrade head
 ```
 
+### Production security
+
+| Setting | Local (`.env.example`) | Production (`.env.production.example`) |
+|---------|------------------------|----------------------------------------|
+| `API_DOCS_ENABLED` | `true` — `/docs` available | `false` — `/docs`, `/redoc`, `/openapi.json` disabled |
+| `CORS_ORIGINS` | `http://localhost:5173,...` | Your HTTPS domain only; wildcard `*` rejected |
+| `APP_ENV` | `local` | `production` |
+
+The API refuses to start with `APP_ENV=production` and wildcard or empty `CORS_ORIGINS`. Run `python scripts/check_production_env.py --env-file .env --strict` before deploy.
+
+The `web` nginx container adds basic security headers (see `web/nginx.conf`). Content-Security-Policy is deferred until validated against the Vite bundle.
+
 ## Migrations
 
 From `api/` (with Postgres running and `DATABASE_URL` set):
