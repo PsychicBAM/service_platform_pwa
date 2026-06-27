@@ -55,10 +55,35 @@ Open http://localhost:5173
 | `npm run dev` | Vite dev server (port 5173) |
 | `npm run build` | Production build to `dist/` |
 | `npm run typecheck` | TypeScript check (`tsc --noEmit`) |
+| `npm run test` | Vitest smoke tests (jsdom, mocked APIs) |
+| `npm run test:watch` | Vitest in watch mode |
 | `npm run check:routes` | Static route/page smoke check (no browser) |
 | `npm run preview` | Preview production build |
 
+Recommended CI/local check sequence:
+
+```bash
+cd web
+npm run test
+npm run typecheck
+npm run build
+npm run check:routes
+```
+
 Lint is **not configured** in this slice — add ESLint in a later slice if needed.
+
+## Frontend tests (Vitest)
+
+Smoke tests live in `web/src/test/` using **Vitest**, **React Testing Library**, and **jsdom**. They mock API modules (`publicApi`, `meApi`, `adminApi`, `superadminApi`, `useAuth`) — no real backend or browser required.
+
+Coverage (16 tests):
+
+- Public pages: business home, services list, service detail CTAs, order validation, booking date/slots
+- Client auth: login prompts, `/me/orders`, order messages
+- Admin guards: unauthenticated, no business access, dashboard, services list
+- Superadmin guards: role check, businesses list, audit logs
+
+`npm run check:routes` remains the static route file check; Vitest complements it with rendered component smoke tests.
 
 ## PWA
 
@@ -282,8 +307,8 @@ cd web && npm run dev
 - Mobile native wrapper
 - Frontend Docker / CI
 - Service worker / offline mode
-- Playwright / Vitest automated frontend tests
+- Playwright browser E2E
 
 ## Next slice (post-checkpoint)
 
-Guest claim, frontend tests, or payments (Stripe) when budget allows.
+Guest claim, Playwright browser E2E, or payments (Stripe) when budget allows.
