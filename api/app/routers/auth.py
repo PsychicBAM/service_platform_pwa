@@ -5,6 +5,9 @@ from app.database import get_db
 from app.dependencies.auth import require_active_user
 from app.models.user import User
 from app.schemas.auth import (
+    EmailVerificationResendResponse,
+    EmailVerifyRequest,
+    EmailVerifyResponse,
     LoginRequest,
     LoginResponse,
     MeResponse,
@@ -14,12 +17,19 @@ from app.schemas.auth import (
     RegisterBusinessResponse,
 )
 from app.services.auth_service import AuthService
+from app.services.email_verification_service import EmailVerificationService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 def get_auth_service(db: AsyncSession = Depends(get_db)) -> AuthService:
     return AuthService(db)
+
+
+def get_email_verification_service(
+    db: AsyncSession = Depends(get_db),
+) -> EmailVerificationService:
+    return EmailVerificationService(db)
 
 
 @router.post("/register", response_model=RegisterBusinessResponse, status_code=201)
@@ -53,3 +63,25 @@ async def get_me(
     auth_service: AuthService = Depends(get_auth_service),
 ) -> MeResponse:
     return await auth_service.get_me(current_user.id)
+
+
+@router.post("/verify-email", response_model=EmailVerifyResponse)
+async def verify_email(
+    payload: EmailVerifyRequest,
+    verification_service: EmailVerificationService = Depends(get_email_verification_service),
+) -> EmailVerifyResponse:
+    user = await verification_service.verify_email_token(payload.token)
+    return EmailVerifyResponse(verified=True, email=user.email)
+
+
+@router.post("/resend-verification", response_model=EmailVerificationResendResponse)
+async def resend_verification(
+    current_user: User = Depends(require_active_user),
+    verification_service: EmailVerificationService = Depends(get_email_verification_service),
+) -> EmailVerificationResendResponse:
+    result = await verification_service.resend_email_verification(current_user)
+    return EmailVerificationResendResponse(
+        sent=result.sent,
+        already_verified=result.already_verified,
+        message=result.message,
+    )

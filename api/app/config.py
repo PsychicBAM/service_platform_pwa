@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     smtp_from_name: str = "Service Platform"
     smtp_use_tls: bool = True
 
+    email_verification_token_expire_hours: int = 24
+    email_verification_base_url: str = "http://localhost:5173/verify-email"
+    require_email_verification_for_login: bool = False
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [

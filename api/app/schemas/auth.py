@@ -92,4 +92,20 @@ class MeResponse(BaseModel):
     email: str
     full_name: str | None
     role: UserRole
+    email_verified: bool = False
     businesses: list[MeBusinessItem]
+
+
+class EmailVerifyRequest(BaseModel):
+    token: str = Field(min_length=1, max_length=512)
+
+
+class EmailVerifyResponse(BaseModel):
+    verified: bool = True
+    email: str
+
+
+class EmailVerificationResendResponse(BaseModel):
+    sent: bool
+    already_verified: bool
+    message: str | None = None

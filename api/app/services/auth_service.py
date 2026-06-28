@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.exceptions.auth import (
     EmailAlreadyExistsError,
+    EmailVerificationRequiredError,
     InactiveUserError,
     InvalidCredentialsError,
     InvalidTokenError,
@@ -26,6 +27,7 @@ from app.schemas.auth import (
 from app.schemas.business import BusinessRead
 from app.schemas.user import UserRead
 from app.services.password_service import hash_password, verify_password
+from app.services.email_verification_service import EmailVerificationService
 from app.services.token_service import (
     create_access_token,
     create_refresh_token,
@@ -78,6 +80,10 @@ class AuthService:
         )
         await self.businesses.create_subscription(business_id=business.id)
 
+        verification_service = EmailVerificationService(self.session)
+        raw_token = await verification_service.create_email_verification_token(user)
+        await verification_service.send_verification_email_best_effort(user, raw_token)
+
         await self.session.commit()
         await self.session.refresh(user)
         await self.session.refresh(business)
@@ -94,6 +100,10 @@ class AuthService:
             raise InvalidCredentialsError()
         if not user.is_active:
             raise InactiveUserError()
+
+        settings = get_settings()
+        if settings.require_email_verification_for_login and user.email_verified_at is None:
+            raise EmailVerificationRequiredError()
 
         await self.users.update_last_login(user)
         await self.session.commit()
@@ -144,5 +154,6 @@ class AuthService:
             email=user.email,
             full_name=user.full_name,
             role=user.role,
+            email_verified=user.email_verified_at is not None,
             businesses=businesses,
         )

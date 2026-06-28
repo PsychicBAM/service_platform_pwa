@@ -142,6 +142,14 @@ Optional: `--subject "Service Platform test"` and `--body "This is a test email.
 
 Never use for bulk email. Do not commit SMTP secrets. Use only after configuring VPS `.env`.
 
+**Email verification** (backend API; frontend page TODO):
+
+- `POST /api/v1/auth/verify-email` — body `{ "token": "..." }`
+- `POST /api/v1/auth/resend-verification` — authenticated resend
+- `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false` by default (login works without verification)
+- `EMAIL_VERIFICATION_BASE_URL` — link target for verification emails (e.g. `http://localhost:5173/verify-email`)
+- Real delivery requires SMTP configuration on VPS
+
 ## Tests
 
 From project root:
@@ -261,18 +269,19 @@ alembic revision --autogenerate -m "describe change"
 - **Email event wiring** (booking/order create, admin status changes, order messages — best-effort, respects `notification_email_enabled`)
 - **Email notification dry-run audit** (`scripts/check_email_notifications.py` — verifies wiring without SMTP)
 - **Manual SMTP test email** (`scripts/send_test_email.py` — one explicit recipient; operator/VPS only)
+- **Backend email verification** (`POST /auth/verify-email`, `POST /auth/resend-verification`; login enforcement disabled by default)
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
 - **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
 - **Superadmin business management** (list/detail, status and plan overrides)
 - **Audit logs** for superadmin status/plan changes
 - **Demo seed script** (`scripts/seed_demo.py`) and **E2E backend audit** (`scripts/e2e_backend_audit.py`)
-- Migration `0006_orders.py`, `0007_audit_logs.py`
+- Migration `0006_orders.py`, `0007_audit_logs.py`, `0008_email_verification_tokens.py`
 
 ### Not implemented
 
 - Payments (Stripe billing)
-- Email verification
+- Frontend verify-email page (backend API ready)
 - Password reset / magic links
 - Auth logout (refresh token revocation)
 - Admin manual booking creation

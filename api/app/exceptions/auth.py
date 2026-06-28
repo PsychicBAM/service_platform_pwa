@@ -49,3 +49,21 @@ class SlugAlreadyExistsError(AppError):
             code="SLUG_ALREADY_EXISTS",
             status_code=409,
         )
+
+
+class EmailVerificationTokenInvalidError(AppError):
+    def __init__(self) -> None:
+        super().__init__(
+            message="Verification link is invalid or expired.",
+            code="EMAIL_VERIFICATION_TOKEN_INVALID",
+            status_code=400,
+        )
+
+
+class EmailVerificationRequiredError(AppError):
+    def __init__(self) -> None:
+        super().__init__(
+            message="Email verification is required before login.",
+            code="EMAIL_VERIFICATION_REQUIRED",
+            status_code=403,
+        )

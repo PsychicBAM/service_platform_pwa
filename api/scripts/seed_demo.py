@@ -122,12 +122,16 @@ async def _ensure_user(
             phone=phone,
             role=role,
         )
+        user.email_verified_at = datetime.now(UTC)
+        await session.flush()
         return user, "created"
     user.password_hash = password_hash
     user.role = role
     user.full_name = full_name
     user.phone = phone
     user.is_active = True
+    if user.email_verified_at is None:
+        user.email_verified_at = datetime.now(UTC)
     await session.flush()
     return user, "updated"
 

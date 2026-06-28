@@ -187,6 +187,23 @@ def build_admin_order_message_email(
     return EmailMessage(to_email=to_email, subject=subject, text_body=text_body)
 
 
+def build_email_verification_email(
+    *,
+    user_email: str,
+    verification_url: str,
+    expire_hours: int,
+) -> EmailMessage:
+    subject = "Verify your email"
+    text_body = (
+        "Hello,\n\n"
+        f"Please verify your email address ({user_email}) by opening this link:\n\n"
+        f"{verification_url}\n\n"
+        f"This link expires in {expire_hours} hours.\n\n"
+        "If you did not create an account, you can ignore this email.\n"
+    )
+    return EmailMessage(to_email=user_email, subject=subject, text_body=text_body)
+
+
 def build_claim_help_email(
     *,
     to_email: str,

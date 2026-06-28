@@ -365,6 +365,9 @@ async def test_notification_email_disabled_skips_admin_booking_email(
     )
     await db_session.commit()
 
+    mock_send.reset_mock()
+    sent.clear()
+
     response = await async_client.post(
         f"/api/v1/public/b/{ctx['slug']}/bookings",
         json=booking_payload(ctx["service_id"]),
