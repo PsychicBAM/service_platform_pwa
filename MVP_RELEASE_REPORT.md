@@ -48,6 +48,7 @@ Related docs:
 | Guest claim UI | `/me/claim` page — reference + email/phone |
 | Email foundation + event wiring | `EmailService`, dry-run/disabled by default; booking/order/message notifications |
 | Email dry-run audit | `scripts/check_email_notifications.py` — no real emails sent |
+| Email verification dry-run audit | `scripts/check_email_verification.py` — config, templates, token hashing; no SMTP |
 | Backend email verification | Verify/resend API; login enforcement disabled by default |
 | Manual SMTP test email | `scripts/send_test_email.py` — one explicit `--to`; operator/VPS only |
 | Admin bookings | List, confirm, cancel, reschedule |
@@ -158,6 +159,7 @@ Open http://localhost:8080
 ```bash
 docker compose exec api python -m pytest
 docker compose exec api python scripts/check_backend.py
+docker compose exec api python scripts/check_email_verification.py
 docker compose exec api python scripts/check_email_notifications.py
 docker compose exec api python scripts/send_test_email.py --to your-email@example.com   # manual VPS smoke only
 docker compose exec api python scripts/seed_demo.py    # after pytest — tests truncate auth tables
@@ -260,10 +262,10 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | No payments / Stripe | Bookings and orders are not paid online |
 | Email foundation + event wiring | Service + templates; disabled/dry-run by default; respects `notification_email_enabled` |
 | Email dry-run audit | `check_email_notifications.py` verifies wiring without SMTP; does not send real email |
+| Email verification dry-run audit | `check_email_verification.py` verifies config/templates/token hashing; no real email |
 | Manual SMTP smoke | `send_test_email.py` sends one test email to explicit `--to` when live SMTP configured |
 | Backend email verification | Verify/resend API; `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false` by default |
-| Frontend email verification UI | `/verify-email`, `/check-email`; resend; non-blocking banner |
-| Frontend registration | `/register` submits to API; after signup → `/check-email`; OAuth/social login not implemented |
+| Frontend email verification chain | `/register` → `/check-email` → resend → `/verify-email`; OAuth/social login not implemented |
 | Guest claim backend + frontend UI | `/me/claim` — reference + contact; magic-link email not yet |
 | No production domain / HTTPS yet | Docs and compose prepared; VPS deploy is manual |
 | No automated backups | Commands documented only in `BACKUP_RESTORE.md` |

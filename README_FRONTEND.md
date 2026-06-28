@@ -143,12 +143,22 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Coverage (13 tests A–I):
+Coverage (14 tests):
 
 - Public: business home, services list, order validation, booking date screen
-- Client: login, `/me/bookings`, `/me/orders`, register form validation, verify/check-email routes
+- Client: login, `/me/bookings`, `/me/orders`, claim form
+- Email verification audit: `/check-email`, `/verify-email`, `/register` validation, verified user message
 - Admin: owner dashboard/services; client blocked
 - Superadmin: superadmin businesses; owner blocked
+
+**Manual email verification flow** (no real email unless SMTP enabled):
+
+1. Open `/register` and create an account → lands on `/check-email`
+2. Click **Resend verification email** (dry-run by default; check API logs for link)
+3. Open `/verify-email?token=...` from log or test harness
+4. Login is not blocked by default (`REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false`)
+
+Backend audit (no real emails): `docker compose exec api python scripts/check_email_verification.py`
 
 Use `npm run test:e2e:headed` to watch the browser. Vitest (`npm run test`) remains fast unit/smoke tests without a backend.
 

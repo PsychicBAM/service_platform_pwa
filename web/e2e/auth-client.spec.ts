@@ -22,26 +22,4 @@ test.describe("client auth and /me pages", () => {
     await expect(page.getByLabel("Reference")).toBeVisible();
     await expect(page.getByRole("button", { name: "Claim booking" })).toBeVisible();
   });
-
-  test("G. verify-email without token shows friendly error", async ({ page }) => {
-    await page.goto("/verify-email");
-    await expect(page.getByRole("heading", { name: "Verify email" })).toBeVisible();
-    await expect(page.getByText("Verification link is missing.")).toBeVisible();
-  });
-
-  test("H. check-email route loads", async ({ page }) => {
-    await page.goto("/check-email");
-    await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Go to login" })).toBeVisible();
-  });
-
-  test("I. register page renders fields and validates empty submit", async ({ page }) => {
-    await page.goto("/register");
-    await expect(page.getByRole("heading", { name: "Create account" })).toBeVisible();
-    await expect(page.getByText("Full name")).toBeVisible();
-    await expect(page.getByText("Business slug")).toBeVisible();
-    await page.getByRole("button", { name: "Create account" }).click();
-    await expect(page.getByText("Full name is required.")).toBeVisible();
-    await expect(page.getByText("Email is required.")).toBeVisible();
-  });
 });

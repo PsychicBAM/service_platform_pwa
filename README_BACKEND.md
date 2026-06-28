@@ -118,6 +118,14 @@ SMTP_USE_TLS=true
 
 Run `python scripts/check_production_env.py --env-file .env --strict` before deploy. Event wiring (booking confirmed, order messages, etc.) is implemented; use the dry-run audit below to verify safely.
 
+**Email verification dry-run audit** (no SMTP required, no real emails sent):
+
+```bash
+docker compose exec api python scripts/check_email_verification.py
+```
+
+Verifies imports, config (`EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS`, `EMAIL_VERIFICATION_BASE_URL`, `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN`), verification URL/template builders, token hashing (no raw token storage), mocked send path, and auth API routes. Real SMTP must still be configured on the VPS for live verification emails.
+
 **Email notification dry-run audit** (no SMTP required, no real emails sent):
 
 ```bash
@@ -142,13 +150,20 @@ Optional: `--subject "Service Platform test"` and `--body "This is a test email.
 
 Never use for bulk email. Do not commit SMTP secrets. Use only after configuring VPS `.env`.
 
-**Email verification** (backend API; frontend page TODO):
+**Email verification** (backend API + frontend pages):
 
 - `POST /api/v1/auth/verify-email` — body `{ "token": "..." }`
 - `POST /api/v1/auth/resend-verification` — authenticated resend
 - `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false` by default (login works without verification)
 - `EMAIL_VERIFICATION_BASE_URL` — link target for verification emails (e.g. `http://localhost:5173/verify-email`)
 - Real delivery requires SMTP configuration on VPS
+
+**Manual verification flow** (local/demo):
+
+1. Register at `/register` → redirects to `/check-email`
+2. On `/check-email`, click **Resend verification email** (dry-run logs link unless SMTP enabled)
+3. Open `/verify-email?token=...` from dry-run log or test token
+4. Login enforcement remains off unless `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=true`
 
 ## Tests
 
@@ -159,6 +174,7 @@ python -m compileall api
 cd api
 python -m pytest
 python scripts/check_backend.py
+python scripts/check_email_verification.py
 python scripts/check_email_notifications.py
 ```
 
@@ -269,6 +285,7 @@ alembic revision --autogenerate -m "describe change"
 - **Email event wiring** (booking/order create, admin status changes, order messages — best-effort, respects `notification_email_enabled`)
 - **Email notification dry-run audit** (`scripts/check_email_notifications.py` — verifies wiring without SMTP)
 - **Manual SMTP test email** (`scripts/send_test_email.py` — one explicit recipient; operator/VPS only)
+- **Email verification dry-run audit** (`scripts/check_email_verification.py` — config, templates, token hashing; no SMTP)
 - **Backend email verification** (`POST /auth/verify-email`, `POST /auth/resend-verification`; login enforcement disabled by default)
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
@@ -281,7 +298,6 @@ alembic revision --autogenerate -m "describe change"
 ### Not implemented
 
 - Payments (Stripe billing)
-- Frontend verify-email page (backend API ready)
 - Password reset / magic links
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
@@ -319,6 +335,14 @@ Runs HTTP checks against the running API (requires Docker API + demo seed):
 
 ```bash
 docker compose exec api python scripts/e2e_backend_audit.py
+```
+
+## Email verification dry-run audit
+
+Verifies email verification config, templates, token hashing, and auth routes without SMTP (no real emails sent):
+
+```bash
+docker compose exec api python scripts/check_email_verification.py
 ```
 
 ## Email notification dry-run audit

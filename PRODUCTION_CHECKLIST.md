@@ -58,7 +58,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 
 - [ ] GitHub Actions **backend-tests** green
 - [ ] GitHub Actions **frontend-tests** green
-- [ ] Local or staging: `pytest`, `check_backend.py`, `check_email_notifications.py`, `e2e_backend_audit.py`
+- [ ] Local or staging: `pytest`, `check_backend.py`, `check_email_verification.py`, `check_email_notifications.py`, `e2e_backend_audit.py`
 - [ ] Frontend: `npm run test`, `typecheck`, `build`, `check:routes`
 
 ---
@@ -67,7 +67,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 
 - [ ] **Payments** (Stripe) — not implemented
 - [ ] **Email notifications** — foundation + event wiring implemented; dry-run audit: `docker compose exec api python scripts/check_email_notifications.py` (no real emails); live SMTP smoke: `docker compose exec api python scripts/send_test_email.py --to your-email@example.com` (one explicit recipient only, after VPS `.env` configured); enable live SMTP with `EMAIL_ENABLED` + SMTP on VPS
-- [ ] **Email verification** — backend API implemented (`/auth/verify-email`, `/auth/resend-verification`); set `EMAIL_VERIFICATION_BASE_URL` to public frontend route; frontend verify page TODO; `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false` by default
+- [ ] **Email verification** — backend + frontend wired (`/register` → `/check-email` → `/verify-email`); dry-run audit: `docker compose exec api python scripts/check_email_verification.py` (no real emails); set `EMAIL_VERIFICATION_BASE_URL` to public frontend route on VPS; real delivery requires SMTP; `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false` by default
 - [ ] **Domain email** (SPF/DKIM for transactional mail)
 - [ ] **Monitoring / alerting** (uptime, error tracking, log aggregation)
 - [ ] **Automated backups** to object storage

@@ -128,6 +128,7 @@ def main() -> int:
         "seed_demo.py",
         "e2e_backend_audit.py",
         "check_email_notifications.py",
+        "check_email_verification.py",
         "send_test_email.py",
     ):
         if not (scripts_dir / script_name).is_file():
@@ -148,6 +149,24 @@ def main() -> int:
             errors.append("check_email_notifications.py import spec failed")
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"check_email_notifications import failed: {exc}")
+
+    print("==> Import smoke for email verification audit ...")
+    try:
+        import importlib.util
+
+        verify_audit_path = scripts_dir / "check_email_verification.py"
+        spec = importlib.util.spec_from_file_location(
+            "check_email_verification", verify_audit_path
+        )
+        if spec and spec.loader:
+            verify_audit_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(verify_audit_module)
+            if not hasattr(verify_audit_module, "main"):
+                errors.append("check_email_verification.py missing main()")
+        else:
+            errors.append("check_email_verification.py import spec failed")
+    except Exception as exc:  # pragma: no cover - diagnostic script
+        errors.append(f"check_email_verification import failed: {exc}")
 
     print("==> Import smoke for send_test_email ...")
     try:
@@ -176,6 +195,20 @@ def main() -> int:
         print(audit_result.stderr, file=sys.stderr)
     if audit_result.returncode != 0:
         errors.append("check_email_notifications.py failed")
+
+    print("==> Running email verification dry-run audit ...")
+    verify_audit_result = subprocess.run(
+        [sys.executable, "scripts/check_email_verification.py"],
+        cwd=api_dir,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    print(verify_audit_result.stdout)
+    if verify_audit_result.stderr:
+        print(verify_audit_result.stderr, file=sys.stderr)
+    if verify_audit_result.returncode != 0:
+        errors.append("check_email_verification.py failed")
 
     print("==> Checking required files ...")
     if not alembic_ini.is_file():
