@@ -45,6 +45,14 @@ export function Layout() {
             )}
           </nav>
         </div>
+        {isAuthenticated && user && user.email_verified === false ? (
+          <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            Please verify your email.{" "}
+            <Link to="/check-email" className="font-medium text-brand-700 hover:underline">
+              Go to check email
+            </Link>
+          </div>
+        ) : null}
         {isAuthenticated && user?.email ? (
           <p className="mt-1 truncate text-xs text-slate-500">{user.email}</p>
         ) : null}

@@ -2,6 +2,9 @@ import { apiClient } from "@/api/client";
 import { refreshAccessToken as refreshAccessTokenRequest } from "@/api/authRefresh";
 import { clearTokens, setTokens } from "@/utils/authStorage";
 import type {
+  EmailVerificationResendResponse,
+  EmailVerifyRequest,
+  EmailVerifyResponse,
   LoginRequest,
   LoginResponse,
   MeResponse,
@@ -40,4 +43,15 @@ export function refreshAccessToken(refresh_token: string): Promise<RefreshRespon
 
 export function logout() {
   clearTokens();
+}
+
+export function verifyEmail(token: string) {
+  const payload: EmailVerifyRequest = { token };
+  return apiClient.post<EmailVerifyResponse>("/auth/verify-email", payload, {
+    auth: false,
+  });
+}
+
+export function resendEmailVerification() {
+  return apiClient.post<EmailVerificationResendResponse>("/auth/resend-verification");
 }

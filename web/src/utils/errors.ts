@@ -342,3 +342,28 @@ export function getClaimErrorMessage(error: unknown, fallback = "Something went 
   }
   return fallback;
 }
+
+export function getEmailVerificationErrorMessage(
+  error: unknown,
+  fallback = "Something went wrong",
+): string {
+  if (error instanceof ApiClientError) {
+    if (error.code === "EMAIL_VERIFICATION_TOKEN_INVALID") {
+      return "Verification link is invalid or expired.";
+    }
+    if (error.status === 401) {
+      return "Please log in again.";
+    }
+    if (error.status === 422) {
+      return "Invalid verification request.";
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Network error. Please try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}

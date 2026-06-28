@@ -211,7 +211,9 @@ Token storage: `localStorage` keys `access_token`, `refresh_token`, and `token_t
 | `/b/:slug/services/:serviceId/request` | Public order request form (order services only) |
 | `/b/:slug/services/:serviceId/book` | Public booking flow (booking services only) |
 | `/login` | Login form |
-| `/register` | Register form (UI only) |
+| `/register` | Register form (UI only — wiring TODO; after register, navigate to `/check-email`) |
+| `/verify-email` | Email verification from link (`?token=...`) |
+| `/check-email` | Check/resend verification email (auth optional) |
 | `/me/bookings` | My bookings list (auth required) |
 | `/me/orders` | My orders list (auth required) |
 | `/me/claim` | Claim guest booking or request (auth required) |
@@ -314,6 +316,7 @@ npm run check:routes
 - Guest claim page at `/me/claim` (reference + email/phone; no magic-link email yet)
 - Order detail with message list (15s polling) and send form
 - Login/logout with JWT in `localStorage`
+- **Email verification UI** — `/verify-email` (token from link), `/check-email` (resend); non-blocking banner for unverified users
 - Inline form validation and success screens with reference numbers
 
 ## Admin PWA skeleton (Phase 3 slice 1)
@@ -342,7 +345,9 @@ Read-only admin area at `/admin` for business members:
 - **Admin Dashboard overview** — stats, attention items, recent bookings/orders, quick links (no charts)
 - **Superadmin UI** — business list/detail, status & plan management, audit logs view
 - Stripe billing still TODO
-- Payments and email sending still TODO
+- OAuth / social login (Google, Apple, Yandex) not implemented
+- Register form UI only — POST `/auth/register` wiring TODO; after register, navigate to `/check-email`
+- Real email delivery requires backend SMTP configuration on VPS
 - No charts/analytics backend yet
 
 ### Manual test: Admin

@@ -186,7 +186,23 @@ export interface MeResponse {
   email: string;
   full_name: string | null;
   role: UserRole;
+  email_verified?: boolean;
   businesses: MeBusinessItem[];
+}
+
+export interface EmailVerifyRequest {
+  token: string;
+}
+
+export interface EmailVerifyResponse {
+  verified: boolean;
+  email: string;
+}
+
+export interface EmailVerificationResendResponse {
+  sent: boolean;
+  already_verified: boolean;
+  message?: string | null;
 }
 
 export type MyBookingStatusFilter = "upcoming" | "past" | "cancelled";

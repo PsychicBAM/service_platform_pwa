@@ -50,7 +50,6 @@ Related docs:
 | Email dry-run audit | `scripts/check_email_notifications.py` — no real emails sent |
 | Backend email verification | Verify/resend API; login enforcement disabled by default |
 | Manual SMTP test email | `scripts/send_test_email.py` — one explicit `--to`; operator/VPS only |
-| Backend email verification | Token verify + resend API; frontend verify page TODO; login enforcement off by default |
 | Admin bookings | List, confirm, cancel, reschedule |
 | Admin orders | List, accept, decline, complete, messages |
 | Admin clients | CRM list and detail |
@@ -74,6 +73,7 @@ Related docs:
 | Login / token refresh | JWT in localStorage, 401 refresh |
 | Client bookings / orders / messages | `/me/bookings`, `/me/orders`, order detail |
 | Guest claim UI | `/me/claim` — reference + email/phone (no magic-link email yet) |
+| Email verification UI | `/verify-email`, `/check-email`; resend; non-blocking banner |
 | Admin dashboard | Stats and quick links |
 | Admin services CRUD | Create, edit, activate/deactivate |
 | Admin bookings actions | List, filter, confirm, cancel |
@@ -82,8 +82,8 @@ Related docs:
 | Admin schedule edit | Weekly hours and breaks |
 | Admin settings edit | Business settings form |
 | Superadmin UI | Overview, businesses, audit logs |
-| Vitest smoke tests | 22 tests — mocked API |
-| Playwright local smoke | 10 browser tests — manual/local only |
+| Vitest smoke tests | 30 tests — mocked API |
+| Playwright local smoke | 12 browser tests — manual/local only |
 
 ### Infrastructure
 
@@ -261,6 +261,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | Email dry-run audit | `check_email_notifications.py` verifies wiring without SMTP; does not send real email |
 | Manual SMTP smoke | `send_test_email.py` sends one test email to explicit `--to` when live SMTP configured |
 | Backend email verification | Verify/resend API; `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false` by default |
+| Frontend email verification UI | `/verify-email`, `/check-email`; OAuth/social login not implemented |
 | Guest claim backend + frontend UI | `/me/claim` — reference + contact; magic-link email not yet |
 | No production domain / HTTPS yet | Docs and compose prepared; VPS deploy is manual |
 | No automated backups | Commands documented only in `BACKUP_RESTORE.md` |

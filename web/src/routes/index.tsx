@@ -12,6 +12,7 @@ import { AdminSchedulePage } from "@/pages/admin/AdminSchedulePage";
 import { AdminServicesPage } from "@/pages/admin/AdminServicesPage";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
 import { BookingPage } from "@/pages/BookingPage";
+import { CheckEmailPage } from "@/pages/CheckEmailPage";
 import { ClaimGuestPage } from "@/pages/ClaimGuestPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { MyBookingsPage } from "@/pages/MyBookingsPage";
@@ -23,6 +24,7 @@ import { PublicHomePage } from "@/pages/PublicHomePage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { ServiceDetailPage } from "@/pages/ServiceDetailPage";
 import { ServicesPage } from "@/pages/ServicesPage";
+import { VerifyEmailPage } from "@/pages/VerifyEmailPage";
 import { SuperadminAuditLogsPage } from "@/pages/superadmin/SuperadminAuditLogsPage";
 import { SuperadminBusinessesPage } from "@/pages/superadmin/SuperadminBusinessesPage";
 import { SuperadminDashboardPage } from "@/pages/superadmin/SuperadminDashboardPage";
@@ -40,6 +42,8 @@ export const router = createBrowserRouter([
       { path: "b/:slug/services/:serviceId/book", element: <BookingPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "register", element: <RegisterPage /> },
+      { path: "verify-email", element: <VerifyEmailPage /> },
+      { path: "check-email", element: <CheckEmailPage /> },
       { path: "me/bookings", element: <MyBookingsPage /> },
       { path: "me/orders", element: <MyOrdersPage /> },
       { path: "me/claim", element: <ClaimGuestPage /> },

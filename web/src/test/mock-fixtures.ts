@@ -76,7 +76,13 @@ export const mockClientUser: MeResponse = {
   email: "client@example.com",
   full_name: "Client Demo",
   role: "client",
+  email_verified: true,
   businesses: [],
+};
+
+export const mockUnverifiedClientUser: MeResponse = {
+  ...mockClientUser,
+  email_verified: false,
 };
 
 export const mockSuperadminUser: MeResponse = {
