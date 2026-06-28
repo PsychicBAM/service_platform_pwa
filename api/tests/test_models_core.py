@@ -10,6 +10,7 @@ from app.models import (
     BusinessMember,
     EmailVerificationToken,
     OperatingMode,
+    PasswordResetToken,
     Subscription,
     SubscriptionPlan,
     User,
@@ -47,6 +48,7 @@ def test_metadata_contains_core_tables() -> None:
         "business_members",
         "subscriptions",
         "email_verification_tokens",
+        "password_reset_tokens",
     }
 
 
@@ -60,6 +62,14 @@ def test_relationships_exist() -> None:
     )
     assert isinstance(
         EmailVerificationToken.__mapper__.relationships.get("user"),
+        RelationshipProperty,
+    )
+    assert isinstance(
+        User.__mapper__.relationships.get("password_reset_tokens"),
+        RelationshipProperty,
+    )
+    assert isinstance(
+        PasswordResetToken.__mapper__.relationships.get("user"),
         RelationshipProperty,
     )
 
