@@ -119,7 +119,12 @@ def main() -> int:
 
     print("==> Verifying checkpoint scripts exist ...")
     scripts_dir = api_dir / "scripts"
-    for script_name in ("seed_demo.py", "e2e_backend_audit.py", "check_email_notifications.py"):
+    for script_name in (
+        "seed_demo.py",
+        "e2e_backend_audit.py",
+        "check_email_notifications.py",
+        "send_test_email.py",
+    ):
         if not (scripts_dir / script_name).is_file():
             errors.append(f"scripts/{script_name} not found")
 
@@ -138,6 +143,20 @@ def main() -> int:
             errors.append("check_email_notifications.py import spec failed")
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"check_email_notifications import failed: {exc}")
+
+    print("==> Import smoke for send_test_email ...")
+    try:
+        send_test_path = scripts_dir / "send_test_email.py"
+        spec = importlib.util.spec_from_file_location("send_test_email", send_test_path)
+        if spec and spec.loader:
+            send_test_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(send_test_module)
+            if not hasattr(send_test_module, "main"):
+                errors.append("send_test_email.py missing main()")
+        else:
+            errors.append("send_test_email.py import spec failed")
+    except Exception as exc:  # pragma: no cover - diagnostic script
+        errors.append(f"send_test_email import failed: {exc}")
 
     print("==> Running email notification dry-run audit ...")
     audit_result = subprocess.run(

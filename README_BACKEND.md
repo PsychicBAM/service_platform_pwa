@@ -126,6 +126,22 @@ docker compose exec api python scripts/check_email_notifications.py
 
 Verifies imports, template builders, and notification service wiring with mocked sender. Real SMTP must still be configured manually on the VPS when enabling live email.
 
+**Manual SMTP live smoke test** (operator only — sends one email to explicit `--to`):
+
+```bash
+docker compose exec api python scripts/send_test_email.py --to your-email@example.com
+```
+
+| Mode | Settings | Behavior |
+|------|----------|----------|
+| Disabled (default) | `EMAIL_ENABLED=false` | Exits with message to enable email; no send |
+| Dry-run | `EMAIL_ENABLED=true`, `EMAIL_DRY_RUN=true` | Validates flow; **no real email sent** |
+| Live | `EMAIL_ENABLED=true`, `EMAIL_DRY_RUN=false` + SMTP vars | Sends **one** test email to `--to` only |
+
+Optional: `--subject "Service Platform test"` and `--body "This is a test email."`
+
+Never use for bulk email. Do not commit SMTP secrets. Use only after configuring VPS `.env`.
+
 ## Tests
 
 From project root:
@@ -244,6 +260,7 @@ alembic revision --autogenerate -m "describe change"
 - **Email notification foundation** (`EmailService`, templates, dry-run/disabled by default)
 - **Email event wiring** (booking/order create, admin status changes, order messages — best-effort, respects `notification_email_enabled`)
 - **Email notification dry-run audit** (`scripts/check_email_notifications.py` — verifies wiring without SMTP)
+- **Manual SMTP test email** (`scripts/send_test_email.py` — one explicit recipient; operator/VPS only)
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
 - **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
@@ -304,6 +321,20 @@ docker compose exec api python scripts/check_email_notifications.py
 ```
 
 Also run automatically as part of `check_backend.py`. Real SMTP must still be configured manually when enabling live email on a VPS.
+
+## Manual SMTP test email
+
+Operator-only command to send exactly one test email to an explicit recipient (never bulk or customer email):
+
+```bash
+docker compose exec api python scripts/send_test_email.py --to your-email@example.com
+```
+
+**Dry-run** (`EMAIL_ENABLED=true`, `EMAIL_DRY_RUN=true`): validates the flow; no real email sent.
+
+**Live** (`EMAIL_ENABLED=true`, `EMAIL_DRY_RUN=false` with `SMTP_HOST`, `SMTP_FROM_EMAIL`, `SMTP_USER`, `SMTP_PASSWORD`): sends one test email to `--to` only.
+
+Do not commit SMTP secrets. Not run in CI or `check_backend.py`.
 
 Optional base URL override:
 

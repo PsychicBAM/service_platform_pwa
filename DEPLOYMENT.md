@@ -110,6 +110,28 @@ curl -s http://localhost/api/v1/public/b/demo-business   # if demo seeded
 
 Open in browser: `http://<server-ip>/` (or your domain after HTTPS).
 
+### 5b. SMTP live smoke test (optional, after configuring email)
+
+After setting live SMTP in `.env` on the VPS, send exactly one test email to yourself:
+
+```bash
+docker compose -p service_platform_prod -f docker-compose.prod.yml exec api \
+  python scripts/send_test_email.py --to your-email@example.com
+```
+
+**Dry-run check** (no real email): set `EMAIL_ENABLED=true` and `EMAIL_DRY_RUN=true`, then run the same command — it validates the flow without sending.
+
+**Live send**: set `EMAIL_ENABLED=true`, `EMAIL_DRY_RUN=false`, and configure:
+
+```bash
+SMTP_HOST=smtp.example.com
+SMTP_FROM_EMAIL=noreply@your-domain.example
+SMTP_USER=...
+SMTP_PASSWORD=...   # never commit
+```
+
+Never use this script for bulk email. Do not send to customers from this command. Do not commit SMTP secrets.
+
 On **Windows** or if port 80 is busy, set in `.env`:
 
 ```env

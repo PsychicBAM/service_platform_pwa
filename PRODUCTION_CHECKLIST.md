@@ -66,7 +66,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 ## Future (not in MVP — track separately)
 
 - [ ] **Payments** (Stripe) — not implemented
-- [ ] **Email notifications** — foundation + event wiring implemented; dry-run audit: `docker compose exec api python scripts/check_email_notifications.py` (no real emails); enable live SMTP with `EMAIL_ENABLED` + SMTP on VPS
+- [ ] **Email notifications** — foundation + event wiring implemented; dry-run audit: `docker compose exec api python scripts/check_email_notifications.py` (no real emails); live SMTP smoke: `docker compose exec api python scripts/send_test_email.py --to your-email@example.com` (one explicit recipient only, after VPS `.env` configured); enable live SMTP with `EMAIL_ENABLED` + SMTP on VPS
 - [ ] **Domain email** (SPF/DKIM for transactional mail)
 - [ ] **Monitoring / alerting** (uptime, error tracking, log aggregation)
 - [ ] **Automated backups** to object storage
