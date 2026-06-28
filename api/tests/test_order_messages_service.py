@@ -4,9 +4,9 @@ from app.exceptions.business import OrderMessagesClosedError
 from app.models.enums import OrderStatus
 from app.services.order_message_service import (
     is_messaging_open,
-    trim_message_preview,
     _ensure_messaging_open,
 )
+from app.utils.text import trim_message_preview
 
 
 @pytest.mark.parametrize(

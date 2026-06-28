@@ -20,7 +20,7 @@ from app.services.email_templates import (
     build_client_order_message_email,
     build_client_order_status_changed_email,
 )
-from app.services.order_message_service import trim_message_preview
+from app.utils.text import trim_message_preview
 
 logger = logging.getLogger(__name__)
 

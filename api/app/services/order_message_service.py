@@ -11,12 +11,12 @@ from app.models.user import User
 from app.repositories.order_message_repository import OrderMessageRepository
 from app.repositories.order_repository import OrderRepository
 from app.schemas.order import (
-    ORDER_MESSAGE_PREVIEW_LENGTH,
     OrderMessageListMeta,
     OrderMessageListResponse,
     OrderMessageRead,
 )
 from app.services.email_notification_service import EmailNotificationService
+from app.utils.text import trim_message_preview
 
 MESSAGING_OPEN_STATUSES = {
     OrderStatus.submitted,
@@ -24,13 +24,6 @@ MESSAGING_OPEN_STATUSES = {
     OrderStatus.accepted,
     OrderStatus.in_progress,
 }
-
-
-def trim_message_preview(body: str, max_len: int = ORDER_MESSAGE_PREVIEW_LENGTH) -> str:
-    text = body.strip()
-    if len(text) <= max_len:
-        return text
-    return f"{text[: max_len - 3]}..."
 
 
 def is_messaging_open(status: OrderStatus) -> bool:
