@@ -13,8 +13,10 @@ import {
 } from "@/api/adminApi";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
+import { NewMessageNotification } from "@/components/NewMessageNotification";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TextAreaField } from "@/components/TextAreaField";
+import { useIncomingMessageNotification } from "@/hooks/useIncomingMessageNotification";
 import type { AdminOrderRead, OrderStatus } from "@/types/api";
 import { getAdminOrderErrorMessage } from "@/utils/errors";
 import { formatDateTimeLabel } from "@/utils/format";
@@ -205,6 +207,12 @@ export function AdminOrderDetailPanel({
     },
   });
 
+  const { showNotification, dismissNotification } = useIncomingMessageNotification(
+    messagesQuery.data?.data,
+    "client",
+    `${businessId}:${orderId}`,
+  );
+
   const acting =
     updateMutation.isPending ||
     acceptMutation.isPending ||
@@ -365,6 +373,8 @@ export function AdminOrderDetailPanel({
       messageBody={messageBody}
       messagingOpen={messagingOpen}
       messagesQuery={messagesQuery}
+      showNewMessageNotification={showNotification}
+      onDismissNewMessageNotification={dismissNotification}
       acting={acting}
       onClose={onClose}
       onAdminNotesChange={setAdminNotes}
@@ -398,6 +408,8 @@ function OrderDetailContent({
   messageBody,
   messagingOpen,
   messagesQuery,
+  showNewMessageNotification,
+  onDismissNewMessageNotification,
   acting,
   onClose,
   onAdminNotesChange,
@@ -427,6 +439,8 @@ function OrderDetailContent({
   messageBody: string;
   messagingOpen: boolean;
   messagesQuery: ReturnType<typeof useQuery<Awaited<ReturnType<typeof listAdminOrderMessages>>>>;
+  showNewMessageNotification: boolean;
+  onDismissNewMessageNotification: () => void;
   acting: boolean;
   onClose: () => void;
   onAdminNotesChange: (value: string) => void;
@@ -619,6 +633,13 @@ function OrderDetailContent({
           <h3 className="text-sm font-medium text-slate-700">Messages</h3>
           <p className="text-xs text-slate-400">Messages refresh automatically.</p>
         </div>
+
+        {showNewMessageNotification ? (
+          <NewMessageNotification
+            label="New message from client"
+            onDismiss={onDismissNewMessageNotification}
+          />
+        ) : null}
 
         {messagesQuery.isLoading ? <LoadingState message="Loading messages…" /> : null}
 

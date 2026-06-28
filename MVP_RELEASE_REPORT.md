@@ -275,7 +275,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | Frontend email verification chain | `/register` → `/check-email` → resend → `/verify-email`; login shows verification-required link when enforced; OAuth/social login not implemented |
 | Password reset | `/forgot-password` + `/reset-password` wired; real reset email requires SMTP; request never reveals account existence; OAuth/social login not implemented |
 | Guest claim backend + frontend UI | `/me/claim` — reference + contact; magic-link email not yet |
-| Order messages polling | Client/admin order messages auto-refresh every 1s while page/panel is open; WebSocket/realtime chat and dedicated messenger inbox not implemented |
+| Order messages polling | Client/admin order messages auto-refresh every 1s while page/panel is open; in-app banner for new incoming messages; WebSocket, browser push, unread counts, and dedicated messenger inbox not implemented |
 | No production domain / HTTPS yet | Docs and compose prepared; VPS deploy is manual |
 | No automated backups | Commands documented only in `BACKUP_RESTORE.md` |
 | No monitoring / alerting | No uptime or error tracking service |

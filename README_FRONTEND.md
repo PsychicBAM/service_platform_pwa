@@ -335,7 +335,8 @@ npm run check:routes
 - My Bookings and My Orders pages wired to `/me/*` APIs
 - Guest claim page at `/me/claim` (reference + email/phone; no magic-link email yet)
 - Order detail with message list (1s polling, auto-refresh while open) and send form
-- Future: dedicated messenger-style inbox with conversations, unread counts, and client search (not in MVP)
+- In-app banner when a new incoming message arrives while the order detail page is open
+- Future: dedicated messenger-style inbox with conversations, unread counts, client search, browser push, and WebSocket (not in MVP)
 - Login/logout with JWT in `localStorage`
 - **Email verification UI** — `/verify-email` (token from link), `/check-email` (resend); non-blocking banner for unverified users
 - **Password reset UI** — `/forgot-password`, `/reset-password`; real reset emails require SMTP; OAuth/social login not implemented
@@ -360,7 +361,7 @@ Read-only admin area at `/admin` for business members:
 - **adminApi.ts** — lightweight wrappers for next slices
 - **Admin Services CRUD** — create/edit booking & request services, activate/deactivate, soft delete
 - **Admin Bookings actions** — list with filters, detail view, confirm/complete/no-show/cancel, admin notes
-- **Admin Orders actions** — list with filters, detail view, accept/decline/in-progress/complete/cancel, admin notes & quoted price, order messages (1s polling while detail panel is open)
+- **Admin Orders actions** — list with filters, detail view, accept/decline/in-progress/complete/cancel, admin notes & quoted price, order messages (1s polling + in-app notification for new client messages while panel is open)
 - **Admin Schedule edit** — weekly working hours, breaks, unavailable times
 - **Admin Settings edit** — business profile, operating mode, booking settings (slug/status read-only)
 - **Admin Clients CRM** — search, client detail, edit contact/notes, recent bookings & orders

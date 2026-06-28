@@ -5,9 +5,11 @@ import { getMyOrder, listOrderMessages, sendOrderMessage } from "@/api/meApi";
 import { AuthPrompt } from "@/components/AuthPrompt";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
+import { NewMessageNotification } from "@/components/NewMessageNotification";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TextAreaField } from "@/components/TextAreaField";
 import { useAuth } from "@/hooks/useAuth";
+import { useIncomingMessageNotification } from "@/hooks/useIncomingMessageNotification";
 import type { OrderStatus } from "@/types/api";
 import { getMeErrorMessage } from "@/utils/errors";
 import { formatDateTimeLabel } from "@/utils/format";
@@ -77,6 +79,12 @@ export function MyOrderDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ["my-orders"] });
     },
   });
+
+  const { showNotification, dismissNotification } = useIncomingMessageNotification(
+    messagesQuery.data?.data,
+    "admin",
+    orderId,
+  );
 
   if (!isAuthenticated) {
     return (
@@ -166,6 +174,13 @@ export function MyOrderDetailPage() {
               <h2 className="text-sm font-medium text-slate-700">Messages</h2>
               <p className="text-xs text-slate-400">Messages refresh automatically.</p>
             </div>
+
+            {showNotification ? (
+              <NewMessageNotification
+                label="New message from admin"
+                onDismiss={dismissNotification}
+              />
+            ) : null}
 
             {messagesQuery.isLoading ? <LoadingState message="Loading messages…" /> : null}
 
