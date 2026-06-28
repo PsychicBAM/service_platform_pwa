@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getPublicService } from "@/api/publicApi";
+import { FormPageShell } from "@/components/FormPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { PriceLabel } from "@/components/PriceLabel";
@@ -24,7 +25,7 @@ export function ServiceDetailPage() {
   const duration = isBooking ? formatDuration(data?.duration_minutes) : null;
 
   return (
-    <section className="space-y-4">
+    <FormPageShell>
       <Link
         to={`/b/${slug}/services`}
         className="inline-block text-sm text-brand-700 hover:underline"
@@ -94,6 +95,6 @@ export function ServiceDetailPage() {
           )}
         </>
       ) : null}
-    </section>
+    </FormPageShell>
   );
 }

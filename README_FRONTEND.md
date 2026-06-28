@@ -4,6 +4,8 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 
 **MVP release checkpoint:** [MVP_RELEASE_REPORT.md](../MVP_RELEASE_REPORT.md) — implemented UI, smoke checklist, and known limitations.
 
+**UX manual review:** [FRONTEND_UX_CHECKLIST.md](../FRONTEND_UX_CHECKLIST.md) — desktop/mobile checklists, flow smoke tests, known UX limitations (Phase 4 Slice 19).
+
 ## Stack
 
 | Layer | Choice |
@@ -261,6 +263,20 @@ Token storage: `localStorage` keys `access_token`, `refresh_token`, and `token_t
 | `/superadmin/audit-logs` | Audit log viewer |
 
 See **[FRONTEND_AUDIT_REPORT.md](../FRONTEND_AUDIT_REPORT.md)** for the Phase 3 checkpoint audit (routes, roles, flows, test results).
+
+See **[FRONTEND_UX_CHECKLIST.md](../FRONTEND_UX_CHECKLIST.md)** for desktop/mobile UX review (Phase 4 Slice 19): spacing polish, responsive grids, auth/form shells — no backend or payment changes.
+
+## Phase 4 Slice 19 — UX polish (summary)
+
+Small frontend-only pass for visible pages:
+
+- **Global:** `overflow-x-hidden`, `break-words`, antialiased body text
+- **Layout:** wider desktop container (`lg:max-w-5xl`), consistent main padding
+- **Shells:** `AuthPageShell` (auth pages), `FormPageShell` (booking/request/claim forms)
+- **Grids:** services, bookings, orders, clients — responsive 1→2→3 columns
+- **No changes:** backend logic, Stripe, OAuth, WebSocket, service worker, mobile wrapper
+
+Run the checklist in [FRONTEND_UX_CHECKLIST.md](../FRONTEND_UX_CHECKLIST.md) after seeding demo data.
 
 ## Demo credentials (local)
 

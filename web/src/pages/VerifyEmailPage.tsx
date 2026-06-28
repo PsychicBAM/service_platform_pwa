@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { verifyEmail } from "@/api/authApi";
+import { AuthPageShell } from "@/components/AuthPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import { getEmailVerificationErrorMessage } from "@/utils/errors";
 
@@ -49,7 +50,7 @@ export function VerifyEmailPage() {
 
   if (state === "missing") {
     return (
-      <section className="mx-auto max-w-sm space-y-4">
+      <AuthPageShell className="space-y-4">
         <h1 className="text-2xl font-bold">Verify email</h1>
         <ErrorState
           title="Verification link is missing"
@@ -64,22 +65,22 @@ export function VerifyEmailPage() {
             Check email help
           </Link>
         </p>
-      </section>
+      </AuthPageShell>
     );
   }
 
   if (state === "loading") {
     return (
-      <section className="mx-auto max-w-sm space-y-4">
+      <AuthPageShell className="space-y-4">
         <h1 className="text-2xl font-bold">Verify email</h1>
         <p className="text-sm text-slate-600">Verifying your email…</p>
-      </section>
+      </AuthPageShell>
     );
   }
 
   if (state === "success") {
     return (
-      <section className="mx-auto max-w-sm space-y-4">
+      <AuthPageShell className="space-y-4">
         <h1 className="text-2xl font-bold">Verify email</h1>
         <p className="text-sm text-slate-700">Email verified successfully.</p>
         {verifiedEmail ? (
@@ -90,12 +91,12 @@ export function VerifyEmailPage() {
         <Link to="/login" className="inline-block text-sm font-medium text-brand-700 hover:underline">
           Go to login
         </Link>
-      </section>
+      </AuthPageShell>
     );
   }
 
   return (
-    <section className="mx-auto max-w-sm space-y-4">
+    <AuthPageShell className="space-y-4">
       <h1 className="text-2xl font-bold">Verify email</h1>
       <ErrorState
         title="Verification failed"
@@ -110,6 +111,6 @@ export function VerifyEmailPage() {
           Resend verification email
         </Link>
       </p>
-    </section>
+    </AuthPageShell>
   );
 }

@@ -29,7 +29,7 @@ export function ServiceCard({ slug, service }: ServiceCardProps) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-base font-semibold text-slate-900">{service.name}</h2>
+            <h2 className="text-base font-semibold text-slate-900 break-words">{service.name}</h2>
             <TypeBadge type={service.type} />
           </div>
           {descriptionPreview ? (

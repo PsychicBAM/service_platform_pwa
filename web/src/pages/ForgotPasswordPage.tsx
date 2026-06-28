@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import { requestPasswordReset } from "@/api/authApi";
+import { AuthPageShell } from "@/components/AuthPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import { getPasswordResetErrorMessage } from "@/utils/errors";
 
@@ -45,7 +46,7 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <section className="mx-auto max-w-sm space-y-6">
+    <AuthPageShell>
       <div>
         <h1 className="text-2xl font-bold">Forgot password</h1>
         <p className="mt-1 text-sm text-slate-600">
@@ -82,6 +83,6 @@ export function ForgotPasswordPage() {
           Back to sign in
         </Link>
       </p>
-    </section>
+    </AuthPageShell>
   );
 }

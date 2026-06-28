@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createPublicOrder, getPublicService } from "@/api/publicApi";
+import { FormPageShell } from "@/components/FormPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import { FormField } from "@/components/FormField";
 import { LoadingState } from "@/components/LoadingState";
@@ -120,7 +121,7 @@ export function OrderRequestPage() {
 
   if (service.type !== "order") {
     return (
-      <section className="space-y-4">
+      <FormPageShell>
         <ErrorState
           title="Not a request service"
           message="This service uses booking by date and time."
@@ -131,14 +132,14 @@ export function OrderRequestPage() {
         >
           Back to service
         </Link>
-      </section>
+      </FormPageShell>
     );
   }
 
   if (orderMutation.isSuccess && orderMutation.data) {
     const order = orderMutation.data;
     return (
-      <section className="space-y-4">
+      <FormPageShell>
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
           <p className="text-xs uppercase tracking-wide text-emerald-700">Request submitted</p>
           <h1 className="mt-1 text-xl font-bold text-emerald-900">Thank you!</h1>
@@ -166,14 +167,14 @@ export function OrderRequestPage() {
         >
           Back to services
         </Link>
-      </section>
+      </FormPageShell>
     );
   }
 
   const preview = descriptionPreview(service.description);
 
   return (
-    <section className="space-y-4">
+    <FormPageShell>
       <Link
         to={`/b/${slug}/services/${serviceId}`}
         className="inline-block text-sm text-brand-700 hover:underline"
@@ -253,6 +254,6 @@ export function OrderRequestPage() {
           {orderMutation.isPending ? "Submitting…" : "Submit request"}
         </button>
       </form>
-    </section>
+    </FormPageShell>
   );
 }

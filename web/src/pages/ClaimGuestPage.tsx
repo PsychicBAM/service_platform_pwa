@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { claimGuestBooking, claimGuestOrder } from "@/api/meApi";
+import { FormPageShell } from "@/components/FormPageShell";
 import { AuthPrompt } from "@/components/AuthPrompt";
 import { ErrorState } from "@/components/ErrorState";
 import { FormField } from "@/components/FormField";
@@ -94,10 +95,10 @@ export function ClaimGuestPage() {
 
   if (!isAuthenticated) {
     return (
-      <section className="space-y-4">
-        <h1 className="text-xl font-bold">Claim a booking or request</h1>
+      <FormPageShell>
+        <h1 className="text-xl font-bold md:text-2xl">Claim a booking or request</h1>
         <AuthPrompt description="Log in to link a guest booking or request to your account." />
-      </section>
+      </FormPageShell>
     );
   }
 
@@ -118,8 +119,8 @@ export function ClaimGuestPage() {
       success.type === "booking" ? "Go to my bookings" : "Go to my orders";
 
     return (
-      <section className="space-y-4">
-        <h1 className="text-xl font-bold">Claim a booking or request</h1>
+      <FormPageShell>
+        <h1 className="text-xl font-bold md:text-2xl">Claim a booking or request</h1>
         <article className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
           <p className="text-sm font-semibold text-emerald-800">Claimed successfully</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -143,13 +144,13 @@ export function ClaimGuestPage() {
             {listLabel}
           </Link>
         </article>
-      </section>
+      </FormPageShell>
     );
   }
 
   return (
-    <section className="space-y-4">
-      <h1 className="text-xl font-bold">Claim a booking or request</h1>
+    <FormPageShell>
+      <h1 className="text-xl font-bold md:text-2xl">Claim a booking or request</h1>
       <p className="text-sm text-slate-600">
         Use the reference and the same email or phone you used when submitting as a guest.
       </p>
@@ -233,6 +234,6 @@ export function ClaimGuestPage() {
               : "Claim request"}
         </button>
       </form>
-    </section>
+    </FormPageShell>
   );
 }

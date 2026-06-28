@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { resendEmailVerification } from "@/api/authApi";
+import { AuthPageShell } from "@/components/AuthPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import { useAuth } from "@/hooks/useAuth";
 import { getEmailVerificationErrorMessage } from "@/utils/errors";
@@ -38,7 +39,7 @@ export function CheckEmailPage() {
 
   if (!isAuthenticated) {
     return (
-      <section className="mx-auto max-w-sm space-y-4">
+      <AuthPageShell className="space-y-4">
         <h1 className="text-2xl font-bold">Check your email</h1>
         <p className="text-sm text-slate-600">
           Sign in to resend a verification email or confirm your account status.
@@ -46,33 +47,33 @@ export function CheckEmailPage() {
         <Link to="/login" className="inline-block text-sm font-medium text-brand-700 hover:underline">
           Go to login
         </Link>
-      </section>
+      </AuthPageShell>
     );
   }
 
   if (isLoadingUser) {
     return (
-      <section className="mx-auto max-w-sm space-y-4">
+      <AuthPageShell className="space-y-4">
         <h1 className="text-2xl font-bold">Check your email</h1>
         <p className="text-sm text-slate-600">Loading your account…</p>
-      </section>
+      </AuthPageShell>
     );
   }
 
   if (user?.email_verified) {
     return (
-      <section className="mx-auto max-w-sm space-y-4">
+      <AuthPageShell className="space-y-4">
         <h1 className="text-2xl font-bold">Check your email</h1>
         <p className="text-sm text-slate-700">Your email is already verified.</p>
         <Link to="/me/bookings" className="inline-block text-sm font-medium text-brand-700 hover:underline">
           Go to my bookings
         </Link>
-      </section>
+      </AuthPageShell>
     );
   }
 
   return (
-    <section className="mx-auto max-w-sm space-y-4">
+    <AuthPageShell className="space-y-4">
       <h1 className="text-2xl font-bold">Check your email</h1>
       <p className="text-sm text-slate-600">
         Check your email and click the verification link.
@@ -91,6 +92,6 @@ export function CheckEmailPage() {
       >
         {loading ? "Sending…" : "Resend verification email"}
       </button>
-    </section>
+    </AuthPageShell>
   );
 }

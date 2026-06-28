@@ -47,7 +47,7 @@ export function ServicesPage() {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">Services</h1>
+        <h1 className="text-xl font-bold md:text-2xl">Services</h1>
         <Link to={`/b/${slug}`} className="shrink-0 text-sm text-brand-700 hover:underline">
           Back
         </Link>
@@ -101,7 +101,7 @@ export function ServicesPage() {
               description="Try another filter to see more services."
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 xl:grid-cols-3">
               {filteredServices.map((service) => (
                 <ServiceCard key={service.id} slug={slug} service={service} />
               ))}

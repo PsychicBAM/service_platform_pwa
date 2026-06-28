@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { login } from "@/api/authApi";
+import { AuthPageShell } from "@/components/AuthPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import { getLoginErrorMessage, isEmailVerificationRequiredError } from "@/utils/errors";
 
@@ -32,7 +33,7 @@ export function LoginPage() {
   }
 
   return (
-    <section className="mx-auto max-w-sm space-y-6">
+    <AuthPageShell>
       <div>
         <h1 className="text-2xl font-bold">Sign in</h1>
         <p className="mt-1 text-sm text-slate-600">
@@ -88,6 +89,6 @@ export function LoginPage() {
           Register
         </Link>
       </p>
-    </section>
+    </AuthPageShell>
   );
 }

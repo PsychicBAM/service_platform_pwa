@@ -11,6 +11,7 @@ Related docs:
 
 - [README_BACKEND.md](./README_BACKEND.md) — API setup and tests
 - [README_FRONTEND.md](./README_FRONTEND.md) — PWA setup and tests
+- [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) — desktop/mobile UX review (Phase 4 Slice 19)
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — VPS deploy guide
 - [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) — pre-launch checklist
 - [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) — Postgres backup commands
@@ -90,6 +91,7 @@ Related docs:
 | Admin schedule edit | Weekly hours and breaks |
 | Admin settings edit | Business settings form |
 | Superadmin UI | Overview, businesses, audit logs |
+| Desktop/mobile UX polish | Phase 4 Slice 19 — spacing, responsive grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
 | Vitest smoke tests | 30 tests — mocked API |
 | Playwright local smoke | 12 browser tests — manual/local only |
 
@@ -283,6 +285,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | No service worker / offline | PWA manifest only; no offline cache |
 | No mobile app wrapper | Web only |
 | No full browser regression suite | Vitest + limited Playwright smoke; not exhaustive |
+| UX polish scope | Slice 19 fixed spacing/layout only; dedicated inbox, unread badges, and real-time messaging deferred |
 | Single uvicorn process in prod compose | No gunicorn/multi-worker yet |
 | CSP deferred | Basic nginx headers only; Content-Security-Policy not enabled |
 | Playwright local/manual only | Not run in GitHub Actions CI |

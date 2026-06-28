@@ -41,7 +41,7 @@ export function MyOrdersPage() {
   if (!isAuthenticated) {
     return (
       <section className="space-y-4">
-        <h1 className="text-xl font-bold">My orders</h1>
+        <h1 className="text-xl font-bold md:text-2xl">My orders</h1>
         <AuthPrompt description="Log in to view orders linked to your account." />
       </section>
     );
@@ -63,7 +63,7 @@ export function MyOrdersPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-xl font-bold">My orders</h1>
+      <h1 className="text-xl font-bold md:text-2xl">My orders</h1>
       <p className="text-sm text-slate-600">
         Submitted a request as a guest? Claim it to see it here.
       </p>
@@ -111,7 +111,7 @@ export function MyOrdersPage() {
       ) : null}
 
       {!ordersQuery.isLoading && !ordersQuery.isError && ordersQuery.data ? (
-        <div className="space-y-3">
+        <div className="grid gap-3 lg:grid-cols-2">
           {ordersQuery.data.data.map((order) => (
             <article
               key={order.id}

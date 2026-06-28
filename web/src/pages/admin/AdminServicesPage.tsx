@@ -271,7 +271,7 @@ export function AdminServicesPage() {
       ) : null}
 
       {!isLoading && !isError ? (
-        <div className="space-y-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filteredServices.map((service) => {
             const duration =
               service.type === "booking" ? formatDuration(service.duration_minutes) : null;

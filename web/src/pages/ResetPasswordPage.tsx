@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { resetPassword } from "@/api/authApi";
+import { AuthPageShell } from "@/components/AuthPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import { getPasswordResetErrorMessage } from "@/utils/errors";
 
@@ -54,7 +55,7 @@ export function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <section className="mx-auto max-w-sm space-y-4">
+      <AuthPageShell className="space-y-4">
         <h1 className="text-2xl font-bold">Reset password</h1>
         <ErrorState
           title="Reset link is missing"
@@ -69,24 +70,24 @@ export function ResetPasswordPage() {
             Request a new reset link
           </Link>
         </p>
-      </section>
+      </AuthPageShell>
     );
   }
 
   if (success) {
     return (
-      <section className="mx-auto max-w-sm space-y-4">
+      <AuthPageShell className="space-y-4">
         <h1 className="text-2xl font-bold">Reset password</h1>
         <p className="text-sm text-slate-700">Password reset successfully.</p>
         <Link to="/login" className="inline-block text-sm font-medium text-brand-700 hover:underline">
           Go to login
         </Link>
-      </section>
+      </AuthPageShell>
     );
   }
 
   return (
-    <section className="mx-auto max-w-sm space-y-6">
+    <AuthPageShell>
       <div>
         <h1 className="text-2xl font-bold">Reset password</h1>
         <p className="mt-1 text-sm text-slate-600">Choose a new password for your account.</p>
@@ -140,6 +141,6 @@ export function ResetPasswordPage() {
           Back to sign in
         </Link>
       </p>
-    </section>
+    </AuthPageShell>
   );
 }

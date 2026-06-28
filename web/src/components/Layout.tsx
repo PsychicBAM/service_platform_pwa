@@ -11,35 +11,35 @@ export function Layout() {
           <Link to="/" className="text-lg font-semibold text-brand-700">
             Service Platform
           </Link>
-          <nav className="flex items-center gap-3 text-sm">
+          <nav className="flex max-w-full shrink-0 items-center gap-2 overflow-x-auto text-sm sm:gap-3">
             {isAuthenticated ? (
               <>
                 {user?.role === "superadmin" ? (
-                  <Link to="/superadmin" className="text-slate-600 hover:text-brand-700">
+                  <Link to="/superadmin" className="shrink-0 whitespace-nowrap py-1 text-slate-600 hover:text-brand-700">
                     Superadmin
                   </Link>
                 ) : null}
                 {(user?.businesses?.length ?? 0) > 0 ? (
-                  <Link to="/admin" className="text-slate-600 hover:text-brand-700">
+                  <Link to="/admin" className="shrink-0 whitespace-nowrap py-1 text-slate-600 hover:text-brand-700">
                     Admin
                   </Link>
                 ) : null}
-                <Link to="/me/bookings" className="text-slate-600 hover:text-brand-700">
+                <Link to="/me/bookings" className="shrink-0 whitespace-nowrap py-1 text-slate-600 hover:text-brand-700">
                   Bookings
                 </Link>
-                <Link to="/me/orders" className="text-slate-600 hover:text-brand-700">
+                <Link to="/me/orders" className="shrink-0 whitespace-nowrap py-1 text-slate-600 hover:text-brand-700">
                   Orders
                 </Link>
                 <button
                   type="button"
                   onClick={logout}
-                  className="text-slate-600 hover:text-brand-700"
+                  className="shrink-0 whitespace-nowrap py-1 text-slate-600 hover:text-brand-700"
                 >
                   Logout
                 </button>
               </>
             ) : (
-              <Link to="/login" className="text-slate-600 hover:text-brand-700">
+              <Link to="/login" className="shrink-0 whitespace-nowrap py-1 text-slate-600 hover:text-brand-700">
                 Login
               </Link>
             )}
@@ -57,7 +57,7 @@ export function Layout() {
           <p className="mt-1 truncate text-xs text-slate-500">{user.email}</p>
         ) : null}
       </header>
-      <main className="flex-1 px-4 py-6">
+      <main className="flex-1 px-4 py-6 md:px-6 md:py-8">
         <Outlet />
       </main>
       <footer className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-500">

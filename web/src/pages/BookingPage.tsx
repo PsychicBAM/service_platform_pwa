@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createPublicBooking, getAvailability, getPublicService } from "@/api/publicApi";
 import { ApiClientError } from "@/api/client";
 import type { AvailabilitySlot } from "@/types/api";
+import { FormPageShell } from "@/components/FormPageShell";
 import { DateSelector } from "@/components/DateSelector";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -166,7 +167,7 @@ export function BookingPage() {
 
   if (service.type !== "booking") {
     return (
-      <section className="space-y-4">
+      <FormPageShell>
         <ErrorState
           title="Not a booking service"
           message="This service is handled as a request, not a date/time booking."
@@ -177,14 +178,14 @@ export function BookingPage() {
         >
           Back to service
         </Link>
-      </section>
+      </FormPageShell>
     );
   }
 
   if (bookingMutation.isSuccess && bookingMutation.data) {
     const booking = bookingMutation.data;
     return (
-      <section className="space-y-4">
+      <FormPageShell>
         <SuccessCard
           title="Booking request submitted"
           subtitle="Thank you!"
@@ -202,7 +203,7 @@ export function BookingPage() {
         >
           Back to services
         </Link>
-      </section>
+      </FormPageShell>
     );
   }
 
@@ -210,7 +211,7 @@ export function BookingPage() {
   const preview = descriptionPreview(service.description);
 
   return (
-    <section className="space-y-5">
+    <FormPageShell className="space-y-5">
       <Link
         to={`/b/${slug}/services/${serviceId}`}
         className="inline-block text-sm text-brand-700 hover:underline"
@@ -334,6 +335,6 @@ export function BookingPage() {
           </button>
         </form>
       ) : null}
-    </section>
+    </FormPageShell>
   );
 }

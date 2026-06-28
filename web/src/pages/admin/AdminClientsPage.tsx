@@ -102,7 +102,7 @@ export function AdminClientsPage() {
       ) : null}
 
       {!isLoading && !isError && data ? (
-        <div className="space-y-3">
+        <div className="grid gap-3 lg:grid-cols-2">
           {data.data.map((client) => (
             <article
               key={client.id}

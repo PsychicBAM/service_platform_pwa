@@ -41,7 +41,7 @@ export function MyBookingsPage() {
   if (!isAuthenticated) {
     return (
       <section className="space-y-4">
-        <h1 className="text-xl font-bold">My bookings</h1>
+        <h1 className="text-xl font-bold md:text-2xl">My bookings</h1>
         <AuthPrompt description="Log in to view bookings linked to your account." />
       </section>
     );
@@ -63,7 +63,7 @@ export function MyBookingsPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-xl font-bold">My bookings</h1>
+      <h1 className="text-xl font-bold md:text-2xl">My bookings</h1>
       <p className="text-sm text-slate-600">
         Made a booking as a guest? Claim it to see it here.
       </p>
@@ -111,7 +111,7 @@ export function MyBookingsPage() {
       ) : null}
 
       {!bookingsQuery.isLoading && !bookingsQuery.isError && bookingsQuery.data ? (
-        <div className="space-y-3">
+        <div className="grid gap-3 lg:grid-cols-2">
           {bookingsQuery.data.data.map((booking) => (
             <article
               key={booking.id}

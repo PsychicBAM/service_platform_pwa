@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { register } from "@/api/authApi";
+import { AuthPageShell } from "@/components/AuthPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import { getRegisterErrorMessage } from "@/utils/errors";
 
@@ -94,7 +95,7 @@ export function RegisterPage() {
   }
 
   return (
-    <section className="mx-auto max-w-sm space-y-6">
+    <AuthPageShell>
       <div>
         <h1 className="text-2xl font-bold">Create account</h1>
         <p className="mt-1 text-sm text-slate-600">
@@ -182,6 +183,6 @@ export function RegisterPage() {
           Sign in
         </Link>
       </p>
-    </section>
+    </AuthPageShell>
   );
 }
