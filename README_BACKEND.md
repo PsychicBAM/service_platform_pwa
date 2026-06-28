@@ -116,7 +116,15 @@ SMTP_FROM_NAME=Your Business Name
 SMTP_USE_TLS=true
 ```
 
-Run `python scripts/check_production_env.py --env-file .env --strict` before deploy. Event wiring (booking confirmed, order messages, etc.) is a future slice.
+Run `python scripts/check_production_env.py --env-file .env --strict` before deploy. Event wiring (booking confirmed, order messages, etc.) is implemented; use the dry-run audit below to verify safely.
+
+**Email notification dry-run audit** (no SMTP required, no real emails sent):
+
+```bash
+docker compose exec api python scripts/check_email_notifications.py
+```
+
+Verifies imports, template builders, and notification service wiring with mocked sender. Real SMTP must still be configured manually on the VPS when enabling live email.
 
 ## Tests
 
@@ -127,6 +135,7 @@ python -m compileall api
 cd api
 python -m pytest
 python scripts/check_backend.py
+python scripts/check_email_notifications.py
 ```
 
 ## Continuous integration (GitHub Actions)
@@ -234,6 +243,7 @@ alembic revision --autogenerate -m "describe change"
 - **Guest claim API** (`POST /api/v1/me/claims/bookings`, `POST /api/v1/me/claims/orders` — link guest records by reference + email/phone; no email delivery yet)
 - **Email notification foundation** (`EmailService`, templates, dry-run/disabled by default)
 - **Email event wiring** (booking/order create, admin status changes, order messages — best-effort, respects `notification_email_enabled`)
+- **Email notification dry-run audit** (`scripts/check_email_notifications.py` — verifies wiring without SMTP)
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
 - **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
@@ -245,7 +255,6 @@ alembic revision --autogenerate -m "describe change"
 ### Not implemented
 
 - Payments (Stripe billing)
-- Booking/order event email wiring (`notification_email_enabled` per business)
 - Email verification
 - Password reset / magic links
 - Auth logout (refresh token revocation)
@@ -285,6 +294,16 @@ Runs HTTP checks against the running API (requires Docker API + demo seed):
 ```bash
 docker compose exec api python scripts/e2e_backend_audit.py
 ```
+
+## Email notification dry-run audit
+
+Verifies email imports, templates, and notification wiring without SMTP (no real emails sent):
+
+```bash
+docker compose exec api python scripts/check_email_notifications.py
+```
+
+Also run automatically as part of `check_backend.py`. Real SMTP must still be configured manually when enabling live email on a VPS.
 
 Optional base URL override:
 

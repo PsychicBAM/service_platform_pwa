@@ -58,7 +58,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 
 - [ ] GitHub Actions **backend-tests** green
 - [ ] GitHub Actions **frontend-tests** green
-- [ ] Local or staging: `pytest`, `check_backend.py`, `e2e_backend_audit.py`
+- [ ] Local or staging: `pytest`, `check_backend.py`, `check_email_notifications.py`, `e2e_backend_audit.py`
 - [ ] Frontend: `npm run test`, `typecheck`, `build`, `check:routes`
 
 ---
@@ -66,7 +66,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 ## Future (not in MVP — track separately)
 
 - [ ] **Payments** (Stripe) — not implemented
-- [ ] **Email notifications** — foundation + event wiring implemented; enable with `EMAIL_ENABLED` + SMTP on VPS
+- [ ] **Email notifications** — foundation + event wiring implemented; dry-run audit: `docker compose exec api python scripts/check_email_notifications.py` (no real emails); enable live SMTP with `EMAIL_ENABLED` + SMTP on VPS
 - [ ] **Domain email** (SPF/DKIM for transactional mail)
 - [ ] **Monitoring / alerting** (uptime, error tracking, log aggregation)
 - [ ] **Automated backups** to object storage

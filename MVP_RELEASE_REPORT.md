@@ -26,7 +26,7 @@ Related docs:
 | **Production deployment** | Prepared (compose, docs, env validation, security hardening) — **not deployed** to a real VPS |
 | **GitHub Actions CI** | Green — backend Docker pytest + frontend Vitest/build |
 | **Payments (Stripe)** | Not implemented |
-| **Email notifications** | Not implemented |
+| **Email notifications** | Foundation + event wiring; dry-run audit script; live SMTP manual on VPS |
 | **Mobile native wrapper** | Not implemented |
 | **Service worker / offline** | Not implemented |
 
@@ -47,6 +47,7 @@ Related docs:
 | Guest claim API | Backend — `POST /me/claims/bookings` and `/orders` with reference + contact |
 | Guest claim UI | `/me/claim` page — reference + email/phone |
 | Email foundation + event wiring | `EmailService`, dry-run/disabled by default; booking/order/message notifications |
+| Email dry-run audit | `scripts/check_email_notifications.py` — no real emails sent |
 | Admin bookings | List, confirm, cancel, reschedule |
 | Admin orders | List, accept, decline, complete, messages |
 | Admin clients | CRM list and detail |
@@ -153,6 +154,7 @@ Open http://localhost:8080
 ```bash
 docker compose exec api python -m pytest
 docker compose exec api python scripts/check_backend.py
+docker compose exec api python scripts/check_email_notifications.py
 docker compose exec api python scripts/seed_demo.py    # after pytest — tests truncate auth tables
 docker compose exec api python scripts/e2e_backend_audit.py
 ```
@@ -252,6 +254,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 |------------|--------|
 | No payments / Stripe | Bookings and orders are not paid online |
 | Email foundation + event wiring | Service + templates; disabled/dry-run by default; respects `notification_email_enabled` |
+| Email dry-run audit | `check_email_notifications.py` verifies wiring without SMTP; does not send real email |
 | Guest claim backend + frontend UI | `/me/claim` — reference + contact; magic-link email not yet |
 | No production domain / HTTPS yet | Docs and compose prepared; VPS deploy is manual |
 | No automated backups | Commands documented only in `BACKUP_RESTORE.md` |

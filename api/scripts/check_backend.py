@@ -119,9 +119,39 @@ def main() -> int:
 
     print("==> Verifying checkpoint scripts exist ...")
     scripts_dir = api_dir / "scripts"
-    for script_name in ("seed_demo.py", "e2e_backend_audit.py"):
+    for script_name in ("seed_demo.py", "e2e_backend_audit.py", "check_email_notifications.py"):
         if not (scripts_dir / script_name).is_file():
             errors.append(f"scripts/{script_name} not found")
+
+    print("==> Import smoke for email notification audit ...")
+    try:
+        import importlib.util
+
+        audit_path = scripts_dir / "check_email_notifications.py"
+        spec = importlib.util.spec_from_file_location("check_email_notifications", audit_path)
+        if spec and spec.loader:
+            audit_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(audit_module)
+            if not hasattr(audit_module, "main"):
+                errors.append("check_email_notifications.py missing main()")
+        else:
+            errors.append("check_email_notifications.py import spec failed")
+    except Exception as exc:  # pragma: no cover - diagnostic script
+        errors.append(f"check_email_notifications import failed: {exc}")
+
+    print("==> Running email notification dry-run audit ...")
+    audit_result = subprocess.run(
+        [sys.executable, "scripts/check_email_notifications.py"],
+        cwd=api_dir,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    print(audit_result.stdout)
+    if audit_result.stderr:
+        print(audit_result.stderr, file=sys.stderr)
+    if audit_result.returncode != 0:
+        errors.append("check_email_notifications.py failed")
 
     print("==> Checking required files ...")
     if not alembic_ini.is_file():
