@@ -20,6 +20,7 @@ import { getAdminOrderErrorMessage } from "@/utils/errors";
 import { formatDateTimeLabel } from "@/utils/format";
 
 const MESSAGE_MAX_LENGTH = 5000;
+const MESSAGE_POLL_INTERVAL_MS = 1000;
 
 const MESSAGING_OPEN_STATUSES: OrderStatus[] = [
   "submitted",
@@ -119,7 +120,7 @@ export function AdminOrderDetailPanel({
     queryKey: ["admin-order", businessId, orderId, "messages"],
     queryFn: () => listAdminOrderMessages(businessId, orderId),
     enabled: Boolean(detailQuery.data),
-    refetchInterval: 5000,
+    refetchInterval: MESSAGE_POLL_INTERVAL_MS,
     refetchIntervalInBackground: false,
   });
 

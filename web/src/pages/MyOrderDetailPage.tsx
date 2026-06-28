@@ -13,6 +13,7 @@ import { getMeErrorMessage } from "@/utils/errors";
 import { formatDateTimeLabel } from "@/utils/format";
 
 const MESSAGE_MAX_LENGTH = 5000;
+const MESSAGE_POLL_INTERVAL_MS = 1000;
 
 const MESSAGING_OPEN_STATUSES: OrderStatus[] = [
   "submitted",
@@ -63,7 +64,7 @@ export function MyOrderDetailPage() {
     queryKey: ["my-order", orderId, "messages"],
     queryFn: () => listOrderMessages(orderId),
     enabled: isAuthenticated && Boolean(orderId),
-    refetchInterval: 5000,
+    refetchInterval: MESSAGE_POLL_INTERVAL_MS,
     refetchIntervalInBackground: false,
   });
 

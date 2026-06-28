@@ -237,7 +237,7 @@ Token storage: `localStorage` keys `access_token`, `refresh_token`, and `token_t
 | `/me/bookings` | My bookings list (auth required) |
 | `/me/orders` | My orders list (auth required) |
 | `/me/claim` | Claim guest booking or request (auth required) |
-| `/me/orders/:orderId` | Order detail + messages (auth required; auto-refresh every 5s while open) |
+| `/me/orders/:orderId` | Order detail + messages (auth required; auto-refresh every 1s while open) |
 
 ## Admin routes (Phase 3)
 
@@ -334,7 +334,8 @@ npm run check:routes
 - Public booking flow for booking-type services: date selection, time slots, guest form
 - My Bookings and My Orders pages wired to `/me/*` APIs
 - Guest claim page at `/me/claim` (reference + email/phone; no magic-link email yet)
-- Order detail with message list (5s polling, auto-refresh while open) and send form
+- Order detail with message list (1s polling, auto-refresh while open) and send form
+- Future: dedicated messenger-style inbox with conversations, unread counts, and client search (not in MVP)
 - Login/logout with JWT in `localStorage`
 - **Email verification UI** — `/verify-email` (token from link), `/check-email` (resend); non-blocking banner for unverified users
 - **Password reset UI** — `/forgot-password`, `/reset-password`; real reset emails require SMTP; OAuth/social login not implemented
@@ -359,7 +360,7 @@ Read-only admin area at `/admin` for business members:
 - **adminApi.ts** — lightweight wrappers for next slices
 - **Admin Services CRUD** — create/edit booking & request services, activate/deactivate, soft delete
 - **Admin Bookings actions** — list with filters, detail view, confirm/complete/no-show/cancel, admin notes
-- **Admin Orders actions** — list with filters, detail view, accept/decline/in-progress/complete/cancel, admin notes & quoted price, order messages (5s polling while detail panel is open)
+- **Admin Orders actions** — list with filters, detail view, accept/decline/in-progress/complete/cancel, admin notes & quoted price, order messages (1s polling while detail panel is open)
 - **Admin Schedule edit** — weekly working hours, breaks, unavailable times
 - **Admin Settings edit** — business profile, operating mode, booking settings (slug/status read-only)
 - **Admin Clients CRM** — search, client detail, edit contact/notes, recent bookings & orders
