@@ -126,6 +126,14 @@ docker compose exec api python scripts/check_email_verification.py
 
 Verifies imports, config (`EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS`, `EMAIL_VERIFICATION_BASE_URL`, `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN`), verification URL/template builders, token hashing (no raw token storage), mocked send path, and auth API routes. Real SMTP must still be configured on the VPS for live verification emails.
 
+**Password reset dry-run audit** (no SMTP required, no real emails sent):
+
+```bash
+docker compose exec api python scripts/check_password_reset.py
+```
+
+Verifies imports, config (`PASSWORD_RESET_TOKEN_EXPIRE_HOURS`, `PASSWORD_RESET_BASE_URL`), reset URL/template builders, token hashing (only `token_hash` stored — no raw token column), mocked send path, and auth API routes. Real SMTP must still be configured on the VPS for live reset emails. The request endpoint always returns `{ "sent": true }` and never reveals whether an account exists.
+
 **Email notification dry-run audit** (no SMTP required, no real emails sent):
 
 ```bash
@@ -181,14 +189,21 @@ Before enabling enforcement on production:
 3. Open `/verify-email?token=...` from dry-run log or test token
 4. Login enforcement remains off unless `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=true`
 
-**Password reset** (backend API only; frontend reset pages TODO):
+**Password reset** (backend API + frontend pages):
 
 - `POST /api/v1/auth/request-password-reset` — body `{ "email": "..." }`; always returns `{ "sent": true }` (no account existence leakage)
 - `POST /api/v1/auth/reset-password` — body `{ "token": "...", "new_password": "..." }`; returns `{ "reset": true }`
 - `PASSWORD_RESET_TOKEN_EXPIRE_HOURS=2` (default)
 - `PASSWORD_RESET_BASE_URL` — link target for reset emails (e.g. `http://localhost:5173/reset-password`)
 - Tokens stored as SHA-256 hash only; invalid/expired/used tokens return `PASSWORD_RESET_TOKEN_INVALID`
-- Real delivery requires SMTP on VPS; tests use mocked sender (no real emails)
+- Real delivery requires SMTP on VPS; tests and audits use mocked sender (no real emails)
+
+**Manual password reset flow** (local/demo):
+
+1. Open `/forgot-password` and submit an email → always shows a safe success message (no account enumeration)
+2. With SMTP enabled, user receives email with link to `/reset-password?token=...` (dry-run logs link unless live SMTP)
+3. On `/reset-password`, enter new password and confirm → redirects to login on success
+4. Run `python scripts/check_password_reset.py` to verify wiring without SMTP
 
 ## Tests
 
@@ -200,6 +215,7 @@ cd api
 python -m pytest
 python scripts/check_backend.py
 python scripts/check_email_verification.py
+python scripts/check_password_reset.py
 python scripts/check_email_notifications.py
 ```
 
@@ -311,8 +327,9 @@ alembic revision --autogenerate -m "describe change"
 - **Email notification dry-run audit** (`scripts/check_email_notifications.py` — verifies wiring without SMTP)
 - **Manual SMTP test email** (`scripts/send_test_email.py` — one explicit recipient; operator/VPS only)
 - **Email verification dry-run audit** (`scripts/check_email_verification.py` — config, templates, token hashing; no SMTP)
+- **Password reset dry-run audit** (`scripts/check_password_reset.py` — config, templates, token hashing; no SMTP)
 - **Backend email verification** (`POST /auth/verify-email`, `POST /auth/resend-verification`; login enforcement disabled by default)
-- **Backend password reset** (`POST /auth/request-password-reset`, `POST /auth/reset-password`; no account enumeration; frontend UI TODO)
+- **Backend password reset** (`POST /auth/request-password-reset`, `POST /auth/reset-password`; no account enumeration; frontend `/forgot-password`, `/reset-password`)
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
 - **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
@@ -324,7 +341,6 @@ alembic revision --autogenerate -m "describe change"
 ### Not implemented
 
 - Payments (Stripe billing)
-- Frontend password reset pages (backend API ready)
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
 - Dashboard analytics
@@ -370,6 +386,16 @@ Verifies email verification config, templates, token hashing, and auth routes wi
 ```bash
 docker compose exec api python scripts/check_email_verification.py
 ```
+
+## Password reset dry-run audit
+
+Verifies password reset config, templates, token hashing (only `token_hash` stored), and auth routes without SMTP (no real emails sent):
+
+```bash
+docker compose exec api python scripts/check_password_reset.py
+```
+
+Also run automatically as part of `check_backend.py`. Real SMTP must still be configured manually when enabling live reset emails on a VPS. The request endpoint never reveals whether an account exists.
 
 ## Email notification dry-run audit
 

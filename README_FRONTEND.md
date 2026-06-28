@@ -159,7 +159,13 @@ Coverage (17 tests):
 3. Open `/verify-email?token=...` from log or test harness
 4. Login is not blocked by default (`REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false`); when enforcement is enabled on the backend, login shows a friendly message and link to `/check-email`
 
-Backend audit (no real emails): `docker compose exec api python scripts/check_email_verification.py`
+**Manual password reset flow** (no real email unless SMTP enabled):
+
+1. Open `/forgot-password` and submit an email → always shows a safe success message (no account enumeration)
+2. With SMTP enabled, user receives email with link to `/reset-password?token=...` (dry-run logs link unless live SMTP)
+3. On `/reset-password`, enter new password and confirm → redirects to login on success
+
+Backend audits (no real emails): `docker compose exec api python scripts/check_email_verification.py` and `docker compose exec api python scripts/check_password_reset.py`
 
 Use `npm run test:e2e:headed` to watch the browser. Vitest (`npm run test`) remains fast unit/smoke tests without a backend.
 

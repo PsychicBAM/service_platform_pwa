@@ -134,6 +134,7 @@ def main() -> int:
         "e2e_backend_audit.py",
         "check_email_notifications.py",
         "check_email_verification.py",
+        "check_password_reset.py",
         "send_test_email.py",
     ):
         if not (scripts_dir / script_name).is_file():
@@ -172,6 +173,24 @@ def main() -> int:
             errors.append("check_email_verification.py import spec failed")
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"check_email_verification import failed: {exc}")
+
+    print("==> Import smoke for password reset audit ...")
+    try:
+        import importlib.util
+
+        reset_audit_path = scripts_dir / "check_password_reset.py"
+        spec = importlib.util.spec_from_file_location(
+            "check_password_reset", reset_audit_path
+        )
+        if spec and spec.loader:
+            reset_audit_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(reset_audit_module)
+            if not hasattr(reset_audit_module, "main"):
+                errors.append("check_password_reset.py missing main()")
+        else:
+            errors.append("check_password_reset.py import spec failed")
+    except Exception as exc:  # pragma: no cover - diagnostic script
+        errors.append(f"check_password_reset import failed: {exc}")
 
     print("==> Import smoke for send_test_email ...")
     try:
@@ -214,6 +233,20 @@ def main() -> int:
         print(verify_audit_result.stderr, file=sys.stderr)
     if verify_audit_result.returncode != 0:
         errors.append("check_email_verification.py failed")
+
+    print("==> Running password reset dry-run audit ...")
+    reset_audit_result = subprocess.run(
+        [sys.executable, "scripts/check_password_reset.py"],
+        cwd=api_dir,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    print(reset_audit_result.stdout)
+    if reset_audit_result.stderr:
+        print(reset_audit_result.stderr, file=sys.stderr)
+    if reset_audit_result.returncode != 0:
+        errors.append("check_password_reset.py failed")
 
     print("==> Checking required files ...")
     if not alembic_ini.is_file():
