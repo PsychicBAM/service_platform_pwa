@@ -260,7 +260,48 @@ async def test_login_blocked_when_verification_required(
         json={"email": payload["email"], "password": payload["password"]},
     )
     assert response.status_code == 403
-    assert response.json()["error"]["code"] == "EMAIL_VERIFICATION_REQUIRED"
+    body = response.json()["error"]
+    assert body["code"] == "EMAIL_VERIFICATION_REQUIRED"
+    assert body["message"] == "Please verify your email before logging in."
+
+
+@pytest.mark.asyncio
+async def test_verified_user_can_login_when_enforcement_enabled(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = register_payload("verify-login-verified")
+    raw_token = "verified-login-token"
+    with patch(
+        "app.services.email_verification_service.secrets.token_urlsafe",
+        return_value=raw_token,
+    ):
+        await async_client.post("/api/v1/auth/register", json=payload)
+
+    verify_response = await async_client.post(
+        "/api/v1/auth/verify-email",
+        json={"token": raw_token},
+    )
+    assert verify_response.status_code == 200
+
+    base = get_settings()
+    monkeypatch.setattr(
+        "app.services.auth_service.get_settings",
+        lambda: Settings(
+            **{
+                **base.model_dump(),
+                "require_email_verification_for_login": True,
+            }
+        ),
+    )
+
+    response = await async_client.post(
+        "/api/v1/auth/login",
+        json={"email": payload["email"], "password": payload["password"]},
+    )
+    assert response.status_code == 200
+    assert "tokens" in response.json()
 
 
 @pytest.mark.asyncio

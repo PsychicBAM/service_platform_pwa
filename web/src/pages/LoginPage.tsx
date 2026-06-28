@@ -2,8 +2,8 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { login } from "@/api/authApi";
-import { ApiClientError } from "@/api/client";
 import { ErrorState } from "@/components/ErrorState";
+import { getLoginErrorMessage, isEmailVerificationRequiredError } from "@/utils/errors";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -11,24 +11,21 @@ export function LoginPage() {
   const [email, setEmail] = useState("owner@example.com");
   const [password, setPassword] = useState("ChangeMe123!");
   const [error, setError] = useState<string | null>(null);
+  const [verificationRequired, setVerificationRequired] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    setVerificationRequired(false);
     setLoading(true);
     try {
       await login({ email, password });
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       navigate("/me/bookings");
     } catch (err) {
-      const message =
-        err instanceof ApiClientError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : "Login failed";
-      setError(message);
+      setVerificationRequired(isEmailVerificationRequiredError(err));
+      setError(getLoginErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -43,6 +40,14 @@ export function LoginPage() {
         </p>
       </div>
       {error ? <ErrorState title="Login failed" message={error} /> : null}
+      {verificationRequired ? (
+        <p className="text-center text-sm text-slate-600">
+          Need to verify?{" "}
+          <Link to="/check-email" className="font-medium text-brand-700 hover:underline">
+            Go to check email
+          </Link>
+        </p>
+      ) : null}
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block space-y-1">
           <span className="text-sm font-medium text-slate-700">Email</span>

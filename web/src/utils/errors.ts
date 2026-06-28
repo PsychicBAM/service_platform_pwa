@@ -343,6 +343,35 @@ export function getClaimErrorMessage(error: unknown, fallback = "Something went 
   return fallback;
 }
 
+export function getLoginErrorMessage(
+  error: unknown,
+  fallback = "Login failed. Please try again.",
+): string {
+  if (error instanceof ApiClientError) {
+    if (error.code === "EMAIL_VERIFICATION_REQUIRED") {
+      return "Please verify your email before logging in.";
+    }
+    if (error.code === "INVALID_CREDENTIALS") {
+      return "Invalid email or password.";
+    }
+    if (error.status === 403) {
+      return error.message;
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Network error. Please try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
+
+export function isEmailVerificationRequiredError(error: unknown): boolean {
+  return error instanceof ApiClientError && error.code === "EMAIL_VERIFICATION_REQUIRED";
+}
+
 export function getRegisterErrorMessage(
   error: unknown,
   fallback = "Registration failed. Please try again.",

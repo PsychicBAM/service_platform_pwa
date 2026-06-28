@@ -155,8 +155,24 @@ Never use for bulk email. Do not commit SMTP secrets. Use only after configuring
 - `POST /api/v1/auth/verify-email` — body `{ "token": "..." }`
 - `POST /api/v1/auth/resend-verification` — authenticated resend
 - `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false` by default (login works without verification)
+- When `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=true`, unverified login returns `403` with code `EMAIL_VERIFICATION_REQUIRED` and message “Please verify your email before logging in.”
+- Verified users can always log in; demo seed marks demo users verified
 - `EMAIL_VERIFICATION_BASE_URL` — link target for verification emails (e.g. `http://localhost:5173/verify-email`)
 - Real delivery requires SMTP configuration on VPS
+
+**Optional login enforcement (disabled by default):**
+
+| Setting | Behavior |
+|---------|----------|
+| `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false` (default) | Unverified users can log in |
+| `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=true` | Unverified login blocked with `EMAIL_VERIFICATION_REQUIRED` |
+
+Before enabling enforcement on production:
+
+1. Configure live SMTP (`EMAIL_ENABLED=true`, `EMAIL_DRY_RUN=false`)
+2. Run `python scripts/send_test_email.py --to your-email@example.com`
+3. Run `python scripts/check_email_verification.py`
+4. Ensure admin/owner accounts are verified (demo seed sets `email_verified_at`)
 
 **Manual verification flow** (local/demo):
 

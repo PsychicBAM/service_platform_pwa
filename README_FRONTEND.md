@@ -114,10 +114,10 @@ Lint is **not configured** in this slice — add ESLint in a later slice if need
 
 Smoke tests live in `web/src/test/` using **Vitest**, **React Testing Library**, and **jsdom**. They mock API modules (`publicApi`, `meApi`, `adminApi`, `superadminApi`, `useAuth`) — no real backend or browser required.
 
-Coverage (35 tests):
+Coverage (37 tests):
 
 - Public pages: business home, services list, service detail CTAs, order validation, booking date/slots
-- Client auth: login prompts, `/me/orders`, order messages, registration form
+- Client auth: login prompts, verification-required login handling, `/me/orders`, order messages, registration form
 - Email verification: verify/check-email pages, resend, banner
 - Admin guards: unauthenticated, no business access, dashboard, services list
 - Superadmin guards: role check, businesses list, audit logs
@@ -156,7 +156,7 @@ Coverage (14 tests):
 1. Open `/register` and create an account → lands on `/check-email`
 2. Click **Resend verification email** (dry-run by default; check API logs for link)
 3. Open `/verify-email?token=...` from log or test harness
-4. Login is not blocked by default (`REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false`)
+4. Login is not blocked by default (`REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false`); when enforcement is enabled on the backend, login shows a friendly message and link to `/check-email`
 
 Backend audit (no real emails): `docker compose exec api python scripts/check_email_verification.py`
 

@@ -1,6 +1,10 @@
 import importlib.util
 from pathlib import Path
 
+import pytest
+from app.models.enums import UserRole
+from app.repositories.user_repository import UserRepository
+
 
 def _load_script_module(name: str):
     api_dir = Path(__file__).resolve().parents[1]
@@ -32,3 +36,18 @@ def test_e2e_backend_audit_imports_cleanly() -> None:
     )
     assert "/me/bookings" in source
     assert "/me/orders" in source
+
+
+@pytest.mark.asyncio
+async def test_seed_demo_ensure_user_sets_email_verified(db_session) -> None:
+    module = _load_script_module("seed_demo")
+    users = UserRepository(db_session)
+    user, _action = await module._ensure_user(
+        db_session,
+        users,
+        email="seed-verified@example.com",
+        password=module.DEMO_PASSWORD,
+        role=UserRole.client,
+        full_name="Seed Verified User",
+    )
+    assert user.email_verified_at is not None

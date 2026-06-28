@@ -63,7 +63,7 @@ class EmailVerificationTokenInvalidError(AppError):
 class EmailVerificationRequiredError(AppError):
     def __init__(self) -> None:
         super().__init__(
-            message="Email verification is required before login.",
+            message="Please verify your email before logging in.",
             code="EMAIL_VERIFICATION_REQUIRED",
             status_code=403,
         )
