@@ -8,17 +8,17 @@ describe("platform landing page", () => {
     renderRoute(<PublicHomePage />, { route: "/", path: "/" });
 
     expect(screen.getByRole("heading", { name: /choose the right plan/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Free", exact: true })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Starter", exact: true })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Business", exact: true })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Pro", exact: true })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Free$/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Starter$/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Business$/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Pro$/i })).toBeInTheDocument();
   });
 
   it("B. shows Business plan as recommended", () => {
     renderRoute(<PublicHomePage />, { route: "/", path: "/" });
 
     expect(screen.getByText("Recommended")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Business", exact: true })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Business$/i })).toBeInTheDocument();
   });
 
   it("C. notes that payments and plan upgrades are coming later", () => {
