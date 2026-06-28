@@ -72,6 +72,7 @@ Related docs:
 | Module | Notes |
 |--------|--------|
 | Public business page | `/b/:slug` |
+| Platform landing + pricing | `/` — hero, features, static SaaS plans (Free/Starter/Business/Pro); Stripe not implemented |
 | Public services list / detail | Catalog and service pages |
 | Booking flow | Slot selection and booking submit |
 | Order request flow | Form-based order submit |
@@ -265,7 +266,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 
 | Limitation | Impact |
 |------------|--------|
-| No payments / Stripe | Bookings and orders are not paid online |
+| No payments / Stripe | Bookings and orders are not paid online; landing shows static SaaS pricing only — no checkout |
 | Email foundation + event wiring | Service + templates; disabled/dry-run by default; respects `notification_email_enabled` |
 | Email dry-run audit | `check_email_notifications.py` verifies wiring without SMTP; does not send real email |
 | Email verification dry-run audit | `check_email_verification.py` verifies config/templates/token hashing; no real email |

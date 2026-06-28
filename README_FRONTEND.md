@@ -143,9 +143,9 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Coverage (17 tests):
+Coverage (18 tests):
 
-- Public: business home, services list, order validation, booking date screen
+- Public: platform home pricing, business home, services list, order validation, booking date screen
 - Client: login, `/me/bookings`, `/me/orders`, claim form
 - Email verification audit: `/check-email`, `/verify-email`, `/register` validation, verified user message
 - Password reset: `/forgot-password`, `/reset-password` validation
@@ -223,6 +223,7 @@ Token storage: `localStorage` keys `access_token`, `refresh_token`, and `token_t
 | Path | Page |
 |------|------|
 | `/` | Welcome + link to demo business |
+| `/` | Platform landing — hero, features, SaaS pricing (not business service prices) |
 | `/b/:slug` | Public business home (API) |
 | `/b/:slug/services` | Services list (API) |
 | `/b/:slug/services/:serviceId` | Service detail (API) |
@@ -329,6 +330,7 @@ npm run check:routes
 
 ## Implemented (Phase 2 + Phase 3)
 
+- **Platform landing page** (`/`) — hero, feature cards, static SaaS pricing (Free / Starter / Business / Pro), demo CTAs; wider desktop layout
 - Public business home, services list, and service detail (API)
 - Public order request form for order-type services (guest, no login required)
 - Public booking flow for booking-type services: date selection, time slots, guest form

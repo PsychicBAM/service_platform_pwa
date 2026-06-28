@@ -5,7 +5,7 @@ export function Layout() {
   const { isAuthenticated, user, logout } = useAuth();
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-lg flex-col">
+    <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col md:max-w-3xl lg:max-w-5xl">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
         <div className="flex items-center justify-between gap-3">
           <Link to="/" className="text-lg font-semibold text-brand-700">
@@ -61,7 +61,7 @@ export function Layout() {
         <Outlet />
       </main>
       <footer className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-500">
-        Client PWA — Phase 2 · Admin skeleton — Phase 3
+        Service Platform · Bookings &amp; requests
       </footer>
     </div>
   );

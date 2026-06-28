@@ -32,4 +32,12 @@ test.describe("public smoke flows", () => {
     await expect(page.getByRole("heading", { level: 1, name: DEMO.bookingService })).toBeVisible();
     await expect(page.getByText("Choose a date")).toBeVisible();
   });
+
+  test("E. platform home shows pricing section", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: /choose the right plan/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Business", exact: true })).toBeVisible();
+    await expect(page.getByText("Recommended")).toBeVisible();
+    await expect(page.getByText(/payments and plan upgrades are coming later/i)).toBeVisible();
+  });
 });
