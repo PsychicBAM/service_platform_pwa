@@ -63,7 +63,8 @@ export function MyOrderDetailPage() {
     queryKey: ["my-order", orderId, "messages"],
     queryFn: () => listOrderMessages(orderId),
     enabled: isAuthenticated && Boolean(orderId),
-    refetchInterval: 15000,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: false,
   });
 
   const sendMutation = useMutation({
@@ -160,7 +161,10 @@ export function MyOrderDetailPage() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-sm font-medium text-slate-700">Messages</h2>
+            <div>
+              <h2 className="text-sm font-medium text-slate-700">Messages</h2>
+              <p className="text-xs text-slate-400">Messages refresh automatically.</p>
+            </div>
 
             {messagesQuery.isLoading ? <LoadingState message="Loading messages…" /> : null}
 

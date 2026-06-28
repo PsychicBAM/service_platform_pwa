@@ -77,14 +77,14 @@ Related docs:
 | Order request flow | Form-based order submit |
 | Login / token refresh | JWT in localStorage, 401 refresh |
 | Registration | `/register` wired to POST `/auth/register`; success → `/check-email` |
-| Client bookings / orders / messages | `/me/bookings`, `/me/orders`, order detail |
+| Client bookings / orders / messages | `/me/bookings`, `/me/orders`, order detail (messages auto-refresh via 5s polling) |
 | Guest claim UI | `/me/claim` — reference + email/phone (no magic-link email yet) |
 | Email verification UI | `/verify-email`, `/check-email`; resend; non-blocking banner |
 | Password reset UI | `/forgot-password`, `/reset-password` |
 | Admin dashboard | Stats and quick links |
 | Admin services CRUD | Create, edit, activate/deactivate |
 | Admin bookings actions | List, filter, confirm, cancel |
-| Admin orders actions / messages | Accept, decline, messaging |
+| Admin orders actions / messages | Accept, decline, messaging (5s polling while detail panel open) |
 | Admin clients CRM | Client list and detail |
 | Admin schedule edit | Weekly hours and breaks |
 | Admin settings edit | Business settings form |
@@ -275,6 +275,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | Frontend email verification chain | `/register` → `/check-email` → resend → `/verify-email`; login shows verification-required link when enforced; OAuth/social login not implemented |
 | Password reset | `/forgot-password` + `/reset-password` wired; real reset email requires SMTP; request never reveals account existence; OAuth/social login not implemented |
 | Guest claim backend + frontend UI | `/me/claim` — reference + contact; magic-link email not yet |
+| Order messages polling | Client/admin order messages auto-refresh every 5s while page/panel is open; WebSocket/realtime chat not implemented |
 | No production domain / HTTPS yet | Docs and compose prepared; VPS deploy is manual |
 | No automated backups | Commands documented only in `BACKUP_RESTORE.md` |
 | No monitoring / alerting | No uptime or error tracking service |

@@ -119,6 +119,8 @@ export function AdminOrderDetailPanel({
     queryKey: ["admin-order", businessId, orderId, "messages"],
     queryFn: () => listAdminOrderMessages(businessId, orderId),
     enabled: Boolean(detailQuery.data),
+    refetchInterval: 5000,
+    refetchIntervalInBackground: false,
   });
 
   useEffect(() => {
@@ -612,7 +614,10 @@ function OrderDetailContent({
       ) : null}
 
       <div className="space-y-3 border-t border-slate-200 pt-4">
-        <h3 className="text-sm font-medium text-slate-700">Messages</h3>
+        <div>
+          <h3 className="text-sm font-medium text-slate-700">Messages</h3>
+          <p className="text-xs text-slate-400">Messages refresh automatically.</p>
+        </div>
 
         {messagesQuery.isLoading ? <LoadingState message="Loading messages…" /> : null}
 

@@ -70,5 +70,6 @@ describe("auth and client pages smoke", () => {
 
     expect(await screen.findByText(mockMyOrderDetail.reference)).toBeInTheDocument();
     expect(await screen.findByText(mockOrderMessage.body)).toBeInTheDocument();
+    expect(screen.getByText("Messages refresh automatically.")).toBeInTheDocument();
   });
 });
