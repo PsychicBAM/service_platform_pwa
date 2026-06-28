@@ -372,6 +372,28 @@ export function isEmailVerificationRequiredError(error: unknown): boolean {
   return error instanceof ApiClientError && error.code === "EMAIL_VERIFICATION_REQUIRED";
 }
 
+export function getPasswordResetErrorMessage(
+  error: unknown,
+  fallback = "Something went wrong. Please try again.",
+): string {
+  if (error instanceof ApiClientError) {
+    if (error.code === "PASSWORD_RESET_TOKEN_INVALID") {
+      return "Password reset link is invalid or expired.";
+    }
+    if (error.status === 422) {
+      return "Check the password reset fields.";
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Network error. Please try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export function getRegisterErrorMessage(
   error: unknown,
   fallback = "Registration failed. Please try again.",

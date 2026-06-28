@@ -114,10 +114,10 @@ Lint is **not configured** in this slice — add ESLint in a later slice if need
 
 Smoke tests live in `web/src/test/` using **Vitest**, **React Testing Library**, and **jsdom**. They mock API modules (`publicApi`, `meApi`, `adminApi`, `superadminApi`, `useAuth`) — no real backend or browser required.
 
-Coverage (37 tests):
+Coverage (45 tests):
 
 - Public pages: business home, services list, service detail CTAs, order validation, booking date/slots
-- Client auth: login prompts, verification-required login handling, `/me/orders`, order messages, registration form
+- Client auth: login prompts, verification-required login handling, password reset, `/me/orders`, order messages, registration form
 - Email verification: verify/check-email pages, resend, banner
 - Admin guards: unauthenticated, no business access, dashboard, services list
 - Superadmin guards: role check, businesses list, audit logs
@@ -143,11 +143,12 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Coverage (14 tests):
+Coverage (17 tests):
 
 - Public: business home, services list, order validation, booking date screen
 - Client: login, `/me/bookings`, `/me/orders`, claim form
 - Email verification audit: `/check-email`, `/verify-email`, `/register` validation, verified user message
+- Password reset: `/forgot-password`, `/reset-password` validation
 - Admin: owner dashboard/services; client blocked
 - Superadmin: superadmin businesses; owner blocked
 
@@ -221,7 +222,9 @@ Token storage: `localStorage` keys `access_token`, `refresh_token`, and `token_t
 | `/b/:slug/services/:serviceId` | Service detail (API) |
 | `/b/:slug/services/:serviceId/request` | Public order request form (order services only) |
 | `/b/:slug/services/:serviceId/book` | Public booking flow (booking services only) |
-| `/login` | Login form |
+| `/login` | Login form (links to forgot password) |
+| `/forgot-password` | Request password reset link (safe response — no account enumeration) |
+| `/reset-password` | Reset password from email link (`?token=...`) |
 | `/register` | Register form — POST `/auth/register`; after success navigates to `/check-email` |
 | `/verify-email` | Email verification from link (`?token=...`) |
 | `/check-email` | Check/resend verification email (auth optional) |
@@ -328,6 +331,7 @@ npm run check:routes
 - Order detail with message list (15s polling) and send form
 - Login/logout with JWT in `localStorage`
 - **Email verification UI** — `/verify-email` (token from link), `/check-email` (resend); non-blocking banner for unverified users
+- **Password reset UI** — `/forgot-password`, `/reset-password`; real reset emails require SMTP; OAuth/social login not implemented
 - Inline form validation and success screens with reference numbers
 
 ## Admin PWA skeleton (Phase 3 slice 1)

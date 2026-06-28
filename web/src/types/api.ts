@@ -205,6 +205,23 @@ export interface EmailVerificationResendResponse {
   message?: string | null;
 }
 
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface PasswordResetRequestResponse {
+  sent: boolean;
+}
+
+export interface PasswordResetConfirmRequest {
+  token: string;
+  new_password: string;
+}
+
+export interface PasswordResetConfirmResponse {
+  reset: boolean;
+}
+
 export type MyBookingStatusFilter = "upcoming" | "past" | "cancelled";
 export type MyOrderStatusFilter = "active" | "completed" | "declined" | "cancelled";
 

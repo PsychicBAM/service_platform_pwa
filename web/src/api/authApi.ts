@@ -8,6 +8,10 @@ import type {
   LoginRequest,
   LoginResponse,
   MeResponse,
+  PasswordResetConfirmRequest,
+  PasswordResetConfirmResponse,
+  PasswordResetRequest,
+  PasswordResetRequestResponse,
   RefreshResponse,
   RegisterRequest,
   RegisterResponse,
@@ -54,4 +58,25 @@ export function verifyEmail(token: string) {
 
 export function resendEmailVerification() {
   return apiClient.post<EmailVerificationResendResponse>("/auth/resend-verification");
+}
+
+export function requestPasswordReset(email: string) {
+  const payload: PasswordResetRequest = { email };
+  return apiClient.post<PasswordResetRequestResponse>(
+    "/auth/request-password-reset",
+    payload,
+    { auth: false },
+  );
+}
+
+export function resetPassword(token: string, newPassword: string) {
+  const payload: PasswordResetConfirmRequest = {
+    token,
+    new_password: newPassword,
+  };
+  return apiClient.post<PasswordResetConfirmResponse>(
+    "/auth/reset-password",
+    payload,
+    { auth: false },
+  );
 }

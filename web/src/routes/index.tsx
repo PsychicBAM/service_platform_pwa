@@ -14,6 +14,7 @@ import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
 import { BookingPage } from "@/pages/BookingPage";
 import { CheckEmailPage } from "@/pages/CheckEmailPage";
 import { ClaimGuestPage } from "@/pages/ClaimGuestPage";
+import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { MyBookingsPage } from "@/pages/MyBookingsPage";
 import { MyOrderDetailPage } from "@/pages/MyOrderDetailPage";
@@ -22,6 +23,7 @@ import { NotFoundPage } from "@/pages/NotFoundPage";
 import { OrderRequestPage } from "@/pages/OrderRequestPage";
 import { PublicHomePage } from "@/pages/PublicHomePage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 import { ServiceDetailPage } from "@/pages/ServiceDetailPage";
 import { ServicesPage } from "@/pages/ServicesPage";
 import { VerifyEmailPage } from "@/pages/VerifyEmailPage";
@@ -41,6 +43,8 @@ export const router = createBrowserRouter([
       { path: "b/:slug/services/:serviceId/request", element: <OrderRequestPage /> },
       { path: "b/:slug/services/:serviceId/book", element: <BookingPage /> },
       { path: "login", element: <LoginPage /> },
+      { path: "forgot-password", element: <ForgotPasswordPage /> },
+      { path: "reset-password", element: <ResetPasswordPage /> },
       { path: "register", element: <RegisterPage /> },
       { path: "verify-email", element: <VerifyEmailPage /> },
       { path: "check-email", element: <CheckEmailPage /> },
