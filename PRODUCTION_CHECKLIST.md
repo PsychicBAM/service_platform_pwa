@@ -66,7 +66,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 ## Future (not in MVP — track separately)
 
 - [ ] **Payments** (Stripe) — not implemented
-- [ ] **Email notifications** — foundation exists (`EmailService`, dry-run default); event wiring and live SMTP are optional next steps
+- [ ] **Email notifications** — foundation + event wiring implemented; enable with `EMAIL_ENABLED` + SMTP on VPS
 - [ ] **Domain email** (SPF/DKIM for transactional mail)
 - [ ] **Monitoring / alerting** (uptime, error tracking, log aggregation)
 - [ ] **Automated backups** to object storage

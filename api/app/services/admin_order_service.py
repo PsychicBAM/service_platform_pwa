@@ -23,6 +23,7 @@ from app.schemas.order import (
     AdminOrderRead,
     AdminOrderUpdate,
 )
+from app.services.email_notification_service import EmailNotificationService
 
 
 ALLOWED_STATUS_TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
@@ -152,6 +153,11 @@ class AdminOrderService:
         await self.repo.update_order(order, data)
         await self.session.commit()
         order = await self._get_order_or_404(business.id, order_id)
+        EmailNotificationService().notify_client_order_status_changed(
+            order,
+            new_status,
+            business=business,
+        )
         return AdminOrderRead.from_order(order)
 
     async def decline_admin_order(
@@ -183,6 +189,11 @@ class AdminOrderService:
         await self.repo.update_order(order, data)
         await self.session.commit()
         order = await self._get_order_or_404(business.id, order_id)
+        EmailNotificationService().notify_client_order_status_changed(
+            order,
+            OrderStatus.declined,
+            business=business,
+        )
         return AdminOrderRead.from_order(order)
 
     async def mark_order_in_progress(
@@ -206,6 +217,11 @@ class AdminOrderService:
         await self.repo.update_order(order, data)
         await self.session.commit()
         order = await self._get_order_or_404(business.id, order_id)
+        EmailNotificationService().notify_client_order_status_changed(
+            order,
+            OrderStatus.in_progress,
+            business=business,
+        )
         return AdminOrderRead.from_order(order)
 
     async def complete_admin_order(
@@ -231,6 +247,11 @@ class AdminOrderService:
         )
         await self.session.commit()
         order = await self._get_order_or_404(business.id, order_id)
+        EmailNotificationService().notify_client_order_status_changed(
+            order,
+            OrderStatus.completed,
+            business=business,
+        )
         return AdminOrderRead.from_order(order)
 
     async def cancel_admin_order(
@@ -256,6 +277,11 @@ class AdminOrderService:
         await self.repo.update_order(order, data)
         await self.session.commit()
         order = await self._get_order_or_404(business.id, order_id)
+        EmailNotificationService().notify_client_order_status_changed(
+            order,
+            OrderStatus.cancelled,
+            business=business,
+        )
         return AdminOrderRead.from_order(order)
 
     async def _get_order_or_404(

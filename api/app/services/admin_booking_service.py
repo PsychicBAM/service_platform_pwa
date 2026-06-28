@@ -20,6 +20,7 @@ from app.schemas.booking import (
     AdminBookingRead,
     AdminBookingUpdate,
 )
+from app.services.email_notification_service import EmailNotificationService
 
 
 ALLOWED_STATUS_TRANSITIONS: dict[BookingStatus, set[BookingStatus]] = {
@@ -127,6 +128,17 @@ class AdminBookingService:
         await self.session.commit()
         booking = await self.repo.get_detail_for_business(business.id, booking_id)
         assert booking is not None
+        booking.business = business
+        if new_status == BookingStatus.confirmed:
+            EmailNotificationService().notify_client_booking_confirmed(
+                booking,
+                business=business,
+            )
+        elif new_status == BookingStatus.cancelled:
+            EmailNotificationService().notify_client_booking_cancelled(
+                booking,
+                business=business,
+            )
         return AdminBookingRead.from_booking(booking)
 
     async def cancel_admin_booking(
@@ -153,4 +165,9 @@ class AdminBookingService:
         await self.session.commit()
         booking = await self.repo.get_detail_for_business(business.id, booking_id)
         assert booking is not None
+        booking.business = business
+        EmailNotificationService().notify_client_booking_cancelled(
+            booking,
+            business=business,
+        )
         return AdminBookingRead.from_booking(booking)

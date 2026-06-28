@@ -46,7 +46,7 @@ Related docs:
 | Public order | Guest and authenticated order requests |
 | Guest claim API | Backend — `POST /me/claims/bookings` and `/orders` with reference + contact |
 | Guest claim UI | `/me/claim` page — reference + email/phone |
-| Email foundation | `EmailService`, templates, dry-run/disabled by default — no event wiring yet |
+| Email foundation + event wiring | `EmailService`, dry-run/disabled by default; booking/order/message notifications |
 | Admin bookings | List, confirm, cancel, reschedule |
 | Admin orders | List, accept, decline, complete, messages |
 | Admin clients | CRM list and detail |
@@ -251,7 +251,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | Limitation | Impact |
 |------------|--------|
 | No payments / Stripe | Bookings and orders are not paid online |
-| Email foundation only | Service + templates exist; disabled/dry-run by default; no booking/order event emails yet |
+| Email foundation + event wiring | Service + templates; disabled/dry-run by default; respects `notification_email_enabled` |
 | Guest claim backend + frontend UI | `/me/claim` — reference + contact; magic-link email not yet |
 | No production domain / HTTPS yet | Docs and compose prepared; VPS deploy is manual |
 | No automated backups | Commands documented only in `BACKUP_RESTORE.md` |
@@ -271,16 +271,15 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 
 Prioritized for ~$5000 budget — infrastructure and high-value product gaps before polish:
 
-1. **Wire booking/order email events** — connect `EmailService` to business flows when `notification_email_enabled`
-2. **Magic-link email for guest claim** — optional email delivery instead of manual reference entry
-3. **Payment foundation** — Stripe Checkout for deposits or full payment
-4. **Production deployment to VPS** — domain, HTTPS (Caddy/NPM), real `.env`, strict env check
-5. **Automated backups** — cron + off-site `pg_dump`
-6. **Monitoring / logging** — uptime checks, error aggregation
-7. **Mobile wrapper** — only after web MVP is stable in production
-8. **CSP + hardening pass** — enable Content-Security-Policy after testing
-9. **Playwright in CI** — optional staging smoke against Docker stack
-10. **Multi-worker API** — gunicorn + uvicorn workers if traffic requires
+1. **Magic-link email for guest claim** — optional email delivery instead of manual reference entry
+2. **Payment foundation** — Stripe Checkout for deposits or full payment
+3. **Production deployment to VPS** — domain, HTTPS (Caddy/NPM), real `.env`, strict env check
+4. **Automated backups** — cron + off-site `pg_dump`
+5. **Monitoring / logging** — uptime checks, error aggregation
+6. **Mobile wrapper** — only after web MVP is stable in production
+7. **CSP + hardening pass** — enable Content-Security-Policy after testing
+8. **Playwright in CI** — optional staging smoke against Docker stack
+9. **Multi-worker API** — gunicorn + uvicorn workers if traffic requires
 
 ---
 

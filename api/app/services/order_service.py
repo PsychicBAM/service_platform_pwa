@@ -18,6 +18,7 @@ from app.repositories.client_repository import ClientRepository
 from app.repositories.order_repository import OrderRepository
 from app.repositories.service_repository import ServiceRepository
 from app.schemas.order import PublicOrderCreate
+from app.services.email_notification_service import EmailNotificationService
 from app.utils.references import generate_order_reference
 
 
@@ -73,4 +74,8 @@ class OrderService:
         await self.order_repo.create(order)
         await self.session.commit()
         await self.session.refresh(order)
+        order.business = business
+        order.service = service
+        order.client = client
+        EmailNotificationService().notify_admin_order_submitted(order, business=business)
         return order, service, client

@@ -21,6 +21,7 @@ from app.repositories.client_repository import ClientRepository
 from app.repositories.service_repository import ServiceRepository
 from app.schemas.booking import PublicBookingCreate
 from app.services.availability_service import AvailabilityService
+from app.services.email_notification_service import EmailNotificationService
 from app.utils.references import generate_booking_reference
 
 
@@ -108,6 +109,10 @@ class BookingService:
         await self.booking_repo.create(booking)
         await self.session.commit()
         await self.session.refresh(booking)
+        booking.business = business
+        booking.service = service
+        booking.client = client
+        EmailNotificationService().notify_admin_booking_created(booking, business=business)
         return booking, service, client
 
     async def _assert_slot_available(

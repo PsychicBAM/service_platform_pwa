@@ -16,6 +16,7 @@ from app.schemas.order import (
     OrderMessageListResponse,
     OrderMessageRead,
 )
+from app.services.email_notification_service import EmailNotificationService
 
 MESSAGING_OPEN_STATUSES = {
     OrderStatus.submitted,
@@ -71,7 +72,6 @@ class OrderMessageService:
             raise OrderNotFoundError()
         _ensure_messaging_open(order.status)
 
-        # TODO: send new message notification when notification service exists.
         message = await self.message_repo.create_message(
             order.id,
             order.business_id,
@@ -81,6 +81,11 @@ class OrderMessageService:
         )
         await self.session.commit()
         await self.session.refresh(message)
+        EmailNotificationService().notify_order_message_received(
+            order,
+            message,
+            business=order.business,
+        )
         return OrderMessageRead.model_validate(message)
 
     async def list_order_messages_for_admin(
@@ -108,7 +113,6 @@ class OrderMessageService:
             raise OrderNotFoundError()
         _ensure_messaging_open(order.status)
 
-        # TODO: send new message notification when notification service exists.
         message = await self.message_repo.create_message(
             order.id,
             business.id,
@@ -118,6 +122,12 @@ class OrderMessageService:
         )
         await self.session.commit()
         await self.session.refresh(message)
+        order.business = business
+        EmailNotificationService().notify_order_message_received(
+            order,
+            message,
+            business=business,
+        )
         return OrderMessageRead.model_validate(message)
 
     async def get_last_message_previews(

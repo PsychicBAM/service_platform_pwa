@@ -39,6 +39,7 @@ def main() -> int:
         print("==> Importing email modules ...")
         import app.services.email_service  # noqa: F401
         import app.services.email_templates  # noqa: F401
+        import app.services.email_notification_service  # noqa: F401
 
         required_tables = {
             "users",

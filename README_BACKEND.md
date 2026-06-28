@@ -232,7 +232,8 @@ alembic revision --autogenerate -m "describe change"
 - **Admin order workflow** (list, detail, accept, decline, in-progress, complete, cancel)
 - **Client my orders** (`/api/v1/me/orders` — list, detail, cancel)
 - **Guest claim API** (`POST /api/v1/me/claims/bookings`, `POST /api/v1/me/claims/orders` — link guest records by reference + email/phone; no email delivery yet)
-- **Email notification foundation** (`EmailService`, templates, dry-run/disabled by default — no event wiring yet)
+- **Email notification foundation** (`EmailService`, templates, dry-run/disabled by default)
+- **Email event wiring** (booking/order create, admin status changes, order messages — best-effort, respects `notification_email_enabled`)
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
 - **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
@@ -244,7 +245,7 @@ alembic revision --autogenerate -m "describe change"
 ### Not implemented
 
 - Payments (Stripe billing)
-- Booking/order event email wiring (`notification_email_enabled` not connected yet)
+- Booking/order event email wiring (`notification_email_enabled` per business)
 - Email verification
 - Password reset / magic links
 - Auth logout (refresh token revocation)
