@@ -204,6 +204,24 @@ def build_email_verification_email(
     return EmailMessage(to_email=user_email, subject=subject, text_body=text_body)
 
 
+def build_password_reset_email(
+    *,
+    user_email: str,
+    reset_url: str,
+    expire_hours: int,
+) -> EmailMessage:
+    subject = "Reset your password"
+    text_body = (
+        "Hello,\n\n"
+        f"We received a request to reset the password for {user_email}.\n\n"
+        f"Open this link to choose a new password:\n\n"
+        f"{reset_url}\n\n"
+        f"This link expires in {expire_hours} hours.\n\n"
+        "If you did not request a password reset, you can ignore this email.\n"
+    )
+    return EmailMessage(to_email=user_email, subject=subject, text_body=text_body)
+
+
 def build_claim_help_email(
     *,
     to_email: str,

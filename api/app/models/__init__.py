@@ -6,6 +6,7 @@ from app.models.business import Business
 from app.models.business_member import BusinessMember
 from app.models.client import Client
 from app.models.email_verification_token import EmailVerificationToken
+from app.models.password_reset_token import PasswordResetToken
 from app.models.enums import (
     BookingStatus,
     BusinessMemberRole,
@@ -32,6 +33,7 @@ from app.models.working_hour import WorkingHour
 
 __all__ = [
     "EmailVerificationToken",
+    "PasswordResetToken",
     "AuditLog",
     "Booking",
     "BookingStatus",

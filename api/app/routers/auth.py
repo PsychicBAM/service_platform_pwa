@@ -11,6 +11,10 @@ from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
     MeResponse,
+    PasswordResetConfirmRequest,
+    PasswordResetConfirmResponse,
+    PasswordResetRequest,
+    PasswordResetRequestResponse,
     RefreshRequest,
     RefreshResponse,
     RegisterBusinessRequest,
@@ -18,6 +22,7 @@ from app.schemas.auth import (
 )
 from app.services.auth_service import AuthService
 from app.services.email_verification_service import EmailVerificationService
+from app.services.password_reset_service import PasswordResetService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -30,6 +35,12 @@ def get_email_verification_service(
     db: AsyncSession = Depends(get_db),
 ) -> EmailVerificationService:
     return EmailVerificationService(db)
+
+
+def get_password_reset_service(
+    db: AsyncSession = Depends(get_db),
+) -> PasswordResetService:
+    return PasswordResetService(db)
 
 
 @router.post("/register", response_model=RegisterBusinessResponse, status_code=201)
@@ -85,3 +96,21 @@ async def resend_verification(
         already_verified=result.already_verified,
         message=result.message,
     )
+
+
+@router.post("/request-password-reset", response_model=PasswordResetRequestResponse)
+async def request_password_reset(
+    payload: PasswordResetRequest,
+    reset_service: PasswordResetService = Depends(get_password_reset_service),
+) -> PasswordResetRequestResponse:
+    result = await reset_service.request_password_reset(payload.email)
+    return PasswordResetRequestResponse(sent=result.sent)
+
+
+@router.post("/reset-password", response_model=PasswordResetConfirmResponse)
+async def reset_password(
+    payload: PasswordResetConfirmRequest,
+    reset_service: PasswordResetService = Depends(get_password_reset_service),
+) -> PasswordResetConfirmResponse:
+    await reset_service.reset_password(payload.token, payload.new_password)
+    return PasswordResetConfirmResponse(reset=True)

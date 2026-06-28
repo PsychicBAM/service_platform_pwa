@@ -181,6 +181,15 @@ Before enabling enforcement on production:
 3. Open `/verify-email?token=...` from dry-run log or test token
 4. Login enforcement remains off unless `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=true`
 
+**Password reset** (backend API only; frontend reset pages TODO):
+
+- `POST /api/v1/auth/request-password-reset` — body `{ "email": "..." }`; always returns `{ "sent": true }` (no account existence leakage)
+- `POST /api/v1/auth/reset-password` — body `{ "token": "...", "new_password": "..." }`; returns `{ "reset": true }`
+- `PASSWORD_RESET_TOKEN_EXPIRE_HOURS=2` (default)
+- `PASSWORD_RESET_BASE_URL` — link target for reset emails (e.g. `http://localhost:5173/reset-password`)
+- Tokens stored as SHA-256 hash only; invalid/expired/used tokens return `PASSWORD_RESET_TOKEN_INVALID`
+- Real delivery requires SMTP on VPS; tests use mocked sender (no real emails)
+
 ## Tests
 
 From project root:
@@ -303,18 +312,19 @@ alembic revision --autogenerate -m "describe change"
 - **Manual SMTP test email** (`scripts/send_test_email.py` — one explicit recipient; operator/VPS only)
 - **Email verification dry-run audit** (`scripts/check_email_verification.py` — config, templates, token hashing; no SMTP)
 - **Backend email verification** (`POST /auth/verify-email`, `POST /auth/resend-verification`; login enforcement disabled by default)
+- **Backend password reset** (`POST /auth/request-password-reset`, `POST /auth/reset-password`; no account enumeration; frontend UI TODO)
 - **Order messaging API** (client + admin REST message list/send)
 - **Admin clients CRM API** (list, search, detail with recent bookings/orders, update contact/notes)
 - **Business profile/settings API** (admin get/patch profile, settings merge, public business page)
 - **Superadmin business management** (list/detail, status and plan overrides)
 - **Audit logs** for superadmin status/plan changes
 - **Demo seed script** (`scripts/seed_demo.py`) and **E2E backend audit** (`scripts/e2e_backend_audit.py`)
-- Migration `0006_orders.py`, `0007_audit_logs.py`, `0008_email_verification_tokens.py`
+- Migration `0006_orders.py`, `0007_audit_logs.py`, `0008_email_verification_tokens.py`, `0009_password_reset_tokens.py`
 
 ### Not implemented
 
 - Payments (Stripe billing)
-- Password reset / magic links
+- Frontend password reset pages (backend API ready)
 - Auth logout (refresh token revocation)
 - Admin manual booking creation
 - Dashboard analytics

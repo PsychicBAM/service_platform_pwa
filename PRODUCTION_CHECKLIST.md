@@ -68,6 +68,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [ ] **Payments** (Stripe) — not implemented
 - [ ] **Email notifications** — foundation + event wiring implemented; dry-run audit: `docker compose exec api python scripts/check_email_notifications.py` (no real emails); live SMTP smoke: `docker compose exec api python scripts/send_test_email.py --to your-email@example.com` (one explicit recipient only, after VPS `.env` configured); enable live SMTP with `EMAIL_ENABLED` + SMTP on VPS
 - [ ] **Email verification** — backend + frontend wired; enforcement ready but **disabled by default** (`REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false`); dry-run audit: `docker compose exec api python scripts/check_email_verification.py`; before enabling enforcement: live SMTP + `send_test_email.py`, verified admin accounts, set `EMAIL_VERIFICATION_BASE_URL` on VPS; OAuth/social login not implemented
+- [ ] **Password reset** — backend API implemented (`/auth/request-password-reset`, `/auth/reset-password`); no account enumeration; frontend reset pages TODO; real delivery requires SMTP + `PASSWORD_RESET_BASE_URL` on VPS
 - [ ] **Domain email** (SPF/DKIM for transactional mail)
 - [ ] **Monitoring / alerting** (uptime, error tracking, log aggregation)
 - [ ] **Automated backups** to object storage

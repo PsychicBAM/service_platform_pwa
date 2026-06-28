@@ -109,3 +109,25 @@ class EmailVerificationResendResponse(BaseModel):
     sent: bool
     already_verified: bool
     message: str | None = None
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class PasswordResetRequestResponse(BaseModel):
+    sent: bool = True
+
+
+class PasswordResetConfirmRequest(BaseModel):
+    token: str = Field(min_length=1, max_length=512)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class PasswordResetConfirmResponse(BaseModel):
+    reset: bool = True

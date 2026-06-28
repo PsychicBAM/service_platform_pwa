@@ -41,7 +41,9 @@ def main() -> int:
         import app.services.email_templates  # noqa: F401
         import app.services.email_notification_service  # noqa: F401
         import app.services.email_verification_service  # noqa: F401
+        import app.services.password_reset_service  # noqa: F401
         import app.models.email_verification_token  # noqa: F401
+        import app.models.password_reset_token  # noqa: F401
 
         required_tables = {
             "users",
@@ -58,6 +60,7 @@ def main() -> int:
             "order_messages",
             "audit_logs",
             "email_verification_tokens",
+            "password_reset_tokens",
         }
         missing = required_tables - set(Base.metadata.tables.keys())
         if missing:
@@ -76,6 +79,8 @@ def main() -> int:
             "/api/v1/auth/register": {"post"},
             "/api/v1/auth/verify-email": {"post"},
             "/api/v1/auth/resend-verification": {"post"},
+            "/api/v1/auth/request-password-reset": {"post"},
+            "/api/v1/auth/reset-password": {"post"},
             "/api/v1/businesses/{business_id}": {"get", "patch"},
             "/api/v1/public/b/{slug}": {"get"},
             "/api/v1/public/b/{slug}/services": {"get"},

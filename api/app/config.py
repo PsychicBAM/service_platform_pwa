@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     email_verification_base_url: str = "http://localhost:5173/verify-email"
     require_email_verification_for_login: bool = False
 
+    password_reset_token_expire_hours: int = 2
+    password_reset_base_url: str = "http://localhost:5173/reset-password"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [

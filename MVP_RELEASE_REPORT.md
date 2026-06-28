@@ -50,6 +50,7 @@ Related docs:
 | Email dry-run audit | `scripts/check_email_notifications.py` — no real emails sent |
 | Email verification dry-run audit | `scripts/check_email_verification.py` — config, templates, token hashing; no SMTP |
 | Backend email verification | Verify/resend API; optional login enforcement ready (`EMAIL_VERIFICATION_REQUIRED`); disabled by default |
+| Backend password reset | Request/reset API; no account enumeration; frontend UI TODO |
 | Manual SMTP test email | `scripts/send_test_email.py` — one explicit `--to`; operator/VPS only |
 | Admin bookings | List, confirm, cancel, reschedule |
 | Admin orders | List, accept, decline, complete, messages |
@@ -266,6 +267,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | Manual SMTP smoke | `send_test_email.py` sends one test email to explicit `--to` when live SMTP configured |
 | Backend email verification | Verify/resend API; enforcement ready via `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=true`; default `false` |
 | Frontend email verification chain | `/register` → `/check-email` → resend → `/verify-email`; login shows verification-required link when enforced; OAuth/social login not implemented |
+| Password reset | Backend API only; real reset email requires SMTP; frontend `/reset-password` TODO |
 | Guest claim backend + frontend UI | `/me/claim` — reference + contact; magic-link email not yet |
 | No production domain / HTTPS yet | Docs and compose prepared; VPS deploy is manual |
 | No automated backups | Commands documented only in `BACKUP_RESTORE.md` |

@@ -55,3 +55,6 @@ class User(Base, TimestampMixin):
     email_verification_tokens: Mapped[list["EmailVerificationToken"]] = relationship(
         back_populates="user",
     )
+    password_reset_tokens: Mapped[list["PasswordResetToken"]] = relationship(
+        back_populates="user",
+    )

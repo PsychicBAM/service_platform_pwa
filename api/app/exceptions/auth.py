@@ -67,3 +67,12 @@ class EmailVerificationRequiredError(AppError):
             code="EMAIL_VERIFICATION_REQUIRED",
             status_code=403,
         )
+
+
+class PasswordResetTokenInvalidError(AppError):
+    def __init__(self) -> None:
+        super().__init__(
+            message="Password reset link is invalid or expired.",
+            code="PASSWORD_RESET_TOKEN_INVALID",
+            status_code=400,
+        )
