@@ -114,10 +114,11 @@ Lint is **not configured** in this slice — add ESLint in a later slice if need
 
 Smoke tests live in `web/src/test/` using **Vitest**, **React Testing Library**, and **jsdom**. They mock API modules (`publicApi`, `meApi`, `adminApi`, `superadminApi`, `useAuth`) — no real backend or browser required.
 
-Coverage (16 tests):
+Coverage (35 tests):
 
 - Public pages: business home, services list, service detail CTAs, order validation, booking date/slots
-- Client auth: login prompts, `/me/orders`, order messages
+- Client auth: login prompts, `/me/orders`, order messages, registration form
+- Email verification: verify/check-email pages, resend, banner
 - Admin guards: unauthenticated, no business access, dashboard, services list
 - Superadmin guards: role check, businesses list, audit logs
 
@@ -142,10 +143,10 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Coverage (9 tests A–I):
+Coverage (13 tests A–I):
 
 - Public: business home, services list, order validation, booking date screen
-- Client: login, `/me/bookings`, `/me/orders`
+- Client: login, `/me/bookings`, `/me/orders`, register form validation, verify/check-email routes
 - Admin: owner dashboard/services; client blocked
 - Superadmin: superadmin businesses; owner blocked
 
@@ -211,7 +212,7 @@ Token storage: `localStorage` keys `access_token`, `refresh_token`, and `token_t
 | `/b/:slug/services/:serviceId/request` | Public order request form (order services only) |
 | `/b/:slug/services/:serviceId/book` | Public booking flow (booking services only) |
 | `/login` | Login form |
-| `/register` | Register form (UI only — wiring TODO; after register, navigate to `/check-email`) |
+| `/register` | Register form — POST `/auth/register`; after success navigates to `/check-email` |
 | `/verify-email` | Email verification from link (`?token=...`) |
 | `/check-email` | Check/resend verification email (auth optional) |
 | `/me/bookings` | My bookings list (auth required) |
@@ -346,7 +347,7 @@ Read-only admin area at `/admin` for business members:
 - **Superadmin UI** — business list/detail, status & plan management, audit logs view
 - Stripe billing still TODO
 - OAuth / social login (Google, Apple, Yandex) not implemented
-- Register form UI only — POST `/auth/register` wiring TODO; after register, navigate to `/check-email`
+- Register form wired — POST `/auth/register`; after register, navigates to `/check-email` (email verification login enforcement still disabled by default)
 - Real email delivery requires backend SMTP configuration on VPS
 - No charts/analytics backend yet
 
@@ -414,7 +415,6 @@ cd web && npm run dev
 
 - Magic-link email for guest claim (user must know reference + contact)
 - Booking reschedule UI
-- Register submit wiring
 - Stripe / payments
 - Email notifications
 - Mobile native wrapper

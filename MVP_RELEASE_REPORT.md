@@ -71,6 +71,7 @@ Related docs:
 | Booking flow | Slot selection and booking submit |
 | Order request flow | Form-based order submit |
 | Login / token refresh | JWT in localStorage, 401 refresh |
+| Registration | `/register` wired to POST `/auth/register`; success → `/check-email` |
 | Client bookings / orders / messages | `/me/bookings`, `/me/orders`, order detail |
 | Guest claim UI | `/me/claim` — reference + email/phone (no magic-link email yet) |
 | Email verification UI | `/verify-email`, `/check-email`; resend; non-blocking banner |
@@ -261,7 +262,8 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | Email dry-run audit | `check_email_notifications.py` verifies wiring without SMTP; does not send real email |
 | Manual SMTP smoke | `send_test_email.py` sends one test email to explicit `--to` when live SMTP configured |
 | Backend email verification | Verify/resend API; `REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false` by default |
-| Frontend email verification UI | `/verify-email`, `/check-email`; OAuth/social login not implemented |
+| Frontend email verification UI | `/verify-email`, `/check-email`; resend; non-blocking banner |
+| Frontend registration | `/register` submits to API; after signup → `/check-email`; OAuth/social login not implemented |
 | Guest claim backend + frontend UI | `/me/claim` — reference + contact; magic-link email not yet |
 | No production domain / HTTPS yet | Docs and compose prepared; VPS deploy is manual |
 | No automated backups | Commands documented only in `BACKUP_RESTORE.md` |

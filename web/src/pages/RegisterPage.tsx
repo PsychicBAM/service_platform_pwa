@@ -1,17 +1,96 @@
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { register } from "@/api/authApi";
 import { ErrorState } from "@/components/ErrorState";
+import { getRegisterErrorMessage } from "@/utils/errors";
+
+const SLUG_PATTERN = /^[a-z0-9-]+$/;
+const MIN_PASSWORD_LENGTH = 8;
+
+function normalizeSlug(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function validateForm(values: {
+  fullName: string;
+  email: string;
+  password: string;
+  businessName: string;
+  slug: string;
+}): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (!values.fullName.trim()) {
+    errors.fullName = "Full name is required.";
+  }
+  if (!values.email.trim()) {
+    errors.email = "Email is required.";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
+    errors.email = "Enter a valid email address.";
+  }
+  if (!values.password) {
+    errors.password = "Password is required.";
+  } else if (values.password.length < MIN_PASSWORD_LENGTH) {
+    errors.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+  }
+  if (!values.businessName.trim()) {
+    errors.businessName = "Business name is required.";
+  }
+  const slug = normalizeSlug(values.slug);
+  if (!slug) {
+    errors.slug = "Business slug is required.";
+  } else if (!SLUG_PATTERN.test(slug)) {
+    errors.slug = "Slug must use lowercase letters, numbers, and hyphens only.";
+  }
+  return errors;
+}
 
 export function RegisterPage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [businessName, setBusinessName] = useState("");
   const [slug, setSlug] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    // Registration wiring deferred — form UI skeleton only for this slice.
+    setSubmitError(null);
+
+    const errors = validateForm({
+      fullName,
+      email,
+      password,
+      businessName,
+      slug,
+    });
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await register({
+        email: email.trim().toLowerCase(),
+        password,
+        full_name: fullName.trim(),
+        business: {
+          name: businessName.trim(),
+          slug: normalizeSlug(slug),
+        },
+      });
+      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      navigate("/check-email");
+    } catch (err) {
+      setSubmitError(getRegisterErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -19,22 +98,22 @@ export function RegisterPage() {
       <div>
         <h1 className="text-2xl font-bold">Create account</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Business owner registration UI placeholder.
+          Register your business. After signup, check your email to verify your account.
         </p>
       </div>
-      <ErrorState
-        title="Not wired yet"
-        message="Submit will be connected to POST /auth/register in a later slice."
-      />
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {submitError ? <ErrorState title="Registration failed" message={submitError} /> : null}
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <label className="block space-y-1">
           <span className="text-sm font-medium text-slate-700">Full name</span>
           <input
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100"
           />
+          {fieldErrors.fullName ? (
+            <p className="text-xs text-red-600">{fieldErrors.fullName}</p>
+          ) : null}
         </label>
         <label className="block space-y-1">
           <span className="text-sm font-medium text-slate-700">Email</span>
@@ -42,8 +121,11 @@ export function RegisterPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100"
           />
+          {fieldErrors.email ? (
+            <p className="text-xs text-red-600">{fieldErrors.email}</p>
+          ) : null}
         </label>
         <label className="block space-y-1">
           <span className="text-sm font-medium text-slate-700">Password</span>
@@ -51,8 +133,12 @@ export function RegisterPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100"
           />
+          <p className="text-xs text-slate-500">At least {MIN_PASSWORD_LENGTH} characters.</p>
+          {fieldErrors.password ? (
+            <p className="text-xs text-red-600">{fieldErrors.password}</p>
+          ) : null}
         </label>
         <label className="block space-y-1">
           <span className="text-sm font-medium text-slate-700">Business name</span>
@@ -60,8 +146,11 @@ export function RegisterPage() {
             type="text"
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100"
           />
+          {fieldErrors.businessName ? (
+            <p className="text-xs text-red-600">{fieldErrors.businessName}</p>
+          ) : null}
         </label>
         <label className="block space-y-1">
           <span className="text-sm font-medium text-slate-700">Business slug</span>
@@ -70,14 +159,21 @@ export function RegisterPage() {
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
             placeholder="my-business"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100"
           />
+          <p className="text-xs text-slate-500">
+            Used in your public URL: /b/your-slug
+          </p>
+          {fieldErrors.slug ? (
+            <p className="text-xs text-red-600">{fieldErrors.slug}</p>
+          ) : null}
         </label>
         <button
           type="submit"
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-medium text-slate-800"
+          disabled={loading}
+          className="w-full rounded-xl bg-brand-600 px-4 py-3 font-medium text-white hover:bg-brand-700 disabled:opacity-60"
         >
-          Register (placeholder)
+          {loading ? "Creating account…" : "Create account"}
         </button>
       </form>
       <p className="text-center text-sm text-slate-600">

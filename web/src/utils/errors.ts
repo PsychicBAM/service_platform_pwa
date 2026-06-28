@@ -343,6 +343,31 @@ export function getClaimErrorMessage(error: unknown, fallback = "Something went 
   return fallback;
 }
 
+export function getRegisterErrorMessage(
+  error: unknown,
+  fallback = "Registration failed. Please try again.",
+): string {
+  if (error instanceof ApiClientError) {
+    if (error.code === "EMAIL_ALREADY_EXISTS") {
+      return "This email is already registered.";
+    }
+    if (error.code === "SLUG_ALREADY_EXISTS") {
+      return "This business slug is already taken. Choose another slug.";
+    }
+    if (error.status === 422) {
+      return "Please check the form fields and try again.";
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Network error. Please try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export function getEmailVerificationErrorMessage(
   error: unknown,
   fallback = "Something went wrong",
