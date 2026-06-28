@@ -8,6 +8,7 @@ from app.database import Base
 from app.models import (
     Business,
     BusinessMember,
+    EmailVerificationToken,
     OperatingMode,
     Subscription,
     SubscriptionPlan,
@@ -45,6 +46,7 @@ def test_metadata_contains_core_tables() -> None:
         "businesses",
         "business_members",
         "subscriptions",
+        "email_verification_tokens",
     }
 
 
@@ -52,6 +54,20 @@ def test_relationships_exist() -> None:
     assert isinstance(Business.__mapper__.relationships.get("members"), RelationshipProperty)
     assert isinstance(Business.__mapper__.relationships.get("subscription"), RelationshipProperty)
     assert isinstance(User.__mapper__.relationships.get("business_members"), RelationshipProperty)
+    assert isinstance(
+        User.__mapper__.relationships.get("email_verification_tokens"),
+        RelationshipProperty,
+    )
+    assert isinstance(
+        EmailVerificationToken.__mapper__.relationships.get("user"),
+        RelationshipProperty,
+    )
+
+
+def test_app_main_imports_with_email_verification_models() -> None:
+    import app.main  # noqa: F401
+
+    assert app.main.app is not None
 
 
 def test_migration_file_exists_and_imports() -> None:

@@ -52,3 +52,6 @@ class User(Base, TimestampMixin):
         back_populates="sender_user",
     )
     audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="actor_user")
+    email_verification_tokens: Mapped[list["EmailVerificationToken"]] = relationship(
+        back_populates="user",
+    )
