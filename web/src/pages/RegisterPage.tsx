@@ -1,9 +1,16 @@
 import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { register } from "@/api/authApi";
 import { AuthPageShell } from "@/components/AuthPageShell";
 import { ErrorState } from "@/components/ErrorState";
+import {
+  getPricingPlan,
+  parsePricingPlanId,
+  PRICING_PLANS,
+  REGISTER_PLAN_INTENT_NOTE,
+  type PricingPlanId,
+} from "@/data/pricingPlans";
 import { getRegisterErrorMessage } from "@/utils/errors";
 
 const SLUG_PATTERN = /^[a-z0-9-]+$/;
@@ -49,6 +56,10 @@ function validateForm(values: {
 export function RegisterPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedPlanId = parsePricingPlanId(searchParams.get("plan"));
+  const selectedPlan = getPricingPlan(selectedPlanId);
+
   const [businessName, setBusinessName] = useState("");
   const [slug, setSlug] = useState("");
   const [email, setEmail] = useState("");
@@ -57,6 +68,10 @@ export function RegisterPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  function handlePlanChange(planId: PricingPlanId) {
+    setSearchParams({ plan: planId }, { replace: true });
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -95,13 +110,62 @@ export function RegisterPage() {
   }
 
   return (
-    <AuthPageShell>
+    <AuthPageShell className="space-y-6 max-w-lg">
       <div>
         <h1 className="text-2xl font-bold">Create account</h1>
         <p className="mt-1 text-sm text-slate-600">
           Register your business. After signup, check your email to verify your account.
         </p>
       </div>
+
+      <section
+        aria-labelledby="register-plan-heading"
+        className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+      >
+        <h2 id="register-plan-heading" className="text-sm font-semibold text-slate-900">
+          Platform plan (signup intent)
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Selected: <span className="font-medium text-slate-900">{selectedPlan.name}</span>{" "}
+          <span className="text-slate-700">({selectedPlan.priceLabel})</span>
+        </p>
+        <fieldset className="mt-3 space-y-2">
+          <legend className="sr-only">Choose a platform plan</legend>
+          {PRICING_PLANS.map((plan) => (
+            <label
+              key={plan.id}
+              className={`flex cursor-pointer items-start gap-3 rounded-xl border bg-white p-3 ${
+                selectedPlanId === plan.id
+                  ? "border-brand-400 ring-1 ring-brand-200"
+                  : "border-slate-200"
+              }`}
+            >
+              <input
+                type="radio"
+                name="platform-plan"
+                value={plan.id}
+                checked={selectedPlanId === plan.id}
+                onChange={() => handlePlanChange(plan.id)}
+                className="mt-1"
+              />
+              <span className="flex-1">
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-medium text-slate-900">{plan.name}</span>
+                  <span className="text-sm text-slate-600">{plan.priceLabel}</span>
+                  {plan.recommended ? (
+                    <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-800">
+                      Recommended
+                    </span>
+                  ) : null}
+                </span>
+                <span className="mt-0.5 block text-xs text-slate-600">{plan.bestFor}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+        <p className="mt-3 text-xs text-slate-600">{REGISTER_PLAN_INTENT_NOTE}</p>
+      </section>
+
       {submitError ? <ErrorState title="Registration failed" message={submitError} /> : null}
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <label className="block space-y-1">

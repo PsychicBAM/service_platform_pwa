@@ -10,9 +10,17 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 
 ### Post-Phase-4 notes (frontend)
 
-- **Pricing** on `/` is static/demo only — Stripe and checkout are not implemented.
+- **Pricing** on `/` shows planned prices ($0 / $19 / $49 / $99), expandable details, and **Choose plan** links to `/register?plan=…` — Stripe and checkout are not implemented.
+- **Register plan selection** — reads `?plan=` from URL; user can change plan on the form. Selection is **signup intent only**; backend still creates Free plan until billing slice.
 - **Message banners** are in-app only while an order message page or admin panel is open — not global push notifications.
 - **Messenger inbox** and unread badges are deferred; see roadmap in [MVP_RELEASE_REPORT.md](../MVP_RELEASE_REPORT.md).
+
+### Phase 5 Slice 1 — Pricing details + register plan choice (summary)
+
+- `web/src/data/pricingPlans.ts` — shared plan data (prices from PRODUCT_SPEC)
+- `PricingSection` — prices, View details toggle, Choose plan → `/register?plan=<id>`
+- `RegisterPage` — plan radio selector, URL param, manual billing intent note
+- No backend plan field sent; no Stripe/checkout/automatic upgrades
 
 ## Stack
 
@@ -124,7 +132,7 @@ Lint is **not configured** in this slice — add ESLint in a later slice if need
 
 Smoke tests live in `web/src/test/` using **Vitest**, **React Testing Library**, and **jsdom**. They mock API modules (`publicApi`, `meApi`, `adminApi`, `superadminApi`, `useAuth`) — no real backend or browser required.
 
-Coverage (45 tests):
+Coverage (59 tests):
 
 - Public pages: business home, services list, service detail CTAs, order validation, booking date/slots
 - Client auth: login prompts, verification-required login handling, password reset, `/me/orders`, order messages, registration form
@@ -153,7 +161,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Coverage (18 tests):
+Coverage (19 tests):
 
 - Public: platform home pricing, business home, services list, order validation, booking date screen
 - Client: login, `/me/bookings`, `/me/orders`, claim form

@@ -73,12 +73,12 @@ Related docs:
 | Module | Notes |
 |--------|--------|
 | Public business page | `/b/:slug` |
-| Platform landing + pricing | `/` — hero, features, static SaaS plans (Free/Starter/Business/Pro); Stripe not implemented |
+| Platform landing + pricing | `/` — hero, features, SaaS plans with prices/details, Choose plan → register; Stripe not implemented |
 | Public services list / detail | Catalog and service pages |
 | Booking flow | Slot selection and booking submit |
 | Order request flow | Form-based order submit |
 | Login / token refresh | JWT in localStorage, 401 refresh |
-| Registration | `/register` wired to POST `/auth/register`; success → `/check-email` |
+| Registration | `/register` wired to POST `/auth/register`; success → `/check-email`; plan choice via `?plan=` (signup intent only — backend still Free) |
 | Client bookings / orders / messages | `/me/bookings`, `/me/orders`, order detail (messages auto-refresh via 1s polling) |
 | Guest claim UI | `/me/claim` — reference + email/phone (no magic-link email yet) |
 | Email verification UI | `/verify-email`, `/check-email`; resend; non-blocking banner |
@@ -92,8 +92,8 @@ Related docs:
 | Admin settings edit | Business settings form |
 | Superadmin UI | Overview, businesses, audit logs |
 | Desktop/mobile UX polish | Phase 4 Slice 19 — spacing, responsive grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
-| Vitest smoke tests | 51 tests — mocked API |
-| Playwright local smoke | 18 browser tests — manual/local only |
+| Vitest smoke tests | 59 tests — mocked API |
+| Playwright local smoke | 19 browser tests — manual/local only |
 
 ### Infrastructure
 
@@ -338,7 +338,7 @@ Legacy list (Phase 3):
 | Password reset backend / frontend | Request/reset API; `/forgot-password`, `/reset-password` |
 | Password reset audit | `scripts/check_password_reset.py` |
 | Message polling + in-app banners | 1s polling while order page/panel open; dismissible banner for new incoming messages |
-| Landing page pricing section | Hero, features, static SaaS plans on `/` only |
+| Landing page pricing section | Hero, features, SaaS plans with prices ($0/$19/$49/$99), expandable details, Choose plan links |
 | Mobile / desktop UX polish | Slice 19 — spacing, grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
 | CI | GitHub Actions — backend pytest + frontend Vitest/build |
 | Docker dev / prod compose | `docker-compose.yml`, `docker-compose.prod.yml` |
@@ -350,8 +350,8 @@ Legacy list (Phase 3):
 | Item | Notes |
 |------|--------|
 | Stripe / payments / checkout | No online payment for bookings, orders, or SaaS plans |
-| Plan selection during registration | Register does not choose a SaaS tier |
-| Clickable pricing plan detail pages | Landing pricing is static; no `/pricing/:plan` pages |
+| Plan selection during registration | Frontend UX only — `?plan=` + radio on `/register`; backend still creates Free plan |
+| Clickable pricing plan detail pages | Expandable details on landing cards; no separate `/pricing/:plan` routes |
 | Automatic plan upgrades | Superadmin changes plans manually |
 | Real production SMTP config | Requires operator `.env` on VPS; dry-run by default locally |
 | Full messenger inbox | No conversation list or global message center |
@@ -449,7 +449,7 @@ docker compose exec api python scripts/send_test_email.py --to your-email@exampl
 
 Practical order for remaining ~$5000 budget — product gaps before infrastructure polish:
 
-1. **Pricing plan details + plan choice during registration** — still manual billing; no Stripe yet
+1. **Pricing plan details + plan choice during registration** — ✅ Slice 1 done (manual billing intent; backend still Free)
 2. **Stripe Checkout foundation** — deposits or SaaS subscription payments
 3. **Messenger inbox** — conversation list, client search, unread counts
 4. **Browser push or WebSocket** — only after inbox UX is stable

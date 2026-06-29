@@ -21,12 +21,12 @@ describe("platform landing page", () => {
     expect(screen.getByRole("heading", { name: /^Business$/i })).toBeInTheDocument();
   });
 
-  it("C. notes that payments and plan upgrades are coming later", () => {
+  it("C. notes that payments are not live yet", () => {
     renderRoute(<PublicHomePage />, { route: "/", path: "/" });
 
     expect(
-      screen.getByText(/payments and plan upgrades are coming later/i),
+      screen.getByText(/payments and automatic upgrades are not live yet/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/manual plan management/i)).toBeInTheDocument();
+    expect(screen.getByText(/demo\/manual/i)).toBeInTheDocument();
   });
 });

@@ -38,6 +38,16 @@ test.describe("public smoke flows", () => {
     await expect(page.getByRole("heading", { name: /choose the right plan/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Business", exact: true })).toBeVisible();
     await expect(page.getByText("Recommended")).toBeVisible();
-    await expect(page.getByText(/payments and plan upgrades are coming later/i)).toBeVisible();
+    await expect(page.getByText("$49/mo")).toBeVisible();
+    await expect(page.getByText(/payments and automatic upgrades are not live yet/i)).toBeVisible();
+  });
+
+  test("F. choose Business plan links to register with plan param", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: /choose business/i }).click();
+    await expect(page).toHaveURL(/\/register\?plan=business/);
+    await expect(page.getByText(/platform plan \(signup intent\)/i)).toBeVisible();
+    await expect(page.getByText(/selected:.*business/i)).toBeVisible();
+    await expect(page.locator('input[value="business"]')).toBeChecked();
   });
 });
