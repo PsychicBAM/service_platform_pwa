@@ -66,3 +66,12 @@ class AuditLogRepository:
         if action:
             stmt = stmt.where(AuditLog.action == action)
         return stmt
+
+    async def has_metadata_value(self, *, metadata_key: str, metadata_value: str) -> bool:
+        stmt = (
+            select(AuditLog.id)
+            .where(AuditLog.log_metadata[metadata_key].astext == metadata_value)
+            .limit(1)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none() is not None
