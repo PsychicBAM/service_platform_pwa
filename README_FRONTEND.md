@@ -4,7 +4,15 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 
 **MVP release checkpoint:** [MVP_RELEASE_REPORT.md](../MVP_RELEASE_REPORT.md) — implemented UI, smoke checklist, and known limitations.
 
+**Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](../MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, next roadmap (Slice 20).
+
 **UX manual review:** [FRONTEND_UX_CHECKLIST.md](../FRONTEND_UX_CHECKLIST.md) — desktop/mobile checklists, flow smoke tests, known UX limitations (Phase 4 Slice 19).
+
+### Post-Phase-4 notes (frontend)
+
+- **Pricing** on `/` is static/demo only — Stripe and checkout are not implemented.
+- **Message banners** are in-app only while an order message page or admin panel is open — not global push notifications.
+- **Messenger inbox** and unread badges are deferred; see roadmap in [MVP_RELEASE_REPORT.md](../MVP_RELEASE_REPORT.md).
 
 ## Stack
 

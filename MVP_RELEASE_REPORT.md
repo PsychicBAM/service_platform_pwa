@@ -1,9 +1,9 @@
 # MVP Release Checkpoint Report
 
 **Project:** Service Platform PWA  
-**Checkpoint:** Phase 3 — MVP release readiness (documentation)  
+**Checkpoint:** Phase 4 complete — post-Phase-4 release readiness (documentation)  
 **Date:** June 2026  
-**Budget context:** ~$5000 total — MVP scope complete for local/demo and deployment preparation; not yet live on a production VPS.
+**Budget context:** ~$5000 total — MVP and Phase 4 polish complete for local/demo and deployment preparation; not yet live on a production VPS.
 
 This report summarizes what is implemented, how to run and test it, and what remains before a real production launch.
 
@@ -92,8 +92,8 @@ Related docs:
 | Admin settings edit | Business settings form |
 | Superadmin UI | Overview, businesses, audit logs |
 | Desktop/mobile UX polish | Phase 4 Slice 19 — spacing, responsive grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
-| Vitest smoke tests | 30 tests — mocked API |
-| Playwright local smoke | 12 browser tests — manual/local only |
+| Vitest smoke tests | 51 tests — mocked API |
+| Playwright local smoke | 18 browser tests — manual/local only |
 
 ### Infrastructure
 
@@ -296,7 +296,9 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 
 ## G. Recommended next slices (safe order)
 
-Prioritized for ~$5000 budget — infrastructure and high-value product gaps before polish:
+See **Post-Phase-4 checkpoint — E. Recommended next roadmap** below for the current prioritized roadmap after Phase 4.
+
+Legacy list (Phase 3):
 
 1. **Magic-link email for guest claim** — optional email delivery instead of manual reference entry
 2. **Messenger inbox** — conversations list, unread counts, client search; WebSocket optional later
@@ -311,12 +313,161 @@ Prioritized for ~$5000 budget — infrastructure and high-value product gaps bef
 
 ---
 
+## Post-Phase-4 checkpoint
+
+**Slice:** Phase 4 Slice 20 — documentation only. No product logic changes.  
+**Purpose:** Single source of truth for what is ready after Phase 4, what is not, how to demo, and what to build next.
+
+### A. Ready now
+
+| Area | Status |
+|------|--------|
+| Public business pages | `/b/:slug`, services catalog, service detail |
+| Booking flow | Date/slot selection, guest and authenticated submit |
+| Order request flow | Form-based request submit |
+| Client account pages | `/me/bookings`, `/me/orders`, order detail with messages |
+| Guest claim | Backend API + `/me/claim` UI (reference + contact) |
+| Admin dashboard | Stats, attention items, quick links |
+| Admin services / bookings / orders / clients / schedule / settings | Full CRUD and operational workflows |
+| Superadmin businesses / audit logs | Status, plan management, audit trail |
+| Email notification foundation | `EmailService`, templates, dry-run/disabled by default |
+| Email event wiring | Booking/order/message notification hooks |
+| Email dry-run audit | `scripts/check_email_notifications.py` |
+| SMTP test command | `scripts/send_test_email.py --to …` (manual, VPS only) |
+| Email verification backend / frontend | Verify/resend API; `/verify-email`, `/check-email`; register → check-email |
+| Password reset backend / frontend | Request/reset API; `/forgot-password`, `/reset-password` |
+| Password reset audit | `scripts/check_password_reset.py` |
+| Message polling + in-app banners | 1s polling while order page/panel open; dismissible banner for new incoming messages |
+| Landing page pricing section | Hero, features, static SaaS plans on `/` only |
+| Mobile / desktop UX polish | Slice 19 — spacing, grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
+| CI | GitHub Actions — backend pytest + frontend Vitest/build |
+| Docker dev / prod compose | `docker-compose.yml`, `docker-compose.prod.yml` |
+| Production env validation | `scripts/check_production_env.py` |
+| Deployment / backup docs | `DEPLOYMENT.md`, `PRODUCTION_CHECKLIST.md`, `BACKUP_RESTORE.md` |
+
+### B. Still not implemented
+
+| Item | Notes |
+|------|--------|
+| Stripe / payments / checkout | No online payment for bookings, orders, or SaaS plans |
+| Plan selection during registration | Register does not choose a SaaS tier |
+| Clickable pricing plan detail pages | Landing pricing is static; no `/pricing/:plan` pages |
+| Automatic plan upgrades | Superadmin changes plans manually |
+| Real production SMTP config | Requires operator `.env` on VPS; dry-run by default locally |
+| Full messenger inbox | No conversation list or global message center |
+| Unread message counts | No badges on nav or order list |
+| Browser push notifications | In-app banners only while message view is open |
+| WebSocket realtime | Messages use HTTP polling |
+| OAuth / social login | Email/password only |
+| Service worker / offline mode | PWA manifest only |
+| Mobile app wrapper | Web responsive UI only |
+| Monitoring / alerting | No uptime or error tracking service |
+| Automated backups | Commands documented; no cron wired |
+| Real VPS deployment | Docs and compose prepared; not deployed to production domain |
+
+### C. Manual demo checklist
+
+Prerequisites: `docker compose up -d --build`, `alembic upgrade head`, `seed_demo.py`.  
+Password for all demo users: **ChangeMe123!**
+
+#### Public
+
+- [ ] `/` — platform landing, hero, features, static pricing
+- [ ] `/b/demo-business` — business home
+- [ ] `/b/demo-business/services` — catalog (booking + request services)
+- [ ] Booking service flow — pick date/slot, submit (guest or logged in)
+- [ ] Order request flow — open request service, submit form
+
+#### Client
+
+- [ ] Login as [client@example.com](mailto:client@example.com)
+- [ ] `/me/bookings` — linked demo booking visible
+- [ ] `/me/orders` — linked demo order visible
+- [ ] Order detail — view message thread, send reply (1s auto-refresh)
+- [ ] `/me/claim` — claim guest booking/request with reference + contact
+- [ ] `/forgot-password` — form loads and validates (real email needs SMTP)
+- [ ] `/check-email` — post-register / verification status page
+
+#### Admin
+
+- [ ] Login as [owner@example.com](mailto:owner@example.com)
+- [ ] `/admin` — dashboard with counts and quick links
+- [ ] Services — list, create/edit, activate/deactivate
+- [ ] Bookings — list, confirm/cancel, view detail
+- [ ] Orders — list, accept/decline, send message in order panel
+- [ ] Clients — CRM list and client detail
+- [ ] Schedule — edit working hours and breaks
+- [ ] Settings — edit business profile and settings
+
+#### Superadmin
+
+- [ ] Login as [superadmin@example.com](mailto:superadmin@example.com)
+- [ ] `/superadmin/businesses` — list, view, change status/plan
+- [ ] Audit logs — `/superadmin/audit-logs` shows status/plan changes
+
+### D. Commands
+
+**Stack up + seed:**
+
+```bash
+docker compose up -d --build
+docker compose exec api alembic upgrade head
+docker compose exec api python scripts/seed_demo.py
+```
+
+**Backend checks** (run `seed_demo.py` after `pytest` / `check_backend.py` — tests truncate auth tables):
+
+```bash
+docker compose exec api python -m pytest
+docker compose exec api python scripts/check_backend.py
+docker compose exec api python scripts/seed_demo.py
+docker compose exec api python scripts/e2e_backend_audit.py
+docker compose exec api python scripts/check_email_notifications.py
+docker compose exec api python scripts/check_email_verification.py
+docker compose exec api python scripts/check_password_reset.py
+```
+
+**Frontend checks:**
+
+```bash
+cd web
+npm run test
+npm run typecheck
+npm run build
+npm run check:routes
+npm run test:e2e
+cd ..
+```
+
+**Manual SMTP smoke** (VPS only, explicit recipient):
+
+```bash
+docker compose exec api python scripts/send_test_email.py --to your-email@example.com
+```
+
+### E. Recommended next roadmap
+
+Practical order for remaining ~$5000 budget — product gaps before infrastructure polish:
+
+1. **Pricing plan details + plan choice during registration** — still manual billing; no Stripe yet
+2. **Stripe Checkout foundation** — deposits or SaaS subscription payments
+3. **Messenger inbox** — conversation list, client search, unread counts
+4. **Browser push or WebSocket** — only after inbox UX is stable
+5. **VPS deployment** — domain, HTTPS, real SMTP secrets
+6. **Automated backups** — cron + off-site `pg_dump`
+7. **Monitoring / logging** — uptime checks, error aggregation
+8. **OAuth / social login** — if needed for acquisition
+9. **Mobile wrapper** — after web is stable in production
+10. **CSP + Playwright in CI** — optional hardening when deploy is live
+
+---
+
 ## Summary
 
-The MVP is **feature-complete for demo and internal pilot**: multi-tenant bookings and orders, admin and superadmin tooling, Docker dev and prod-style stacks, CI, deployment documentation, and production safety checks. It is **not yet a live production product** until VPS deploy, real secrets, HTTPS, backups, and (optionally) payments and email are added.
+The MVP is **feature-complete for demo and internal pilot**: multi-tenant bookings and orders, admin and superadmin tooling, email verification and password reset, message polling with in-app banners, landing pricing, UX polish, Docker dev and prod-style stacks, CI, and deployment documentation. It is **not yet a live production product** until VPS deploy, real secrets, HTTPS, backups, SMTP, and (optionally) payments are added.
 
-**Sign-off (optional):**
+**Post-Phase-4 sign-off (optional):**
 
 | Role | Name | Date |
 |------|------|------|
-| MVP checkpoint | | |
+| Post-Phase-4 checkpoint | | |

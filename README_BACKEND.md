@@ -4,6 +4,14 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 
 **MVP release checkpoint:** [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) — what is done, how to run/test, and what remains before production.
 
+**Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](./MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, commands, next roadmap (Slice 20).
+
+### Post-Phase-4 notes (backend)
+
+- **Email verification** and **password reset** dry-run audits: `check_email_verification.py`, `check_password_reset.py` (included in `check_backend.py`).
+- **SMTP real delivery** requires operator configuration on VPS (`EMAIL_ENABLED`, SMTP credentials in `.env` — never commit secrets).
+- **Payments / Stripe** are not implemented; plan changes are manual via superadmin.
+
 ## Stack
 
 | Layer | Choice |
