@@ -351,6 +351,7 @@ Legacy list (Phase 3):
 |------|--------|
 | Stripe / payments / checkout | No online payment for bookings, orders, or SaaS plans |
 | Plan selection during registration | ✅ Slice 2 — `selected_plan_intent` in business.settings; subscription plan stays `free` |
+| Superadmin manual plan management | ✅ Slice 3 — active plan + signup intent UI; audited manual changes; no Stripe |
 | Clickable pricing plan detail pages | Expandable details on landing cards; no separate `/pricing/:plan` routes |
 | Automatic plan upgrades | Superadmin changes plans manually |
 | Real production SMTP config | Requires operator `.env` on VPS; dry-run by default locally |

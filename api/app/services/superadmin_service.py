@@ -125,16 +125,27 @@ class SuperadminService:
             if payload.plan != subscription.plan:
                 old_plan = subscription.plan
                 await self.repo.update_subscription(subscription, {"plan": payload.plan})
+                intent_fields = _plan_intent_from_settings(business.settings)
+                metadata: dict[str, str] = {
+                    "old_plan": old_plan.value,
+                    "new_plan": payload.plan.value,
+                    "change_source": "superadmin_manual",
+                }
+                if intent_fields["selected_plan_intent"] is not None:
+                    metadata["selected_plan_intent"] = intent_fields[
+                        "selected_plan_intent"
+                    ].value
+                if intent_fields["selected_plan_intent_source"]:
+                    metadata["selected_plan_intent_source"] = str(
+                        intent_fields["selected_plan_intent_source"]
+                    )
                 await self.audit.create_audit_log(
                     actor_user_id=actor_user_id,
                     business_id=business_id,
                     action="subscription.plan_changed",
                     target_type="subscription",
                     target_id=subscription.id,
-                    metadata={
-                        "old_plan": old_plan.value,
-                        "new_plan": payload.plan.value,
-                    },
+                    metadata=metadata,
                 )
 
         await self.session.refresh(business)

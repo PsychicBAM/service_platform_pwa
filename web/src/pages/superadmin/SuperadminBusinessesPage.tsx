@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listSuperadminBusinesses } from "@/api/superadminApi";
 import { SuperadminBusinessDetailPanel } from "@/components/superadmin/SuperadminBusinessDetailPanel";
+import { PlanRequestBadge } from "@/components/superadmin/PlanRequestBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -27,12 +28,7 @@ const PLAN_FILTERS: Array<{ value: PlanFilter; label: string }> = [
   { value: "pro", label: "Pro" },
 ];
 
-function formatLabel(value: string): string {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
+import { formatPlanLabel } from "@/utils/planManagement";
 
 function FilterButton({
   active,
@@ -184,19 +180,29 @@ export function SuperadminBusinessesPage() {
                   <p className="font-mono text-sm text-slate-600">{business.slug}</p>
                 </div>
                 <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                  {formatLabel(business.status)}
+                  {formatPlanLabel(business.status)}
                 </span>
+                <PlanRequestBadge
+                  activePlan={business.plan}
+                  intent={business.selected_plan_intent}
+                />
               </div>
               <dl className="mt-3 grid gap-1 text-sm text-slate-600 sm:grid-cols-2">
                 <div>
-                  <dt className="inline text-slate-500">Mode: </dt>
-                  <dd className="inline">{formatLabel(business.operating_mode)}</dd>
-                </div>
-                <div>
-                  <dt className="inline text-slate-500">Plan: </dt>
-                  <dd className="inline">
-                    {formatLabel(business.plan)} · {formatLabel(business.subscription_status)}
+                  <dt className="inline text-slate-500">Active plan: </dt>
+                  <dd className="inline font-medium text-slate-800">
+                    {formatPlanLabel(business.plan)} · {formatPlanLabel(business.subscription_status)}
                   </dd>
+                </div>
+                {business.selected_plan_intent ? (
+                  <div>
+                    <dt className="inline text-slate-500">Signup intent: </dt>
+                    <dd className="inline">{formatPlanLabel(business.selected_plan_intent)}</dd>
+                  </div>
+                ) : null}
+                <div>
+                  <dt className="inline text-slate-500">Mode: </dt>
+                  <dd className="inline">{formatPlanLabel(business.operating_mode)}</dd>
                 </div>
                 {business.owner_email ? (
                   <div className="sm:col-span-2">

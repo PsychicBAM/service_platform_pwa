@@ -11,6 +11,8 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Email verification** and **password reset** dry-run audits: `check_email_verification.py`, `check_password_reset.py` (included in `check_backend.py`).
 - **SMTP real delivery** requires operator configuration on VPS (`EMAIL_ENABLED`, SMTP credentials in `.env` — never commit secrets).
 - **Registration plan intent** — `POST /auth/register` accepts `selected_plan_intent`; stored in `business.settings`; subscription plan remains `free` until manual/billing action.
+- **Superadmin manual plans** — active plan vs signup intent on list/detail; manual changes audited with intent metadata; no Stripe.
+- **Superadmin manual plans** — active plan vs signup intent visible; manual changes audited with intent metadata; no Stripe.
 - **Payments / Stripe** are not implemented; plan changes are manual via superadmin.
 
 ## Stack

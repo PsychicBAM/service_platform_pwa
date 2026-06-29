@@ -11,6 +11,7 @@ test.describe("superadmin access", () => {
     await page.goto("/superadmin/businesses");
     await expect(page.getByRole("heading", { name: "Businesses" })).toBeVisible();
     await expect(page.getByText(DEMO.slug)).toBeVisible();
+    await expect(page.getByText(/active plan:/i)).toBeVisible();
   });
 
   test("I. owner is blocked from superadmin", async ({ page }) => {

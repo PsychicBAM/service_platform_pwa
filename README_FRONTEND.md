@@ -29,6 +29,13 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - Superadmin business detail shows **Signup plan intent**
 - No Stripe, checkout, or automatic upgrades
 
+### Phase 5 Slice 3 — Superadmin manual plan management polish (summary)
+
+- Business list shows **Active plan**, **Signup intent**, and **Plan request** badge when intent differs
+- Detail panel: subscription vs signup intent sections, mismatch note, clearer manual plan form
+- Plan change audit logs include `selected_plan_intent`, source, and `change_source: superadmin_manual`
+- Stripe/checkout still not connected
+
 ## Stack
 
 | Layer | Choice |
