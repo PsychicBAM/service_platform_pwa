@@ -95,6 +95,7 @@ export function RegisterPage() {
         email: email.trim().toLowerCase(),
         password,
         full_name: fullName.trim(),
+        selected_plan_intent: selectedPlanId,
         business: {
           name: businessName.trim(),
           slug: normalizeSlug(slug),

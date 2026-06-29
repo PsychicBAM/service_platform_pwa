@@ -3,7 +3,7 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-from app.models.enums import OperatingMode, UserRole
+from app.models.enums import OperatingMode, SubscriptionPlan, UserRole
 from app.schemas.business import BusinessRead
 from app.schemas.user import UserRead
 
@@ -33,6 +33,7 @@ class RegisterBusinessRequest(BaseModel):
     full_name: str = Field(min_length=1, max_length=255)
     phone: str | None = Field(default=None, max_length=50)
     business: BusinessRegisterInput
+    selected_plan_intent: SubscriptionPlan = SubscriptionPlan.free
 
     @field_validator("email")
     @classmethod

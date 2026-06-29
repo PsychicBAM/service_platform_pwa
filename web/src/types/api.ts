@@ -166,6 +166,7 @@ export interface RegisterRequest {
   full_name: string;
   phone?: string | null;
   business: BusinessRegisterInput;
+  selected_plan_intent?: SubscriptionPlan;
 }
 
 export interface RegisterResponse {
@@ -766,6 +767,7 @@ export interface SuperadminBusinessListItem {
   owner_email: string | null;
   plan: SubscriptionPlan;
   subscription_status: SubscriptionStatus;
+  selected_plan_intent?: SubscriptionPlan | null;
   created_at: string;
   updated_at: string;
 }
@@ -800,6 +802,9 @@ export interface SuperadminBusinessDetail {
   contact_phone: string | null;
   address: string | null;
   settings: BusinessSettingsRead;
+  selected_plan_intent?: SubscriptionPlan | null;
+  selected_plan_intent_source?: string | null;
+  selected_plan_intent_recorded_at?: string | null;
   subscription: SuperadminSubscriptionRead | null;
   owner: SuperadminOwnerRead | null;
   created_at: string;

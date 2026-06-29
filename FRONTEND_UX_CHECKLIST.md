@@ -8,7 +8,7 @@ Manual review guide for desktop and mobile. Use after UI changes or before a rel
 
 - **Mobile/desktop polish** — completed (Slice 19); responsive grids, auth/form shells, no horizontal scroll fixes.
 - **Pricing** — planned prices visible on `/`; View details expands limits; Choose plan links to `/register?plan=…`; no Stripe/checkout.
-- **Register plan choice** — signup intent only; account still starts on Free plan until billing slice.
+- **Register plan choice** — `selected_plan_intent` persisted in business settings on signup; subscription remains Free until billing/superadmin.
 - **Message notifications** — in-app dismissible banners while order message view is open; not browser push.
 - **Deferred:** dedicated messenger inbox, unread counts, WebSocket — see [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](./MVP_RELEASE_REPORT.md#post-phase-4-checkpoint).
 

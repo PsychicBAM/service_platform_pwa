@@ -11,7 +11,7 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 ### Post-Phase-4 notes (frontend)
 
 - **Pricing** on `/` shows planned prices ($0 / $19 / $49 / $99), expandable details, and **Choose plan** links to `/register?plan=…` — Stripe and checkout are not implemented.
-- **Register plan selection** — reads `?plan=` from URL; user can change plan on the form. Selection is **signup intent only**; backend still creates Free plan until billing slice.
+- **Register plan selection** — reads `?plan=` from URL; sends `selected_plan_intent` on register; persisted in business settings; actual subscription stays Free
 - **Message banners** are in-app only while an order message page or admin panel is open — not global push notifications.
 - **Messenger inbox** and unread badges are deferred; see roadmap in [MVP_RELEASE_REPORT.md](../MVP_RELEASE_REPORT.md).
 
@@ -20,7 +20,14 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - `web/src/data/pricingPlans.ts` — shared plan data (prices from PRODUCT_SPEC)
 - `PricingSection` — prices, View details toggle, Choose plan → `/register?plan=<id>`
 - `RegisterPage` — plan radio selector, URL param, manual billing intent note
-- No backend plan field sent; no Stripe/checkout/automatic upgrades
+
+### Phase 5 Slice 2 — Persist signup plan intent (summary)
+
+- `POST /auth/register` accepts optional `selected_plan_intent` (`free` | `starter` | `business` | `pro`)
+- Stored in `business.settings` (`selected_plan_intent`, source, timestamp) — **not** on `Subscription.plan`
+- Actual subscription remains **Free** until superadmin or future billing
+- Superadmin business detail shows **Signup plan intent**
+- No Stripe, checkout, or automatic upgrades
 
 ## Stack
 
@@ -132,7 +139,7 @@ Lint is **not configured** in this slice — add ESLint in a later slice if need
 
 Smoke tests live in `web/src/test/` using **Vitest**, **React Testing Library**, and **jsdom**. They mock API modules (`publicApi`, `meApi`, `adminApi`, `superadminApi`, `useAuth`) — no real backend or browser required.
 
-Coverage (59 tests):
+Coverage (60 tests):
 
 - Public pages: business home, services list, service detail CTAs, order validation, booking date/slots
 - Client auth: login prompts, verification-required login handling, password reset, `/me/orders`, order messages, registration form

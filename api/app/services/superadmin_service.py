@@ -22,6 +22,22 @@ from app.schemas.superadmin import (
 from app.services.audit_log_service import AuditLogService
 
 
+def _plan_intent_from_settings(settings: dict | None) -> dict:
+    merged = settings or {}
+    raw_intent = merged.get("selected_plan_intent")
+    intent: SubscriptionPlan | None = None
+    if raw_intent is not None:
+        try:
+            intent = SubscriptionPlan(raw_intent)
+        except ValueError:
+            intent = None
+    return {
+        "selected_plan_intent": intent,
+        "selected_plan_intent_source": merged.get("selected_plan_intent_source"),
+        "selected_plan_intent_recorded_at": merged.get("selected_plan_intent_recorded_at"),
+    }
+
+
 class SuperadminService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
@@ -59,6 +75,9 @@ class SuperadminService:
                 owner_email=owner_email,
                 plan=subscription.plan,
                 subscription_status=subscription.status,
+                selected_plan_intent=_plan_intent_from_settings(business.settings)[
+                    "selected_plan_intent"
+                ],
                 created_at=business.created_at,
                 updated_at=business.updated_at,
             )
@@ -136,6 +155,7 @@ class SuperadminService:
         subscription: Subscription | None,
         owner,
     ) -> SuperadminBusinessDetail:
+        intent_fields = _plan_intent_from_settings(business.settings)
         return SuperadminBusinessDetail(
             id=business.id,
             name=business.name,
@@ -148,6 +168,9 @@ class SuperadminService:
             contact_phone=business.contact_phone,
             address=business.address,
             settings=BusinessSettingsRead.from_settings(business.settings),
+            selected_plan_intent=intent_fields["selected_plan_intent"],
+            selected_plan_intent_source=intent_fields["selected_plan_intent_source"],
+            selected_plan_intent_recorded_at=intent_fields["selected_plan_intent_recorded_at"],
             subscription=(
                 SuperadminSubscriptionRead.model_validate(subscription)
                 if subscription is not None

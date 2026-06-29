@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -73,6 +74,14 @@ class AuthService:
             operating_mode=data.business.operating_mode,
             timezone=data.business.timezone,
             contact_email=data.email,
+        )
+        await self.businesses.update_settings(
+            business,
+            {
+                "selected_plan_intent": data.selected_plan_intent.value,
+                "selected_plan_intent_source": "registration",
+                "selected_plan_intent_recorded_at": datetime.now(UTC).isoformat(),
+            },
         )
         await self.businesses.create_member(
             business_id=business.id,

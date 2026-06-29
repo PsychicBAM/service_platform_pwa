@@ -87,6 +87,7 @@ describe("RegisterPage", () => {
         email: "owner@new.com",
         password: "ChangeMe123!",
         full_name: "New Owner",
+        selected_plan_intent: "free",
         business: {
           name: "New Biz",
           slug: "new-biz",
@@ -119,5 +120,39 @@ describe("RegisterPage", () => {
     renderRoute(<RegisterPage />, { route: "/register", path: "/register" });
 
     expect(screen.getByRole("link", { name: /sign in/i })).toHaveAttribute("href", "/login");
+  });
+
+  it("F. register page with business plan sends selected_plan_intent", async () => {
+    const user = userEvent.setup();
+    vi.mocked(authApi.register).mockResolvedValue({
+      user: {
+        id: "user-1",
+        email: "owner@new.com",
+        full_name: "New Owner",
+        role: "business_admin",
+      },
+      business: { id: "biz-1", name: "New Biz", slug: "new-biz" },
+      tokens: {
+        access_token: "access",
+        refresh_token: "refresh",
+        token_type: "bearer",
+        expires_in: 3600,
+      },
+    });
+
+    renderRoute(<RegisterPage />, { route: "/register?plan=business", path: "/register" });
+
+    await user.type(screen.getByLabelText(/full name/i), "New Owner");
+    await user.type(screen.getByLabelText(/^email$/i), "owner@new.com");
+    await user.type(screen.getByLabelText(/password/i), "ChangeMe123!");
+    await user.type(screen.getByLabelText(/business name/i), "New Biz");
+    await user.type(screen.getByLabelText(/business slug/i), "new-biz");
+    await user.click(screen.getByRole("button", { name: /create account/i }));
+
+    await waitFor(() => {
+      expect(authApi.register).toHaveBeenCalledWith(
+        expect.objectContaining({ selected_plan_intent: "business" }),
+      );
+    });
   });
 });

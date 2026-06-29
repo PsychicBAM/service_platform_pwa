@@ -147,6 +147,14 @@ export function SuperadminBusinessDetailPanel({
               <dd className="text-slate-900">{formatLabel(business.subscription.status)}</dd>
             </div>
             <div>
+              <dt className="text-slate-500">Signup plan intent</dt>
+              <dd className="text-slate-900">
+                {business.selected_plan_intent
+                  ? formatLabel(business.selected_plan_intent)
+                  : "None"}
+              </dd>
+            </div>
+            <div>
               <dt className="text-slate-500">Usage</dt>
               <dd className="text-slate-900">
                 {business.subscription.usage_bookings_count} bookings ·{" "}
@@ -210,7 +218,7 @@ export function SuperadminBusinessDetailPanel({
           </select>
         </label>
         <p className="text-xs text-slate-500">
-          Plan changes are manual — no Stripe billing in this slice.
+          Plan changes are manual — signup intent does not activate billing. No Stripe in this slice.
         </p>
         <button
           type="submit"

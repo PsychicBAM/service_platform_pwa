@@ -22,6 +22,7 @@ class SuperadminBusinessListItem(BaseModel):
     owner_email: str | None
     plan: SubscriptionPlan
     subscription_status: SubscriptionStatus
+    selected_plan_intent: SubscriptionPlan | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -64,6 +65,9 @@ class SuperadminBusinessDetail(BaseModel):
     contact_phone: str | None
     address: str | None
     settings: BusinessSettingsRead
+    selected_plan_intent: SubscriptionPlan | None = None
+    selected_plan_intent_source: str | None = None
+    selected_plan_intent_recorded_at: str | None = None
     subscription: SuperadminSubscriptionRead | None
     owner: SuperadminOwnerRead | None
     created_at: datetime

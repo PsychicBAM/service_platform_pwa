@@ -78,7 +78,7 @@ Related docs:
 | Booking flow | Slot selection and booking submit |
 | Order request flow | Form-based order submit |
 | Login / token refresh | JWT in localStorage, 401 refresh |
-| Registration | `/register` wired to POST `/auth/register`; success → `/check-email`; plan choice via `?plan=` (signup intent only — backend still Free) |
+| Registration | `/register` wired to POST `/auth/register`; `selected_plan_intent` persisted in business settings; subscription remains `free` |
 | Client bookings / orders / messages | `/me/bookings`, `/me/orders`, order detail (messages auto-refresh via 1s polling) |
 | Guest claim UI | `/me/claim` — reference + email/phone (no magic-link email yet) |
 | Email verification UI | `/verify-email`, `/check-email`; resend; non-blocking banner |
@@ -92,7 +92,7 @@ Related docs:
 | Admin settings edit | Business settings form |
 | Superadmin UI | Overview, businesses, audit logs |
 | Desktop/mobile UX polish | Phase 4 Slice 19 — spacing, responsive grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
-| Vitest smoke tests | 59 tests — mocked API |
+| Vitest smoke tests | 60 tests — mocked API |
 | Playwright local smoke | 19 browser tests — manual/local only |
 
 ### Infrastructure
@@ -350,7 +350,7 @@ Legacy list (Phase 3):
 | Item | Notes |
 |------|--------|
 | Stripe / payments / checkout | No online payment for bookings, orders, or SaaS plans |
-| Plan selection during registration | Frontend UX only — `?plan=` + radio on `/register`; backend still creates Free plan |
+| Plan selection during registration | ✅ Slice 2 — `selected_plan_intent` in business.settings; subscription plan stays `free` |
 | Clickable pricing plan detail pages | Expandable details on landing cards; no separate `/pricing/:plan` routes |
 | Automatic plan upgrades | Superadmin changes plans manually |
 | Real production SMTP config | Requires operator `.env` on VPS; dry-run by default locally |

@@ -23,7 +23,7 @@ export const MANUAL_BILLING_NOTE =
   "Payments and automatic upgrades are not live yet. Plan changes are currently demo/manual.";
 
 export const REGISTER_PLAN_INTENT_NOTE =
-  "Selected plan is saved as your signup intent for now. Your account still starts on the Free plan until billing is implemented.";
+  "Selected plan is saved as your signup intent. Your account still starts on the Free plan until billing is implemented.";
 
 export const PRICING_PLANS: PricingPlan[] = [
   {
