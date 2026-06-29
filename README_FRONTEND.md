@@ -12,7 +12,7 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 
 ### Post-Phase-4 notes (frontend)
 
-- **Pricing** on `/` shows planned prices ($0 / $19 / $49 / $99), expandable details, and **Choose plan** links to `/register?plan=…` — Stripe and checkout are not implemented.
+- **Pricing** on `/` shows planned prices ($0 / $19 / $49 / $99), expandable details, and **Choose plan** links to `/register?plan=…`.
 - **Register plan selection** — reads `?plan=` from URL; sends `selected_plan_intent` on register; persisted in business settings; actual subscription stays Free
 - **Message banners** are in-app only while an order message page or admin panel is open — not global push notifications.
 - **Messenger inbox** and unread badges are deferred; see roadmap in [MVP_RELEASE_REPORT.md](../MVP_RELEASE_REPORT.md).
@@ -70,6 +70,12 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - With `STRIPE_ENABLED=false` (default local), shows friendly manual billing message — no crash
 - Public pricing cards still link to register only (no business auth context)
 - No billing portal, refunds, or downgrades
+
+### Phase 5 Slice 10 — Billing flow smoke audit (summary)
+
+- Backend `scripts/check_billing_flow.py` — OpenAPI checkout/webhook checks, plan eligibility, no real Stripe calls
+- `STRIPE_ENABLED=false` by default; checkout/webhook implemented but live Stripe requires env setup
+- Frontend route smoke + Vitest/Playwright already cover pricing, register plan, admin billing, success/cancel pages
 
 ### Phase 5 Slice 9 — Billing success/cancel pages (summary)
 

@@ -156,11 +156,31 @@ Practical order (one slice at a time; keep CI green):
 
 ---
 
+## H. Billing smoke flow status (Slice 10)
+
+End-to-end billing/Stripe **preparation** checkpoint — no live Stripe, no real payments.
+
+| Step | Status |
+|------|--------|
+| **Pricing visible** | Landing `/` shows Free, Starter, Business, Pro with prices and **Choose plan** links. |
+| **Register selected plan** | `/register?plan=…` pre-selects plan; backend stores `selected_plan_intent` (not active plan). |
+| **Admin checkout button** | Admin → Settings calls `POST .../billing/checkout-session`; redirects to Stripe when enabled. |
+| **Checkout session create** | Does **not** activate `Subscription.plan` — plan change only via webhook. |
+| **Webhook activation** | Mocked tests: `checkout.session.completed` updates plan + audit log (`change_source: stripe_webhook`). |
+| **Success / cancel pages** | `/billing/success` and `/billing/cancel` are friendly redirect targets; no plan mutation on page load. |
+| **Default local behavior** | `STRIPE_ENABLED=false` — admin checkout shows friendly manual billing message; no payment attempted. |
+| **Live Stripe** | Requires `STRIPE_ENABLED=true`, real env vars, HTTPS webhook URL, and Stripe CLI or dashboard webhook setup in production. |
+
+**Not implemented:** billing portal, refunds, downgrades, success-page payment verification.
+
+---
+
 ## Verification
 
-**Consistency script (optional):**
+**Consistency scripts (optional):**
 
 ```bash
+docker compose exec api python scripts/check_billing_flow.py
 docker compose exec api python scripts/check_billing_readiness.py
 ```
 
@@ -168,6 +188,9 @@ docker compose exec api python scripts/check_billing_readiness.py
 
 - `http://localhost:5173` — pricing visible
 - `http://localhost:5173/register?plan=business` — Business pre-selected
+- `http://localhost:5173/admin/settings` — billing section with checkout buttons (`STRIPE_DISABLED` message when off)
+- `http://localhost:5173/billing/success?session_id=cs_test_123` — success page renders
+- `http://localhost:5173/billing/cancel` — cancel page renders
 - `http://localhost:5173/superadmin/businesses` — active plan vs signup intent (after test registration)
 
-**Last updated:** Phase 5 Slice 9 — billing success/cancel pages for Stripe redirects.
+**Last updated:** Phase 5 Slice 10 — billing flow smoke audit script.

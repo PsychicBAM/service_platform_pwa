@@ -268,6 +268,42 @@ def main() -> int:
     if billing_result.returncode != 0:
         errors.append("check_billing_readiness.py failed")
 
+    billing_flow_script = api_dir / "scripts" / "check_billing_flow.py"
+    print("==> Checking billing flow audit script ...")
+    if not billing_flow_script.is_file():
+        errors.append("check_billing_flow.py not found")
+    else:
+        print(f"    Found {billing_flow_script.name}")
+        try:
+            import importlib.util
+
+            spec = importlib.util.spec_from_file_location(
+                "check_billing_flow_smoke", billing_flow_script
+            )
+            if spec and spec.loader:
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                if not hasattr(module, "main"):
+                    errors.append("check_billing_flow.py missing main()")
+            else:
+                errors.append("check_billing_flow.py import smoke failed")
+        except Exception as exc:
+            errors.append(f"check_billing_flow.py import smoke failed: {exc}")
+
+        print("==> Running billing flow smoke audit ...")
+        billing_flow_result = subprocess.run(
+            [sys.executable, "scripts/check_billing_flow.py"],
+            cwd=api_dir,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        print(billing_flow_result.stdout)
+        if billing_flow_result.stderr:
+            print(billing_flow_result.stderr, file=sys.stderr)
+        if billing_flow_result.returncode != 0:
+            errors.append("check_billing_flow.py failed")
+
     print("==> Checking required files ...")
     if not alembic_ini.is_file():
         errors.append("alembic.ini not found")
