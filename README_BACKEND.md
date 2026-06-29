@@ -15,9 +15,10 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Registration plan intent** — `POST /auth/register` accepts `selected_plan_intent`; stored in `business.settings`; subscription plan remains `free` until manual/billing action.
 - **Superadmin manual plans** — active plan vs signup intent on list/detail; manual changes audited with intent metadata; no Stripe.
 - **Billing readiness checkpoint** — [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md); `scripts/check_billing_readiness.py` (included in `check_backend.py`).
-- **Stripe config (Slice 5)** — `STRIPE_ENABLED=false` by default; env placeholders in `.env.example`; strict production validation when enabled; no checkout/webhooks.
-- **Checkout session (Slice 6)** — `POST /api/v1/businesses/{business_id}/billing/checkout-session`; disabled unless `STRIPE_ENABLED=true`; mocked tests only; no plan auto-upgrade.
-- **Payments / Stripe** — checkout session foundation only; webhooks and live billing not implemented; plan changes remain manual via superadmin until webhook slice.
+- **Stripe config (Slice 5)** — `STRIPE_ENABLED=false` by default; env placeholders in `.env.example`; strict production validation when enabled.
+- **Checkout session (Slice 6)** — `POST /api/v1/businesses/{business_id}/billing/checkout-session`; does not change plan on create.
+- **Stripe webhook (Slice 7)** — `POST /api/v1/billing/stripe/webhook`; `checkout.session.completed` updates plan + audit log; mocked tests only.
+- **Payments / Stripe** — backend checkout + webhook foundation; no frontend checkout button; live Stripe requires `STRIPE_WEBHOOK_SECRET` and Stripe CLI/webhook URL in production.
 
 ## Stack
 

@@ -35,3 +35,30 @@ class StripeCheckoutCreateError(AppError):
             code="STRIPE_CHECKOUT_CREATE_FAILED",
             status_code=502,
         )
+
+
+class StripeWebhookDisabledError(AppError):
+    def __init__(self) -> None:
+        super().__init__(
+            message="Stripe webhooks are not enabled.",
+            code="STRIPE_WEBHOOK_DISABLED",
+            status_code=503,
+        )
+
+
+class StripeWebhookSignatureError(AppError):
+    def __init__(self) -> None:
+        super().__init__(
+            message="Invalid Stripe webhook signature.",
+            code="STRIPE_WEBHOOK_SIGNATURE_INVALID",
+            status_code=400,
+        )
+
+
+class StripeWebhookProcessingError(AppError):
+    def __init__(self) -> None:
+        super().__init__(
+            message="Could not process Stripe webhook.",
+            code="STRIPE_WEBHOOK_PROCESSING_FAILED",
+            status_code=500,
+        )

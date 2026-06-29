@@ -14,3 +14,10 @@ class CheckoutPlanRequest(BaseModel):
 class CheckoutSessionResponse(BaseModel):
     checkout_url: str
     session_id: str
+
+
+class StripeWebhookResponse(BaseModel):
+    received: bool = True
+    processed: bool
+    ignored: bool = False
+    event_type: str | None = None

@@ -20,7 +20,7 @@ def main() -> int:
 
     errors: list[str] = []
     print("Billing readiness checkpoint")
-    print("Stripe checkout/webhooks are not implemented — config validation only.\n")
+    print("Checkout session + webhook backend when STRIPE_ENABLED=true; frontend checkout not implemented.\n")
 
     sys.path.insert(0, str(api_dir))
     try:
