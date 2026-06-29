@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Billing readiness checkpoint — verifies plan enum and that Stripe is not required yet."""
+"""Billing readiness checkpoint — plan enum and Stripe config status (no API calls)."""
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
+
+
+def _secret_status(label: str, value: str | None) -> str:
+    """Report whether a secret is configured without printing its value."""
+    if value and value.strip():
+        return f"{label}: configured"
+    return f"{label}: not set"
 
 
 def main() -> int:
@@ -14,13 +20,15 @@ def main() -> int:
 
     errors: list[str] = []
     print("Billing readiness checkpoint")
-    print("Stripe/checkout are not implemented — this script only verifies prerequisites.\n")
+    print("Stripe checkout/webhooks are not implemented — config validation only.\n")
 
     sys.path.insert(0, str(api_dir))
     try:
+        from app.config import Settings
         from app.models.enums import SubscriptionPlan
+        from app.services.stripe_config import stripe_price_ids_configured
     except Exception as exc:  # pragma: no cover
-        print(f"FAIL: could not import SubscriptionPlan: {exc}")
+        print(f"FAIL: could not import billing modules: {exc}")
         return 1
 
     plans = [p.value for p in SubscriptionPlan]
@@ -29,12 +37,28 @@ def main() -> int:
     if set(plans) != expected:
         errors.append(f"unexpected SubscriptionPlan values: {plans}")
 
-    stripe_secret = os.environ.get("STRIPE_SECRET_KEY", "").strip()
-    stripe_webhook = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
-    if stripe_secret or stripe_webhook:
-        print("WARN: STRIPE_* env vars are set but Stripe integration is not implemented yet.")
+    settings = Settings()
+    print(f"STRIPE_ENABLED={settings.stripe_enabled}")
+    print(_secret_status("STRIPE_SECRET_KEY", settings.stripe_secret_key))
+    print(_secret_status("STRIPE_WEBHOOK_SECRET", settings.stripe_webhook_secret))
+
+    if not settings.stripe_enabled:
+        print("Stripe disabled — billing remains manual/demo.")
     else:
-        print("Stripe env: not configured (expected for current MVP)")
+        configured = stripe_price_ids_configured(settings)
+        for plan_id, is_set in configured.items():
+            status = "configured" if is_set else "missing"
+            print(f"STRIPE price for {plan_id}: {status}")
+        missing_prices = [plan_id for plan_id, ok in configured.items() if not ok]
+        if missing_prices:
+            errors.append(
+                "STRIPE_ENABLED=true but price IDs missing for: "
+                + ", ".join(missing_prices)
+            )
+        if not (settings.stripe_secret_key or "").strip():
+            errors.append("STRIPE_ENABLED=true but STRIPE_SECRET_KEY is not set")
+        if not (settings.stripe_webhook_secret or "").strip():
+            errors.append("STRIPE_ENABLED=true but STRIPE_WEBHOOK_SECRET is not set")
 
     report_candidates = [
         project_root / "BILLING_READINESS_REPORT.md",

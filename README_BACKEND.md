@@ -15,6 +15,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Registration plan intent** — `POST /auth/register` accepts `selected_plan_intent`; stored in `business.settings`; subscription plan remains `free` until manual/billing action.
 - **Superadmin manual plans** — active plan vs signup intent on list/detail; manual changes audited with intent metadata; no Stripe.
 - **Billing readiness checkpoint** — [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md); `scripts/check_billing_readiness.py` (included in `check_backend.py`).
+- **Stripe config (Slice 5)** — `STRIPE_ENABLED=false` by default; env placeholders in `.env.example`; strict production validation when enabled; no checkout/webhooks.
 - **Payments / Stripe** are not implemented; plan changes are manual via superadmin or future webhooks.
 
 ## Stack

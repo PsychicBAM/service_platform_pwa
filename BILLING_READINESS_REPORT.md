@@ -1,9 +1,16 @@
-# Billing Readiness Report — Phase 5 Slice 4
+# Billing Readiness Report — Phase 5 (Slices 4–5)
 
 **Purpose:** Document current manual/demo billing behavior and define what must be built before Stripe integration.  
-**Status:** Billing is manual/demo only. **Stripe, checkout, webhooks, and real charges are not implemented.**
+**Status:** Billing is manual/demo only. **Stripe checkout, webhooks, and real charges are not implemented.** Stripe config/env validation exists (Slice 5); `STRIPE_ENABLED=false` by default.
 
 Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEND.md](./README_BACKEND.md) · [README_FRONTEND.md](./README_FRONTEND.md) · [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md)
+
+### Slice 5 — Stripe config validation (no payments)
+
+- Settings: `STRIPE_ENABLED`, secret/webhook keys, price IDs (`starter`/`business`/`pro`), success/cancel URLs
+- `scripts/check_production_env.py --strict` enforces Stripe fields only when `STRIPE_ENABLED=true`
+- `api/app/services/stripe_config.py` maps plans to price env vars (no Stripe SDK)
+- Next slice: checkout session backend with mocked tests
 
 ---
 
@@ -79,7 +86,7 @@ Demo seed business uses `Subscription.plan=business` without signup intent — u
 
 Before going live with payments, implement and test:
 
-- [ ] **Environment variables** — `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, publishable key for frontend; validate in `check_production_env.py`
+- [ ] **Environment variables** — `STRIPE_ENABLED`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, price IDs per plan, success/cancel URLs — ✅ config fields + `check_production_env.py` strict rules (Slice 5); checkout/webhooks not built yet
 - [ ] **Stripe price IDs** — one recurring price per paid plan (`starter`, `business`, `pro`); map to `SubscriptionPlan` enum
 - [ ] **Checkout session endpoint** — create Stripe Checkout Session for platform subscription (business owner context)
 - [ ] **Success / cancel URLs** — redirect back to app (e.g. `/admin/settings` or dedicated billing page)
@@ -116,8 +123,8 @@ Before going live with payments, implement and test:
 
 Practical order (one slice at a time; keep CI green):
 
-1. **Stripe config / env validation only** — settings model, optional keys, `check_production_env.py` warnings; no API calls yet.
-2. **Checkout session backend** — `POST /api/v1/billing/checkout-session` (or similar); mocked Stripe in tests; no frontend button yet.
+1. **Stripe config / env validation only** — ✅ Slice 5 — settings + `check_production_env.py` + `stripe_config.py`; disabled by default
+2. **Checkout session backend** — `POST /api/v1/billing/checkout-session` (or similar); mocked Stripe in tests; no frontend button yet
 3. **Webhook backend** — signature verification, idempotency table, plan/status sync, audit logs; Stripe CLI fixture tests.
 4. **Frontend checkout button** — admin/settings “Upgrade plan” → checkout; success/cancel pages; still no register-time checkout unless product decides otherwise.
 5. **Superadmin Stripe status display** — show Stripe customer/subscription ID, last payment status (read-only).
@@ -140,4 +147,4 @@ docker compose exec api python scripts/check_billing_readiness.py
 - `http://localhost:5173/register?plan=business` — Business pre-selected
 - `http://localhost:5173/superadmin/businesses` — active plan vs signup intent (after test registration)
 
-**Last updated:** Phase 5 Slice 4 — billing readiness checkpoint (docs + script; no Stripe implementation).
+**Last updated:** Phase 5 Slice 5 — Stripe config/env validation (disabled by default; no checkout/webhooks).

@@ -20,7 +20,14 @@ REQUIRED_KEYS = (
 )
 
 OPTIONAL_INTEGRATION_KEYS = (
+    "STRIPE_ENABLED",
     "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_PRICE_STARTER",
+    "STRIPE_PRICE_BUSINESS",
+    "STRIPE_PRICE_PRO",
+    "STRIPE_SUCCESS_URL",
+    "STRIPE_CANCEL_URL",
     "SMTP_HOST",
     "SMTP_USER",
     "SMTP_PASSWORD",
@@ -210,6 +217,68 @@ def _validate_email(env: dict[str, str], *, strict: bool, result: ValidationResu
         result.ok.append("SMTP_USER and SMTP_PASSWORD are set")
 
 
+def _secret_configured_label(key: str, value: str) -> str:
+    """Describe secret presence without exposing the value."""
+    return f"{key} is set" if value.strip() else f"{key} is missing"
+
+
+def _validate_stripe(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
+    stripe_enabled = _is_truthy(env.get("STRIPE_ENABLED", ""))
+
+    if not stripe_enabled:
+        result.warnings.append(
+            "Stripe disabled — payments unavailable; billing remains manual/demo"
+        )
+        return
+
+    result.ok.append("STRIPE_ENABLED is true")
+
+    secret = env.get("STRIPE_SECRET_KEY", "").strip()
+    webhook = env.get("STRIPE_WEBHOOK_SECRET", "").strip()
+
+    for key, value in (
+        ("STRIPE_SECRET_KEY", secret),
+        ("STRIPE_WEBHOOK_SECRET", webhook),
+    ):
+        if not value or (strict and _contains_placeholder(value)):
+            message = f"{key} is required when STRIPE_ENABLED=true"
+            if strict:
+                result.failures.append(message)
+            else:
+                result.warnings.append(message)
+        elif strict:
+            result.ok.append(_secret_configured_label(key, value))
+
+    for key in ("STRIPE_PRICE_STARTER", "STRIPE_PRICE_BUSINESS", "STRIPE_PRICE_PRO"):
+        value = env.get(key, "").strip()
+        if not value or (strict and _contains_placeholder(value)):
+            message = f"{key} is required when STRIPE_ENABLED=true"
+            if strict:
+                result.failures.append(message)
+            else:
+                result.warnings.append(message)
+        elif strict:
+            result.ok.append(f"{key} is set")
+
+    for key in ("STRIPE_SUCCESS_URL", "STRIPE_CANCEL_URL"):
+        value = env.get(key, "").strip()
+        if not value or (strict and _contains_placeholder(value)):
+            message = f"{key} is required when STRIPE_ENABLED=true"
+            if strict:
+                result.failures.append(message)
+            else:
+                result.warnings.append(message)
+        elif strict:
+            if _is_localhost_origin(value):
+                result.failures.append(
+                    f"{key} must not use localhost when STRIPE_ENABLED=true in production"
+                )
+            else:
+                result.ok.append(f"{key} is set")
+        elif _is_localhost_origin(value):
+            result.warnings.append(f"{key} points to localhost")
+
+
 def validate_production_env(env: dict[str, str], *, strict: bool = False) -> ValidationResult:
     result = ValidationResult()
 
@@ -299,9 +368,8 @@ def validate_production_env(env: dict[str, str], *, strict: bool = False) -> Val
     _validate_cors(env, strict=strict, result=result)
     _validate_api_docs(env, strict=strict, result=result)
     _validate_email(env, strict=strict, result=result)
+    _validate_stripe(env, strict=strict, result=result)
 
-    if not env.get("STRIPE_SECRET_KEY", "").strip():
-        result.warnings.append("Stripe not configured")
     if not _is_truthy(env.get("EMAIL_ENABLED", "")) and not any(
         env.get(key, "").strip() for key in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD")
     ):

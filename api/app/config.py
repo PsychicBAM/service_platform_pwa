@@ -49,6 +49,15 @@ class Settings(BaseSettings):
     password_reset_token_expire_hours: int = 2
     password_reset_base_url: str = "http://localhost:5173/reset-password"
 
+    stripe_enabled: bool = False
+    stripe_secret_key: str | None = None
+    stripe_webhook_secret: str | None = None
+    stripe_price_starter: str | None = None
+    stripe_price_business: str | None = None
+    stripe_price_pro: str | None = None
+    stripe_success_url: str = "http://localhost:5173/billing/success"
+    stripe_cancel_url: str = "http://localhost:5173/billing/cancel"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [

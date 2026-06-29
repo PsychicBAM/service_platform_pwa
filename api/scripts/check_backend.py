@@ -44,6 +44,7 @@ def main() -> int:
         import app.services.password_reset_service  # noqa: F401
         import app.models.email_verification_token  # noqa: F401
         import app.models.password_reset_token  # noqa: F401
+        import app.services.stripe_config  # noqa: F401
 
         required_tables = {
             "users",

@@ -44,6 +44,13 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - Billing is **manual/demo**; `selected_plan_intent` is not an active paid subscription
 - Stripe is documented as the **next** slice — not implemented
 
+### Phase 5 Slice 5 — Stripe config validation only (summary)
+
+- Backend settings: `STRIPE_ENABLED=false` by default; optional Stripe keys/price IDs documented in `.env.example`
+- Production deploy: `scripts/check_production_env.py --strict` validates Stripe only when enabled
+- No checkout button, webhook, or payments on frontend or backend
+- Next: backend checkout session (mocked Stripe tests)
+
 ## Stack
 
 | Layer | Choice |

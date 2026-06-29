@@ -13,7 +13,14 @@ JWT_SECRET_KEY=0123456789abcdef0123456789abcdef0123456789ab
 WEB_HTTP_PORT=80
 CORS_ORIGINS=https://example.com
 API_DOCS_ENABLED=false
+STRIPE_ENABLED=false
 STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PRICE_STARTER=
+STRIPE_PRICE_BUSINESS=
+STRIPE_PRICE_PRO=
+STRIPE_SUCCESS_URL=https://example.com/billing/success
+STRIPE_CANCEL_URL=https://example.com/billing/cancel
 EMAIL_ENABLED=false
 EMAIL_DRY_RUN=true
 SMTP_HOST=
@@ -56,7 +63,7 @@ def test_validate_good_env_strict() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert result.passed, result.failures
-    assert any("Stripe not configured" in warning for warning in result.warnings)
+    assert any("Stripe disabled" in warning for warning in result.warnings)
     assert any(
         "Email notifications disabled" in warning or "SMTP not configured" in warning
         for warning in result.warnings
@@ -213,3 +220,103 @@ def test_main_returns_nonzero_on_failure(tmp_path: Path) -> None:
     env_file = tmp_path / ".env"
     env_file.write_text("APP_ENV=production\n", encoding="utf-8")
     assert module.main(["--env-file", str(env_file), "--strict"]) == 1
+
+
+def _strict_production_base() -> dict[str, str]:
+    return {
+        "APP_ENV": "production",
+        "POSTGRES_USER": "service_platform",
+        "POSTGRES_PASSWORD": "super_secure_random_password_value_123",
+        "POSTGRES_DB": "service_platform",
+        "DATABASE_URL": (
+            "postgresql+asyncpg://service_platform:super_secure_random_password_value_123"
+            "@postgres:5432/service_platform"
+        ),
+        "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
+        "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
+        "EMAIL_ENABLED": "false",
+        "EMAIL_DRY_RUN": "true",
+    }
+
+
+def test_stripe_disabled_passes_strict_with_warning() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["STRIPE_ENABLED"] = "false"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert result.passed, result.failures
+    assert any("Stripe disabled" in warning for warning in result.warnings)
+
+
+def test_stripe_enabled_missing_secret_fails_strict() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["STRIPE_ENABLED"] = "true"
+    parsed["STRIPE_SECRET_KEY"] = ""
+    parsed["STRIPE_WEBHOOK_SECRET"] = "whsec_test_webhook_secret_value_001"
+    parsed["STRIPE_PRICE_STARTER"] = "price_starter_test_001"
+    parsed["STRIPE_PRICE_BUSINESS"] = "price_business_test_001"
+    parsed["STRIPE_PRICE_PRO"] = "price_pro_test_001"
+    parsed["STRIPE_SUCCESS_URL"] = "https://example.com/billing/success"
+    parsed["STRIPE_CANCEL_URL"] = "https://example.com/billing/cancel"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert any("STRIPE_SECRET_KEY" in failure for failure in result.failures)
+
+
+def test_stripe_enabled_missing_price_ids_fails_strict() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["STRIPE_ENABLED"] = "true"
+    parsed["STRIPE_SECRET_KEY"] = "sk_test_super_secret_key_value_001"
+    parsed["STRIPE_WEBHOOK_SECRET"] = "whsec_test_webhook_secret_value_001"
+    parsed["STRIPE_PRICE_STARTER"] = ""
+    parsed["STRIPE_PRICE_BUSINESS"] = "price_business_test_001"
+    parsed["STRIPE_PRICE_PRO"] = "price_pro_test_001"
+    parsed["STRIPE_SUCCESS_URL"] = "https://example.com/billing/success"
+    parsed["STRIPE_CANCEL_URL"] = "https://example.com/billing/cancel"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert any("STRIPE_PRICE_STARTER" in failure for failure in result.failures)
+
+
+def test_stripe_enabled_complete_config_passes_strict() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["STRIPE_ENABLED"] = "true"
+    parsed["STRIPE_SECRET_KEY"] = "sk_test_super_secret_key_value_001"
+    parsed["STRIPE_WEBHOOK_SECRET"] = "whsec_test_webhook_secret_value_001"
+    parsed["STRIPE_PRICE_STARTER"] = "price_starter_test_001"
+    parsed["STRIPE_PRICE_BUSINESS"] = "price_business_test_001"
+    parsed["STRIPE_PRICE_PRO"] = "price_pro_test_001"
+    parsed["STRIPE_SUCCESS_URL"] = "https://example.com/billing/success"
+    parsed["STRIPE_CANCEL_URL"] = "https://example.com/billing/cancel"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert result.passed, result.failures
+
+
+def test_stripe_secrets_are_not_printed_in_validation_messages() -> None:
+    module = _load_module()
+    secret = "sk_test_super_secret_key_value_001"
+    webhook = "whsec_test_webhook_secret_value_001"
+    parsed = _strict_production_base()
+    parsed["STRIPE_ENABLED"] = "true"
+    parsed["STRIPE_SECRET_KEY"] = secret
+    parsed["STRIPE_WEBHOOK_SECRET"] = webhook
+    parsed["STRIPE_PRICE_STARTER"] = "price_starter_test_001"
+    parsed["STRIPE_PRICE_BUSINESS"] = "price_business_test_001"
+    parsed["STRIPE_PRICE_PRO"] = "price_pro_test_001"
+    parsed["STRIPE_SUCCESS_URL"] = "https://example.com/billing/success"
+    parsed["STRIPE_CANCEL_URL"] = "https://example.com/billing/cancel"
+
+    result = module.validate_production_env(parsed, strict=True)
+    messages = " ".join(result.ok + result.warnings + result.failures)
+    assert secret not in messages
+    assert webhook not in messages
+    assert "STRIPE_SECRET_KEY is set" in messages
