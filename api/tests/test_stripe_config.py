@@ -35,3 +35,10 @@ def test_stripe_price_ids_configured_flags() -> None:
 def test_stripe_disabled_by_default() -> None:
     settings = Settings()
     assert settings.stripe_enabled is False
+
+
+def test_free_plan_not_checkout_eligible() -> None:
+    from app.services.stripe_config import is_checkout_eligible_plan
+
+    assert is_checkout_eligible_plan(SubscriptionPlan.free) is False
+    assert is_checkout_eligible_plan(SubscriptionPlan.business) is True

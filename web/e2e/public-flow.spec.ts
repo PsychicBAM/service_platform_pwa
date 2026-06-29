@@ -39,7 +39,9 @@ test.describe("public smoke flows", () => {
     await expect(page.getByRole("heading", { name: "Business", exact: true })).toBeVisible();
     await expect(page.getByText("Recommended")).toBeVisible();
     await expect(page.getByText("$49/mo")).toBeVisible();
-    await expect(page.getByText(/payments and automatic upgrades are not live yet/i)).toBeVisible();
+    const billingNote = page.getByText(/stripe checkout may be disabled in this environment/i);
+    await billingNote.scrollIntoViewIfNeeded();
+    await expect(billingNote).toBeVisible();
   });
 
   test("F. choose Business plan links to register with plan param", async ({ page }) => {

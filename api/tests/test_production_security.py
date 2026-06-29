@@ -118,12 +118,13 @@ def test_non_strict_env_script_warns_optional_integrations() -> None:
         "JWT_SECRET_KEY": "CHANGE_ME_GENERATE_A_LONG_RANDOM_SECRET",
         "WEB_HTTP_PORT": "80",
         "CORS_ORIGINS": "https://your-domain.example",
+        "STRIPE_ENABLED": "false",
         "STRIPE_SECRET_KEY": "",
         "SMTP_HOST": "",
     }
     result = module.validate_production_env(env, strict=False)
     assert result.passed
-    assert any("Stripe" in warning for warning in result.warnings)
+    assert any("Stripe disabled" in warning or "Stripe" in warning for warning in result.warnings)
     assert any("SMTP" in warning for warning in result.warnings)
 
 
