@@ -4,6 +4,8 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 
 **MVP release checkpoint:** [MVP_RELEASE_REPORT.md](../MVP_RELEASE_REPORT.md) — implemented UI, smoke checklist, and known limitations.
 
+**Billing readiness (pre-Stripe):** [BILLING_READINESS_REPORT.md](../BILLING_READINESS_REPORT.md) — manual billing, plan table, Stripe slice order.
+
 **Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](../MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, next roadmap (Slice 20).
 
 **UX manual review:** [FRONTEND_UX_CHECKLIST.md](../FRONTEND_UX_CHECKLIST.md) — desktop/mobile checklists, flow smoke tests, known UX limitations (Phase 4 Slice 19).
@@ -35,6 +37,12 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - Detail panel: subscription vs signup intent sections, mismatch note, clearer manual plan form
 - Plan change audit logs include `selected_plan_intent`, source, and `change_source: superadmin_manual`
 - Stripe/checkout still not connected
+
+### Phase 5 Slice 4 — Billing readiness checkpoint (summary)
+
+- [BILLING_READINESS_REPORT.md](../BILLING_READINESS_REPORT.md) — documents manual billing, plan table, registration intent, superadmin workflow, Stripe checklist
+- Billing is **manual/demo**; `selected_plan_intent` is not an active paid subscription
+- Stripe is documented as the **next** slice — not implemented
 
 ## Stack
 

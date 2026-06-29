@@ -4,6 +4,8 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 
 **MVP release checkpoint:** [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) — what is done, how to run/test, and what remains before production.
 
+**Billing readiness (pre-Stripe):** [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md) — manual billing today, plan table, Stripe checklist.
+
 **Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](./MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, commands, next roadmap (Slice 20).
 
 ### Post-Phase-4 notes (backend)
@@ -12,8 +14,8 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **SMTP real delivery** requires operator configuration on VPS (`EMAIL_ENABLED`, SMTP credentials in `.env` — never commit secrets).
 - **Registration plan intent** — `POST /auth/register` accepts `selected_plan_intent`; stored in `business.settings`; subscription plan remains `free` until manual/billing action.
 - **Superadmin manual plans** — active plan vs signup intent on list/detail; manual changes audited with intent metadata; no Stripe.
-- **Superadmin manual plans** — active plan vs signup intent visible; manual changes audited with intent metadata; no Stripe.
-- **Payments / Stripe** are not implemented; plan changes are manual via superadmin.
+- **Billing readiness checkpoint** — [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md); `scripts/check_billing_readiness.py` (included in `check_backend.py`).
+- **Payments / Stripe** are not implemented; plan changes are manual via superadmin or future webhooks.
 
 ## Stack
 

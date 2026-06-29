@@ -2,6 +2,8 @@
 
 Manual review guide for desktop and mobile. Use after UI changes or before a release demo.
 
+**Billing readiness:** [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md) — manual billing today; Stripe not live.
+
 **Last polish pass:** Phase 4 Slice 19 — small desktop/mobile spacing and layout fixes. No backend or payment changes.
 
 ### Latest status (Post-Phase-4 / Phase 5)
@@ -10,6 +12,7 @@ Manual review guide for desktop and mobile. Use after UI changes or before a rel
 - **Pricing** — planned prices visible on `/`; View details expands limits; Choose plan links to `/register?plan=…`; no Stripe/checkout.
 - **Register plan choice** — `selected_plan_intent` persisted in business settings on signup; subscription remains Free until billing/superadmin.
 - **Superadmin plans** — list/detail show active plan vs signup intent; manual changes audited; Stripe not connected.
+- **Billing readiness** — [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md); manual/demo billing documented; Stripe next, not implemented.
 - **Message notifications** — in-app dismissible banners while order message view is open; not browser push.
 - **Deferred:** dedicated messenger inbox, unread counts, WebSocket — see [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](./MVP_RELEASE_REPORT.md#post-phase-4-checkpoint).
 

@@ -339,6 +339,9 @@ Legacy list (Phase 3):
 | Password reset audit | `scripts/check_password_reset.py` |
 | Message polling + in-app banners | 1s polling while order page/panel open; dismissible banner for new incoming messages |
 | Landing page pricing section | Hero, features, SaaS plans with prices ($0/$19/$49/$99), expandable details, Choose plan links |
+| Registration plan intent | Slice 2 — `selected_plan_intent` in business.settings; subscription stays `free` on signup |
+| Superadmin manual plan management | Slice 3 — active plan + signup intent UI; audited manual changes |
+| Billing readiness checkpoint | Slice 4 — [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md); `check_billing_readiness.py` |
 | Mobile / desktop UX polish | Slice 19 — spacing, grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
 | CI | GitHub Actions — backend pytest + frontend Vitest/build |
 | Docker dev / prod compose | `docker-compose.yml`, `docker-compose.prod.yml` |
@@ -349,9 +352,7 @@ Legacy list (Phase 3):
 
 | Item | Notes |
 |------|--------|
-| Stripe / payments / checkout | No online payment for bookings, orders, or SaaS plans |
-| Plan selection during registration | ✅ Slice 2 — `selected_plan_intent` in business.settings; subscription plan stays `free` |
-| Superadmin manual plan management | ✅ Slice 3 — active plan + signup intent UI; audited manual changes; no Stripe |
+| Stripe / payments / checkout | No online payment for bookings, orders, or SaaS plans — see [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md) |
 | Clickable pricing plan detail pages | Expandable details on landing cards; no separate `/pricing/:plan` routes |
 | Automatic plan upgrades | Superadmin changes plans manually |
 | Real production SMTP config | Requires operator `.env` on VPS; dry-run by default locally |

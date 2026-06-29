@@ -248,6 +248,20 @@ def main() -> int:
     if reset_audit_result.returncode != 0:
         errors.append("check_password_reset.py failed")
 
+    print("==> Running billing readiness checkpoint ...")
+    billing_result = subprocess.run(
+        [sys.executable, "scripts/check_billing_readiness.py"],
+        cwd=api_dir,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    print(billing_result.stdout)
+    if billing_result.stderr:
+        print(billing_result.stderr, file=sys.stderr)
+    if billing_result.returncode != 0:
+        errors.append("check_billing_readiness.py failed")
+
     print("==> Checking required files ...")
     if not alembic_ini.is_file():
         errors.append("alembic.ini not found")
