@@ -345,6 +345,7 @@ Legacy list (Phase 3):
 | Stripe config / env validation | Slice 5 — settings + production env checks; disabled by default; no checkout/webhooks |
 | Stripe checkout session API | Slice 6 — `POST .../billing/checkout-session`; mocked tests; no plan change on create |
 | Admin checkout buttons (Settings) | Slice 8 — paid plans only; `STRIPE_DISABLED` friendly message; redirects when enabled |
+| Billing success/cancel pages | Slice 9 — `/billing/success`, `/billing/cancel`; webhook activates plan (not success page) |
 | Stripe webhook backend | Slice 7 — `POST /api/v1/billing/stripe/webhook`; `checkout.session.completed` activates plan |
 | Mobile / desktop UX polish | Slice 19 — spacing, grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
 | CI | GitHub Actions — backend pytest + frontend Vitest/build |

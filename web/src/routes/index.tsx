@@ -11,6 +11,8 @@ import { AdminOrdersPage } from "@/pages/admin/AdminOrdersPage";
 import { AdminSchedulePage } from "@/pages/admin/AdminSchedulePage";
 import { AdminServicesPage } from "@/pages/admin/AdminServicesPage";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
+import { BillingCancelPage } from "@/pages/BillingCancelPage";
+import { BillingSuccessPage } from "@/pages/BillingSuccessPage";
 import { BookingPage } from "@/pages/BookingPage";
 import { CheckEmailPage } from "@/pages/CheckEmailPage";
 import { ClaimGuestPage } from "@/pages/ClaimGuestPage";
@@ -48,6 +50,8 @@ export const router = createBrowserRouter([
       { path: "register", element: <RegisterPage /> },
       { path: "verify-email", element: <VerifyEmailPage /> },
       { path: "check-email", element: <CheckEmailPage /> },
+      { path: "billing/success", element: <BillingSuccessPage /> },
+      { path: "billing/cancel", element: <BillingCancelPage /> },
       { path: "me/bookings", element: <MyBookingsPage /> },
       { path: "me/orders", element: <MyOrdersPage /> },
       { path: "me/claim", element: <ClaimGuestPage /> },

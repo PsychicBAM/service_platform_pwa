@@ -19,6 +19,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Checkout session (Slice 6)** — `POST /api/v1/businesses/{business_id}/billing/checkout-session`; does not change plan on create.
 - **Stripe webhook (Slice 7)** — `POST /api/v1/billing/stripe/webhook`; `checkout.session.completed` updates plan + audit log; mocked tests only.
 - **Admin checkout UI (Slice 8)** — frontend calls checkout-session API from Admin Settings; redirects to Stripe when enabled; `STRIPE_DISABLED` handled in UI.
+- **Billing result pages (Slice 9)** — `/billing/success` and `/billing/cancel` for Stripe redirect URLs; webhook still activates plan.
 - **Payments / Stripe** — backend checkout + webhook + admin settings checkout buttons (Slice 8); live Stripe requires keys, webhook secret, and Stripe CLI/webhook URL in production.
 
 ## Stack

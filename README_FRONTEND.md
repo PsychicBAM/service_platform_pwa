@@ -71,6 +71,13 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - Public pricing cards still link to register only (no business auth context)
 - No billing portal, refunds, or downgrades
 
+### Phase 5 Slice 9 — Billing success/cancel pages (summary)
+
+- `/billing/success` — Stripe redirect destination; explains webhook-based plan activation (no API verification in this slice)
+- `/billing/cancel` — explains checkout was cancelled; no plan change
+- Optional `?session_id=` shown safely on success page
+- Links to Admin Settings, dashboard, or pricing — no subscription mutation from frontend
+
 ## Stack
 
 | Layer | Choice |

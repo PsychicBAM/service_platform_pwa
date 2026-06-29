@@ -1,7 +1,7 @@
-# Billing Readiness Report — Phase 5 (Slices 4–8)
+# Billing Readiness Report — Phase 5 (Slices 4–9)
 
 **Purpose:** Document current manual/demo billing behavior and define what must be built before Stripe integration.  
-**Status:** Billing backend + admin checkout UI exist. **Checkout session + webhook (Slice 6–7)** update `Subscription.plan` only via `checkout.session.completed` when `STRIPE_ENABLED=true`. Admin Settings checkout buttons (Slice 8) call the session API; default local/dev: Stripe disabled; no real charges in CI.
+**Status:** Billing backend + admin checkout UI + success/cancel pages exist. **Checkout session + webhook (Slice 6–7)** update `Subscription.plan` only via `checkout.session.completed` when `STRIPE_ENABLED=true`. Success page does not verify payment or change plan directly.
 
 Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEND.md](./README_BACKEND.md) · [README_FRONTEND.md](./README_FRONTEND.md) · [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md)
 
@@ -29,6 +29,12 @@ Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEN
 - Success → redirect to Stripe `checkout_url`; `STRIPE_DISABLED` → friendly manual billing message
 - Public pricing still uses register links only; webhook activates plan after payment
 
+### Slice 9 — Billing success/cancel pages (frontend)
+
+- `/billing/success` — default `STRIPE_SUCCESS_URL`; explains webhook activation; optional `session_id` display
+- `/billing/cancel` — default `STRIPE_CANCEL_URL`; no payment, no plan change
+- No backend payment verification on success page; no billing portal
+
 ---
 
 ## A. Current billing status
@@ -41,7 +47,7 @@ Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEN
 | **Superadmin plan control** | Superadmin can manually set active plan on `/superadmin/businesses` (detail panel: **Set active plan manually** → **Save manual plan change**). |
 | **Intent vs active plan** | Superadmin list/detail show **Active plan** and **Signup intent**. If they differ, UI shows a subtle **Plan request** badge and mismatch note. |
 | **Audit logs** | Manual plan changes write `subscription.plan_changed` with `old_plan`, `new_plan`, `change_source: superadmin_manual`, and `selected_plan_intent` metadata when present. No log when plan unchanged. |
-| **Payments** | Checkout session API + webhook (Slices 6–7) when `STRIPE_ENABLED=true`. Admin Settings checkout buttons (Slice 8). Default off locally. |
+| **Payments** | Checkout session API + webhook (Slices 6–7) when `STRIPE_ENABLED=true`. Admin checkout (Slice 8). Success/cancel pages (Slice 9). Default off locally. |
 
 **Important:** `selected_plan_intent` is a **signup preference record**, not an active paid subscription.
 
@@ -109,6 +115,7 @@ Before going live with payments, implement and test:
 - [ ] **Idempotency** — ✅ `stripe_event_id` in audit metadata; duplicate events skipped
 - [ ] **Audit logs for Stripe events** — ✅ `subscription.plan_changed` with `change_source: stripe_webhook`
 - [ ] **Frontend checkout button** — ✅ Slice 8 Admin Settings (paid plans only); public pricing still register-only
+- [ ] **Success / cancel URLs** — ✅ Slice 9 `/billing/success` and `/billing/cancel` pages (webhook still activates plan)
 - [ ] **Local webhook testing docs** — Stripe CLI forward to dev API (operator setup)
 - [ ] **Decision: activate plan on webhook only** — do not trust client redirect alone (see §F)
 - [ ] **Abandoned checkout** — intent stays; active plan unchanged until successful payment
@@ -141,7 +148,8 @@ Practical order (one slice at a time; keep CI green):
 2. **Checkout session backend** — ✅ Slice 6
 3. **Webhook backend** — ✅ Slice 7 (`checkout.session.completed`); failed payments/cancellations deferred
 4. **Frontend checkout button** — ✅ Slice 8 Admin Settings
-5. **Billing portal / refunds / downgrades** — deferred
+5. **Billing success/cancel pages** — ✅ Slice 9
+6. **Billing portal / refunds / downgrades** — deferred
 5. **Superadmin Stripe status display** — show Stripe customer/subscription ID, last payment status (read-only).
 6. **Production deployment / payment checklist** — live keys, webhook URL, HTTPS, monitoring; update `PRODUCTION_CHECKLIST.md`.
 7. **Documentation** — operator runbook, test-mode vs live-mode, rollback if webhook fails.
@@ -162,4 +170,4 @@ docker compose exec api python scripts/check_billing_readiness.py
 - `http://localhost:5173/register?plan=business` — Business pre-selected
 - `http://localhost:5173/superadmin/businesses` — active plan vs signup intent (after test registration)
 
-**Last updated:** Phase 5 Slice 8 — admin settings checkout buttons (Stripe disabled handling).
+**Last updated:** Phase 5 Slice 9 — billing success/cancel pages for Stripe redirects.
