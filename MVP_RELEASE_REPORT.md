@@ -344,7 +344,8 @@ Legacy list (Phase 3):
 | Billing readiness checkpoint | Slice 4 — [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md); `check_billing_readiness.py` |
 | Stripe config / env validation | Slice 5 — settings + production env checks; disabled by default; no checkout/webhooks |
 | Stripe checkout session API | Slice 6 — `POST .../billing/checkout-session`; mocked tests; no plan change on create |
-| Stripe webhook backend | Slice 7 — `POST /api/v1/billing/stripe/webhook`; `checkout.session.completed` activates plan in tests |
+| Admin checkout buttons (Settings) | Slice 8 — paid plans only; `STRIPE_DISABLED` friendly message; redirects when enabled |
+| Stripe webhook backend | Slice 7 — `POST /api/v1/billing/stripe/webhook`; `checkout.session.completed` activates plan |
 | Mobile / desktop UX polish | Slice 19 — spacing, grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
 | CI | GitHub Actions — backend pytest + frontend Vitest/build |
 | Docker dev / prod compose | `docker-compose.yml`, `docker-compose.prod.yml` |

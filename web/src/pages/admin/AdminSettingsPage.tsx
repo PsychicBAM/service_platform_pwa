@@ -1,12 +1,25 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createBillingCheckoutSession } from "@/api/billingApi";
 import { getBusiness, updateBusiness } from "@/api/adminApi";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { TextAreaField } from "@/components/TextAreaField";
 import { useAdminBusiness } from "@/hooks/useAdminBusiness";
-import type { BusinessAdminRead, BusinessUpdatePayload, OperatingMode } from "@/types/api";
-import { getAdminSettingsErrorMessage } from "@/utils/errors";
+import type {
+  BusinessAdminRead,
+  BusinessUpdatePayload,
+  CheckoutPlanId,
+  OperatingMode,
+} from "@/types/api";
+import { getAdminSettingsErrorMessage, getBillingCheckoutErrorMessage } from "@/utils/errors";
+import { formatPlanLabel } from "@/utils/planManagement";
+
+const CHECKOUT_PLANS: Array<{ id: CheckoutPlanId; label: string }> = [
+  { id: "starter", label: "Starter" },
+  { id: "business", label: "Business" },
+  { id: "pro", label: "Pro" },
+];
 
 const SLOT_INTERVAL_OPTIONS = [5, 10, 15, 20, 30, 45, 60] as const;
 
@@ -229,6 +242,8 @@ export function AdminSettingsPage() {
   const [form, setForm] = useState<SettingsFormState | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [billingMessage, setBillingMessage] = useState<string | null>(null);
+  const [checkoutLoadingPlan, setCheckoutLoadingPlan] = useState<CheckoutPlanId | null>(null);
 
   const businessQuery = useQuery({
     queryKey: ["admin-business", businessId],
@@ -273,6 +288,22 @@ export function AdminSettingsPage() {
       setSuccessMessage("Settings saved.");
     } catch (error) {
       setActionError(getAdminSettingsErrorMessage(error, "Could not save settings."));
+    }
+  }
+
+  async function handleStartCheckout(plan: CheckoutPlanId) {
+    if (!businessId) {
+      return;
+    }
+    setBillingMessage(null);
+    setCheckoutLoadingPlan(plan);
+    try {
+      const response = await createBillingCheckoutSession(businessId, plan);
+      window.location.href = response.checkout_url;
+    } catch (error) {
+      setBillingMessage(getBillingCheckoutErrorMessage(error));
+    } finally {
+      setCheckoutLoadingPlan(null);
     }
   }
 
@@ -514,6 +545,67 @@ export function AdminSettingsPage() {
             </label>
           </div>
 
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
+            <h3 className="text-sm font-medium text-slate-700">Billing / plan</h3>
+            <p className="text-sm text-slate-600">
+              Stripe checkout is optional and may be disabled in this environment. After a
+              successful payment, your plan is activated by the billing webhook — not from this
+              page directly.
+            </p>
+
+            {data.subscription ? (
+              <dl className="grid gap-2 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="text-slate-500">Current active plan</dt>
+                  <dd className="font-medium text-slate-900">
+                    {formatPlanLabel(data.subscription.plan)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Subscription status</dt>
+                  <dd className="font-medium text-slate-900">
+                    {formatPlanLabel(data.subscription.status)}
+                  </dd>
+                </div>
+                {data.settings.selected_plan_intent ? (
+                  <div className="sm:col-span-2">
+                    <dt className="text-slate-500">Signup plan intent</dt>
+                    <dd className="font-medium text-slate-900">
+                      {formatPlanLabel(data.settings.selected_plan_intent)}
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+            ) : (
+              <p className="text-sm text-slate-500">No subscription summary available.</p>
+            )}
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              {CHECKOUT_PLANS.map((plan) => (
+                <button
+                  key={plan.id}
+                  type="button"
+                  disabled={saving || checkoutLoadingPlan !== null}
+                  onClick={() => handleStartCheckout(plan.id)}
+                  className="rounded-lg border border-brand-600 px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-60"
+                >
+                  {checkoutLoadingPlan === plan.id
+                    ? "Starting checkout…"
+                    : `Start ${plan.label} checkout`}
+                </button>
+              ))}
+            </div>
+
+            {billingMessage ? (
+              <p
+                role="alert"
+                className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+              >
+                {billingMessage}
+              </p>
+            ) : null}
+          </div>
+
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-sm">
             <h3 className="font-medium text-slate-700">Read-only</h3>
             <dl className="space-y-2">
@@ -526,26 +618,14 @@ export function AdminSettingsPage() {
                 <dd className="text-slate-900">{data.status}</dd>
               </div>
               {data.subscription ? (
-                <>
-                  <div>
-                    <dt className="text-slate-500">Subscription plan</dt>
-                    <dd className="text-slate-900">{data.subscription.plan}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">Subscription status</dt>
-                    <dd className="text-slate-900">{data.subscription.status}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">Usage</dt>
-                    <dd className="text-slate-900">
-                      {data.subscription.usage_bookings_count} bookings ·{" "}
-                      {data.subscription.usage_orders_count} orders
-                    </dd>
-                  </div>
-                </>
-              ) : (
-                <p className="text-slate-500">No subscription summary available.</p>
-              )}
+                <div>
+                  <dt className="text-slate-500">Usage</dt>
+                  <dd className="text-slate-900">
+                    {data.subscription.usage_bookings_count} bookings ·{" "}
+                    {data.subscription.usage_orders_count} orders
+                  </dd>
+                </div>
+              ) : null}
             </dl>
           </div>
 

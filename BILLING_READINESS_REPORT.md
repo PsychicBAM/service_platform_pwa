@@ -1,7 +1,7 @@
-# Billing Readiness Report — Phase 5 (Slices 4–7)
+# Billing Readiness Report — Phase 5 (Slices 4–8)
 
 **Purpose:** Document current manual/demo billing behavior and define what must be built before Stripe integration.  
-**Status:** Billing backend foundation exists. **Checkout session + webhook (Slice 6–7)** update `Subscription.plan` only via `checkout.session.completed` webhook when `STRIPE_ENABLED=true`. Default local/dev: Stripe disabled; no real charges in CI.
+**Status:** Billing backend + admin checkout UI exist. **Checkout session + webhook (Slice 6–7)** update `Subscription.plan` only via `checkout.session.completed` when `STRIPE_ENABLED=true`. Admin Settings checkout buttons (Slice 8) call the session API; default local/dev: Stripe disabled; no real charges in CI.
 
 Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEND.md](./README_BACKEND.md) · [README_FRONTEND.md](./README_FRONTEND.md) · [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md)
 
@@ -17,12 +17,17 @@ Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEN
 - Returns `checkout_url` and `session_id` when `STRIPE_ENABLED=true` and price IDs configured
 - Mocked Stripe in tests only; **does not** change `Subscription.plan` (webhook does)
 
-### Slice 7 — Stripe webhook backend (no frontend button)
+### Slice 7 — Stripe webhook backend
 
 - `POST /api/v1/billing/stripe/webhook` — no Bearer auth; Stripe signature verification
 - Handles `checkout.session.completed` → updates `Subscription.plan` + audit log (`change_source: stripe_webhook`)
 - Idempotent by `stripe_event_id`; unsupported events ignored safely
-- Frontend checkout button still not implemented
+
+### Slice 8 — Admin checkout buttons (frontend)
+
+- **Admin → Settings** — paid-plan checkout buttons call checkout-session API
+- Success → redirect to Stripe `checkout_url`; `STRIPE_DISABLED` → friendly manual billing message
+- Public pricing still uses register links only; webhook activates plan after payment
 
 ---
 
@@ -36,7 +41,7 @@ Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEN
 | **Superadmin plan control** | Superadmin can manually set active plan on `/superadmin/businesses` (detail panel: **Set active plan manually** → **Save manual plan change**). |
 | **Intent vs active plan** | Superadmin list/detail show **Active plan** and **Signup intent**. If they differ, UI shows a subtle **Plan request** badge and mismatch note. |
 | **Audit logs** | Manual plan changes write `subscription.plan_changed` with `old_plan`, `new_plan`, `change_source: superadmin_manual`, and `selected_plan_intent` metadata when present. No log when plan unchanged. |
-| **Payments** | Checkout session API (Slice 6) + webhook plan activation (Slice 7) when `STRIPE_ENABLED=true`. Default off locally. No frontend checkout button yet. |
+| **Payments** | Checkout session API + webhook (Slices 6–7) when `STRIPE_ENABLED=true`. Admin Settings checkout buttons (Slice 8). Default off locally. |
 
 **Important:** `selected_plan_intent` is a **signup preference record**, not an active paid subscription.
 
@@ -103,7 +108,7 @@ Before going live with payments, implement and test:
 - [ ] **Webhook endpoint** — ✅ Slice 7 `POST /api/v1/billing/stripe/webhook`; `checkout.session.completed` only
 - [ ] **Idempotency** — ✅ `stripe_event_id` in audit metadata; duplicate events skipped
 - [ ] **Audit logs for Stripe events** — ✅ `subscription.plan_changed` with `change_source: stripe_webhook`
-- [ ] **Frontend checkout button** — not implemented
+- [ ] **Frontend checkout button** — ✅ Slice 8 Admin Settings (paid plans only); public pricing still register-only
 - [ ] **Local webhook testing docs** — Stripe CLI forward to dev API (operator setup)
 - [ ] **Decision: activate plan on webhook only** — do not trust client redirect alone (see §F)
 - [ ] **Abandoned checkout** — intent stays; active plan unchanged until successful payment
@@ -135,7 +140,8 @@ Practical order (one slice at a time; keep CI green):
 1. **Stripe config / env validation only** — ✅ Slice 5 — settings + `check_production_env.py` + `stripe_config.py`; disabled by default
 2. **Checkout session backend** — ✅ Slice 6
 3. **Webhook backend** — ✅ Slice 7 (`checkout.session.completed`); failed payments/cancellations deferred
-4. **Frontend checkout button** — admin/settings “Upgrade plan” → checkout
+4. **Frontend checkout button** — ✅ Slice 8 Admin Settings
+5. **Billing portal / refunds / downgrades** — deferred
 5. **Superadmin Stripe status display** — show Stripe customer/subscription ID, last payment status (read-only).
 6. **Production deployment / payment checklist** — live keys, webhook URL, HTTPS, monitoring; update `PRODUCTION_CHECKLIST.md`.
 7. **Documentation** — operator runbook, test-mode vs live-mode, rollback if webhook fails.
@@ -156,4 +162,4 @@ docker compose exec api python scripts/check_billing_readiness.py
 - `http://localhost:5173/register?plan=business` — Business pre-selected
 - `http://localhost:5173/superadmin/businesses` — active plan vs signup intent (after test registration)
 
-**Last updated:** Phase 5 Slice 7 — Stripe webhook backend (`checkout.session.completed` activates plan in tests).
+**Last updated:** Phase 5 Slice 8 — admin settings checkout buttons (Stripe disabled handling).

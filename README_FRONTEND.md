@@ -51,6 +51,26 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - No checkout button, webhook, or payments on frontend or backend
 - Next: backend checkout session (mocked Stripe tests)
 
+### Phase 5 Slice 6 — Backend checkout session (summary)
+
+- `POST /api/v1/businesses/{business_id}/billing/checkout-session` — owner/admin only; returns `checkout_url` + `session_id`
+- Disabled when `STRIPE_ENABLED=false` (default local)
+- Does not change `Subscription.plan` — webhook activates plan
+
+### Phase 5 Slice 7 — Stripe webhook backend (summary)
+
+- `POST /api/v1/billing/stripe/webhook` — signature verified; no Bearer auth
+- `checkout.session.completed` updates subscription plan + audit log
+- Plan activation is webhook-only — not from checkout session create or frontend
+
+### Phase 5 Slice 8 — Admin checkout buttons (summary)
+
+- **Admin → Settings** — Billing / plan card with paid-plan checkout buttons (`Start Starter/Business/Pro checkout`)
+- Calls `POST .../billing/checkout-session`; redirects to `checkout_url` when Stripe is enabled
+- With `STRIPE_ENABLED=false` (default local), shows friendly manual billing message — no crash
+- Public pricing cards still link to register only (no business auth context)
+- No billing portal, refunds, or downgrades
+
 ## Stack
 
 | Layer | Choice |

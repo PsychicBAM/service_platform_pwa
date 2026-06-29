@@ -19,4 +19,15 @@ test.describe("admin access guards", () => {
     await page.goto("/admin");
     await expect(page.getByText("No business access")).toBeVisible();
   });
+
+  test("H. owner can see billing section on settings", async ({ page }) => {
+    await loginAs(page, USERS.owner.email, USERS.owner.password);
+    await page.goto("/admin/settings");
+    await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+    const billingHeading = page.getByRole("heading", { name: "Billing / plan" });
+    await billingHeading.scrollIntoViewIfNeeded();
+    await expect(billingHeading).toBeVisible();
+    await expect(page.getByText(/Stripe checkout is optional/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start Starter checkout" })).toBeVisible();
+  });
 });

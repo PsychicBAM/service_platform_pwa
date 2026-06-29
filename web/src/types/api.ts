@@ -377,6 +377,7 @@ export interface BusinessSettingsRead {
   booking_buffer_minutes: number;
   require_payment_default: boolean;
   notification_email_enabled: boolean;
+  selected_plan_intent?: SubscriptionPlan | null;
 }
 
 export interface BusinessSettingsUpdatePayload {
@@ -755,6 +756,17 @@ export interface UnavailableTimeUpdatePayload {
 export type SuperadminBusinessStatus = "active" | "suspended" | "pending_setup";
 
 export type SubscriptionPlan = "free" | "starter" | "business" | "pro";
+
+export type CheckoutPlanId = "starter" | "business" | "pro";
+
+export interface BillingCheckoutRequest {
+  plan: CheckoutPlanId;
+}
+
+export interface BillingCheckoutResponse {
+  checkout_url: string;
+  session_id: string;
+}
 
 export type SubscriptionStatus = "active" | "past_due" | "cancelled" | "trialing";
 

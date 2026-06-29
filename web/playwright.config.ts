@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = "http://localhost:5173";
+// Use 5174 so Playwright does not reuse Docker nginx on 5173 (production static build).
+const baseURL = "http://localhost:5174";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -23,9 +24,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev -- --host localhost --port 5173",
+    command: "npm run dev -- --host localhost --port 5174",
     url: baseURL,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
       ...process.env,

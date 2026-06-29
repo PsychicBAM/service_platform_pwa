@@ -18,9 +18,9 @@ export type PricingPlan = {
   recommended?: boolean;
 };
 
-/** Shown on pricing and register — no live payments yet. */
+/** Shown on pricing and register — checkout starts from admin settings when enabled. */
 export const MANUAL_BILLING_NOTE =
-  "Payments and automatic upgrades are not live yet. Plan changes are currently demo/manual.";
+  "Stripe checkout may be disabled in this environment. Choose a plan to register; owners can start checkout from Admin → Settings when billing is enabled.";
 
 export const REGISTER_PLAN_INTENT_NOTE =
   "Selected plan is saved as your signup intent. Your account still starts on the Free plan until billing is implemented.";

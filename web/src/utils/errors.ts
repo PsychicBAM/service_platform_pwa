@@ -242,6 +242,43 @@ export function getAdminClientErrorMessage(
   return fallback;
 }
 
+export function getBillingCheckoutErrorMessage(
+  error: unknown,
+  fallback = "Could not start checkout.",
+): string {
+  if (error instanceof ApiClientError) {
+    if (error.code === "STRIPE_DISABLED") {
+      return "Stripe checkout is not enabled yet. Plan changes are manual for now.";
+    }
+    if (error.code === "INVALID_CHECKOUT_PLAN") {
+      return "This plan cannot be purchased through checkout.";
+    }
+    if (error.code === "STRIPE_PRICE_NOT_CONFIGURED") {
+      return "This plan is not configured for checkout yet.";
+    }
+    if (error.code === "STRIPE_CHECKOUT_CREATE_FAILED") {
+      return "Could not start checkout. Please try again later.";
+    }
+    if (error.status === 401) {
+      return "Please log in again.";
+    }
+    if (error.status === 403) {
+      return "You do not have access to billing for this business.";
+    }
+    if (error.status === 422) {
+      return "Invalid checkout request. Please try again.";
+    }
+    return error.message;
+  }
+  if (error instanceof TypeError) {
+    return "Could not reach the server. Check your connection and try again.";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export function getSuperadminErrorMessage(
   error: unknown,
   fallback = "Something went wrong",
