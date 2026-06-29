@@ -19,7 +19,7 @@ def get_stripe_price_id_for_plan(
     settings: Settings,
 ) -> str | None:
     """Return configured Stripe price ID for a plan, or None for Free / unset."""
-    if plan == SubscriptionPlan.free:
+    if not is_checkout_eligible_plan(plan):
         return None
 
     mapping: dict[SubscriptionPlan, str | None] = {
@@ -32,6 +32,11 @@ def get_stripe_price_id_for_plan(
         return None
     value = raw.strip()
     return value or None
+
+
+def is_checkout_eligible_plan(plan: SubscriptionPlan) -> bool:
+    """Paid plans only — Free cannot use Stripe Checkout."""
+    return plan in PAID_SUBSCRIPTION_PLANS
 
 
 def stripe_price_ids_configured(settings: Settings) -> dict[str, bool]:

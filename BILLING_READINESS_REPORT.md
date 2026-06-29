@@ -9,8 +9,16 @@ Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEN
 
 - Settings: `STRIPE_ENABLED`, secret/webhook keys, price IDs (`starter`/`business`/`pro`), success/cancel URLs
 - `scripts/check_production_env.py --strict` enforces Stripe fields only when `STRIPE_ENABLED=true`
-- `api/app/services/stripe_config.py` maps plans to price env vars (no Stripe SDK)
+- `api/app/services/stripe_config.py` maps plans to price env vars (no Stripe SDK calls in helper)
 - Next slice: checkout session backend with mocked tests
+
+### Slice 6 — Backend checkout session (no webhook / no frontend button)
+
+- `POST /api/v1/businesses/{business_id}/billing/checkout-session` — auth + business admin required
+- Returns `checkout_url` and `session_id` when `STRIPE_ENABLED=true` and price IDs configured
+- Mocked Stripe in tests only; **no webhook** — successful payment does not change `Subscription.plan`
+- Manual superadmin plan changes still required until webhook slice
+- Frontend checkout button not implemented yet
 
 ---
 
@@ -124,7 +132,7 @@ Before going live with payments, implement and test:
 Practical order (one slice at a time; keep CI green):
 
 1. **Stripe config / env validation only** — ✅ Slice 5 — settings + `check_production_env.py` + `stripe_config.py`; disabled by default
-2. **Checkout session backend** — `POST /api/v1/billing/checkout-session` (or similar); mocked Stripe in tests; no frontend button yet
+2. **Checkout session backend** — ✅ Slice 6 — `POST /api/v1/businesses/{business_id}/billing/checkout-session`; mocked Stripe tests; no webhook yet
 3. **Webhook backend** — signature verification, idempotency table, plan/status sync, audit logs; Stripe CLI fixture tests.
 4. **Frontend checkout button** — admin/settings “Upgrade plan” → checkout; success/cancel pages; still no register-time checkout unless product decides otherwise.
 5. **Superadmin Stripe status display** — show Stripe customer/subscription ID, last payment status (read-only).
@@ -147,4 +155,4 @@ docker compose exec api python scripts/check_billing_readiness.py
 - `http://localhost:5173/register?plan=business` — Business pre-selected
 - `http://localhost:5173/superadmin/businesses` — active plan vs signup intent (after test registration)
 
-**Last updated:** Phase 5 Slice 5 — Stripe config/env validation (disabled by default; no checkout/webhooks).
+**Last updated:** Phase 5 Slice 6 — backend checkout session endpoint (mocked tests; no webhook).

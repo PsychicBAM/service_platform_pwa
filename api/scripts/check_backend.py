@@ -45,6 +45,9 @@ def main() -> int:
         import app.models.email_verification_token  # noqa: F401
         import app.models.password_reset_token  # noqa: F401
         import app.services.stripe_config  # noqa: F401
+        import app.services.billing_service  # noqa: F401
+        import app.routers.billing  # noqa: F401
+        import app.schemas.billing  # noqa: F401
 
         required_tables = {
             "users",
@@ -83,6 +86,7 @@ def main() -> int:
             "/api/v1/auth/request-password-reset": {"post"},
             "/api/v1/auth/reset-password": {"post"},
             "/api/v1/businesses/{business_id}": {"get", "patch"},
+            "/api/v1/businesses/{business_id}/billing/checkout-session": {"post"},
             "/api/v1/public/b/{slug}": {"get"},
             "/api/v1/public/b/{slug}/services": {"get"},
             "/api/v1/public/b/{slug}/availability": {"get"},

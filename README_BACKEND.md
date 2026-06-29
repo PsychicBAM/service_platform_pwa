@@ -16,7 +16,8 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Superadmin manual plans** — active plan vs signup intent on list/detail; manual changes audited with intent metadata; no Stripe.
 - **Billing readiness checkpoint** — [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md); `scripts/check_billing_readiness.py` (included in `check_backend.py`).
 - **Stripe config (Slice 5)** — `STRIPE_ENABLED=false` by default; env placeholders in `.env.example`; strict production validation when enabled; no checkout/webhooks.
-- **Payments / Stripe** are not implemented; plan changes are manual via superadmin or future webhooks.
+- **Checkout session (Slice 6)** — `POST /api/v1/businesses/{business_id}/billing/checkout-session`; disabled unless `STRIPE_ENABLED=true`; mocked tests only; no plan auto-upgrade.
+- **Payments / Stripe** — checkout session foundation only; webhooks and live billing not implemented; plan changes remain manual via superadmin until webhook slice.
 
 ## Stack
 
