@@ -3,7 +3,7 @@
 **Purpose:** Document current manual/demo billing behavior and define what must be built before Stripe integration.  
 **Status:** Billing backend + admin checkout UI + success/cancel pages exist. **Checkout session + webhook (Slice 6–7)** update `Subscription.plan` only via `checkout.session.completed` when `STRIPE_ENABLED=true`. Success page does not verify payment or change plan directly.
 
-Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEND.md](./README_BACKEND.md) · [README_FRONTEND.md](./README_FRONTEND.md) · [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
+Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEND.md](./README_BACKEND.md) · [README_FRONTEND.md](./README_FRONTEND.md) · [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md)
 
 ### Slice 5 — Stripe config validation (no payments)
 

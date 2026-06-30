@@ -5,7 +5,8 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 **MVP release checkpoint:** [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) — what is done, how to run/test, and what remains before production.
 
 **Billing readiness (pre-Stripe):** [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md) — manual billing today, plan table, Stripe checklist.  
-**Stripe test mode (operators):** [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI webhook forwarding, local checkout flow.
+**Stripe test mode (operators):** [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI webhook forwarding, local checkout flow.  
+**Security readiness:** [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) — pre-VPS baseline; automated scanners planned for later slices.
 
 **Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](./MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, commands, next roadmap (Slice 20).
 
@@ -17,6 +18,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Superadmin manual plans** — active plan vs signup intent on list/detail; manual changes audited with intent metadata; no Stripe.
 - **Billing readiness checkpoint** — [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md); `scripts/check_billing_readiness.py` (included in `check_backend.py`).
 - **Billing flow smoke audit (Slice 10)** — `scripts/check_billing_flow.py` verifies checkout/webhook OpenAPI wiring, plan eligibility, and Stripe-safe defaults without network calls (included in `check_backend.py`).
+- **Security readiness (Phase 6 Slice 1)** — [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md); `scripts/check_security_readiness.py` checks production-unsafe config without scanners (included in `check_backend.py`).
 - **Stripe config (Slice 5)** — `STRIPE_ENABLED=false` by default; env placeholders in `.env.example`; strict production validation when enabled.
 - **Checkout session (Slice 6)** — `POST /api/v1/businesses/{business_id}/billing/checkout-session`; does not change plan on create.
 - **Stripe webhook (Slice 7)** — `POST /api/v1/billing/stripe/webhook`; `checkout.session.completed` updates plan + audit log; mocked tests only.

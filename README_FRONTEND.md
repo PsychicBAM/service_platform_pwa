@@ -5,7 +5,8 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 **MVP release checkpoint:** [MVP_RELEASE_REPORT.md](../MVP_RELEASE_REPORT.md) — implemented UI, smoke checklist, and known limitations.
 
 **Billing readiness (pre-Stripe):** [BILLING_READINESS_REPORT.md](../BILLING_READINESS_REPORT.md) — manual billing, plan table, Stripe slice order.  
-**Stripe test mode:** [STRIPE_TEST_MODE_GUIDE.md](../STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI, local checkout checklist (live Stripe not enabled by default).
+**Stripe test mode:** [STRIPE_TEST_MODE_GUIDE.md](../STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI, local checkout checklist (live Stripe not enabled by default).  
+**Security readiness:** [SECURITY_READINESS_REPORT.md](../SECURITY_READINESS_REPORT.md) · [SECURITY_CHECKLIST.md](../SECURITY_CHECKLIST.md) — pre-VPS hardening; CodeQL/ZAP/Trivy planned later.
 
 **Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](../MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, next roadmap (Slice 20).
 
@@ -83,6 +84,12 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - [STRIPE_TEST_MODE_GUIDE.md](../STRIPE_TEST_MODE_GUIDE.md) — operator checklist for test keys and Stripe CLI
 - No frontend changes; live Stripe still off by default
 - No billing portal, refunds, or downgrades
+
+### Phase 6 Slice 1 — Security readiness baseline (summary)
+
+- [SECURITY_READINESS_REPORT.md](../SECURITY_READINESS_REPORT.md) and [SECURITY_CHECKLIST.md](../SECURITY_CHECKLIST.md)
+- Documents current guards, gaps, and future scanner roadmap (CodeQL, dependency audit, Trivy, OWASP ZAP)
+- Legal/privacy/consent pages are future work (including 152-FZ review for Russia-facing launch)
 
 ### Phase 5 Slice 9 — Billing success/cancel pages (summary)
 

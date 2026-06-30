@@ -304,6 +304,42 @@ def main() -> int:
         if billing_flow_result.returncode != 0:
             errors.append("check_billing_flow.py failed")
 
+    security_script = api_dir / "scripts" / "check_security_readiness.py"
+    print("==> Checking security readiness audit script ...")
+    if not security_script.is_file():
+        errors.append("check_security_readiness.py not found")
+    else:
+        print(f"    Found {security_script.name}")
+        try:
+            import importlib.util
+
+            spec = importlib.util.spec_from_file_location(
+                "check_security_readiness_smoke", security_script
+            )
+            if spec and spec.loader:
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                if not hasattr(module, "main"):
+                    errors.append("check_security_readiness.py missing main()")
+            else:
+                errors.append("check_security_readiness.py import smoke failed")
+        except Exception as exc:
+            errors.append(f"check_security_readiness.py import smoke failed: {exc}")
+
+        print("==> Running security readiness audit ...")
+        security_result = subprocess.run(
+            [sys.executable, "scripts/check_security_readiness.py"],
+            cwd=api_dir,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        print(security_result.stdout)
+        if security_result.stderr:
+            print(security_result.stderr, file=sys.stderr)
+        if security_result.returncode != 0:
+            errors.append("check_security_readiness.py failed")
+
     print("==> Checking required files ...")
     if not alembic_ini.is_file():
         errors.append("alembic.ini not found")
