@@ -6,7 +6,7 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 
 **Billing readiness (pre-Stripe):** [BILLING_READINESS_REPORT.md](../BILLING_READINESS_REPORT.md) — manual billing, plan table, Stripe slice order.  
 **Stripe test mode:** [STRIPE_TEST_MODE_GUIDE.md](../STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI, local checkout checklist (live Stripe not enabled by default).  
-**Security readiness:** [SECURITY_READINESS_REPORT.md](../SECURITY_READINESS_REPORT.md) · [SECURITY_CHECKLIST.md](../SECURITY_CHECKLIST.md) — pre-VPS hardening; CodeQL on GitHub (Slice 2); ZAP/Trivy planned later.
+**Security readiness:** [SECURITY_READINESS_REPORT.md](../SECURITY_READINESS_REPORT.md) · [SECURITY_CHECKLIST.md](../SECURITY_CHECKLIST.md) · [DEPENDENCY_SECURITY_REPORT.md](../DEPENDENCY_SECURITY_REPORT.md) — pre-VPS hardening; CodeQL on GitHub (Slice 2); dependency audit commands (Slice 3); ZAP/Trivy planned later.
 
 **Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](../MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, next roadmap (Slice 20).
 
@@ -96,6 +96,13 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - `.github/workflows/codeql.yml` — separate from `ci.yml`; `python` + `javascript-typescript`; `build-mode: none`
 - Static source analysis — not dynamic web scanning
 - Review findings in GitHub **Security → Code scanning**; does not replace ZAP, Trivy, or manual review
+
+### Phase 6 Slice 3 — Dependency security baseline (summary)
+
+- [DEPENDENCY_SECURITY_REPORT.md](../DEPENDENCY_SECURITY_REPORT.md) — triage guide for `npm audit` / `pip-audit`
+- `npm run security:audit` (`npm audit --audit-level=high`) — documented; **not** in blocking `ci.yml`
+- Optional `.github/workflows/dependency-scan.yml` — weekly + manual; `continue-on-error: true`
+- Do not run `npm audit fix` blindly; CodeQL and dependency audits are separate layers
 
 ### Phase 5 Slice 9 — Billing success/cancel pages (summary)
 
@@ -189,6 +196,7 @@ For hot reload during UI work, use `npm run dev` instead of the `web` container.
 | `npm run test:e2e` | Playwright browser E2E (requires seeded backend) |
 | `npm run test:e2e:headed` | Playwright E2E with visible browser |
 | `npm run check:routes` | Static route/page smoke check (no browser) |
+| `npm run security:audit` | `npm audit --audit-level=high` — dependency advisories; not in blocking CI |
 | `npm run preview` | Preview production build |
 
 Recommended CI/local check sequence:

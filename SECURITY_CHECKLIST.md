@@ -13,6 +13,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [ ] `docker compose exec api python scripts/check_security_readiness.py` passes (or WARN in local env)
 - [ ] `docker compose exec api python scripts/check_billing_flow.py` passes
 - [ ] `cd web && npm run test && npm run typecheck && npm run build && npm run check:routes`
+- [ ] `cd web && npm run security:audit` — review high+ advisories (optional; may fail on dev deps; see [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md))
 
 ---
 
@@ -26,9 +27,10 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 ### CI security scanning
 
 - [x] **CodeQL analysis** — `.github/workflows/codeql.yml` on push/PR to `main` + weekly Sunday; review **Security → Code scanning**
+- [x] **Dependency audit baseline** — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; optional `.github/workflows/dependency-scan.yml` (non-blocking)
 
-### Future CI (not installed yet)
-- [ ] `npm audit` / `pip-audit` in pipeline
+### Future CI (not blocking merges yet)
+- [ ] Promote `npm audit` / `pip-audit` to blocking `ci.yml` after baseline is clean
 - [ ] Trivy image scan on `api` and `web` builds
 - [ ] gitleaks or GitHub secret scanning alerts reviewed
 - [ ] OWASP ZAP baseline against staging URL
@@ -99,7 +101,8 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 ## Future scanner checks (own infrastructure only)
 
 - [x] CodeQL — workflow runs on push/PR/schedule; triage alerts in GitHub Security tab
-- [ ] Dependency audits — triage high/critical
+- [x] Dependency audit baseline — `npm run security:audit`, `pip-audit`; see [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); optional non-blocking workflow
+- [ ] Dependency audits — triage high/critical; promote to blocking CI when clean
 - [ ] Trivy — no critical CVEs in production images without plan
 - [ ] OWASP ZAP baseline — review findings on staging
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first

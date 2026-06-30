@@ -42,7 +42,8 @@ docker compose exec api python scripts/check_security_readiness.py
 | Gap | Notes |
 |-----|--------|
 | **CodeQL workflow** | ✅ `.github/workflows/codeql.yml` — Python + JavaScript/TypeScript; static analysis only |
-| **Dependency scan workflow** | No automated `npm audit` / `pip-audit` in CI |
+| **Dependency scan baseline** | ✅ [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) — `npm run security:audit`, `pip-audit`; optional non-blocking `.github/workflows/dependency-scan.yml` |
+| **Dependency scan in blocking CI** | Not enabled — avoid failing PRs on existing advisory noise until baseline is clean |
 | **Docker image scan** | No Trivy or similar in CI |
 | **OWASP ZAP baseline** | No staging URL scan automated |
 | **Secrets scan workflow** | No gitleaks / GitHub secret scanning config in repo |
@@ -90,8 +91,8 @@ Complete before pointing a real domain at the stack:
 Ordered for this project (own staging/VPS only — never scan third-party sites):
 
 1. **CodeQL** — ✅ Phase 6 Slice 2 — `.github/workflows/codeql.yml` (`python`, `javascript-typescript`, `build-mode: none`); review alerts in GitHub **Security → Code scanning**
-2. **`npm audit` / dependency review** — frontend; fail CI on high/critical or use Dependabot
-3. **`pip-audit` or `safety`** — Python dependencies in CI
+2. **Dependency audit baseline** — ✅ Phase 6 Slice 3 — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; optional `.github/workflows/dependency-scan.yml` (non-blocking)
+3. **Blocking dependency CI** — promote `npm audit` / `pip-audit` to `ci.yml` only after findings are triaged and baseline is clean
 4. **Trivy** — scan Docker images and filesystem (`api`, `web` builds)
 5. **GitHub secret scanning / gitleaks** — optional pre-commit or CI for accidental key commits
 6. **OWASP ZAP baseline** — passive scan against **your** staging URL after deploy
@@ -142,6 +143,15 @@ This slice does **not** create legal documents or consent UI.
 - **Static** source analysis — not dynamic web scanning
 - Does **not** replace OWASP ZAP, Trivy, dependency audits, or manual auth/tenant review
 
+### Phase 6 Slice 3 — Dependency security baseline (summary)
+
+- Report: [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
+- Frontend: `cd web && npm run security:audit` (`npm audit --audit-level=high`)
+- Backend: `pip-audit -r api/requirements.txt` (install `pip-audit` in disposable env only)
+- Optional workflow: `.github/workflows/dependency-scan.yml` — `workflow_dispatch` + weekly; `continue-on-error: true`
+- **Not** in blocking `ci.yml` until baseline is clean
+- CodeQL = source patterns; dependency audit = known CVEs in packages — both needed
+
 ---
 
-**Last updated:** Phase 6 Slice 2 — CodeQL GitHub Action for code scanning.
+**Last updated:** Phase 6 Slice 3 — dependency security scan baseline.

@@ -1,0 +1,58 @@
+# Optional dependency vulnerability scan — non-blocking baseline.
+# Separate from ci.yml and codeql.yml. Does not fail the default CI pipeline.
+
+name: Dependency scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 1 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-audit:
+    name: frontend-npm-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit (high and above)
+        run: npm run security:audit
+
+  backend-audit:
+    name: backend-pip-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pip-audit
+        run: python -m pip install --upgrade pip pip-audit
+
+      - name: pip-audit requirements
+        run: pip-audit -r api/requirements.txt
