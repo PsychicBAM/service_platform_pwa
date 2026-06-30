@@ -46,6 +46,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Dependency advisory triage** | ✅ Phase 6 Slice 4 — advisories classified; upgrade plan in DEPENDENCY_SECURITY_REPORT §I; **no version bumps yet** |
 | **pytest test-only upgrade** | ✅ Phase 6 Slice 5 — pytest ≥9.0.3, pytest-asyncio ≥1.3; CVE-2025-71176 cleared |
 | **Starlette/FastAPI runtime upgrade** | ✅ Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |
+| **Vite/esbuild upgrade** | ✅ Phase 6 Slice 7 — `vite@8.1.2`, `@vitejs/plugin-react@6.0.3`; npm audit clean |
 | **Dependency scan in blocking CI** | Not enabled — avoid failing PRs until Slice 8 after upgrades/triage complete |
 | **Docker image scan** | No Trivy or similar in CI |
 | **OWASP ZAP baseline** | No staging URL scan automated |
@@ -161,7 +162,7 @@ This slice does **not** create legal documents or consent UI.
 - [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §I — classified npm/pip-audit findings
 - **Starlette** (runtime): ✅ **Slice 6 done** — fastapi 0.138.2 / starlette 1.3.1; pip-audit clean
 - **pytest** (test-only): ✅ **Slice 5 done** — CVE-2025-71176 cleared
-- **Vite/esbuild** (dev server): medium; production nginx build lower risk — planned Slice 7
+- **Vite/esbuild** (dev server): ✅ **Slice 7 done** — Vite 8.1.2; npm audit clean
 - No dependency versions changed in Slice 4; **Slice 5** upgraded test deps only (pytest)
 
 ### Phase 6 Slice 5 — pytest upgrade (summary)
@@ -172,9 +173,15 @@ This slice does **not** create legal documents or consent UI.
 
 - `api/requirements.txt`: `fastapi>=0.136.3,<0.139.0` (was `>=0.115.0,<0.116.0`); starlette 1.3.1 transitive
 - All 8 Starlette pip-audit advisories cleared
-- Vite/esbuild dev advisory **unchanged** — Slice 7
 - Full backend + frontend regression passed; no app code changes
+
+### Phase 6 Slice 7 — Vite / esbuild upgrade (summary)
+
+- `web/package.json`: `vite@8.1.2`, `@vitejs/plugin-react@6.0.3` (was Vite 5.4.21 / plugin-react 4.7.0)
+- GHSA-67mh-4wv8-2f99 cleared; `npm run security:audit` → 0 vulnerabilities
+- No vite/vitest/playwright config or app source changes
+- Full frontend + backend regression passed
 
 ---
 
-**Last updated:** Phase 6 Slice 6 — Starlette / FastAPI runtime dependency upgrade.
+**Last updated:** Phase 6 Slice 7 — Vite / esbuild frontend dependency upgrade.

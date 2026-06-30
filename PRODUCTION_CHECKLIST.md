@@ -10,7 +10,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 
 - [ ] **Security readiness reviewed** — [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) and [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md)
 - [ ] **CodeQL alerts reviewed** — GitHub **Security → Code scanning** after merge to `main` (`.github/workflows/codeql.yml`)
-- [x] **Dependency advisories triaged** — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §I–K; pytest CVE addressed (Slice 5); **Starlette runtime advisories cleared** (Slice 6 — fastapi 0.138.2 / starlette 1.3.1); Vite/esbuild remains (Slice 7); optional Actions → **Dependency scan**
+- [x] **Dependency advisories triaged** — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §I–L; pytest (Slice 5), Starlette (Slice 6), Vite/esbuild (Slice 7) cleared; optional Actions → **Dependency scan**
 - [ ] **Security config audit** — `docker compose exec api python scripts/check_security_readiness.py` (with production `.env` on staging)
 - [ ] **Production env validated** — `python scripts/check_production_env.py --env-file .env --strict` exits 0
 - [ ] **JWT_SECRET_KEY** is a long random value (≥ 32 bytes), not `change_me`

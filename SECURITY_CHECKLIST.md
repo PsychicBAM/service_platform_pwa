@@ -30,9 +30,10 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] **Dependency audit baseline** — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; optional `.github/workflows/dependency-scan.yml` (non-blocking)
 - [x] **Dependency advisories triaged** — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §I; upgrades planned Slices 5–8; no auto-fix in Slice 4
 - [x] **pytest test-only upgrade** — Slice 5: `pytest>=9.0.3,<10.0.0`; pip-audit pytest CVE cleared
+- [x] **Starlette/FastAPI runtime upgrade** (Slice 6) — `fastapi>=0.136.3,<0.139.0`; starlette 1.3.1; pip-audit backend clean
+- [x] **Vite/esbuild upgrade** (Slice 7) — `vite@8.1.2`, `@vitejs/plugin-react@6.0.3`; npm audit clean
 
 ### Future CI (not blocking merges yet)
-- [x] **Starlette/FastAPI runtime upgrade** (Slice 6) — `fastapi>=0.136.3,<0.139.0`; starlette 1.3.1; pip-audit backend clean
 - [ ] Promote `npm audit` / `pip-audit` to blocking `ci.yml` after Slice 8 when baseline is clean
 - [ ] Trivy image scan on `api` and `web` builds
 - [ ] gitleaks or GitHub secret scanning alerts reviewed
@@ -105,7 +106,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 
 - [x] CodeQL — workflow runs on push/PR/schedule; triage alerts in GitHub Security tab
 - [x] Dependency audit baseline — `npm run security:audit`, `pip-audit`; see [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); optional non-blocking workflow
-- [x] Dependency audits — Starlette runtime advisories cleared (Slice 6); Vite/esbuild remains (Slice 7)
+- [x] Dependency audits — Starlette cleared (Slice 6); Vite/esbuild cleared (Slice 7); promote to blocking in Slice 8
 - [ ] Trivy — no critical CVEs in production images without plan
 - [ ] OWASP ZAP baseline — review findings on staging
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first

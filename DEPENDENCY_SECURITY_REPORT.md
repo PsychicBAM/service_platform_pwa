@@ -147,6 +147,53 @@ Record summary here (counts only — no secret values):
 | `pip-audit` | 2026-06-30 | 9 advisories | — | `starlette` (FastAPI) + `pytest` in `api/requirements.txt`; triage before upgrade; **not** auto-fixed |
 | `pip-audit` | 2026-06-30 (post Slice 5) | 8 advisories | — | **pytest cleared**; `starlette` 0.46.2 only — Slice 6 |
 | `pip-audit` | 2026-06-30 (post Slice 6) | **0** | — | **Starlette cleared** — `fastapi` 0.138.2 → `starlette` 1.3.1; Vite/esbuild remains (Slice 7) |
+| `npm audit --audit-level=high` | 2026-06-30 (post Slice 7) | **0** | — | **Vite/esbuild cleared** — `vite` 8.1.2; GHSA-67mh-4wv8-2f99 resolved |
+| `pip-audit` | 2026-06-30 (post Slice 7) | **0** | — | Backend unchanged; still clean |
+
+---
+
+## L. Phase 6 Slice 7 — Vite / esbuild upgrade
+
+**Completed:** Frontend devDependency upgrade only — **no** backend, app product logic, auth, or Stripe changes.
+
+### L.A. Compatibility investigation
+
+| Finding | Detail |
+|---------|--------|
+| **Root cause** | Direct `vite@5.4.21` pulled `esbuild@0.21.5` (≤0.24.2 vulnerable) |
+| **Vitest note** | `vitest@4.1.9` already depended on `vite@8.1.0` transitively — duplicate Vite 5 tree triggered npm audit |
+| **No Vite 5 patch** | GHSA-67mh-4wv8-2f99 requires esbuild >0.24.2; Vite 5.x pins vulnerable esbuild |
+| **Required path** | Vite 8.x + `@vitejs/plugin-react` 6.x (peer `vite ^8.0.0`) |
+
+**Not used:** `npm audit fix --force` — explicit `npm install -D vite@8.1.2 @vitejs/plugin-react@6.0.3` instead.
+
+### L.B. Versions changed (`web/package.json`)
+
+| Package | Before | After | Notes |
+|---------|--------|-------|-------|
+| `vite` | `^5.4.11` (resolved 5.4.21) | `^8.1.2` (resolved **8.1.2**) | Clears esbuild advisory via Vite 8 toolchain |
+| `@vitejs/plugin-react` | `^4.3.4` (resolved 4.7.0) | `^6.0.3` (resolved **6.0.3**) | Required peer for Vite 8 |
+
+**Unchanged:** vitest 4.1.9, jsdom, Playwright, TypeScript, Tailwind, and all runtime `dependencies`. **No** `api/requirements.txt` changes. **No** `vite.config.ts` / `vitest.config.ts` / `playwright.config.ts` changes required.
+
+### L.C. npm audit after Slice 7
+
+- **GHSA-67mh-4wv8-2f99 (esbuild dev server):** cleared
+- **`npm run security:audit`:** **0 vulnerabilities** (was 2: 1 moderate + 1 high via Vite chain)
+- **esbuild:** Vite 8 declares optional peer `esbuild ^0.27.0 || ^0.28.0` (above vulnerable ≤0.24.2 range)
+- **`dependency-scan.yml`:** remains **non-blocking** until Slice 8 confirms clean CI runs on both jobs
+
+### L.D. Regression
+
+Full frontend + backend suites passed after Docker rebuild; no source or config changes required.
+
+### L.E. Production note
+
+Production Docker `web` image still runs `npm run build` → nginx static `dist/` — no Vite dev server in production. Upgrade reduces dev/CI audit noise and hardens local `npm run dev`.
+
+### L.F. Rollback
+
+Revert `web/package.json` + `web/package-lock.json`; rebuild `web` Docker image.
 
 ---
 
@@ -214,7 +261,7 @@ Full backend + frontend suites passed after Docker rebuild; no test code changes
 
 ---
 
-**Last updated:** Phase 6 Slice 6 — Starlette / FastAPI runtime dependency upgrade.
+**Last updated:** Phase 6 Slice 7 — Vite / esbuild frontend dependency upgrade.
 
 **Slice type:** Documentation and planning only — **no dependency version changes** in Slice 4.
 
@@ -259,8 +306,8 @@ Full backend + frontend suites passed after Docker rebuild; no test code changes
 
 | Advisory area | Package | Current version | Runtime / dev / test | Impact summary | Suggested action | Priority | Blocking before VPS? |
 |---------------|---------|-----------------|----------------------|----------------|------------------|----------|----------------------|
-| Frontend dev server | esbuild | 0.21.5 | dev | Malicious site could read Vite dev server responses if dev server is exposed | Do not expose `npm run dev` to internet; use nginx prod frontend for demos; upgrade in Slice 7 | Medium | No (if dev server not public) |
-| Frontend toolchain | vite | 5.4.21 | dev | Depends on vulnerable esbuild; audit fix wants Vite 8 | Investigate non-breaking Vite patch/minor path in Slice 7; avoid `--force` | Medium | No (prod serves static `dist/`) |
+| Frontend dev server | esbuild | (Vite 8 peer ≥0.27) | dev | GHSA-67mh-4wv8-2f99 | ✅ **Slice 7 done** — Vite 8.1.2; npm audit clean | — | No |
+| Frontend toolchain | vite | 8.1.2 | dev | Was on vulnerable esbuild via Vite 5 | ✅ **Slice 7 done** — explicit upgrade + plugin-react 6.0.3 | — | No |
 | Backend runtime | starlette | 1.3.1 | runtime | ASGI layer under FastAPI | ✅ **Slice 6 done** — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit clean | — | No (advisories cleared) |
 | Backend tests | pytest | 9.1.1 | test / CI | CVE-2025-71176 | ✅ **Slice 5 done** — `>=9.0.3,<10.0.0` + pytest-asyncio ≥1.3 | — | No |
 
@@ -283,12 +330,12 @@ Each slice is a **separate PR** with full regression checks. **No automatic `npm
 - **pip-audit:** Starlette advisories cleared; Vite/esbuild remains for Slice 7
 - **Rollback:** Revert `api/requirements.txt` fastapi pin; rebuild Docker image
 
-#### Slice 7 — Vite / esbuild upgrade investigation
+#### Slice 7 — Vite / esbuild upgrade investigation ✅ (completed)
 
-- Review Vite 5 → 6/7/8 changelog; avoid `npm audit fix --force`
-- Try smallest compatible Vite/esbuild bump that clears GHSA-67mh-4wv8-2f99 if available
-- **Regression:** `npm run test`, `typecheck`, `build`, `check:routes`, `test:e2e`
-- **Rollback:** Revert `web/package.json` + `package-lock.json`
+- Upgraded `vite` to `^8.1.2` and `@vitejs/plugin-react` to `^6.0.3` (explicit install; no `npm audit fix --force`)
+- **Regression:** 74 Vitest + typecheck + build + routes + 22 Playwright + full backend — passed; no config/source changes
+- **npm audit:** GHSA-67mh-4wv8-2f99 cleared; `npm run security:audit` → 0 vulnerabilities
+- **Rollback:** Revert `web/package.json` + `package-lock.json`; rebuild `web` image
 
 #### Slice 8 — Stricter dependency CI
 

@@ -354,6 +354,7 @@ Legacy list (Phase 3):
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |
+| Vite/esbuild upgrade | Phase 6 Slice 7 — `vite@8.1.2`, `@vitejs/plugin-react@6.0.3`; npm audit clean |
 | Stripe webhook backend | Slice 7 — `POST /api/v1/billing/stripe/webhook`; `checkout.session.completed` activates plan |
 | Mobile / desktop UX polish | Slice 19 — spacing, grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
 | CI | GitHub Actions — backend pytest + frontend Vitest/build |
