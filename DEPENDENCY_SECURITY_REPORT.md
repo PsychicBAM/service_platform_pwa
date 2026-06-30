@@ -146,6 +146,46 @@ Record summary here (counts only — no secret values):
 | `npm audit --audit-level=high` | 2026-06-30 | 1 (vite/esbuild chain) | 1 (esbuild dev server) | devDependency via Vite; fix suggests Vite 8 (breaking); **not** auto-fixed |
 | `pip-audit` | 2026-06-30 | 9 advisories | — | `starlette` (FastAPI) + `pytest` in `api/requirements.txt`; triage before upgrade; **not** auto-fixed |
 | `pip-audit` | 2026-06-30 (post Slice 5) | 8 advisories | — | **pytest cleared**; `starlette` 0.46.2 only — Slice 6 |
+| `pip-audit` | 2026-06-30 (post Slice 6) | **0** | — | **Starlette cleared** — `fastapi` 0.138.2 → `starlette` 1.3.1; Vite/esbuild remains (Slice 7) |
+
+---
+
+## K. Phase 6 Slice 6 — Starlette / FastAPI runtime upgrade
+
+**Completed:** Runtime dependency upgrade only — **no** app product logic, auth, Stripe, or Vite changes.
+
+### K.A. Compatibility investigation
+
+| FastAPI pin (before) | Starlette constraint | Blocker |
+|---------------------|----------------------|---------|
+| `>=0.115.0,<0.116.0` (resolved 0.115.14) | `starlette>=0.40.0,<0.47.0` | Caps at 0.46.x — cannot reach patched 0.47.2+ |
+
+FastAPI **0.136.3+** is the first release with `starlette>=0.46.0` and **no upper cap**, allowing Starlette 1.x (required for PYSEC-2026-249 fix at 1.3.1). Intermediate bumps (0.118 → 0.48.x, 0.125 → 0.50.x) would reduce but not clear all pip-audit findings.
+
+### K.B. Versions changed (`api/requirements.txt`)
+
+| Package | Before | After | Notes |
+|---------|--------|-------|-------|
+| `fastapi` | `>=0.115.0,<0.116.0` (resolved 0.115.14) | `>=0.136.3,<0.139.0` (resolves **0.138.2**) | Smallest range allowing Starlette 1.3.1 |
+| `starlette` | 0.46.2 (transitive) | **1.3.1** (transitive) | **Not** pinned explicitly — FastAPI defines compatibility |
+
+**Unchanged:** uvicorn, pydantic, httpx, anyio, pytest, and all other `api/requirements.txt` pins. **No** frontend dependency changes.
+
+### K.C. pip-audit after Slice 6
+
+- **Starlette advisories:** all **8 cleared** (CVE-2025-54121, CVE-2025-62727, CVE-2026-48817/48818, PYSEC-2026-161, PYSEC-2026-248/249)
+- **Result:** `pip-audit -r api/requirements.txt` → **No known vulnerabilities found**
+- **Remaining:** Vite/esbuild dev-server advisory (frontend) — planned **Slice 7**
+- **`dependency-scan.yml`:** remains **non-blocking** until Slice 8 (npm audit still has Vite finding)
+
+### K.D. Regression
+
+Full backend + frontend suites passed after Docker rebuild; **no** test or app code changes required. Verified: auth, admin, billing, Stripe webhook raw body, CORS, TestClient/httpx.
+
+### K.E. VPS readiness
+
+- **Starlette runtime advisories:** acceptable for pre-VPS / production API deployment (subject to normal staging smoke)
+- **Rollback:** Revert `fastapi` pin in `api/requirements.txt`; rebuild Docker image
 
 ---
 
@@ -174,7 +214,7 @@ Full backend + frontend suites passed after Docker rebuild; no test code changes
 
 ---
 
-**Last updated:** Phase 6 Slice 5 — pytest test-only dependency upgrade.
+**Last updated:** Phase 6 Slice 6 — Starlette / FastAPI runtime dependency upgrade.
 
 **Slice type:** Documentation and planning only — **no dependency version changes** in Slice 4.
 
@@ -221,7 +261,7 @@ Full backend + frontend suites passed after Docker rebuild; no test code changes
 |---------------|---------|-----------------|----------------------|----------------|------------------|----------|----------------------|
 | Frontend dev server | esbuild | 0.21.5 | dev | Malicious site could read Vite dev server responses if dev server is exposed | Do not expose `npm run dev` to internet; use nginx prod frontend for demos; upgrade in Slice 7 | Medium | No (if dev server not public) |
 | Frontend toolchain | vite | 5.4.21 | dev | Depends on vulnerable esbuild; audit fix wants Vite 8 | Investigate non-breaking Vite patch/minor path in Slice 7; avoid `--force` | Medium | No (prod serves static `dist/`) |
-| Backend runtime | starlette | 0.46.2 | runtime | Multiple CVEs in ASGI layer used by FastAPI | Minimum safe Starlette/FastAPI compatible upgrade in Slice 6; full auth/billing/e2e regression | **High** | **Yes — review before production** |
+| Backend runtime | starlette | 1.3.1 | runtime | ASGI layer under FastAPI | ✅ **Slice 6 done** — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit clean | — | No (advisories cleared) |
 | Backend tests | pytest | 9.1.1 | test / CI | CVE-2025-71176 | ✅ **Slice 5 done** — `>=9.0.3,<10.0.0` + pytest-asyncio ≥1.3 | — | No |
 
 ---
@@ -236,13 +276,12 @@ Each slice is a **separate PR** with full regression checks. **No automatic `npm
 - **Regression:** 563 pytest + `check_backend.py` — passed; no test code changes
 - **Rollback:** Revert `api/requirements.txt` pins
 
-#### Slice 6 — Starlette / FastAPI compatibility investigation
+#### Slice 6 — Starlette / FastAPI compatibility investigation ✅ (completed)
 
-- Inspect FastAPI 0.115.x ↔ Starlette compatibility matrix
-- Try **minimum** safe patch/minor that resolves highest-priority CVEs (e.g. 0.47.2+ within FastAPI support — verify before applying)
-- **Do not** jump to Starlette 1.x unless FastAPI officially supports it
-- **Regression:** pytest (auth, admin, billing, webhooks, CORS, uploads), `check_security_readiness.py`, manual smoke on staging
-- **Rollback:** Revert FastAPI/Starlette pins; redeploy previous image
+- Upgraded `fastapi` to `>=0.136.3,<0.139.0` (resolves 0.138.2); Starlette 1.3.1 transitive
+- **Regression:** 563 pytest + all `check_*.py` audits + Playwright — passed; no code changes
+- **pip-audit:** Starlette advisories cleared; Vite/esbuild remains for Slice 7
+- **Rollback:** Revert `api/requirements.txt` fastapi pin; rebuild Docker image
 
 #### Slice 7 — Vite / esbuild upgrade investigation
 
@@ -274,7 +313,7 @@ Each slice is a **separate PR** with full regression checks. **No automatic `npm
 - Keep **API behind HTTPS reverse proxy** on VPS; do not publish `:8000` publicly
 - Keep **Postgres internal** (`docker-compose.prod.yml` — no host port mapping)
 - **Do not enable live Stripe** until [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) and [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) are complete
-- Treat **Starlette runtime advisories** as launch gate — triage in Slice 6 before pointing production traffic at the API
+- ~~Treat **Starlette runtime advisories** as launch gate — triage in Slice 6 before pointing production traffic at the API~~ ✅ **Slice 6 done** — Starlette 1.3.1; pip-audit backend clean
 
 ---
 

@@ -32,7 +32,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] **pytest test-only upgrade** — Slice 5: `pytest>=9.0.3,<10.0.0`; pip-audit pytest CVE cleared
 
 ### Future CI (not blocking merges yet)
-- [ ] **Starlette/FastAPI upgrade** (Slice 6) — before VPS production if advisories remain open
+- [x] **Starlette/FastAPI runtime upgrade** (Slice 6) — `fastapi>=0.136.3,<0.139.0`; starlette 1.3.1; pip-audit backend clean
 - [ ] Promote `npm audit` / `pip-audit` to blocking `ci.yml` after Slice 8 when baseline is clean
 - [ ] Trivy image scan on `api` and `web` builds
 - [ ] gitleaks or GitHub secret scanning alerts reviewed
@@ -105,7 +105,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 
 - [x] CodeQL — workflow runs on push/PR/schedule; triage alerts in GitHub Security tab
 - [x] Dependency audit baseline — `npm run security:audit`, `pip-audit`; see [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); optional non-blocking workflow
-- [ ] Dependency audits — triage high/critical; **Starlette runtime advisories reviewed before VPS** (Slice 6 upgrade plan)
+- [x] Dependency audits — Starlette runtime advisories cleared (Slice 6); Vite/esbuild remains (Slice 7)
 - [ ] Trivy — no critical CVEs in production images without plan
 - [ ] OWASP ZAP baseline — review findings on staging
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first
