@@ -41,7 +41,7 @@ docker compose exec api python scripts/check_security_readiness.py
 
 | Gap | Notes |
 |-----|--------|
-| **CodeQL workflow** | Not in CI yet — recommended for Python + JavaScript |
+| **CodeQL workflow** | ✅ `.github/workflows/codeql.yml` — Python + JavaScript/TypeScript; static analysis only |
 | **Dependency scan workflow** | No automated `npm audit` / `pip-audit` in CI |
 | **Docker image scan** | No Trivy or similar in CI |
 | **OWASP ZAP baseline** | No staging URL scan automated |
@@ -89,7 +89,7 @@ Complete before pointing a real domain at the stack:
 
 Ordered for this project (own staging/VPS only — never scan third-party sites):
 
-1. **CodeQL** — GitHub Actions code scanning for Python + TypeScript
+1. **CodeQL** — ✅ Phase 6 Slice 2 — `.github/workflows/codeql.yml` (`python`, `javascript-typescript`, `build-mode: none`); review alerts in GitHub **Security → Code scanning**
 2. **`npm audit` / dependency review** — frontend; fail CI on high/critical or use Dependabot
 3. **`pip-audit` or `safety`** — Python dependencies in CI
 4. **Trivy** — scan Docker images and filesystem (`api`, `web` builds)
@@ -135,4 +135,13 @@ This slice does **not** create legal documents or consent UI.
 
 ---
 
-**Last updated:** Phase 6 Slice 1 — security readiness baseline (documentation + optional audit script).
+### Phase 6 Slice 2 — CodeQL (summary)
+
+- Workflow: `.github/workflows/codeql.yml` — separate from `ci.yml`
+- Scans: `api/` (Python), `web/` (JavaScript/TypeScript)
+- **Static** source analysis — not dynamic web scanning
+- Does **not** replace OWASP ZAP, Trivy, dependency audits, or manual auth/tenant review
+
+---
+
+**Last updated:** Phase 6 Slice 2 — CodeQL GitHub Action for code scanning.

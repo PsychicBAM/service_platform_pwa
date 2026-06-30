@@ -23,9 +23,11 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [ ] `check_production_env.py` validates `.env.production.example`
 - [ ] `docker-compose.prod.yml config` succeeds in CI
 
-### Future CI (not installed yet)
+### CI security scanning
 
-- [ ] CodeQL analysis workflow
+- [x] **CodeQL analysis** — `.github/workflows/codeql.yml` on push/PR to `main` + weekly Sunday; review **Security → Code scanning**
+
+### Future CI (not installed yet)
 - [ ] `npm audit` / `pip-audit` in pipeline
 - [ ] Trivy image scan on `api` and `web` builds
 - [ ] gitleaks or GitHub secret scanning alerts reviewed
@@ -96,7 +98,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 
 ## Future scanner checks (own infrastructure only)
 
-- [ ] CodeQL — review alerts on PRs
+- [x] CodeQL — workflow runs on push/PR/schedule; triage alerts in GitHub Security tab
 - [ ] Dependency audits — triage high/critical
 - [ ] Trivy — no critical CVEs in production images without plan
 - [ ] OWASP ZAP baseline — review findings on staging
