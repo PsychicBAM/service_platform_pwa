@@ -101,7 +101,7 @@ def test_strict_env_script_fails_wildcard_cors() -> None:
     }
     result = module.validate_production_env(env, strict=True)
     assert not result.passed
-    assert any("wildcard" in failure.lower() for failure in result.failures)
+    assert "cors_origins_wildcard_not_allowed" in result.failures
 
 
 def test_non_strict_env_script_warns_optional_integrations() -> None:
@@ -124,8 +124,8 @@ def test_non_strict_env_script_warns_optional_integrations() -> None:
     }
     result = module.validate_production_env(env, strict=False)
     assert result.passed
-    assert any("Stripe disabled" in warning or "Stripe" in warning for warning in result.warnings)
-    assert any("SMTP" in warning for warning in result.warnings)
+    assert "stripe_disabled" in result.warnings
+    assert "smtp_not_configured" in result.warnings
 
 
 def test_settings_docs_enabled_property_direct() -> None:

@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -56,37 +55,125 @@ DEV_DATABASE_MARKERS = (
     "@127.0.0.1:",
 )
 
-_SENSITIVE_VALUE_PATTERNS = (
-    re.compile(r"sk_test_[A-Za-z0-9]+"),
-    re.compile(r"sk_live_[A-Za-z0-9]+"),
-    re.compile(r"whsec_[A-Za-z0-9]+"),
-    re.compile(r"password=[^@\s]+", re.IGNORECASE),
-)
+_REQUIRED_KEY_CODES = {
+    "APP_ENV": ("app_env_missing_or_empty", "app_env_set"),
+    "POSTGRES_USER": ("postgres_user_missing_or_empty", "postgres_user_set"),
+    "POSTGRES_PASSWORD": ("postgres_password_missing_or_empty", "postgres_password_set"),
+    "POSTGRES_DB": ("postgres_db_missing_or_empty", "postgres_db_set"),
+    "DATABASE_URL": ("database_url_missing_or_empty", "database_url_set"),
+    "JWT_SECRET_KEY": ("jwt_secret_key_missing_or_empty", "jwt_secret_key_set"),
+    "WEB_HTTP_PORT": ("web_http_port_missing_or_empty", "web_http_port_set"),
+}
+
+SAFE_VALIDATION_MESSAGES: dict[str, str] = {
+    "env_file_not_found": "Env file not found",
+    "app_env_missing_or_empty": "APP_ENV is missing or empty",
+    "app_env_set": "APP_ENV is set",
+    "app_env_production_required": (
+        "APP_ENV must be production in strict mode (current value is not production)"
+    ),
+    "app_env_is_production": "APP_ENV is production",
+    "postgres_user_missing_or_empty": "POSTGRES_USER is missing or empty",
+    "postgres_user_set": "POSTGRES_USER is set",
+    "postgres_password_missing_or_empty": "POSTGRES_PASSWORD is missing or empty",
+    "postgres_password_set": "POSTGRES_PASSWORD is set",
+    "postgres_password_placeholder": "POSTGRES_PASSWORD looks like a placeholder",
+    "postgres_password_not_placeholder": "POSTGRES_PASSWORD is not a placeholder",
+    "postgres_password_default_dev": "POSTGRES_PASSWORD is the default dev password",
+    "postgres_db_missing_or_empty": "POSTGRES_DB is missing or empty",
+    "postgres_db_set": "POSTGRES_DB is set",
+    "database_url_missing_or_empty": "DATABASE_URL is missing or empty",
+    "database_url_set": "DATABASE_URL is set",
+    "database_url_placeholder_values": "DATABASE_URL contains placeholder values",
+    "database_url_placeholder_postgres_password": (
+        "DATABASE_URL uses placeholder POSTGRES_PASSWORD"
+    ),
+    "database_url_password_not_placeholder": "DATABASE_URL password is not a placeholder",
+    "database_url_host_postgres_required": (
+        "DATABASE_URL should use host 'postgres' for Docker Compose production"
+    ),
+    "database_url_host_is_postgres": "DATABASE_URL host is postgres",
+    "database_url_dev_oriented": "DATABASE_URL looks dev-oriented",
+    "jwt_secret_key_missing_or_empty": "JWT_SECRET_KEY is missing or empty",
+    "jwt_secret_key_set": "JWT_SECRET_KEY is set",
+    "jwt_secret_key_too_short": "JWT_SECRET_KEY must be at least 32 characters",
+    "jwt_secret_key_meets_minimum_length": "JWT_SECRET_KEY meets minimum length",
+    "jwt_secret_key_weak_or_placeholder": "JWT_SECRET_KEY is a weak or placeholder value",
+    "jwt_secret_key_not_default_placeholder": "JWT_SECRET_KEY is not a default placeholder",
+    "web_http_port_missing_or_empty": "WEB_HTTP_PORT is missing or empty",
+    "web_http_port_set": "WEB_HTTP_PORT is set",
+    "web_http_port_not_numeric": "WEB_HTTP_PORT must be numeric",
+    "web_http_port_out_of_range": "WEB_HTTP_PORT out of range",
+    "web_http_port_valid": "WEB_HTTP_PORT is valid",
+    "cors_origins_missing_or_empty": "CORS_ORIGINS is missing or empty",
+    "cors_origins_set": "CORS_ORIGINS is set",
+    "cors_origins_wildcard_not_allowed": "CORS_ORIGINS must not use wildcard '*'",
+    "cors_origins_no_wildcard": "CORS_ORIGINS has no wildcard",
+    "cors_origins_localhost_production_warning": (
+        "CORS_ORIGINS includes localhost — use real domain in production "
+        "(localhost is OK for local prod smoke with WEB_HTTP_PORT=8080)"
+    ),
+    "cors_origins_no_localhost_entries": "CORS_ORIGINS has no localhost entries",
+    "cors_origins_localhost_dev_expected": (
+        "CORS_ORIGINS includes localhost (expected for local dev)"
+    ),
+    "api_docs_enabled_in_production": (
+        "API_DOCS_ENABLED=true in production — OpenAPI UI will be public"
+    ),
+    "api_docs_disabled_for_production": "API docs disabled for production",
+    "email_notifications_disabled": "Email notifications disabled (EMAIL_ENABLED=false)",
+    "email_enabled_true": "EMAIL_ENABLED is true",
+    "email_dry_run_enabled": "EMAIL_DRY_RUN is enabled — emails will not be sent over SMTP",
+    "email_dry_run_false_live_smtp": "EMAIL_DRY_RUN is false (live SMTP expected)",
+    "smtp_host_required_live_email": (
+        "SMTP_HOST is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
+    ),
+    "smtp_host_set": "SMTP_HOST is set",
+    "smtp_from_email_required_live_email": (
+        "SMTP_FROM_EMAIL is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
+    ),
+    "smtp_from_email_set": "SMTP_FROM_EMAIL is set",
+    "smtp_password_required_when_user_set": "SMTP_PASSWORD is required when SMTP_USER is set",
+    "smtp_user_and_password_set": "SMTP_USER and SMTP_PASSWORD are set",
+    "smtp_not_configured": "SMTP not configured",
+    "stripe_disabled": (
+        "Stripe disabled — payments unavailable; billing remains manual/demo"
+    ),
+    "stripe_enabled_true": "STRIPE_ENABLED is true",
+    "stripe_secret_key_required": "STRIPE_SECRET_KEY is required when STRIPE_ENABLED=true",
+    "stripe_secret_key_set": "STRIPE_SECRET_KEY is set",
+    "stripe_webhook_secret_required": (
+        "STRIPE_WEBHOOK_SECRET is required when STRIPE_ENABLED=true"
+    ),
+    "stripe_webhook_secret_set": "STRIPE_WEBHOOK_SECRET is set",
+    "stripe_price_starter_required": (
+        "STRIPE_PRICE_STARTER is required when STRIPE_ENABLED=true"
+    ),
+    "stripe_price_starter_set": "STRIPE_PRICE_STARTER is set",
+    "stripe_price_business_required": (
+        "STRIPE_PRICE_BUSINESS is required when STRIPE_ENABLED=true"
+    ),
+    "stripe_price_business_set": "STRIPE_PRICE_BUSINESS is set",
+    "stripe_price_pro_required": "STRIPE_PRICE_PRO is required when STRIPE_ENABLED=true",
+    "stripe_price_pro_set": "STRIPE_PRICE_PRO is set",
+    "stripe_success_url_required": "STRIPE_SUCCESS_URL is required when STRIPE_ENABLED=true",
+    "stripe_success_url_set": "STRIPE_SUCCESS_URL is set",
+    "stripe_success_url_localhost_forbidden": (
+        "Stripe success URL should not use localhost in production"
+    ),
+    "stripe_success_url_localhost_dev": "STRIPE_SUCCESS_URL points to localhost",
+    "stripe_cancel_url_required": "STRIPE_CANCEL_URL is required when STRIPE_ENABLED=true",
+    "stripe_cancel_url_set": "STRIPE_CANCEL_URL is set",
+    "stripe_cancel_url_localhost_forbidden": (
+        "Stripe cancel URL should not use localhost in production"
+    ),
+    "stripe_cancel_url_localhost_dev": "STRIPE_CANCEL_URL points to localhost",
+}
 
 
-def sanitize_message(message: str) -> str:
-    """Redact secret-like substrings from validation output messages."""
-    redacted = message
-    for pattern in _SENSITIVE_VALUE_PATTERNS:
-        redacted = pattern.sub("[redacted]", redacted)
-    return redacted
-
-
-def _safe_message(message: str) -> str:
-    """Return a message safe to store in validation results and print."""
-    return sanitize_message(message)
-
-
-def _append_ok(result: ValidationResult, message: str) -> None:
-    result.ok.append(_safe_message(message))
-
-
-def _append_warn(result: ValidationResult, message: str) -> None:
-    result.warnings.append(_safe_message(message))
-
-
-def _append_fail(result: ValidationResult, message: str) -> None:
-    result.failures.append(_safe_message(message))
+def validation_message(code: str) -> str:
+    """Resolve a validation code to its predefined safe output text."""
+    return SAFE_VALIDATION_MESSAGES.get(code, "Unknown validation check")
 
 
 @dataclass
@@ -98,6 +185,18 @@ class ValidationResult:
     @property
     def passed(self) -> bool:
         return not self.failures
+
+
+def _append_ok(result: ValidationResult, code: str) -> None:
+    result.ok.append(code)
+
+
+def _append_warn(result: ValidationResult, code: str) -> None:
+    result.warnings.append(code)
+
+
+def _append_fail(result: ValidationResult, code: str) -> None:
+    result.failures.append(code)
 
 
 def parse_env_file(path: Path) -> dict[str, str]:
@@ -149,36 +248,29 @@ def _validate_cors(env: dict[str, str], *, strict: bool, result: ValidationResul
     origins = _parse_cors_origins(raw)
 
     if not origins:
-        message = "CORS_ORIGINS is missing or empty"
         if strict:
-            _append_fail(result, message)
+            _append_fail(result, "cors_origins_missing_or_empty")
         else:
-            _append_warn(result, message)
+            _append_warn(result, "cors_origins_missing_or_empty")
         return
 
-    _append_ok(result, "CORS_ORIGINS is set")
+    _append_ok(result, "cors_origins_set")
 
     if any(origin == "*" for origin in origins):
-        message = "CORS_ORIGINS must not use wildcard '*'"
         if strict:
-            _append_fail(result, message)
+            _append_fail(result, "cors_origins_wildcard_not_allowed")
         else:
-            _append_warn(result, message)
+            _append_warn(result, "cors_origins_wildcard_not_allowed")
         return
 
     if strict:
-        _append_ok(result, "CORS_ORIGINS has no wildcard")
-        localhost_origins = [origin for origin in origins if _is_localhost_origin(origin)]
-        if localhost_origins:
-            _append_warn(
-                result,
-                "CORS_ORIGINS includes localhost — use real domain in production "
-                "(localhost is OK for local prod smoke with WEB_HTTP_PORT=8080)",
-            )
+        _append_ok(result, "cors_origins_no_wildcard")
+        if any(_is_localhost_origin(origin) for origin in origins):
+            _append_warn(result, "cors_origins_localhost_production_warning")
         else:
-            _append_ok(result, "CORS_ORIGINS has no localhost entries")
+            _append_ok(result, "cors_origins_no_localhost_entries")
     elif any(_is_localhost_origin(origin) for origin in origins):
-        _append_warn(result, "CORS_ORIGINS includes localhost (expected for local dev)")
+        _append_warn(result, "cors_origins_localhost_dev_expected")
 
 
 def _validate_api_docs(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
@@ -186,10 +278,9 @@ def _validate_api_docs(env: dict[str, str], *, strict: bool, result: ValidationR
     app_env = env.get("APP_ENV", "").strip().lower()
 
     if raw in {"true", "1", "yes"} and app_env == "production":
-        message = "API_DOCS_ENABLED=true in production — OpenAPI UI will be public"
-        _append_warn(result, message)
+        _append_warn(result, "api_docs_enabled_in_production")
     elif strict and app_env == "production" and raw in {"", "false", "0", "no"}:
-        _append_ok(result, "API docs disabled for production")
+        _append_ok(result, "api_docs_disabled_for_production")
 
 
 def _is_truthy(value: str) -> bool:
@@ -202,19 +293,16 @@ def _validate_email(env: dict[str, str], *, strict: bool, result: ValidationResu
     email_dry_run = email_dry_run_raw in {"", "true", "1", "yes"}
 
     if not email_enabled:
-        _append_warn(result, "Email notifications disabled (EMAIL_ENABLED=false)")
+        _append_warn(result, "email_notifications_disabled")
         return
 
-    _append_ok(result, "EMAIL_ENABLED is true")
+    _append_ok(result, "email_enabled_true")
 
     if email_dry_run:
-        _append_warn(
-            result,
-            "EMAIL_DRY_RUN is enabled — emails will not be sent over SMTP",
-        )
+        _append_warn(result, "email_dry_run_enabled")
         return
 
-    _append_ok(result, "EMAIL_DRY_RUN is false (live SMTP expected)")
+    _append_ok(result, "email_dry_run_false_live_smtp")
 
     smtp_host = env.get("SMTP_HOST", "").strip()
     smtp_from = env.get("SMTP_FROM_EMAIL", "").strip()
@@ -222,90 +310,105 @@ def _validate_email(env: dict[str, str], *, strict: bool, result: ValidationResu
     smtp_password = env.get("SMTP_PASSWORD", "").strip()
 
     if not smtp_host:
-        message = "SMTP_HOST is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
         if strict:
-            _append_fail(result, message)
+            _append_fail(result, "smtp_host_required_live_email")
         else:
-            _append_warn(result, message)
+            _append_warn(result, "smtp_host_required_live_email")
     else:
-        _append_ok(result, "SMTP_HOST is set")
+        _append_ok(result, "smtp_host_set")
 
     if not smtp_from:
-        message = "SMTP_FROM_EMAIL is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
         if strict:
-            _append_fail(result, message)
+            _append_fail(result, "smtp_from_email_required_live_email")
         else:
-            _append_warn(result, message)
+            _append_warn(result, "smtp_from_email_required_live_email")
     else:
-        _append_ok(result, "SMTP_FROM_EMAIL is set")
+        _append_ok(result, "smtp_from_email_set")
 
     if smtp_user and not smtp_password:
-        message = "SMTP_PASSWORD is required when SMTP_USER is set"
         if strict:
-            _append_fail(result, message)
+            _append_fail(result, "smtp_password_required_when_user_set")
         else:
-            _append_warn(result, message)
+            _append_warn(result, "smtp_password_required_when_user_set")
     elif smtp_user:
-        _append_ok(result, "SMTP_USER and SMTP_PASSWORD are set")
+        _append_ok(result, "smtp_user_and_password_set")
+
+
+_STRIPE_SECRET_CODES = {
+    "STRIPE_SECRET_KEY": ("stripe_secret_key_required", "stripe_secret_key_set"),
+    "STRIPE_WEBHOOK_SECRET": ("stripe_webhook_secret_required", "stripe_webhook_secret_set"),
+}
+
+_STRIPE_PRICE_CODES = {
+    "STRIPE_PRICE_STARTER": ("stripe_price_starter_required", "stripe_price_starter_set"),
+    "STRIPE_PRICE_BUSINESS": ("stripe_price_business_required", "stripe_price_business_set"),
+    "STRIPE_PRICE_PRO": ("stripe_price_pro_required", "stripe_price_pro_set"),
+}
+
+_STRIPE_URL_CODES = {
+    "STRIPE_SUCCESS_URL": (
+        "stripe_success_url_required",
+        "stripe_success_url_set",
+        "stripe_success_url_localhost_forbidden",
+        "stripe_success_url_localhost_dev",
+    ),
+    "STRIPE_CANCEL_URL": (
+        "stripe_cancel_url_required",
+        "stripe_cancel_url_set",
+        "stripe_cancel_url_localhost_forbidden",
+        "stripe_cancel_url_localhost_dev",
+    ),
+}
 
 
 def _validate_stripe(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
     stripe_enabled = _is_truthy(env.get("STRIPE_ENABLED", ""))
 
     if not stripe_enabled:
-        _append_warn(
-            result,
-            "Stripe disabled — payments unavailable; billing remains manual/demo",
-        )
+        _append_warn(result, "stripe_disabled")
         return
 
-    _append_ok(result, "STRIPE_ENABLED is true")
+    _append_ok(result, "stripe_enabled_true")
 
-    secret = env.get("STRIPE_SECRET_KEY", "").strip()
-    webhook = env.get("STRIPE_WEBHOOK_SECRET", "").strip()
-
-    for key, value in (
-        ("STRIPE_SECRET_KEY", secret),
-        ("STRIPE_WEBHOOK_SECRET", webhook),
-    ):
-        if not value or (strict and _contains_placeholder(value)):
-            message = f"{key} is required when STRIPE_ENABLED=true"
-            if strict:
-                _append_fail(result, message)
-            else:
-                _append_warn(result, message)
-        elif strict:
-            _append_ok(result, f"{key} is set")
-
-    for key in ("STRIPE_PRICE_STARTER", "STRIPE_PRICE_BUSINESS", "STRIPE_PRICE_PRO"):
+    for key, (missing_code, set_code) in _STRIPE_SECRET_CODES.items():
         value = env.get(key, "").strip()
         if not value or (strict and _contains_placeholder(value)):
-            message = f"{key} is required when STRIPE_ENABLED=true"
             if strict:
-                _append_fail(result, message)
+                _append_fail(result, missing_code)
             else:
-                _append_warn(result, message)
+                _append_warn(result, missing_code)
         elif strict:
-            _append_ok(result, f"{key} is set")
+            _append_ok(result, set_code)
 
-    for key in ("STRIPE_SUCCESS_URL", "STRIPE_CANCEL_URL"):
+    for key, (missing_code, set_code) in _STRIPE_PRICE_CODES.items():
         value = env.get(key, "").strip()
         if not value or (strict and _contains_placeholder(value)):
-            message = f"{key} is required when STRIPE_ENABLED=true"
             if strict:
-                _append_fail(result, message)
+                _append_fail(result, missing_code)
             else:
-                _append_warn(result, message)
+                _append_warn(result, missing_code)
+        elif strict:
+            _append_ok(result, set_code)
+
+    for key, (
+        missing_code,
+        set_code,
+        localhost_fail_code,
+        localhost_warn_code,
+    ) in _STRIPE_URL_CODES.items():
+        value = env.get(key, "").strip()
+        if not value or (strict and _contains_placeholder(value)):
+            if strict:
+                _append_fail(result, missing_code)
+            else:
+                _append_warn(result, missing_code)
         elif strict:
             if _is_localhost_origin(value):
-                _append_fail(
-                    result,
-                    f"{key} must not use localhost when STRIPE_ENABLED=true in production",
-                )
+                _append_fail(result, localhost_fail_code)
             else:
-                _append_ok(result, f"{key} is set")
+                _append_ok(result, set_code)
         elif _is_localhost_origin(value):
-            _append_warn(result, f"{key} points to localhost")
+            _append_warn(result, localhost_warn_code)
 
 
 def validate_production_env(env: dict[str, str], *, strict: bool = False) -> ValidationResult:
@@ -313,87 +416,78 @@ def validate_production_env(env: dict[str, str], *, strict: bool = False) -> Val
 
     for key in REQUIRED_KEYS:
         value = env.get(key, "").strip()
+        missing_code, set_code = _REQUIRED_KEY_CODES[key]
         if not value:
-            _append_fail(result, f"{key} is missing or empty")
+            _append_fail(result, missing_code)
             continue
-        _append_ok(result, f"{key} is set")
+        _append_ok(result, set_code)
 
     app_env = env.get("APP_ENV", "").strip().lower()
     if app_env:
         if strict and app_env != "production":
-            _append_fail(
-                result,
-                "APP_ENV must be 'production' in strict mode (current value is not production)",
-            )
+            _append_fail(result, "app_env_production_required")
         elif strict:
-            _append_ok(result, "APP_ENV is production")
+            _append_ok(result, "app_env_is_production")
 
     postgres_password = env.get("POSTGRES_PASSWORD", "").strip()
     if postgres_password:
         if strict and _contains_placeholder(postgres_password):
-            _append_fail(result, "POSTGRES_PASSWORD looks like a placeholder")
+            _append_fail(result, "postgres_password_placeholder")
         elif strict:
-            _append_ok(result, "POSTGRES_PASSWORD is not a placeholder")
+            _append_ok(result, "postgres_password_not_placeholder")
         if postgres_password == "service_platform":
-            msg = "POSTGRES_PASSWORD is the default dev password"
             if strict:
-                _append_fail(result, msg)
+                _append_fail(result, "postgres_password_default_dev")
             else:
-                _append_warn(result, msg)
+                _append_warn(result, "postgres_password_default_dev")
 
     jwt_secret = env.get("JWT_SECRET_KEY", "").strip()
     if jwt_secret:
         if len(jwt_secret) < 32:
-            _append_fail(result, "JWT_SECRET_KEY must be at least 32 characters")
+            _append_fail(result, "jwt_secret_key_too_short")
         else:
-            _append_ok(result, "JWT_SECRET_KEY meets minimum length")
+            _append_ok(result, "jwt_secret_key_meets_minimum_length")
 
         jwt_lower = jwt_secret.lower()
         if jwt_lower in JWT_WEAK_EXACT or (strict and _contains_placeholder(jwt_secret)):
-            _append_fail(result, "JWT_SECRET_KEY is a weak or placeholder value")
+            _append_fail(result, "jwt_secret_key_weak_or_placeholder")
         elif strict:
-            _append_ok(result, "JWT_SECRET_KEY is not a default placeholder")
+            _append_ok(result, "jwt_secret_key_not_default_placeholder")
 
     database_url = env.get("DATABASE_URL", "").strip()
     if database_url:
         if strict:
             if _contains_placeholder(database_url):
-                _append_fail(result, "DATABASE_URL contains placeholder values")
+                _append_fail(result, "database_url_placeholder_values")
             elif postgres_password and postgres_password in database_url:
                 if _contains_placeholder(postgres_password):
-                    _append_fail(result, "DATABASE_URL uses placeholder POSTGRES_PASSWORD")
+                    _append_fail(result, "database_url_placeholder_postgres_password")
                 else:
-                    _append_ok(result, "DATABASE_URL password is not a placeholder")
+                    _append_ok(result, "database_url_password_not_placeholder")
             else:
-                _append_ok(result, "DATABASE_URL is set")
+                _append_ok(result, "database_url_set")
 
             host = _database_host(database_url)
             if host in {None, "localhost", "127.0.0.1"}:
-                _append_fail(
-                    result,
-                    "DATABASE_URL should use host 'postgres' for Docker Compose production",
-                )
+                _append_fail(result, "database_url_host_postgres_required")
             elif host == "postgres":
-                _append_ok(result, "DATABASE_URL host is postgres")
+                _append_ok(result, "database_url_host_is_postgres")
         else:
             for marker in DEV_DATABASE_MARKERS:
                 if marker in database_url:
-                    _append_warn(
-                        result,
-                        f"DATABASE_URL looks dev-oriented ({marker.strip('@:')})",
-                    )
+                    _append_warn(result, "database_url_dev_oriented")
                     break
 
     web_port = env.get("WEB_HTTP_PORT", "").strip()
     if web_port:
         if not web_port.isdigit():
-            _append_fail(result, "WEB_HTTP_PORT must be numeric")
+            _append_fail(result, "web_http_port_not_numeric")
         else:
             port_num = int(web_port)
             if not 1 <= port_num <= 65535:
-                _append_fail(result, "WEB_HTTP_PORT out of range")
+                _append_fail(result, "web_http_port_out_of_range")
             else:
-                _append_ok(result, f"WEB_HTTP_PORT is valid ({port_num})")
+                _append_ok(result, "web_http_port_valid")
 
     _validate_cors(env, strict=strict, result=result)
     _validate_api_docs(env, strict=strict, result=result)
@@ -403,12 +497,12 @@ def validate_production_env(env: dict[str, str], *, strict: bool = False) -> Val
     if not _is_truthy(env.get("EMAIL_ENABLED", "")) and not any(
         env.get(key, "").strip() for key in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD")
     ):
-        _append_warn(result, "SMTP not configured")
+        _append_warn(result, "smtp_not_configured")
 
     return result
 
 
-def format_line(kind: str, message: str) -> str:
+def format_line(kind: str, code: str) -> str:
     icons_utf8 = {"ok": "✅ OK", "warn": "⚠️ WARN", "fail": "❌ FAIL"}
     icons_ascii = {"ok": "OK", "warn": "WARN", "fail": "FAIL"}
     icons = icons_utf8
@@ -416,25 +510,21 @@ def format_line(kind: str, message: str) -> str:
         icons_utf8["ok"].encode(sys.stdout.encoding or "utf-8")
     except (UnicodeEncodeError, AttributeError, TypeError):
         icons = icons_ascii
-    return f"{icons[kind]}: {message}"
-
-
-def safe_print_validation_message(kind: str, message: str) -> None:
-    """Print a validation line; message is sanitized and never contains secret values."""
-    print(format_line(kind, _safe_message(message)))  # lgtm[py/clear-text-logging-sensitive-data]
+    safe_text = SAFE_VALIDATION_MESSAGES.get(code, "Unknown validation check")
+    return f"{icons[kind]}: {safe_text}"
 
 
 def print_result(result: ValidationResult) -> None:
-    seen_ok = set()
-    for message in result.ok:
-        if message in seen_ok:
+    seen_ok: set[str] = set()
+    for code in result.ok:
+        if code in seen_ok:
             continue
-        seen_ok.add(message)
-        safe_print_validation_message("ok", message)
-    for message in result.warnings:
-        safe_print_validation_message("warn", message)
-    for message in result.failures:
-        safe_print_validation_message("fail", message)
+        seen_ok.add(code)
+        print(format_line("ok", code))
+    for code in result.warnings:
+        print(format_line("warn", code))
+    for code in result.failures:
+        print(format_line("fail", code))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -459,8 +549,8 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         env = parse_env_file(env_path)
-    except FileNotFoundError as exc:
-        print(format_line("fail", str(exc)))
+    except FileNotFoundError:
+        print(format_line("fail", "env_file_not_found"))
         return 1
 
     result = validate_production_env(env, strict=args.strict)

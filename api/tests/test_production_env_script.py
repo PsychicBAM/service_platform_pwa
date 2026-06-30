@@ -48,10 +48,15 @@ def _load_module():
     return module
 
 
+def _texts(module, codes: list[str]) -> list[str]:
+    return [module.validation_message(code) for code in codes]
+
+
 def test_script_has_main() -> None:
     module = _load_module()
     assert hasattr(module, "main")
     assert hasattr(module, "validate_production_env")
+    assert hasattr(module, "SAFE_VALIDATION_MESSAGES")
 
 
 def test_validate_good_env_strict() -> None:
@@ -63,11 +68,10 @@ def test_validate_good_env_strict() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert result.passed, result.failures
-    assert any("Stripe disabled" in warning for warning in result.warnings)
-    assert any(
-        "Email notifications disabled" in warning or "SMTP not configured" in warning
-        for warning in result.warnings
-    )
+    warnings = _texts(module, result.warnings)
+    assert "stripe_disabled" in result.warnings
+    assert any("Stripe disabled" in warning for warning in warnings)
+    assert "smtp_not_configured" in result.warnings or "email_notifications_disabled" in result.warnings
 
 
 def test_strict_fails_live_email_without_smtp_host() -> None:
@@ -93,8 +97,8 @@ def test_strict_fails_live_email_without_smtp_host() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert not result.passed
-    assert any("SMTP_HOST" in failure for failure in result.failures)
-    assert any("SMTP_FROM_EMAIL" in failure for failure in result.failures)
+    assert "smtp_host_required_live_email" in result.failures
+    assert "smtp_from_email_required_live_email" in result.failures
 
 
 def test_strict_warns_when_email_disabled() -> None:
@@ -117,7 +121,7 @@ def test_strict_warns_when_email_disabled() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert result.passed, result.failures
-    assert any("Email notifications disabled" in warning for warning in result.warnings)
+    assert "email_notifications_disabled" in result.warnings
 
 
 def test_fail_short_jwt_secret() -> None:
@@ -139,7 +143,7 @@ def test_fail_short_jwt_secret() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert not result.passed
-    assert any("JWT_SECRET_KEY" in failure for failure in result.failures)
+    assert "jwt_secret_key_too_short" in result.failures
 
 
 def test_fail_missing_database_url() -> None:
@@ -157,7 +161,7 @@ def test_fail_missing_database_url() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert not result.passed
-    assert any("DATABASE_URL" in failure for failure in result.failures)
+    assert "database_url_missing_or_empty" in result.failures
 
 
 def test_strict_fails_placeholder_password() -> None:
@@ -179,7 +183,7 @@ def test_strict_fails_placeholder_password() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert not result.passed
-    assert any("POSTGRES_PASSWORD" in failure for failure in result.failures)
+    assert "postgres_password_placeholder" in result.failures
 
 
 def test_strict_fails_missing_cors_origins() -> None:
@@ -200,7 +204,7 @@ def test_strict_fails_missing_cors_origins() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert not result.passed
-    assert any("CORS_ORIGINS" in failure for failure in result.failures)
+    assert "cors_origins_missing_or_empty" in result.failures
 
 
 def test_parse_env_file_ignores_comments(tmp_path: Path) -> None:
@@ -248,7 +252,7 @@ def test_stripe_disabled_passes_strict_with_warning() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert result.passed, result.failures
-    assert any("Stripe disabled" in warning for warning in result.warnings)
+    assert "stripe_disabled" in result.warnings
 
 
 def test_stripe_enabled_missing_secret_fails_strict() -> None:
@@ -265,7 +269,7 @@ def test_stripe_enabled_missing_secret_fails_strict() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert not result.passed
-    assert any("STRIPE_SECRET_KEY" in failure for failure in result.failures)
+    assert "stripe_secret_key_required" in result.failures
 
 
 def test_stripe_enabled_missing_price_ids_fails_strict() -> None:
@@ -282,7 +286,7 @@ def test_stripe_enabled_missing_price_ids_fails_strict() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert not result.passed
-    assert any("STRIPE_PRICE_STARTER" in failure for failure in result.failures)
+    assert "stripe_price_starter_required" in result.failures
 
 
 def test_stripe_enabled_complete_config_passes_strict() -> None:
@@ -316,10 +320,11 @@ def test_stripe_secrets_are_not_printed_in_validation_messages() -> None:
     parsed["STRIPE_CANCEL_URL"] = "https://example.com/billing/cancel"
 
     result = module.validate_production_env(parsed, strict=True)
-    messages = " ".join(result.ok + result.warnings + result.failures)
+    codes = result.ok + result.warnings + result.failures
+    messages = " ".join(_texts(module, codes))
     assert secret not in messages
     assert webhook not in messages
-    assert "STRIPE_SECRET_KEY is set" in messages
+    assert "stripe_secret_key_set" in result.ok
 
 
 def test_production_env_script_output_does_not_print_fake_secrets(tmp_path: Path) -> None:
@@ -327,10 +332,10 @@ def test_production_env_script_output_does_not_print_fake_secrets(tmp_path: Path
     import sys
 
     module = _load_module()
-    secret = "sk_test_super_secret_key_value_001"
-    webhook = "whsec_test_webhook_secret_value_001"
-    jwt = "0123456789abcdef0123456789abcdef0123456789ab"
-    smtp_password = "smtp_password_never_print_001"
+    secret = "sk_test_secret_123"
+    webhook = "whsec_secret_123"
+    jwt = "jwt_secret_value_1230123456789012"
+    smtp_password = "smtp_password_123"
     env_file = tmp_path / ".env"
     env_file.write_text(
         "\n".join(
@@ -376,10 +381,28 @@ def test_production_env_script_output_does_not_print_fake_secrets(tmp_path: Path
 
     output = buffer.getvalue()
     assert exit_code == 0
-    assert secret not in output
-    assert webhook not in output
-    assert smtp_password not in output
-    assert jwt not in output
-    assert "sk_test_" not in output
-    assert "whsec_" not in output
-    assert "STRIPE_SECRET_KEY is set" in output
+    for forbidden in (
+        secret,
+        "sk_live_secret_123",
+        webhook,
+        jwt,
+        smtp_password,
+        "sk_test_",
+        "whsec_",
+    ):
+        assert forbidden not in output
+    assert module.validation_message("stripe_secret_key_set") in output
+
+
+def test_print_result_uses_only_predefined_messages(capsys) -> None:
+    module = _load_module()
+    result = module.ValidationResult(
+        ok=["stripe_secret_key_set"],
+        warnings=["stripe_disabled"],
+        failures=["jwt_secret_key_too_short"],
+    )
+    module.print_result(result)
+    captured = capsys.readouterr().out
+    assert module.validation_message("stripe_secret_key_set") in captured
+    assert module.validation_message("stripe_disabled") in captured
+    assert module.validation_message("jwt_secret_key_too_short") in captured
