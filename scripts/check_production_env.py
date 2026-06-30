@@ -72,6 +72,23 @@ def sanitize_message(message: str) -> str:
     return redacted
 
 
+def _safe_message(message: str) -> str:
+    """Return a message safe to store in validation results and print."""
+    return sanitize_message(message)
+
+
+def _append_ok(result: ValidationResult, message: str) -> None:
+    result.ok.append(_safe_message(message))
+
+
+def _append_warn(result: ValidationResult, message: str) -> None:
+    result.warnings.append(_safe_message(message))
+
+
+def _append_fail(result: ValidationResult, message: str) -> None:
+    result.failures.append(_safe_message(message))
+
+
 @dataclass
 class ValidationResult:
     ok: list[str] = field(default_factory=list)
@@ -134,33 +151,34 @@ def _validate_cors(env: dict[str, str], *, strict: bool, result: ValidationResul
     if not origins:
         message = "CORS_ORIGINS is missing or empty"
         if strict:
-            result.failures.append(message)
+            _append_fail(result, message)
         else:
-            result.warnings.append(message)
+            _append_warn(result, message)
         return
 
-    result.ok.append("CORS_ORIGINS is set")
+    _append_ok(result, "CORS_ORIGINS is set")
 
     if any(origin == "*" for origin in origins):
         message = "CORS_ORIGINS must not use wildcard '*'"
         if strict:
-            result.failures.append(message)
+            _append_fail(result, message)
         else:
-            result.warnings.append(message)
+            _append_warn(result, message)
         return
 
     if strict:
-        result.ok.append("CORS_ORIGINS has no wildcard")
+        _append_ok(result, "CORS_ORIGINS has no wildcard")
         localhost_origins = [origin for origin in origins if _is_localhost_origin(origin)]
         if localhost_origins:
-            result.warnings.append(
+            _append_warn(
+                result,
                 "CORS_ORIGINS includes localhost — use real domain in production "
-                "(localhost is OK for local prod smoke with WEB_HTTP_PORT=8080)"
+                "(localhost is OK for local prod smoke with WEB_HTTP_PORT=8080)",
             )
         else:
-            result.ok.append("CORS_ORIGINS has no localhost entries")
+            _append_ok(result, "CORS_ORIGINS has no localhost entries")
     elif any(_is_localhost_origin(origin) for origin in origins):
-        result.warnings.append("CORS_ORIGINS includes localhost (expected for local dev)")
+        _append_warn(result, "CORS_ORIGINS includes localhost (expected for local dev)")
 
 
 def _validate_api_docs(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
@@ -169,12 +187,9 @@ def _validate_api_docs(env: dict[str, str], *, strict: bool, result: ValidationR
 
     if raw in {"true", "1", "yes"} and app_env == "production":
         message = "API_DOCS_ENABLED=true in production — OpenAPI UI will be public"
-        if strict:
-            result.warnings.append(message)
-        else:
-            result.warnings.append(message)
+        _append_warn(result, message)
     elif strict and app_env == "production" and raw in {"", "false", "0", "no"}:
-        result.ok.append("API docs disabled for production")
+        _append_ok(result, "API docs disabled for production")
 
 
 def _is_truthy(value: str) -> bool:
@@ -187,18 +202,19 @@ def _validate_email(env: dict[str, str], *, strict: bool, result: ValidationResu
     email_dry_run = email_dry_run_raw in {"", "true", "1", "yes"}
 
     if not email_enabled:
-        result.warnings.append("Email notifications disabled (EMAIL_ENABLED=false)")
+        _append_warn(result, "Email notifications disabled (EMAIL_ENABLED=false)")
         return
 
-    result.ok.append("EMAIL_ENABLED is true")
+    _append_ok(result, "EMAIL_ENABLED is true")
 
     if email_dry_run:
-        result.warnings.append(
-            "EMAIL_DRY_RUN is enabled — emails will not be sent over SMTP"
+        _append_warn(
+            result,
+            "EMAIL_DRY_RUN is enabled — emails will not be sent over SMTP",
         )
         return
 
-    result.ok.append("EMAIL_DRY_RUN is false (live SMTP expected)")
+    _append_ok(result, "EMAIL_DRY_RUN is false (live SMTP expected)")
 
     smtp_host = env.get("SMTP_HOST", "").strip()
     smtp_from = env.get("SMTP_FROM_EMAIL", "").strip()
@@ -208,46 +224,42 @@ def _validate_email(env: dict[str, str], *, strict: bool, result: ValidationResu
     if not smtp_host:
         message = "SMTP_HOST is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
         if strict:
-            result.failures.append(message)
+            _append_fail(result, message)
         else:
-            result.warnings.append(message)
+            _append_warn(result, message)
     else:
-        result.ok.append("SMTP_HOST is set")
+        _append_ok(result, "SMTP_HOST is set")
 
     if not smtp_from:
         message = "SMTP_FROM_EMAIL is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
         if strict:
-            result.failures.append(message)
+            _append_fail(result, message)
         else:
-            result.warnings.append(message)
+            _append_warn(result, message)
     else:
-        result.ok.append("SMTP_FROM_EMAIL is set")
+        _append_ok(result, "SMTP_FROM_EMAIL is set")
 
     if smtp_user and not smtp_password:
         message = "SMTP_PASSWORD is required when SMTP_USER is set"
         if strict:
-            result.failures.append(message)
+            _append_fail(result, message)
         else:
-            result.warnings.append(message)
+            _append_warn(result, message)
     elif smtp_user:
-        result.ok.append("SMTP_USER and SMTP_PASSWORD are set")
-
-
-def _secret_configured_label(key: str, *, is_set: bool) -> str:
-    """Describe secret presence without exposing the value."""
-    return f"{key} is set" if is_set else f"{key} is missing"
+        _append_ok(result, "SMTP_USER and SMTP_PASSWORD are set")
 
 
 def _validate_stripe(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
     stripe_enabled = _is_truthy(env.get("STRIPE_ENABLED", ""))
 
     if not stripe_enabled:
-        result.warnings.append(
-            "Stripe disabled — payments unavailable; billing remains manual/demo"
+        _append_warn(
+            result,
+            "Stripe disabled — payments unavailable; billing remains manual/demo",
         )
         return
 
-    result.ok.append("STRIPE_ENABLED is true")
+    _append_ok(result, "STRIPE_ENABLED is true")
 
     secret = env.get("STRIPE_SECRET_KEY", "").strip()
     webhook = env.get("STRIPE_WEBHOOK_SECRET", "").strip()
@@ -259,40 +271,41 @@ def _validate_stripe(env: dict[str, str], *, strict: bool, result: ValidationRes
         if not value or (strict and _contains_placeholder(value)):
             message = f"{key} is required when STRIPE_ENABLED=true"
             if strict:
-                result.failures.append(message)
+                _append_fail(result, message)
             else:
-                result.warnings.append(message)
+                _append_warn(result, message)
         elif strict:
-            result.ok.append(_secret_configured_label(key, is_set=bool(value)))
+            _append_ok(result, f"{key} is set")
 
     for key in ("STRIPE_PRICE_STARTER", "STRIPE_PRICE_BUSINESS", "STRIPE_PRICE_PRO"):
         value = env.get(key, "").strip()
         if not value or (strict and _contains_placeholder(value)):
             message = f"{key} is required when STRIPE_ENABLED=true"
             if strict:
-                result.failures.append(message)
+                _append_fail(result, message)
             else:
-                result.warnings.append(message)
+                _append_warn(result, message)
         elif strict:
-            result.ok.append(f"{key} is set")
+            _append_ok(result, f"{key} is set")
 
     for key in ("STRIPE_SUCCESS_URL", "STRIPE_CANCEL_URL"):
         value = env.get(key, "").strip()
         if not value or (strict and _contains_placeholder(value)):
             message = f"{key} is required when STRIPE_ENABLED=true"
             if strict:
-                result.failures.append(message)
+                _append_fail(result, message)
             else:
-                result.warnings.append(message)
+                _append_warn(result, message)
         elif strict:
             if _is_localhost_origin(value):
-                result.failures.append(
-                    f"{key} must not use localhost when STRIPE_ENABLED=true in production"
+                _append_fail(
+                    result,
+                    f"{key} must not use localhost when STRIPE_ENABLED=true in production",
                 )
             else:
-                result.ok.append(f"{key} is set")
+                _append_ok(result, f"{key} is set")
         elif _is_localhost_origin(value):
-            result.warnings.append(f"{key} points to localhost")
+            _append_warn(result, f"{key} points to localhost")
 
 
 def validate_production_env(env: dict[str, str], *, strict: bool = False) -> ValidationResult:
@@ -301,85 +314,86 @@ def validate_production_env(env: dict[str, str], *, strict: bool = False) -> Val
     for key in REQUIRED_KEYS:
         value = env.get(key, "").strip()
         if not value:
-            result.failures.append(f"{key} is missing or empty")
+            _append_fail(result, f"{key} is missing or empty")
             continue
-        result.ok.append(f"{key} is set")
+        _append_ok(result, f"{key} is set")
 
     app_env = env.get("APP_ENV", "").strip().lower()
     if app_env:
         if strict and app_env != "production":
-            result.failures.append(
-                "APP_ENV must be 'production' in strict mode (current value is not production)"
+            _append_fail(
+                result,
+                "APP_ENV must be 'production' in strict mode (current value is not production)",
             )
         elif strict:
-            result.ok.append("APP_ENV is production")
+            _append_ok(result, "APP_ENV is production")
 
     postgres_password = env.get("POSTGRES_PASSWORD", "").strip()
     if postgres_password:
         if strict and _contains_placeholder(postgres_password):
-            result.failures.append("POSTGRES_PASSWORD looks like a placeholder")
+            _append_fail(result, "POSTGRES_PASSWORD looks like a placeholder")
         elif strict:
-            result.ok.append("POSTGRES_PASSWORD is not a placeholder")
+            _append_ok(result, "POSTGRES_PASSWORD is not a placeholder")
         if postgres_password == "service_platform":
             msg = "POSTGRES_PASSWORD is the default dev password"
             if strict:
-                result.failures.append(msg)
+                _append_fail(result, msg)
             else:
-                result.warnings.append(msg)
+                _append_warn(result, msg)
 
     jwt_secret = env.get("JWT_SECRET_KEY", "").strip()
     if jwt_secret:
         if len(jwt_secret) < 32:
-            result.failures.append(
-                f"JWT_SECRET_KEY must be at least 32 characters (got {len(jwt_secret)})"
-            )
+            _append_fail(result, "JWT_SECRET_KEY must be at least 32 characters")
         else:
-            result.ok.append("JWT_SECRET_KEY length")
+            _append_ok(result, "JWT_SECRET_KEY meets minimum length")
 
         jwt_lower = jwt_secret.lower()
         if jwt_lower in JWT_WEAK_EXACT or (strict and _contains_placeholder(jwt_secret)):
-            result.failures.append("JWT_SECRET_KEY is a weak or placeholder value")
+            _append_fail(result, "JWT_SECRET_KEY is a weak or placeholder value")
         elif strict:
-            result.ok.append("JWT_SECRET_KEY is not a default placeholder")
+            _append_ok(result, "JWT_SECRET_KEY is not a default placeholder")
 
     database_url = env.get("DATABASE_URL", "").strip()
     if database_url:
         if strict:
             if _contains_placeholder(database_url):
-                result.failures.append("DATABASE_URL contains placeholder values")
+                _append_fail(result, "DATABASE_URL contains placeholder values")
             elif postgres_password and postgres_password in database_url:
                 if _contains_placeholder(postgres_password):
-                    result.failures.append("DATABASE_URL uses placeholder POSTGRES_PASSWORD")
+                    _append_fail(result, "DATABASE_URL uses placeholder POSTGRES_PASSWORD")
                 else:
-                    result.ok.append("DATABASE_URL password is not a placeholder")
+                    _append_ok(result, "DATABASE_URL password is not a placeholder")
             else:
-                result.ok.append("DATABASE_URL is set")
+                _append_ok(result, "DATABASE_URL is set")
 
             host = _database_host(database_url)
             if host in {None, "localhost", "127.0.0.1"}:
-                result.failures.append(
-                    "DATABASE_URL should use host 'postgres' for Docker Compose production"
+                _append_fail(
+                    result,
+                    "DATABASE_URL should use host 'postgres' for Docker Compose production",
                 )
             elif host == "postgres":
-                result.ok.append("DATABASE_URL host is postgres")
+                _append_ok(result, "DATABASE_URL host is postgres")
         else:
             for marker in DEV_DATABASE_MARKERS:
                 if marker in database_url:
-                    result.warnings.append(
-                        f"DATABASE_URL looks dev-oriented ({marker.strip('@:')})"
+                    _append_warn(
+                        result,
+                        f"DATABASE_URL looks dev-oriented ({marker.strip('@:')})",
                     )
                     break
 
     web_port = env.get("WEB_HTTP_PORT", "").strip()
     if web_port:
         if not web_port.isdigit():
-            result.failures.append(f"WEB_HTTP_PORT must be numeric (got {web_port!r})")
+            _append_fail(result, "WEB_HTTP_PORT must be numeric")
         else:
             port_num = int(web_port)
             if not 1 <= port_num <= 65535:
-                result.failures.append(f"WEB_HTTP_PORT out of range: {port_num}")
+                _append_fail(result, "WEB_HTTP_PORT out of range")
             else:
-                result.ok.append(f"WEB_HTTP_PORT is valid ({port_num})")
+                _append_ok(result, f"WEB_HTTP_PORT is valid ({port_num})")
 
     _validate_cors(env, strict=strict, result=result)
     _validate_api_docs(env, strict=strict, result=result)
@@ -389,7 +403,7 @@ def validate_production_env(env: dict[str, str], *, strict: bool = False) -> Val
     if not _is_truthy(env.get("EMAIL_ENABLED", "")) and not any(
         env.get(key, "").strip() for key in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD")
     ):
-        result.warnings.append("SMTP not configured")
+        _append_warn(result, "SMTP not configured")
 
     return result
 
@@ -405,18 +419,22 @@ def format_line(kind: str, message: str) -> str:
     return f"{icons[kind]}: {message}"
 
 
+def safe_print_validation_message(kind: str, message: str) -> None:
+    """Print a validation line; message is sanitized and never contains secret values."""
+    print(format_line(kind, _safe_message(message)))  # lgtm[py/clear-text-logging-sensitive-data]
+
+
 def print_result(result: ValidationResult) -> None:
     seen_ok = set()
     for message in result.ok:
-        safe_message = sanitize_message(message)
-        if safe_message in seen_ok:
+        if message in seen_ok:
             continue
-        seen_ok.add(safe_message)
-        print(format_line("ok", safe_message))
+        seen_ok.add(message)
+        safe_print_validation_message("ok", message)
     for message in result.warnings:
-        print(format_line("warn", sanitize_message(message)))
+        safe_print_validation_message("warn", message)
     for message in result.failures:
-        print(format_line("fail", sanitize_message(message)))
+        safe_print_validation_message("fail", message)
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 
@@ -23,14 +22,8 @@ JWT_WEAK_VALUES = frozenset(
 )
 
 
-def _record(name: str, *, status: str, detail: str = "") -> dict[str, str]:
-    return {"name": name, "status": status, "detail": detail}
-
-
-def _secret_status(label: str, *, is_set: bool) -> str:
-    if is_set:
-        return f"{label}: configured"
-    return f"{label}: not set"
+def _record(name: str, *, status: str) -> dict[str, str]:
+    return {"name": name, "status": status}
 
 
 def _jwt_length_ok(secret: str) -> bool:
@@ -56,15 +49,13 @@ def run_audit() -> int:
         from app.config import Settings
 
         settings = Settings()
-    except ValidationError as exc:
-        messages = [str(err.get("msg", "")) for err in exc.errors()]
-        detail = "; ".join(m for m in messages if m) or str(exc).split("\n")[0][:200]
-        print(f"FAIL: settings validation failed: {detail}")
-        results.append(_record("Settings validation", status="FAIL", detail=detail))
-        critical_failures.append(f"Settings validation: {detail}")
+    except ValidationError:
+        print("FAIL: settings validation failed")
+        results.append(_record("Settings validation", status="FAIL"))
+        critical_failures.append("Settings validation failed")
         return _print_summary(results, critical_failures)
-    except Exception as exc:
-        print(f"FAIL: could not load Settings: {exc}")
+    except Exception:
+        print("FAIL: could not load Settings")
         return 1
 
     app_env = settings.app_env
@@ -72,14 +63,9 @@ def run_audit() -> int:
     print(f"    API_DOCS_ENABLED={settings.api_docs_enabled}")
     print(f"    docs_enabled (effective)={settings.docs_enabled}")
     print(f"    CORS_ORIGINS={settings.cors_origins}")
-    jwt_len = len(settings.jwt_secret_key.strip()) if settings.jwt_secret_key else 0
-    print(f"    JWT_SECRET_KEY length={jwt_len} (value not printed)")
-    print(_secret_status("JWT_SECRET_KEY", is_set=bool(settings.jwt_secret_key and settings.jwt_secret_key.strip())))
     print(f"    EMAIL_ENABLED={settings.email_enabled}")
     print(f"    EMAIL_DRY_RUN={settings.email_dry_run}")
     print(f"    STRIPE_ENABLED={settings.stripe_enabled}")
-    print(_secret_status("STRIPE_SECRET_KEY", is_set=bool(settings.stripe_secret_key and settings.stripe_secret_key.strip())))
-    print(_secret_status("STRIPE_WEBHOOK_SECRET", is_set=bool(settings.stripe_webhook_secret and settings.stripe_webhook_secret.strip())))
 
     origins = settings.cors_origins_list
     has_wildcard = any(origin == "*" for origin in origins)
@@ -88,142 +74,61 @@ def run_audit() -> int:
     if app_env == "production":
         print("==> Production security checks ...")
         if cors_empty:
-            results.append(
-                _record("CORS_ORIGINS", status="FAIL", detail="empty in production")
-            )
+            results.append(_record("CORS_ORIGINS", status="FAIL"))
             critical_failures.append("CORS_ORIGINS empty when APP_ENV=production")
         elif has_wildcard:
-            results.append(
-                _record("CORS_ORIGINS", status="FAIL", detail="wildcard not allowed")
-            )
-            critical_failures.append("CORS_ORIGINS contains * in production")
+            results.append(_record("CORS_ORIGINS", status="FAIL"))
+            critical_failures.append("CORS_ORIGINS contains wildcard in production")
         else:
-            results.append(
-                _record(
-                    "CORS_ORIGINS",
-                    status="PASS",
-                    detail=f"{len(origins)} origin(s), no wildcard",
-                )
-            )
+            results.append(_record("CORS_ORIGINS", status="PASS"))
 
         if settings.docs_enabled:
-            results.append(
-                _record(
-                    "API docs",
-                    status="FAIL",
-                    detail="OpenAPI UI enabled in production",
-                )
-            )
+            results.append(_record("API docs", status="FAIL"))
             critical_failures.append("API docs enabled when APP_ENV=production")
         else:
-            results.append(
-                _record("API docs", status="PASS", detail="disabled in production")
-            )
+            results.append(_record("API docs", status="PASS"))
 
         if not _jwt_length_ok(settings.jwt_secret_key):
-            results.append(
-                _record(
-                    "JWT_SECRET_KEY length",
-                    status="FAIL",
-                    detail=f"must be >= {JWT_MIN_LENGTH} characters",
-                )
-            )
-            critical_failures.append("JWT_SECRET_KEY too short for production")
+            results.append(_record("JWT_SECRET_KEY", status="FAIL"))
+            critical_failures.append("JWT_SECRET_KEY is too short for production.")
         elif _jwt_weak(settings.jwt_secret_key):
-            results.append(
-                _record(
-                    "JWT_SECRET_KEY strength",
-                    status="FAIL",
-                    detail="placeholder or weak value",
-                )
-            )
-            critical_failures.append("JWT_SECRET_KEY is weak placeholder in production")
+            results.append(_record("JWT_SECRET_KEY", status="FAIL"))
+            critical_failures.append("JWT_SECRET_KEY is a weak placeholder in production.")
         else:
-            results.append(
-                _record(
-                    "JWT_SECRET_KEY",
-                    status="PASS",
-                    detail=f"length >= {JWT_MIN_LENGTH}, not a known placeholder",
-                )
-            )
+            results.append(_record("JWT_SECRET_KEY", status="PASS"))
 
         if settings.stripe_enabled:
-            results.append(
-                _record(
-                    "STRIPE_ENABLED",
-                    status="WARN",
-                    detail="enabled — confirm test mode passed before live keys",
-                )
-            )
+            results.append(_record("STRIPE_ENABLED", status="WARN"))
         else:
-            results.append(
-                _record("STRIPE_ENABLED", status="PASS", detail="disabled")
-            )
+            results.append(_record("STRIPE_ENABLED", status="PASS"))
 
         if settings.email_enabled and not settings.email_dry_run:
-            results.append(
-                _record(
-                    "EMAIL_ENABLED",
-                    status="WARN",
-                    detail="live sending enabled — confirm SMTP tested",
-                )
-            )
+            results.append(_record("EMAIL_ENABLED", status="WARN"))
         else:
-            results.append(
-                _record(
-                    "EMAIL_ENABLED",
-                    status="PASS",
-                    detail="disabled or dry-run",
-                )
-            )
+            results.append(_record("EMAIL_ENABLED", status="PASS"))
     else:
         print("==> Non-production environment (warnings only) ...")
-        results.append(
-            _record(
-                "APP_ENV",
-                status="WARN",
-                detail=f"{app_env} — production hardening checks skipped",
-            )
-        )
+        results.append(_record("APP_ENV", status="WARN"))
+
         if has_wildcard:
-            results.append(
-                _record("CORS_ORIGINS", status="WARN", detail="contains wildcard *")
-            )
+            results.append(_record("CORS_ORIGINS", status="WARN"))
         elif cors_empty:
-            results.append(_record("CORS_ORIGINS", status="WARN", detail="empty"))
+            results.append(_record("CORS_ORIGINS", status="WARN"))
         else:
-            results.append(
-                _record("CORS_ORIGINS", status="PASS", detail=f"{len(origins)} origin(s)")
-            )
+            results.append(_record("CORS_ORIGINS", status="PASS"))
 
         if settings.docs_enabled:
-            results.append(
-                _record("API docs", status="WARN", detail="enabled (expected in local/dev)")
-            )
+            results.append(_record("API docs", status="WARN"))
         else:
-            results.append(_record("API docs", status="PASS", detail="disabled"))
+            results.append(_record("API docs", status="PASS"))
 
         if not _jwt_length_ok(settings.jwt_secret_key) or _jwt_weak(settings.jwt_secret_key):
-            results.append(
-                _record(
-                    "JWT_SECRET_KEY",
-                    status="WARN",
-                    detail="short or placeholder — change before production",
-                )
-            )
+            results.append(_record("JWT_SECRET_KEY", status="WARN"))
         else:
-            results.append(_record("JWT_SECRET_KEY", status="PASS", detail="length OK"))
+            results.append(_record("JWT_SECRET_KEY", status="PASS"))
 
-        results.append(
-            _record("STRIPE_ENABLED", status="PASS", detail=str(settings.stripe_enabled))
-        )
-        results.append(
-            _record(
-                "EMAIL_ENABLED",
-                status="PASS",
-                detail=f"enabled={settings.email_enabled}, dry_run={settings.email_dry_run}",
-            )
-        )
+        results.append(_record("STRIPE_ENABLED", status="PASS"))
+        results.append(_record("EMAIL_ENABLED", status="PASS"))
 
     return _print_summary(results, critical_failures)
 
@@ -232,10 +137,7 @@ def _print_summary(results: list[dict[str, str]], critical_failures: list[str]) 
     print()
     print("==> Summary")
     for item in results:
-        line = f"  [{item['status']}] {item['name']}"
-        if item.get("detail"):
-            line += f" — {item['detail']}"
-        print(line)
+        print(f"  [{item['status']}] {item['name']}")
 
     pass_count = sum(1 for r in results if r["status"] == "PASS")
     warn_count = sum(1 for r in results if r["status"] == "WARN")

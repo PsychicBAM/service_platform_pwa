@@ -40,31 +40,41 @@ def test_script_output_mentions_no_real_emails_sent(capsys) -> None:
     assert "no real emails" in captured.out.lower()
 
 
-def test_script_output_includes_reset_password_config_wording(capsys) -> None:
+def test_script_output_uses_neutral_config_wording(capsys) -> None:
     module = _load_module()
     exit_code = module.main()
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert "Reset base URL is configured" in captured.out
-    assert "reset-password" in captured.out.lower()
+    assert "Reset token expiration setting is present." in captured.out
+    assert "Reset page base URL setting is present." in captured.out
+    assert "Password reset routes are registered." in captured.out
+    assert "Password reset email template builds with redacted sample token." in captured.out
 
 
-def test_script_output_does_not_print_sample_reset_token(capsys) -> None:
+def test_script_output_does_not_print_password_reset_config_values(capsys) -> None:
     module = _load_module()
+    from app.config import get_settings
+
+    settings = get_settings()
     exit_code = module.main()
     captured = capsys.readouterr()
     assert exit_code == 0
+    assert str(settings.password_reset_token_expire_hours) not in captured.out
+    assert settings.password_reset_base_url not in captured.out
+    assert "example-token-redacted" not in captured.out
     assert "audit-sample-reset-token" not in captured.out
     assert "audit-mock-reset-token" not in captured.out
-    assert "example-token-redacted" not in captured.out
 
 
-def test_script_output_confirms_raw_token_not_stored(capsys) -> None:
+def test_script_summary_does_not_append_details(capsys) -> None:
     module = _load_module()
     exit_code = module.main()
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert "raw token is not stored" in captured.out.lower()
+    for line in captured.out.splitlines():
+        if line.strip().startswith("[PASS]") or line.strip().startswith("[WARN]"):
+            assert " — " not in line
+            assert ": " not in line.split("]", 1)[-1]
 
 
 def test_script_runs_as_subprocess_without_smtp() -> None:
@@ -78,5 +88,5 @@ def test_script_runs_as_subprocess_without_smtp() -> None:
     )
     assert result.returncode == 0
     assert "no real emails" in result.stdout.lower()
-    assert "Reset base URL is configured" in result.stdout
-    assert "raw token is not stored" in result.stdout.lower()
+    assert "Reset page base URL setting is present." in result.stdout
+    assert "Password reset routes are registered." in result.stdout

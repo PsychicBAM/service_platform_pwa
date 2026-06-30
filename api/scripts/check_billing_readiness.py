@@ -7,13 +7,6 @@ import sys
 from pathlib import Path
 
 
-def _secret_status(label: str, *, is_set: bool) -> str:
-    """Report whether a secret is configured without printing its value."""
-    if is_set:
-        return f"{label}: configured"
-    return f"{label}: not set"
-
-
 def main() -> int:
     api_dir = Path(__file__).resolve().parents[1]
     project_root = api_dir.parent
@@ -39,15 +32,16 @@ def main() -> int:
 
     settings = Settings()
     print(f"STRIPE_ENABLED={settings.stripe_enabled}")
-    print(_secret_status("STRIPE_SECRET_KEY", is_set=bool(settings.stripe_secret_key and settings.stripe_secret_key.strip())))
-    print(_secret_status("STRIPE_WEBHOOK_SECRET", is_set=bool(settings.stripe_webhook_secret and settings.stripe_webhook_secret.strip())))
 
     if not settings.stripe_enabled:
         print("Stripe disabled — billing remains manual/demo.")
     else:
+        print(
+            "Stripe enabled — verify required secrets with check_production_env.py --strict."
+        )
         configured = stripe_price_ids_configured(settings)
-        for plan_id, is_set in configured.items():
-            status = "configured" if is_set else "missing"
+        for plan_id, price_configured in configured.items():
+            status = "configured" if price_configured else "missing"
             print(f"STRIPE price for {plan_id}: {status}")
         missing_prices = [plan_id for plan_id, ok in configured.items() if not ok]
         if missing_prices:
@@ -55,9 +49,11 @@ def main() -> int:
                 "STRIPE_ENABLED=true but price IDs missing for: "
                 + ", ".join(missing_prices)
             )
-        if not (settings.stripe_secret_key or "").strip():
+        stripe_secret_set = bool((settings.stripe_secret_key or "").strip())
+        webhook_secret_set = bool((settings.stripe_webhook_secret or "").strip())
+        if not stripe_secret_set:
             errors.append("STRIPE_ENABLED=true but STRIPE_SECRET_KEY is not set")
-        if not (settings.stripe_webhook_secret or "").strip():
+        if not webhook_secret_set:
             errors.append("STRIPE_ENABLED=true but STRIPE_WEBHOOK_SECRET is not set")
 
     report_candidates = [

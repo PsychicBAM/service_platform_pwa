@@ -59,8 +59,10 @@ def test_billing_readiness_output_does_not_expose_secret_values() -> None:
     combined = result.stdout + result.stderr
     assert secret not in combined
     assert webhook not in combined
-    assert "STRIPE_SECRET_KEY: configured" in combined
-    assert "STRIPE_WEBHOOK_SECRET: configured" in combined
+    assert "STRIPE_SECRET_KEY: configured" not in combined
+    assert "STRIPE_WEBHOOK_SECRET: configured" not in combined
+    assert "STRIPE_ENABLED=True" in combined
+    assert "verify required secrets with check_production_env.py" in combined
 
 
 def test_billing_readiness_enabled_complete_config_passes() -> None:

@@ -379,4 +379,7 @@ def test_production_env_script_output_does_not_print_fake_secrets(tmp_path: Path
     assert secret not in output
     assert webhook not in output
     assert smtp_password not in output
+    assert jwt not in output
+    assert "sk_test_" not in output
+    assert "whsec_" not in output
     assert "STRIPE_SECRET_KEY is set" in output

@@ -18,8 +18,8 @@ NO_REAL_EMAILS = "No real emails are sent during this audit."
 SAMPLE_RESET_TOKEN = "example-token-redacted"
 
 
-def _record(name: str, *, status: str, detail: str = "") -> dict[str, str]:
-    return {"name": name, "status": status, "detail": detail}
+def _record(name: str, *, status: str) -> dict[str, str]:
+    return {"name": name, "status": status}
 
 
 def run_audit() -> int:
@@ -35,13 +35,13 @@ def run_audit() -> int:
         import app.main  # noqa: F401
 
         results.append(_record("import app.main", status="PASS"))
-    except Exception as exc:
-        results.append(_record("import app.main", status="FAIL", detail=str(exc)))
-        critical_failures.append(f"import app.main: {exc}")
+    except Exception:
+        results.append(_record("import app.main", status="FAIL"))
+        critical_failures.append("import app.main failed")
 
     print("==> Importing password reset modules ...")
     try:
-        from app.models.password_reset_token import PasswordResetToken
+        import app.models.password_reset_token  # noqa: F401
         from app.services.password_reset_service import (
             PasswordResetService,
             build_reset_url,
@@ -49,11 +49,9 @@ def run_audit() -> int:
         )
 
         results.append(_record("import password reset modules", status="PASS"))
-    except Exception as exc:
-        results.append(
-            _record("import password reset modules", status="FAIL", detail=str(exc))
-        )
-        critical_failures.append(f"import password reset modules: {exc}")
+    except Exception:
+        results.append(_record("import password reset modules", status="FAIL"))
+        critical_failures.append("import password reset modules failed")
         return _print_summary(results, critical_failures)
 
     print("==> Checking password reset config ...")
@@ -64,34 +62,20 @@ def run_audit() -> int:
         expire_hours = settings.password_reset_token_expire_hours
         base_url = settings.password_reset_base_url
 
-        print("    Reset token expiration is configured")
-        print(f"    Reset token expire hours={expire_hours}")
-        print("    Reset base URL is configured")
-        reset_route_ok = "reset-password" in base_url
+        print("Reset token expiration setting is present.")
+        print("Reset page base URL setting is present.")
 
         if expire_hours <= 0:
             raise ValueError("PASSWORD_RESET_TOKEN_EXPIRE_HOURS must be positive")
         if not base_url.strip():
             raise ValueError("PASSWORD_RESET_BASE_URL must not be empty")
-        if not reset_route_ok:
-            results.append(
-                _record(
-                    "password reset config",
-                    status="WARN",
-                    detail="base URL may not target reset-password route",
-                )
-            )
+        if "reset-password" not in base_url:
+            results.append(_record("password reset config", status="WARN"))
         else:
-            results.append(
-                _record(
-                    "password reset config",
-                    status="PASS",
-                    detail=f"expire_hours={expire_hours}, base URL targets reset-password",
-                )
-            )
-    except Exception as exc:
-        results.append(_record("password reset config", status="FAIL", detail=str(exc)))
-        critical_failures.append(f"password reset config: {exc}")
+            results.append(_record("password reset config", status="PASS"))
+    except Exception:
+        results.append(_record("password reset config", status="FAIL"))
+        critical_failures.append("password reset config check failed")
 
     print("==> Building reset URL and template ...")
     try:
@@ -115,16 +99,11 @@ def run_audit() -> int:
         if SAMPLE_RESET_TOKEN not in message.text_body:
             raise ValueError("reset URL must appear in email body")
 
-        results.append(
-            _record(
-                "reset URL and template",
-                status="PASS",
-                detail="sample reset URL and email template built",
-            )
-        )
-    except Exception as exc:
-        results.append(_record("reset URL and template", status="FAIL", detail=str(exc)))
-        critical_failures.append(f"reset template: {exc}")
+        print("Password reset email template builds with redacted sample token.")
+        results.append(_record("reset URL and template", status="PASS"))
+    except Exception:
+        results.append(_record("reset URL and template", status="FAIL"))
+        critical_failures.append("reset URL and template check failed")
 
     print("==> Checking token hashing (no raw token storage) ...")
     try:
@@ -135,7 +114,7 @@ def run_audit() -> int:
         if raw_token == token_hash:
             raise ValueError("hash must differ from raw token")
         if len(token_hash) != 64:
-            raise ValueError(f"expected sha256 hex length 64, got {len(token_hash)}")
+            raise ValueError("token hash length invalid")
         if not all(c in "0123456789abcdef" for c in token_hash):
             raise ValueError("token hash must be lowercase hex")
 
@@ -145,16 +124,10 @@ def run_audit() -> int:
         if "token" in columns or "raw_token" in columns:
             raise ValueError("PasswordResetToken must not store raw token column")
 
-        results.append(
-            _record(
-                "token hashing",
-                status="PASS",
-                detail="only token_hash stored; raw token is not stored in DB",
-            )
-        )
-    except Exception as exc:
-        results.append(_record("token hashing", status="FAIL", detail=str(exc)))
-        critical_failures.append(f"token hashing: {exc}")
+        results.append(_record("token hashing", status="PASS"))
+    except Exception:
+        results.append(_record("token hashing", status="FAIL"))
+        critical_failures.append("token hashing check failed")
 
     print("==> Verifying send path uses dry-run/mock (no real SMTP) ...")
     try:
@@ -188,16 +161,10 @@ def run_audit() -> int:
         if SAMPLE_RESET_TOKEN not in sent_message.text_body:
             raise ValueError("reset email body must include token in URL")
 
-        results.append(
-            _record(
-                "reset send path",
-                status="PASS",
-                detail="mocked EmailService dry-run; no real SMTP",
-            )
-        )
-    except Exception as exc:
-        results.append(_record("reset send path", status="FAIL", detail=str(exc)))
-        critical_failures.append(f"reset send path: {exc}")
+        results.append(_record("reset send path", status="PASS"))
+    except Exception:
+        results.append(_record("reset send path", status="FAIL"))
+        critical_failures.append("reset send path check failed")
 
     print("==> Checking auth API routes ...")
     try:
@@ -209,13 +176,12 @@ def run_audit() -> int:
             ("/api/v1/auth/reset-password", "post"),
         ):
             if path not in paths or method not in paths[path]:
-                raise ValueError(f"{method.upper()} {path} missing from OpenAPI")
+                raise ValueError("password reset route missing from OpenAPI")
+        print("Password reset routes are registered.")
         results.append(_record("auth password reset routes", status="PASS"))
-    except Exception as exc:
-        results.append(
-            _record("auth password reset routes", status="FAIL", detail=str(exc))
-        )
-        critical_failures.append(f"auth routes: {exc}")
+    except Exception:
+        results.append(_record("auth password reset routes", status="FAIL"))
+        critical_failures.append("auth password reset routes check failed")
 
     return _print_summary(results, critical_failures)
 
@@ -224,10 +190,7 @@ def _print_summary(results: list[dict[str, str]], critical_failures: list[str]) 
     print()
     print("==> Summary")
     for item in results:
-        line = f"  [{item['status']}] {item['name']}"
-        if item.get("detail"):
-            line += f" — {item['detail']}"
-        print(line)
+        print(f"  [{item['status']}] {item['name']}")
 
     pass_count = sum(1 for r in results if r["status"] == "PASS")
     warn_count = sum(1 for r in results if r["status"] == "WARN")

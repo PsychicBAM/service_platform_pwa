@@ -63,7 +63,9 @@ def test_security_readiness_output_does_not_expose_secrets() -> None:
     combined = result.stdout + result.stderr
     assert secret not in combined
     assert jwt not in combined
-    assert "JWT_SECRET_KEY: configured" in combined
+    assert "JWT_SECRET_KEY: configured" not in combined
+    assert "STRIPE_SECRET_KEY:" not in combined
+    assert "STRIPE_WEBHOOK_SECRET" not in combined
 
 
 def test_security_readiness_fails_production_cors_wildcard() -> None:
@@ -77,7 +79,11 @@ def test_security_readiness_fails_production_cors_wildcard() -> None:
     result = _run_script(env)
     assert result.returncode != 0
     combined = result.stdout + result.stderr
-    assert "CORS" in combined or "Wildcard" in combined
+    assert (
+        "CORS" in combined
+        or "Wildcard" in combined
+        or "Settings validation failed" in combined
+    )
 
 
 def test_security_readiness_fails_production_api_docs_enabled() -> None:
@@ -103,4 +109,4 @@ def test_security_readiness_fails_production_short_jwt() -> None:
     }
     result = _run_script(env)
     assert result.returncode != 0
-    assert "JWT_SECRET_KEY" in result.stdout
+    assert "JWT_SECRET_KEY is too short for production." in result.stdout

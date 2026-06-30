@@ -16,15 +16,8 @@ CHECKOUT_PATH = "/api/v1/businesses/{business_id}/billing/checkout-session"
 WEBHOOK_PATH = "/api/v1/billing/stripe/webhook"
 
 
-def _record(name: str, *, status: str, detail: str = "") -> dict[str, str]:
-    return {"name": name, "status": status, "detail": detail}
-
-
-def _secret_status(label: str, *, is_set: bool) -> str:
-    """Report whether a secret is configured without printing its value."""
-    if is_set:
-        return f"{label}: configured"
-    return f"{label}: not set"
+def _record(name: str, *, status: str) -> dict[str, str]:
+    return {"name": name, "status": status}
 
 
 def run_audit() -> int:
@@ -41,8 +34,8 @@ def run_audit() -> int:
 
         results.append(_record("import app.main", status="PASS"))
     except Exception as exc:
-        results.append(_record("import app.main", status="FAIL", detail=str(exc)))
-        critical_failures.append(f"import app.main: {exc}")
+        results.append(_record("import app.main", status="FAIL"))
+        critical_failures.append("import app.main failed")
 
     print("==> Importing billing modules ...")
     try:
@@ -53,10 +46,8 @@ def run_audit() -> int:
 
         results.append(_record("import billing router/service/schemas", status="PASS"))
     except Exception as exc:
-        results.append(
-            _record("import billing router/service/schemas", status="FAIL", detail=str(exc))
-        )
-        critical_failures.append(f"import billing modules: {exc}")
+        results.append(_record("import billing router/service/schemas", status="FAIL"))
+        critical_failures.append("import billing modules failed")
         return _print_summary(results, critical_failures)
 
     print("==> Importing stripe_config helper ...")
@@ -70,8 +61,8 @@ def run_audit() -> int:
 
         results.append(_record("import stripe_config helper", status="PASS"))
     except Exception as exc:
-        results.append(_record("import stripe_config helper", status="FAIL", detail=str(exc)))
-        critical_failures.append(f"import stripe_config: {exc}")
+        results.append(_record("import stripe_config helper", status="FAIL"))
+        critical_failures.append("import stripe_config failed")
         return _print_summary(results, critical_failures)
 
     print("==> Checking OpenAPI billing endpoints ...")
@@ -86,11 +77,11 @@ def run_audit() -> int:
 
         print(f"    checkout endpoint: POST {CHECKOUT_PATH}")
         print(f"    webhook endpoint: POST {WEBHOOK_PATH}")
-        results.append(_record("checkout endpoint in OpenAPI", status="PASS", detail=CHECKOUT_PATH))
-        results.append(_record("webhook endpoint in OpenAPI", status="PASS", detail=WEBHOOK_PATH))
-    except Exception as exc:
-        results.append(_record("OpenAPI billing endpoints", status="FAIL", detail=str(exc)))
-        critical_failures.append(f"OpenAPI billing endpoints: {exc}")
+        results.append(_record("checkout endpoint in OpenAPI", status="PASS"))
+        results.append(_record("webhook endpoint in OpenAPI", status="PASS"))
+    except Exception:
+        results.append(_record("OpenAPI billing endpoints", status="FAIL"))
+        critical_failures.append("OpenAPI billing endpoints check failed")
 
     print("==> Checking Stripe config defaults ...")
     try:
@@ -99,42 +90,27 @@ def run_audit() -> int:
 
         settings = Settings()
         print(f"    STRIPE_ENABLED={settings.stripe_enabled}")
-        print(_secret_status("STRIPE_SECRET_KEY", is_set=bool(settings.stripe_secret_key and settings.stripe_secret_key.strip())))
-        print(_secret_status("STRIPE_WEBHOOK_SECRET", is_set=bool(settings.stripe_webhook_secret and settings.stripe_webhook_secret.strip())))
+        print(
+            "    Stripe secrets are checked by production env validation; "
+            "values are not inspected or printed here."
+        )
 
         if settings.stripe_enabled:
-            results.append(
-                _record(
-                    "STRIPE_ENABLED default",
-                    status="WARN",
-                    detail="STRIPE_ENABLED=true in environment — audit still safe (no network calls)",
-                )
-            )
+            results.append(_record("STRIPE_ENABLED default", status="WARN"))
         else:
-            results.append(
-                _record(
-                    "STRIPE_ENABLED default",
-                    status="PASS",
-                    detail="STRIPE_ENABLED=false — safe manual/demo billing",
-                )
-            )
+            results.append(_record("STRIPE_ENABLED default", status="PASS"))
 
         paid_plan_keys = {"starter", "business", "pro"}
         configured = stripe_price_ids_configured(settings)
         if set(configured.keys()) != paid_plan_keys:
-            raise ValueError(f"expected price config keys {paid_plan_keys}, got {set(configured.keys())}")
+            raise ValueError("unexpected paid plan price config keys")
 
         for plan_id in sorted(paid_plan_keys):
-            status = "configured" if configured[plan_id] else "not set"
+            price_configured = configured[plan_id]
+            status = "configured" if price_configured else "not set"
             print(f"    STRIPE price for {plan_id}: {status}")
 
-        results.append(
-            _record(
-                "paid plan config keys",
-                status="PASS",
-                detail="starter, business, pro price keys present",
-            )
-        )
+        results.append(_record("paid plan config keys", status="PASS"))
 
         if is_checkout_eligible_plan(SubscriptionPlan.free):
             raise ValueError("free plan must not be checkout eligible")
@@ -145,32 +121,18 @@ def run_audit() -> int:
         if free_price is not None:
             raise ValueError("free plan must not resolve a Stripe price ID")
 
-        results.append(
-            _record(
-                "free plan checkout eligibility",
-                status="PASS",
-                detail="free is not checkout eligible",
-            )
-        )
-    except Exception as exc:
-        results.append(_record("Stripe config defaults", status="FAIL", detail=str(exc)))
-        critical_failures.append(f"Stripe config: {exc}")
+        results.append(_record("free plan checkout eligibility", status="PASS"))
+    except Exception:
+        results.append(_record("Stripe config defaults", status="FAIL"))
+        critical_failures.append("Stripe config defaults check failed")
 
     print("==> Checking billing readiness script exists ...")
     readiness_script = api_dir / "scripts" / "check_billing_readiness.py"
     if readiness_script.is_file():
         print(f"    Found {readiness_script.name}")
-        results.append(
-            _record("check_billing_readiness.py exists", status="PASS", detail=str(readiness_script.name))
-        )
+        results.append(_record("check_billing_readiness.py exists", status="PASS"))
     else:
-        results.append(
-            _record(
-                "check_billing_readiness.py exists",
-                status="FAIL",
-                detail="scripts/check_billing_readiness.py not found",
-            )
-        )
+        results.append(_record("check_billing_readiness.py exists", status="FAIL"))
         critical_failures.append("check_billing_readiness.py missing")
 
     return _print_summary(results, critical_failures)
@@ -180,10 +142,7 @@ def _print_summary(results: list[dict[str, str]], critical_failures: list[str]) 
     print()
     print("==> Summary")
     for item in results:
-        line = f"  [{item['status']}] {item['name']}"
-        if item.get("detail"):
-            line += f" — {item['detail']}"
-        print(line)
+        print(f"  [{item['status']}] {item['name']}")
 
     pass_count = sum(1 for r in results if r["status"] == "PASS")
     warn_count = sum(1 for r in results if r["status"] == "WARN")
