@@ -15,6 +15,7 @@ if str(api_dir) not in sys.path:
     sys.path.insert(0, str(api_dir))
 
 NO_REAL_EMAILS = "No real emails are sent during this audit."
+SAMPLE_RESET_TOKEN = "example-token-redacted"
 
 
 def _record(name: str, *, status: str, detail: str = "") -> dict[str, str]:
@@ -63,19 +64,21 @@ def run_audit() -> int:
         expire_hours = settings.password_reset_token_expire_hours
         base_url = settings.password_reset_base_url
 
-        print(f"    PASSWORD_RESET_TOKEN_EXPIRE_HOURS={expire_hours}")
-        print(f"    PASSWORD_RESET_BASE_URL={base_url}")
+        print("    Reset token expiration is configured")
+        print(f"    Reset token expire hours={expire_hours}")
+        print("    Reset base URL is configured")
+        reset_route_ok = "reset-password" in base_url
 
         if expire_hours <= 0:
             raise ValueError("PASSWORD_RESET_TOKEN_EXPIRE_HOURS must be positive")
         if not base_url.strip():
             raise ValueError("PASSWORD_RESET_BASE_URL must not be empty")
-        if "reset-password" not in base_url:
+        if not reset_route_ok:
             results.append(
                 _record(
                     "password reset config",
                     status="WARN",
-                    detail=f"base URL may not target reset-password route: {base_url}",
+                    detail="base URL may not target reset-password route",
                 )
             )
         else:
@@ -83,7 +86,7 @@ def run_audit() -> int:
                 _record(
                     "password reset config",
                     status="PASS",
-                    detail=f"expire_hours={expire_hours}, base_url={base_url}",
+                    detail=f"expire_hours={expire_hours}, base URL targets reset-password",
                 )
             )
     except Exception as exc:
@@ -96,9 +99,8 @@ def run_audit() -> int:
         from app.services.email_templates import build_password_reset_email
 
         settings = get_settings()
-        sample_token = "audit-sample-reset-token-not-stored"
-        reset_url = build_reset_url(sample_token, settings)
-        if sample_token not in reset_url:
+        reset_url = build_reset_url(SAMPLE_RESET_TOKEN, settings)
+        if SAMPLE_RESET_TOKEN not in reset_url:
             raise ValueError("reset URL must include sample token query param")
         if not reset_url.startswith(settings.password_reset_base_url.rstrip("/")):
             raise ValueError("reset URL must use configured base URL")
@@ -110,14 +112,14 @@ def run_audit() -> int:
         )
         if not message.to_email or not message.subject or not message.text_body:
             raise ValueError("password reset email template missing required fields")
-        if reset_url not in message.text_body:
+        if SAMPLE_RESET_TOKEN not in message.text_body:
             raise ValueError("reset URL must appear in email body")
 
         results.append(
             _record(
                 "reset URL and template",
                 status="PASS",
-                detail=f"url={reset_url}",
+                detail="sample reset URL and email template built",
             )
         )
     except Exception as exc:
@@ -175,7 +177,7 @@ def run_audit() -> int:
         ok = asyncio.run(
             service.send_reset_email_best_effort(
                 "owner@example.com",
-                "audit-mock-reset-token",
+                SAMPLE_RESET_TOKEN,
             )
         )
         if not ok:
@@ -183,7 +185,7 @@ def run_audit() -> int:
         if mock_email.send_email.call_count != 1:
             raise ValueError("expected exactly one mocked send_email call")
         sent_message = mock_email.send_email.call_args[0][0]
-        if "audit-mock-reset-token" not in sent_message.text_body:
+        if SAMPLE_RESET_TOKEN not in sent_message.text_body:
             raise ValueError("reset email body must include token in URL")
 
         results.append(

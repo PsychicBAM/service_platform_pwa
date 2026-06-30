@@ -497,9 +497,10 @@ def _print_summary(result: dict) -> None:
         print(f"  {key}: {action}")
 
     print("\nDemo credentials:")
-    print(f"  Superadmin: {SUPERADMIN_EMAIL} / {DEMO_PASSWORD}")
-    print(f"  Owner:      {OWNER_EMAIL} / {DEMO_PASSWORD}")
-    print(f"  Client:     {LINKED_CLIENT_EMAIL} / {DEMO_PASSWORD}")
+    print(f"  Superadmin: {SUPERADMIN_EMAIL}")
+    print(f"  Owner:      {OWNER_EMAIL}")
+    print(f"  Client:     {LINKED_CLIENT_EMAIL}")
+    print("  Password:   use the demo password documented in README_BACKEND.md (not printed here)")
 
     print("\nUseful URLs (host machine):")
     print("  API health:     http://localhost:8000/health")

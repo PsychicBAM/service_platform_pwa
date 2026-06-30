@@ -40,13 +40,23 @@ def test_script_output_mentions_no_real_emails_sent(capsys) -> None:
     assert "no real emails" in captured.out.lower()
 
 
-def test_script_output_includes_reset_password_base_url_config(capsys) -> None:
+def test_script_output_includes_reset_password_config_wording(capsys) -> None:
     module = _load_module()
     exit_code = module.main()
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert "PASSWORD_RESET_BASE_URL" in captured.out
+    assert "Reset base URL is configured" in captured.out
     assert "reset-password" in captured.out.lower()
+
+
+def test_script_output_does_not_print_sample_reset_token(capsys) -> None:
+    module = _load_module()
+    exit_code = module.main()
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "audit-sample-reset-token" not in captured.out
+    assert "audit-mock-reset-token" not in captured.out
+    assert "example-token-redacted" not in captured.out
 
 
 def test_script_output_confirms_raw_token_not_stored(capsys) -> None:
@@ -68,5 +78,5 @@ def test_script_runs_as_subprocess_without_smtp() -> None:
     )
     assert result.returncode == 0
     assert "no real emails" in result.stdout.lower()
-    assert "PASSWORD_RESET_BASE_URL" in result.stdout
+    assert "Reset base URL is configured" in result.stdout
     assert "raw token is not stored" in result.stdout.lower()

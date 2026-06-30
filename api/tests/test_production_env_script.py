@@ -320,3 +320,63 @@ def test_stripe_secrets_are_not_printed_in_validation_messages() -> None:
     assert secret not in messages
     assert webhook not in messages
     assert "STRIPE_SECRET_KEY is set" in messages
+
+
+def test_production_env_script_output_does_not_print_fake_secrets(tmp_path: Path) -> None:
+    import io
+    import sys
+
+    module = _load_module()
+    secret = "sk_test_super_secret_key_value_001"
+    webhook = "whsec_test_webhook_secret_value_001"
+    jwt = "0123456789abcdef0123456789abcdef0123456789ab"
+    smtp_password = "smtp_password_never_print_001"
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "\n".join(
+            [
+                "APP_ENV=production",
+                "POSTGRES_USER=service_platform",
+                "POSTGRES_PASSWORD=super_secure_random_password_value_123",
+                "POSTGRES_DB=service_platform",
+                (
+                    "DATABASE_URL=postgresql+asyncpg://service_platform:"
+                    "super_secure_random_password_value_123@postgres:5432/service_platform"
+                ),
+                f"JWT_SECRET_KEY={jwt}",
+                "WEB_HTTP_PORT=80",
+                "CORS_ORIGINS=https://example.com",
+                "API_DOCS_ENABLED=false",
+                "STRIPE_ENABLED=true",
+                f"STRIPE_SECRET_KEY={secret}",
+                f"STRIPE_WEBHOOK_SECRET={webhook}",
+                "STRIPE_PRICE_STARTER=price_starter_test_001",
+                "STRIPE_PRICE_BUSINESS=price_business_test_001",
+                "STRIPE_PRICE_PRO=price_pro_test_001",
+                "STRIPE_SUCCESS_URL=https://example.com/billing/success",
+                "STRIPE_CANCEL_URL=https://example.com/billing/cancel",
+                "EMAIL_ENABLED=true",
+                "EMAIL_DRY_RUN=false",
+                "SMTP_HOST=smtp.example.com",
+                "SMTP_USER=mailer@example.com",
+                f"SMTP_PASSWORD={smtp_password}",
+                "SMTP_FROM_EMAIL=mailer@example.com",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    buffer = io.StringIO()
+    stdout = sys.stdout
+    sys.stdout = buffer
+    try:
+        exit_code = module.main(["--env-file", str(env_file), "--strict"])
+    finally:
+        sys.stdout = stdout
+
+    output = buffer.getvalue()
+    assert exit_code == 0
+    assert secret not in output
+    assert webhook not in output
+    assert smtp_password not in output
+    assert "STRIPE_SECRET_KEY is set" in output

@@ -27,8 +27,8 @@ def _record(name: str, *, status: str, detail: str = "") -> dict[str, str]:
     return {"name": name, "status": status, "detail": detail}
 
 
-def _secret_status(label: str, value: str | None) -> str:
-    if value and value.strip():
+def _secret_status(label: str, *, is_set: bool) -> str:
+    if is_set:
         return f"{label}: configured"
     return f"{label}: not set"
 
@@ -72,13 +72,14 @@ def run_audit() -> int:
     print(f"    API_DOCS_ENABLED={settings.api_docs_enabled}")
     print(f"    docs_enabled (effective)={settings.docs_enabled}")
     print(f"    CORS_ORIGINS={settings.cors_origins}")
-    print(f"    JWT_SECRET_KEY length={len(settings.jwt_secret_key)} (value not printed)")
-    print(_secret_status("JWT_SECRET_KEY", settings.jwt_secret_key))
+    jwt_len = len(settings.jwt_secret_key.strip()) if settings.jwt_secret_key else 0
+    print(f"    JWT_SECRET_KEY length={jwt_len} (value not printed)")
+    print(_secret_status("JWT_SECRET_KEY", is_set=bool(settings.jwt_secret_key and settings.jwt_secret_key.strip())))
     print(f"    EMAIL_ENABLED={settings.email_enabled}")
     print(f"    EMAIL_DRY_RUN={settings.email_dry_run}")
     print(f"    STRIPE_ENABLED={settings.stripe_enabled}")
-    print(_secret_status("STRIPE_SECRET_KEY", settings.stripe_secret_key))
-    print(_secret_status("STRIPE_WEBHOOK_SECRET", settings.stripe_webhook_secret))
+    print(_secret_status("STRIPE_SECRET_KEY", is_set=bool(settings.stripe_secret_key and settings.stripe_secret_key.strip())))
+    print(_secret_status("STRIPE_WEBHOOK_SECRET", is_set=bool(settings.stripe_webhook_secret and settings.stripe_webhook_secret.strip())))
 
     origins = settings.cors_origins_list
     has_wildcard = any(origin == "*" for origin in origins)

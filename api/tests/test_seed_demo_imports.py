@@ -38,6 +38,22 @@ def test_e2e_backend_audit_imports_cleanly() -> None:
     assert "/me/orders" in source
 
 
+def test_seed_demo_summary_does_not_print_demo_password(capsys) -> None:
+    module = _load_script_module("seed_demo")
+    module._print_summary(
+        {
+            "summary": {"superadmin": "unchanged"},
+            "business_id": "00000000-0000-0000-0000-000000000001",
+            "booking_service_id": "00000000-0000-0000-0000-000000000002",
+            "order_service_id": "00000000-0000-0000-0000-000000000003",
+        }
+    )
+    captured = capsys.readouterr()
+    assert module.DEMO_PASSWORD not in captured.out
+    assert "README_BACKEND.md" in captured.out
+    assert "owner@example.com" in captured.out
+
+
 @pytest.mark.asyncio
 async def test_seed_demo_ensure_user_sets_email_verified(db_session) -> None:
     module = _load_script_module("seed_demo")

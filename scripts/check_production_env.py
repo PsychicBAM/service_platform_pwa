@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -54,6 +55,21 @@ DEV_DATABASE_MARKERS = (
     "@localhost:",
     "@127.0.0.1:",
 )
+
+_SENSITIVE_VALUE_PATTERNS = (
+    re.compile(r"sk_test_[A-Za-z0-9]+"),
+    re.compile(r"sk_live_[A-Za-z0-9]+"),
+    re.compile(r"whsec_[A-Za-z0-9]+"),
+    re.compile(r"password=[^@\s]+", re.IGNORECASE),
+)
+
+
+def sanitize_message(message: str) -> str:
+    """Redact secret-like substrings from validation output messages."""
+    redacted = message
+    for pattern in _SENSITIVE_VALUE_PATTERNS:
+        redacted = pattern.sub("[redacted]", redacted)
+    return redacted
 
 
 @dataclass
@@ -217,9 +233,9 @@ def _validate_email(env: dict[str, str], *, strict: bool, result: ValidationResu
         result.ok.append("SMTP_USER and SMTP_PASSWORD are set")
 
 
-def _secret_configured_label(key: str, value: str) -> str:
+def _secret_configured_label(key: str, *, is_set: bool) -> str:
     """Describe secret presence without exposing the value."""
-    return f"{key} is set" if value.strip() else f"{key} is missing"
+    return f"{key} is set" if is_set else f"{key} is missing"
 
 
 def _validate_stripe(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
@@ -247,7 +263,7 @@ def _validate_stripe(env: dict[str, str], *, strict: bool, result: ValidationRes
             else:
                 result.warnings.append(message)
         elif strict:
-            result.ok.append(_secret_configured_label(key, value))
+            result.ok.append(_secret_configured_label(key, is_set=bool(value)))
 
     for key in ("STRIPE_PRICE_STARTER", "STRIPE_PRICE_BUSINESS", "STRIPE_PRICE_PRO"):
         value = env.get(key, "").strip()
@@ -293,7 +309,7 @@ def validate_production_env(env: dict[str, str], *, strict: bool = False) -> Val
     if app_env:
         if strict and app_env != "production":
             result.failures.append(
-                f"APP_ENV must be 'production' in strict mode (got {env.get('APP_ENV')!r})"
+                "APP_ENV must be 'production' in strict mode (current value is not production)"
             )
         elif strict:
             result.ok.append("APP_ENV is production")
@@ -392,14 +408,15 @@ def format_line(kind: str, message: str) -> str:
 def print_result(result: ValidationResult) -> None:
     seen_ok = set()
     for message in result.ok:
-        if message in seen_ok:
+        safe_message = sanitize_message(message)
+        if safe_message in seen_ok:
             continue
-        seen_ok.add(message)
-        print(format_line("ok", message))
+        seen_ok.add(safe_message)
+        print(format_line("ok", safe_message))
     for message in result.warnings:
-        print(format_line("warn", message))
+        print(format_line("warn", sanitize_message(message)))
     for message in result.failures:
-        print(format_line("fail", message))
+        print(format_line("fail", sanitize_message(message)))
 
 
 def main(argv: list[str] | None = None) -> int:

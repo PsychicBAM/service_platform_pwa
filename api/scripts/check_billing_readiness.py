@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 
 
-def _secret_status(label: str, value: str | None) -> str:
+def _secret_status(label: str, *, is_set: bool) -> str:
     """Report whether a secret is configured without printing its value."""
-    if value and value.strip():
+    if is_set:
         return f"{label}: configured"
     return f"{label}: not set"
 
@@ -39,8 +39,8 @@ def main() -> int:
 
     settings = Settings()
     print(f"STRIPE_ENABLED={settings.stripe_enabled}")
-    print(_secret_status("STRIPE_SECRET_KEY", settings.stripe_secret_key))
-    print(_secret_status("STRIPE_WEBHOOK_SECRET", settings.stripe_webhook_secret))
+    print(_secret_status("STRIPE_SECRET_KEY", is_set=bool(settings.stripe_secret_key and settings.stripe_secret_key.strip())))
+    print(_secret_status("STRIPE_WEBHOOK_SECRET", is_set=bool(settings.stripe_webhook_secret and settings.stripe_webhook_secret.strip())))
 
     if not settings.stripe_enabled:
         print("Stripe disabled — billing remains manual/demo.")
