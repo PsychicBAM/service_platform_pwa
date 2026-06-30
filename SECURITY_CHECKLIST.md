@@ -29,6 +29,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] **CodeQL analysis** — `.github/workflows/codeql.yml` on push/PR to `main` + weekly Sunday; review **Security → Code scanning**
 - [x] **Dependency audit baseline** — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; optional `.github/workflows/dependency-scan.yml` (non-blocking)
 - [x] **Dependency advisories triaged** — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §I; upgrades planned Slices 5–8; no auto-fix in Slice 4
+- [x] **pytest test-only upgrade** — Slice 5: `pytest>=9.0.3,<10.0.0`; pip-audit pytest CVE cleared
 
 ### Future CI (not blocking merges yet)
 - [ ] **Starlette/FastAPI upgrade** (Slice 6) — before VPS production if advisories remain open

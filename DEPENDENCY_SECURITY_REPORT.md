@@ -145,10 +145,36 @@ Record summary here (counts only — no secret values):
 |------|------|-------|----------|-------|
 | `npm audit --audit-level=high` | 2026-06-30 | 1 (vite/esbuild chain) | 1 (esbuild dev server) | devDependency via Vite; fix suggests Vite 8 (breaking); **not** auto-fixed |
 | `pip-audit` | 2026-06-30 | 9 advisories | — | `starlette` (FastAPI) + `pytest` in `api/requirements.txt`; triage before upgrade; **not** auto-fixed |
+| `pip-audit` | 2026-06-30 (post Slice 5) | 8 advisories | — | **pytest cleared**; `starlette` 0.46.2 only — Slice 6 |
 
 ---
 
-## I. Phase 6 Slice 4 — advisory triage
+## J. Phase 6 Slice 5 — pytest test-only upgrade
+
+**Completed:** Test dependency upgrade only — **no** FastAPI, Starlette, or Vite changes.
+
+### J.A. Versions changed (`api/requirements.txt`)
+
+| Package | Before | After | Reason |
+|---------|--------|-------|--------|
+| `pytest` | `>=8.3.0,<9.0.0` (resolved 8.4.2) | `>=9.0.3,<10.0.0` (resolves 9.1.1) | CVE-2025-71176 fixed in ≥9.0.3 |
+| `pytest-asyncio` | `>=0.24.0,<0.25.0` | `>=1.3.0,<2.0.0` (resolves 1.4.0) | Required — pytest-asyncio 0.24 caps pytest `<9` |
+
+**Unchanged:** FastAPI, Starlette, uvicorn, and all runtime app dependencies.
+
+### J.B. pip-audit after Slice 5
+
+- **pytest advisory:** cleared (CVE-2025-71176)
+- **Remaining:** 8 advisories in `starlette@0.46.2` only — planned **Slice 6**
+- **Frontend:** Vite/esbuild (GHSA-67mh-4wv8-2f99) unchanged — planned **Slice 7**
+
+### J.C. Regression
+
+Full backend + frontend suites passed after Docker rebuild; no test code changes required.
+
+---
+
+**Last updated:** Phase 6 Slice 5 — pytest test-only dependency upgrade.
 
 **Slice type:** Documentation and planning only — **no dependency version changes** in Slice 4.
 
@@ -196,7 +222,7 @@ Record summary here (counts only — no secret values):
 | Frontend dev server | esbuild | 0.21.5 | dev | Malicious site could read Vite dev server responses if dev server is exposed | Do not expose `npm run dev` to internet; use nginx prod frontend for demos; upgrade in Slice 7 | Medium | No (if dev server not public) |
 | Frontend toolchain | vite | 5.4.21 | dev | Depends on vulnerable esbuild; audit fix wants Vite 8 | Investigate non-breaking Vite patch/minor path in Slice 7; avoid `--force` | Medium | No (prod serves static `dist/`) |
 | Backend runtime | starlette | 0.46.2 | runtime | Multiple CVEs in ASGI layer used by FastAPI | Minimum safe Starlette/FastAPI compatible upgrade in Slice 6; full auth/billing/e2e regression | **High** | **Yes — review before production** |
-| Backend tests | pytest | 8.4.2 | test / CI | CVE in test framework | Upgrade to 9.0.3+ in Slice 5; run full pytest + `check_backend.py` | Low–medium | No (test-only) |
+| Backend tests | pytest | 9.1.1 | test / CI | CVE-2025-71176 | ✅ **Slice 5 done** — `>=9.0.3,<10.0.0` + pytest-asyncio ≥1.3 | — | No |
 
 ---
 
@@ -204,12 +230,11 @@ Record summary here (counts only — no secret values):
 
 Each slice is a **separate PR** with full regression checks. **No automatic `npm audit fix` or blind major bumps.**
 
-#### Slice 5 — pytest test-only upgrade
+#### Slice 5 — pytest test-only upgrade ✅ (completed)
 
-- Bump `pytest` (and `pytest-asyncio` if required) to fixed versions within compatibility
-- **Commands:** `docker compose exec api python -m pytest`, `check_backend.py`, `e2e_backend_audit.py`
-- **Risk:** Low app risk — test tooling only
-- **Rollback:** Revert `api/requirements.txt` pin
+- Bumped `pytest` to `>=9.0.3,<10.0.0` and `pytest-asyncio` to `>=1.3.0,<2.0.0` (required for pytest 9)
+- **Regression:** 563 pytest + `check_backend.py` — passed; no test code changes
+- **Rollback:** Revert `api/requirements.txt` pins
 
 #### Slice 6 — Starlette / FastAPI compatibility investigation
 

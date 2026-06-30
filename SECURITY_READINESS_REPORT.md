@@ -44,6 +44,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **CodeQL workflow** | ✅ `.github/workflows/codeql.yml` — Python + JavaScript/TypeScript; static analysis only |
 | **Dependency scan baseline** | ✅ [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) — `npm run security:audit`, `pip-audit`; optional non-blocking `.github/workflows/dependency-scan.yml` |
 | **Dependency advisory triage** | ✅ Phase 6 Slice 4 — advisories classified; upgrade plan in DEPENDENCY_SECURITY_REPORT §I; **no version bumps yet** |
+| **pytest test-only upgrade** | ✅ Phase 6 Slice 5 — pytest ≥9.0.3, pytest-asyncio ≥1.3; CVE-2025-71176 cleared; Starlette advisories remain |
 | **Dependency scan in blocking CI** | Not enabled — avoid failing PRs until Slice 8 after upgrades/triage complete |
 | **Docker image scan** | No Trivy or similar in CI |
 | **OWASP ZAP baseline** | No staging URL scan automated |
@@ -158,10 +159,17 @@ This slice does **not** create legal documents or consent UI.
 
 - [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §I — classified npm/pip-audit findings
 - **Starlette** (runtime): high priority; review before VPS — planned Slice 6
-- **pytest** (test-only): lower priority — planned Slice 5
+- **pytest** (test-only): ✅ **Slice 5 done** — CVE-2025-71176 cleared
 - **Vite/esbuild** (dev server): medium; production nginx build lower risk — planned Slice 7
-- No dependency versions changed; scan workflow stays non-blocking
+- No dependency versions changed in Slice 4; **Slice 5** upgraded test deps only (pytest)
+
+### Phase 6 Slice 5 — pytest upgrade (summary)
+
+- `api/requirements.txt`: `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0,<2.0.0` (asyncio bump required for pytest 9)
+- CVE-2025-71176 cleared in pip-audit
+- Starlette runtime advisories **unchanged** — still Slice 6 priority
+- Vite/esbuild dev advisory **unchanged** — Slice 7
 
 ---
 
-**Last updated:** Phase 6 Slice 4 — dependency advisory triage and upgrade plan.
+**Last updated:** Phase 6 Slice 5 — pytest test-only dependency upgrade.
