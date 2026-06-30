@@ -2,7 +2,7 @@
 
 **Purpose:** Document how to scan **our** frontend and backend dependencies for known vulnerabilities.  
 **Scope:** `npm audit` and `pip-audit` commands, triage guidance, and a **blocking** dependency-scan workflow (Phase 6 Slice 8).  
-**Not in scope:** OWASP ZAP, Nuclei, Trivy, aggressive web scanners, automatic `npm audit fix`, or production dependency upgrades without review.
+**Not in scope:** OWASP ZAP, Nuclei, aggressive web scanners, automatic `npm audit fix`, or production dependency upgrades without review. **Trivy** baseline is documented in [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) (Slice 9).
 
 Related: [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [.github/workflows/codeql.yml](./.github/workflows/codeql.yml) · [.github/workflows/dependency-scan.yml](./.github/workflows/dependency-scan.yml)
 
@@ -15,7 +15,7 @@ Related: [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECU
 | **Source code** | CodeQL (`.github/workflows/codeql.yml`) | Active on push/PR to `main` + weekly schedule |
 | **Frontend deps** | `npm audit` via `npm run security:audit` | **Blocking** in `dependency-scan.yml`; not in `ci.yml` |
 | **Backend deps** | `pip-audit` | **Blocking** in `dependency-scan.yml`; not in `ci.yml` |
-| **Docker images** | Trivy | Planned later |
+| **Docker images** | Trivy | ✅ [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) — `.github/workflows/trivy.yml` (non-blocking baseline) |
 | **Staging web app** | OWASP ZAP baseline | Planned later (owned staging URL only) |
 | **Secrets in git** | gitleaks / GitHub secret scanning | Planned later |
 
@@ -98,7 +98,8 @@ Accepted until 2026-Q3: esbuild dev advisory — devDependency only; production 
 | **Slice 3** | `.github/workflows/dependency-scan.yml` — `workflow_dispatch` + weekly; initially `continue-on-error: true` |
 | **Slices 5–7** | Cleared pytest, Starlette, and Vite/esbuild advisories |
 | **Slice 8 ✅** | Removed `continue-on-error` — dependency-scan **blocks** on npm/pip-audit failures |
-| **Later** | Trivy on `api` and `web` Docker images / filesystem |
+| **Slice 9 ✅** | Trivy fs/config + prod Docker image scan — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); non-blocking |
+| **Later** | Make Trivy blocking after baseline triage; optional SARIF upload |
 | **Later** | OWASP ZAP baseline against **our** staging URL only |
 | **Later** | gitleaks or GitHub Advanced Security secret scanning review |
 
@@ -150,6 +151,34 @@ Record summary here (counts only — no secret values):
 | `npm audit --audit-level=high` | 2026-06-30 (post Slice 7) | **0** | — | **Vite/esbuild cleared** — `vite` 8.1.2; GHSA-67mh-4wv8-2f99 resolved |
 | `pip-audit` | 2026-06-30 (post Slice 7) | **0** | — | Backend unchanged; still clean |
 | `npm audit` + `pip-audit` | 2026-06-30 (post Slice 8) | **0** / **0** | — | Baseline clean; **dependency-scan now blocking** |
+| **Trivy** | 2026-06-30 (Slice 9) | — | — | Workflow added; baseline triage pending; non-blocking |
+
+---
+
+## N. Phase 6 Slice 9 — Trivy filesystem and Docker scan baseline
+
+**Completed:** Defensive scanning workflow + docs only — **no** dependency upgrades, no app product logic changes.
+
+### N.A. Workflow (`.github/workflows/trivy.yml`)
+
+| Job | Scan | Notes |
+|-----|------|-------|
+| `trivy-fs-config` | `trivy fs` + `trivy config` on repo | HIGH/CRITICAL; `ignore-unfixed: true`; table output |
+| `trivy-docker-images` | Build `docker-compose.prod.yml` api/web; `trivy image` | Project `svcplat`; stub `.env` for CI build only |
+
+**Non-blocking:** `continue-on-error: true` on both jobs until baseline triaged. **No SARIF upload.** **No secrets.**
+
+### N.B. Documentation
+
+- [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) — scope, local commands, triage guide
+
+### N.C. Not in scope
+
+- OWASP ZAP, Nuclei, aggressive web scanning, third-party targets, pentests
+
+### N.D. Rollback
+
+Delete `.github/workflows/trivy.yml` and revert doc references.
 
 ---
 
@@ -405,4 +434,4 @@ Each slice is a **separate PR** with full regression checks. **No automatic `npm
 
 ---
 
-**Last updated:** Phase 6 Slice 8 — blocking dependency-scan workflow.
+**Last updated:** Phase 6 Slice 9 — Trivy filesystem and Docker scan baseline.

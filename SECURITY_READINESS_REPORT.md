@@ -48,7 +48,8 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Starlette/FastAPI runtime upgrade** | ✅ Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |
 | **Vite/esbuild upgrade** | ✅ Phase 6 Slice 7 — `vite@8.1.2`, `@vitejs/plugin-react@6.0.3`; npm audit clean |
 | **Dependency scan in blocking CI** | ✅ Phase 6 Slice 8 — `dependency-scan.yml` fails on advisories; baseline clean (npm + pip) |
-| **Docker image scan** | No Trivy or similar in CI |
+| **Trivy baseline** | ✅ Phase 6 Slice 9 — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); `.github/workflows/trivy.yml` (non-blocking) |
+| **Docker image scan (blocking)** | Not yet — promote Trivy after baseline triage |
 | **OWASP ZAP baseline** | No staging URL scan automated |
 | **Secrets scan workflow** | No gitleaks / GitHub secret scanning config in repo |
 | **Rate limiting** | Not implemented on auth or public endpoints |
@@ -95,12 +96,12 @@ Complete before pointing a real domain at the stack:
 Ordered for this project (own staging/VPS only — never scan third-party sites):
 
 1. **CodeQL** — ✅ Phase 6 Slice 2 — `.github/workflows/codeql.yml` (`python`, `javascript-typescript`, `build-mode: none`); review alerts in GitHub **Security → Code scanning**
-2. **Dependency audit baseline** — ✅ Phase 6 Slice 3 — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; optional `.github/workflows/dependency-scan.yml` (non-blocking)
-3. **Dependency advisory triage** — ✅ Phase 6 Slice 4 — risk table + upgrade roadmap (Slices 5–8); Starlette runtime = high priority before VPS; no auto-fix
-4. **Blocking dependency CI** — ✅ Slice 8 — `dependency-scan.yml` blocking; Trivy/ZAP/gitleaks remain future work
-5. **Trivy** — scan Docker images and filesystem (`api`, `web` builds)
+2. **Dependency audit baseline** — ✅ Phase 6 Slice 3 — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); **blocking** since Slice 8
+3. **Dependency advisory triage** — ✅ Phase 6 Slice 4 — risk table + upgrade roadmap (Slices 5–8); advisories cleared
+4. **Blocking dependency CI** — ✅ Slice 8 — `dependency-scan.yml` blocking; baseline clean
+5. **Trivy** — ✅ Slice 9 — fs/config + prod Docker images; [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); non-blocking
 6. **GitHub secret scanning / gitleaks** — optional pre-commit or CI for accidental key commits
-7. **OWASP ZAP baseline** — passive scan against **your** staging URL after deploy
+7. **OWASP ZAP baseline** — passive scan against **your** staging URL after deploy (future slice)
 8. **Nuclei** — only later, carefully, against **own** staging; not a substitute for ZAP baseline
 9. **TestSprite** — additional QA/regression coverage; not sole security scanner
 10. **Manual auth/role checklist** — §E below each release
@@ -182,12 +183,20 @@ This slice does **not** create legal documents or consent UI.
 - No vite/vitest/playwright config or app source changes
 - Full frontend + backend regression passed
 
-### Phase 6 Slice 8 — Blocking dependency-scan (summary)
+### Phase 6 Slice 9 — Trivy baseline (summary)
 
-- Removed `continue-on-error` from `dependency-scan.yml` frontend and backend jobs
-- npm audit and pip-audit baselines clean; future advisories fail the workflow
-- `ci.yml` and CodeQL unchanged; Trivy/ZAP/gitleaks not added
+- Workflow: `.github/workflows/trivy.yml` — `workflow_dispatch` + weekly; **non-blocking** (`continue-on-error: true`)
+- Scans: filesystem, config (Docker/Compose), production `api` + `web` images from `docker-compose.prod.yml`
+- Report: [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md)
+- **Not** a pentest; **not** OWASP ZAP/Nuclei; separate from CodeQL and dependency-scan
+- Local (optional, if Trivy installed):
+  ```bash
+  trivy fs --severity HIGH,CRITICAL --ignore-unfixed .
+  trivy config --severity HIGH,CRITICAL --ignore-unfixed .
+  docker compose -p svcplat -f docker-compose.prod.yml build api web
+  trivy image --severity HIGH,CRITICAL --ignore-unfixed svcplat-api:latest svcplat-web:latest
+  ```
 
 ---
 
-**Last updated:** Phase 6 Slice 8 — blocking dependency-scan workflow.
+**Last updated:** Phase 6 Slice 9 — Trivy filesystem and Docker scan baseline.

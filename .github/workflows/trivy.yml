@@ -1,0 +1,77 @@
+# Trivy filesystem and Docker image scan — baseline, non-blocking initially.
+# Separate from ci.yml, codeql.yml, and dependency-scan.yml. No secrets required.
+# Table output only (no SARIF upload) to avoid GitHub code-scanning permission issues.
+
+name: Trivy
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  trivy-filesystem:
+    name: trivy-fs-config
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
+          skip-dirs: .git,node_modules,web/node_modules,web/dist,postgres_data,logs,backups,.venv,.pytest_cache,web/playwright-report,web/test-results
+
+      - name: Trivy config scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
+          skip-dirs: .git,node_modules,web/node_modules,web/dist,postgres_data,logs,backups,.venv,.pytest_cache
+
+  trivy-docker:
+    name: trivy-docker-images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stub .env for prod compose build
+        run: |
+          printf 'POSTGRES_USER=service_platform\nPOSTGRES_PASSWORD=buildstub\nPOSTGRES_DB=service_platform\n' > .env
+
+      - name: Build production api and web images
+        run: docker compose -p svcplat -f docker-compose.prod.yml build api web
+
+      - name: Trivy scan API image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: svcplat-api:latest
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
+
+      - name: Trivy scan web image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: svcplat-web:latest
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
