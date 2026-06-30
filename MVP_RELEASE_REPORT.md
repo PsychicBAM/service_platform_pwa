@@ -350,7 +350,8 @@ Legacy list (Phase 3):
 | Stripe test mode guide | Slice 11 — [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md); test keys + CLI; live Stripe not enabled |
 | Security readiness baseline | Phase 6 Slice 1 — [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md); `check_security_readiness.py` |
 | CodeQL code scanning | Phase 6 Slice 2 — `.github/workflows/codeql.yml`; Python + JS/TS static analysis |
-| Dependency security baseline | Phase 6 Slice 3 — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; optional non-blocking workflow |
+| Dependency security baseline | Phase 6 Slice 3 — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; dependency-scan workflow |
+| Blocking dependency scan | Phase 6 Slice 8 — `dependency-scan.yml` without `continue-on-error`; fails on future advisories |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |

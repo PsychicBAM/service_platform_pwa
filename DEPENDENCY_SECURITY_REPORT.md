@@ -1,7 +1,7 @@
 # Dependency Security Report — Phase 6 (Slice 3)
 
 **Purpose:** Document how to scan **our** frontend and backend dependencies for known vulnerabilities.  
-**Scope:** `npm audit` and `pip-audit` commands, triage guidance, and a non-blocking CI workflow.  
+**Scope:** `npm audit` and `pip-audit` commands, triage guidance, and a **blocking** dependency-scan workflow (Phase 6 Slice 8).  
 **Not in scope:** OWASP ZAP, Nuclei, Trivy, aggressive web scanners, automatic `npm audit fix`, or production dependency upgrades without review.
 
 Related: [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [.github/workflows/codeql.yml](./.github/workflows/codeql.yml) · [.github/workflows/dependency-scan.yml](./.github/workflows/dependency-scan.yml)
@@ -13,8 +13,8 @@ Related: [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECU
 | Layer | Tool | Status |
 |-------|------|--------|
 | **Source code** | CodeQL (`.github/workflows/codeql.yml`) | Active on push/PR to `main` + weekly schedule |
-| **Frontend deps** | `npm audit` via `npm run security:audit` | Documented; **not** in blocking `ci.yml` |
-| **Backend deps** | `pip-audit` (manual / optional workflow) | Documented; **not** in blocking `ci.yml` |
+| **Frontend deps** | `npm audit` via `npm run security:audit` | **Blocking** in `dependency-scan.yml`; not in `ci.yml` |
+| **Backend deps** | `pip-audit` | **Blocking** in `dependency-scan.yml`; not in `ci.yml` |
 | **Docker images** | Trivy | Planned later |
 | **Staging web app** | OWASP ZAP baseline | Planned later (owned staging URL only) |
 | **Secrets in git** | gitleaks / GitHub secret scanning | Planned later |
@@ -48,7 +48,7 @@ npm audit --audit-level=moderate
 
 **Do not** run `npm audit fix` or `npm audit fix --force` blindly — review each advisory, test upgrades, and prefer pinning over major jumps.
 
-`npm run security:audit` is **not** part of normal CI (`ci.yml`) so existing dev-dependency advisories do not block merges. Use the optional [dependency-scan workflow](./.github/workflows/dependency-scan.yml) or run locally before releases.
+`npm run security:audit` is **not** part of normal `ci.yml` (pytest/Vitest/build only). The separate [dependency-scan workflow](./.github/workflows/dependency-scan.yml) runs weekly and on demand — **failures block that workflow** when high+ advisories appear.
 
 ---
 
@@ -95,14 +95,14 @@ Accepted until 2026-Q3: esbuild dev advisory — devDependency only; production 
 
 | Step | Action |
 |------|--------|
-| **Now (Slice 3)** | Optional `.github/workflows/dependency-scan.yml` — `workflow_dispatch` + weekly; `continue-on-error: true` |
-| **Next** | Review scan logs; fix or accept findings; document accepted risks here |
-| **Later** | Make dependency scan **blocking** only after baseline is clean |
+| **Slice 3** | `.github/workflows/dependency-scan.yml` — `workflow_dispatch` + weekly; initially `continue-on-error: true` |
+| **Slices 5–7** | Cleared pytest, Starlette, and Vite/esbuild advisories |
+| **Slice 8 ✅** | Removed `continue-on-error` — dependency-scan **blocks** on npm/pip-audit failures |
 | **Later** | Trivy on `api` and `web` Docker images / filesystem |
 | **Later** | OWASP ZAP baseline against **our** staging URL only |
 | **Later** | gitleaks or GitHub Advanced Security secret scanning review |
 
-Normal `ci.yml` stays green — dependency noise does not fail PRs until explicitly promoted.
+Normal `ci.yml` and CodeQL remain separate — dependency advisories fail **Dependency scan**, not every PR build, unless you also run that workflow on PRs later.
 
 ---
 
@@ -117,14 +117,14 @@ Normal `ci.yml` stays green — dependency noise does not fail PRs until explici
 
 ---
 
-## G. Optional GitHub workflow
+## G. GitHub dependency-scan workflow
 
 **File:** `.github/workflows/dependency-scan.yml`
 
 - Triggers: `workflow_dispatch`, weekly Sunday (same cadence as CodeQL)
 - Jobs: frontend `npm audit --audit-level=high`, backend `pip-audit -r api/requirements.txt`
-- `continue-on-error: true` on both jobs — workflow may show yellow/warning but does not block merges
-- No secrets required; logs only
+- **Blocking** (Slice 8) — workflow fails if either job reports advisories; no `continue-on-error`
+- Separate from `ci.yml` and `codeql.yml`; no secrets required; logs only package/advisory data
 
 Run manually: GitHub → **Actions** → **Dependency scan** → **Run workflow**.
 
@@ -149,6 +149,36 @@ Record summary here (counts only — no secret values):
 | `pip-audit` | 2026-06-30 (post Slice 6) | **0** | — | **Starlette cleared** — `fastapi` 0.138.2 → `starlette` 1.3.1; Vite/esbuild remains (Slice 7) |
 | `npm audit --audit-level=high` | 2026-06-30 (post Slice 7) | **0** | — | **Vite/esbuild cleared** — `vite` 8.1.2; GHSA-67mh-4wv8-2f99 resolved |
 | `pip-audit` | 2026-06-30 (post Slice 7) | **0** | — | Backend unchanged; still clean |
+| `npm audit` + `pip-audit` | 2026-06-30 (post Slice 8) | **0** / **0** | — | Baseline clean; **dependency-scan now blocking** |
+
+---
+
+## M. Phase 6 Slice 8 — Blocking dependency-scan workflow
+
+**Completed:** CI hardening only — **no** dependency version changes, no app product logic changes.
+
+### M.A. Workflow change (`.github/workflows/dependency-scan.yml`)
+
+| Before | After |
+|--------|-------|
+| `continue-on-error: true` on `frontend-audit` and `backend-audit` jobs | **`continue-on-error` removed** — workflow fails on advisories |
+
+**Unchanged:** `workflow_dispatch` + weekly schedule; commands (`npm run security:audit`, `pip-audit -r api/requirements.txt`); separate from `ci.yml` and `codeql.yml`. **Not added:** Trivy, ZAP, gitleaks.
+
+### M.B. Baseline at promotion
+
+- **npm audit (`--audit-level=high`):** 0 vulnerabilities (post Slice 7)
+- **pip-audit:** No known vulnerabilities (post Slices 5–6)
+
+### M.C. Operator expectations
+
+- Future high+ npm or pip advisories → **Dependency scan** workflow fails (red) until upgraded or formally accepted and documented in §H
+- **CodeQL** remains separate static analysis on source code
+- **`ci.yml`** unchanged — default PR CI still pytest + Vitest/build only
+
+### M.D. Rollback
+
+Re-add `continue-on-error: true` to both jobs in `dependency-scan.yml` if a temporary advisory deferral is needed (document reason in §H).
 
 ---
 
@@ -181,7 +211,7 @@ Record summary here (counts only — no secret values):
 - **GHSA-67mh-4wv8-2f99 (esbuild dev server):** cleared
 - **`npm run security:audit`:** **0 vulnerabilities** (was 2: 1 moderate + 1 high via Vite chain)
 - **esbuild:** Vite 8 declares optional peer `esbuild ^0.27.0 || ^0.28.0` (above vulnerable ≤0.24.2 range)
-- **`dependency-scan.yml`:** remains **non-blocking** until Slice 8 confirms clean CI runs on both jobs
+- **`dependency-scan.yml`:** promoted to **blocking** in Slice 8 (baseline clean after Slices 5–7)
 
 ### L.D. Regression
 
@@ -337,11 +367,12 @@ Each slice is a **separate PR** with full regression checks. **No automatic `npm
 - **npm audit:** GHSA-67mh-4wv8-2f99 cleared; `npm run security:audit` → 0 vulnerabilities
 - **Rollback:** Revert `web/package.json` + `package-lock.json`; rebuild `web` image
 
-#### Slice 8 — Stricter dependency CI
+#### Slice 8 — Stricter dependency CI ✅ (completed)
 
-- Remove `continue-on-error` from `dependency-scan.yml` only after advisories are resolved or formally accepted
-- Optionally fail `ci.yml` on high/critical only
-- Add Trivy image scan when ready
+- Removed `continue-on-error` from `dependency-scan.yml` (`frontend-npm-audit`, `backend-pip-audit`)
+- Baseline clean: npm audit 0, pip-audit 0
+- **Not in scope:** Trivy image scan, OWASP ZAP, gitleaks, adding scans to `ci.yml`
+- **Rollback:** Re-add `continue-on-error: true` if temporary advisory deferral needed
 
 **Per-slice checklist (all upgrades):**
 
@@ -368,10 +399,10 @@ Each slice is a **separate PR** with full regression checks. **No automatic `npm
 
 - Dependency findings are **documented and tracked** — not ignored.
 - Normal **`ci.yml`** and **CodeQL** remain green; no version bumps in Slice 4.
-- **`dependency-scan.yml`** remains **non-blocking** (`continue-on-error: true`) until Slice 8.
+- **`dependency-scan.yml`** is **blocking** (Slice 8) — fails on high+ npm or pip-audit findings.
 - **No** `npm audit fix`, `npm audit fix --force`, or unpinned pip upgrades without compatibility review.
 - Re-run §H scans after each future upgrade slice and update this table.
 
 ---
 
-**Last updated:** Phase 6 Slice 4 — dependency advisory triage and safe upgrade plan.
+**Last updated:** Phase 6 Slice 8 — blocking dependency-scan workflow.

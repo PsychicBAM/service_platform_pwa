@@ -42,12 +42,12 @@ docker compose exec api python scripts/check_security_readiness.py
 | Gap | Notes |
 |-----|--------|
 | **CodeQL workflow** | ✅ `.github/workflows/codeql.yml` — Python + JavaScript/TypeScript; static analysis only |
-| **Dependency scan baseline** | ✅ [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) — `npm run security:audit`, `pip-audit`; optional non-blocking `.github/workflows/dependency-scan.yml` |
+| **Dependency scan baseline** | ✅ [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) — `npm run security:audit`, `pip-audit`; **blocking** `.github/workflows/dependency-scan.yml` (Slice 8) |
 | **Dependency advisory triage** | ✅ Phase 6 Slice 4 — advisories classified; upgrade plan in DEPENDENCY_SECURITY_REPORT §I; **no version bumps yet** |
 | **pytest test-only upgrade** | ✅ Phase 6 Slice 5 — pytest ≥9.0.3, pytest-asyncio ≥1.3; CVE-2025-71176 cleared |
 | **Starlette/FastAPI runtime upgrade** | ✅ Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |
 | **Vite/esbuild upgrade** | ✅ Phase 6 Slice 7 — `vite@8.1.2`, `@vitejs/plugin-react@6.0.3`; npm audit clean |
-| **Dependency scan in blocking CI** | Not enabled — avoid failing PRs until Slice 8 after upgrades/triage complete |
+| **Dependency scan in blocking CI** | ✅ Phase 6 Slice 8 — `dependency-scan.yml` fails on advisories; baseline clean (npm + pip) |
 | **Docker image scan** | No Trivy or similar in CI |
 | **OWASP ZAP baseline** | No staging URL scan automated |
 | **Secrets scan workflow** | No gitleaks / GitHub secret scanning config in repo |
@@ -97,7 +97,7 @@ Ordered for this project (own staging/VPS only — never scan third-party sites)
 1. **CodeQL** — ✅ Phase 6 Slice 2 — `.github/workflows/codeql.yml` (`python`, `javascript-typescript`, `build-mode: none`); review alerts in GitHub **Security → Code scanning**
 2. **Dependency audit baseline** — ✅ Phase 6 Slice 3 — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; optional `.github/workflows/dependency-scan.yml` (non-blocking)
 3. **Dependency advisory triage** — ✅ Phase 6 Slice 4 — risk table + upgrade roadmap (Slices 5–8); Starlette runtime = high priority before VPS; no auto-fix
-4. **Blocking dependency CI** — promote `npm audit` / `pip-audit` to `ci.yml` only after Slice 8 when baseline is clean
+4. **Blocking dependency CI** — ✅ Slice 8 — `dependency-scan.yml` blocking; Trivy/ZAP/gitleaks remain future work
 5. **Trivy** — scan Docker images and filesystem (`api`, `web` builds)
 6. **GitHub secret scanning / gitleaks** — optional pre-commit or CI for accidental key commits
 7. **OWASP ZAP baseline** — passive scan against **your** staging URL after deploy
@@ -153,7 +153,7 @@ This slice does **not** create legal documents or consent UI.
 - Report: [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
 - Frontend: `cd web && npm run security:audit` (`npm audit --audit-level=high`)
 - Backend: `pip-audit -r api/requirements.txt` (install `pip-audit` in disposable env only)
-- Optional workflow: `.github/workflows/dependency-scan.yml` — `workflow_dispatch` + weekly; `continue-on-error: true`
+- Workflow: `.github/workflows/dependency-scan.yml` — `workflow_dispatch` + weekly; **blocking** (Slice 8; no `continue-on-error`)
 - **Not** in blocking `ci.yml` until baseline is clean
 - CodeQL = source patterns; dependency audit = known CVEs in packages — both needed
 
@@ -182,6 +182,12 @@ This slice does **not** create legal documents or consent UI.
 - No vite/vitest/playwright config or app source changes
 - Full frontend + backend regression passed
 
+### Phase 6 Slice 8 — Blocking dependency-scan (summary)
+
+- Removed `continue-on-error` from `dependency-scan.yml` frontend and backend jobs
+- npm audit and pip-audit baselines clean; future advisories fail the workflow
+- `ci.yml` and CodeQL unchanged; Trivy/ZAP/gitleaks not added
+
 ---
 
-**Last updated:** Phase 6 Slice 7 — Vite / esbuild frontend dependency upgrade.
+**Last updated:** Phase 6 Slice 8 — blocking dependency-scan workflow.
