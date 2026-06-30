@@ -36,7 +36,8 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 ### Future CI (not blocking merges yet)
 - [x] Promote dependency scan to **blocking** — Slice 8: `dependency-scan.yml` without `continue-on-error`; npm + pip baseline clean
 - [x] **Trivy baseline** — Slice 9: `.github/workflows/trivy.yml` (fs + config + prod images); [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); non-blocking initially
-- [ ] Promote Trivy to **blocking** after baseline triage
+- [x] **Trivy triage** — Slice 10: first green run reviewed; findings in [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G
+- [ ] Promote Trivy to **blocking** — after DS-0002 Dockerfile `USER` fix or formal acceptance + confirm scheduled run
 - [ ] gitleaks or GitHub secret scanning alerts reviewed
 - [ ] OWASP ZAP baseline against staging URL
 
@@ -108,8 +109,8 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] CodeQL — workflow runs on push/PR/schedule; triage alerts in GitHub Security tab
 - [x] Dependency audit baseline — `npm run security:audit`, `pip-audit`; **blocking** [dependency-scan workflow](./.github/workflows/dependency-scan.yml) (Slice 8)
 - [x] Dependency audits — baseline clean; blocking scan enabled (Slices 5–8)
-- [x] Trivy baseline — fs/config + prod Docker images; see [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); non-blocking workflow (Slice 9)
-- [ ] Trivy blocking — after first runs triaged
+- [x] Trivy baseline — fs/config + prod Docker images; see [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G (Slice 10 triage)
+- [ ] Trivy blocking — after DS-0002 Dockerfile hardening or documented acceptance
 - [ ] OWASP ZAP baseline — review findings on staging
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first
 - [ ] TestSprite — regression QA; security findings triaged separately

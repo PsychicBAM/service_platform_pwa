@@ -49,7 +49,8 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Vite/esbuild upgrade** | ✅ Phase 6 Slice 7 — `vite@8.1.2`, `@vitejs/plugin-react@6.0.3`; npm audit clean |
 | **Dependency scan in blocking CI** | ✅ Phase 6 Slice 8 — `dependency-scan.yml` fails on advisories; baseline clean (npm + pip) |
 | **Trivy baseline** | ✅ Phase 6 Slice 9 — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); `.github/workflows/trivy.yml` (non-blocking) |
-| **Docker image scan (blocking)** | Not yet — promote Trivy after baseline triage |
+| **Trivy triage (Slice 10)** | ✅ CVE/fs/image baseline clean; 2 HIGH Dockerfile config items (DS-0002 root user) — see [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G |
+| **Docker image scan (blocking)** | Not yet — promote Trivy after DS-0002 resolved or accepted + confirm scheduled run |
 | **OWASP ZAP baseline** | No staging URL scan automated |
 | **Secrets scan workflow** | No gitleaks / GitHub secret scanning config in repo |
 | **Rate limiting** | Not implemented on auth or public endpoints |
@@ -99,7 +100,7 @@ Ordered for this project (own staging/VPS only — never scan third-party sites)
 2. **Dependency audit baseline** — ✅ Phase 6 Slice 3 — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); **blocking** since Slice 8
 3. **Dependency advisory triage** — ✅ Phase 6 Slice 4 — risk table + upgrade roadmap (Slices 5–8); advisories cleared
 4. **Blocking dependency CI** — ✅ Slice 8 — `dependency-scan.yml` blocking; baseline clean
-5. **Trivy** — ✅ Slice 9 — fs/config + prod Docker images; [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); non-blocking
+5. **Trivy** — ✅ Slice 9 — fs/config + prod Docker images; ✅ Slice 10 triage — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G; **non-blocking**
 6. **GitHub secret scanning / gitleaks** — optional pre-commit or CI for accidental key commits
 7. **OWASP ZAP baseline** — passive scan against **your** staging URL after deploy (future slice)
 8. **Nuclei** — only later, carefully, against **own** staging; not a substitute for ZAP baseline
@@ -197,6 +198,13 @@ This slice does **not** create legal documents or consent UI.
   trivy image --severity HIGH,CRITICAL --ignore-unfixed svcplat-api:latest svcplat-web:latest
   ```
 
+### Phase 6 Slice 10 — Trivy triage (summary)
+
+- Reviewed latest green Trivy workflow run; findings in [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G
+- **CVE/fs/images:** no HIGH/CRITICAL vulnerability findings with `ignore-unfixed`
+- **Config:** 2 HIGH DS-0002 (Dockerfile missing non-root `USER`) — accepted temporarily; fix in future infra slice
+- **Blocking:** remains **non-blocking** until Dockerfile hardening + optional second scheduled run
+
 ---
 
-**Last updated:** Phase 6 Slice 9 — Trivy filesystem and Docker scan baseline.
+**Last updated:** Phase 6 Slice 10 — Trivy findings triage and blocking-readiness report.
