@@ -351,6 +351,7 @@ Legacy list (Phase 3):
 | Security readiness baseline | Phase 6 Slice 1 — [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md); `check_security_readiness.py` |
 | CodeQL code scanning | Phase 6 Slice 2 — `.github/workflows/codeql.yml`; Python + JS/TS static analysis |
 | Dependency security baseline | Phase 6 Slice 3 — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; optional non-blocking workflow |
+| Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | Stripe webhook backend | Slice 7 — `POST /api/v1/billing/stripe/webhook`; `checkout.session.completed` activates plan |
 | Mobile / desktop UX polish | Slice 19 — spacing, grids, auth/form shells; see [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) |
 | CI | GitHub Actions — backend pytest + frontend Vitest/build |

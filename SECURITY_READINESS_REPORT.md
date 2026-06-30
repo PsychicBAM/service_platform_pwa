@@ -43,7 +43,8 @@ docker compose exec api python scripts/check_security_readiness.py
 |-----|--------|
 | **CodeQL workflow** | ✅ `.github/workflows/codeql.yml` — Python + JavaScript/TypeScript; static analysis only |
 | **Dependency scan baseline** | ✅ [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) — `npm run security:audit`, `pip-audit`; optional non-blocking `.github/workflows/dependency-scan.yml` |
-| **Dependency scan in blocking CI** | Not enabled — avoid failing PRs on existing advisory noise until baseline is clean |
+| **Dependency advisory triage** | ✅ Phase 6 Slice 4 — advisories classified; upgrade plan in DEPENDENCY_SECURITY_REPORT §I; **no version bumps yet** |
+| **Dependency scan in blocking CI** | Not enabled — avoid failing PRs until Slice 8 after upgrades/triage complete |
 | **Docker image scan** | No Trivy or similar in CI |
 | **OWASP ZAP baseline** | No staging URL scan automated |
 | **Secrets scan workflow** | No gitleaks / GitHub secret scanning config in repo |
@@ -92,13 +93,14 @@ Ordered for this project (own staging/VPS only — never scan third-party sites)
 
 1. **CodeQL** — ✅ Phase 6 Slice 2 — `.github/workflows/codeql.yml` (`python`, `javascript-typescript`, `build-mode: none`); review alerts in GitHub **Security → Code scanning**
 2. **Dependency audit baseline** — ✅ Phase 6 Slice 3 — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; optional `.github/workflows/dependency-scan.yml` (non-blocking)
-3. **Blocking dependency CI** — promote `npm audit` / `pip-audit` to `ci.yml` only after findings are triaged and baseline is clean
-4. **Trivy** — scan Docker images and filesystem (`api`, `web` builds)
-5. **GitHub secret scanning / gitleaks** — optional pre-commit or CI for accidental key commits
-6. **OWASP ZAP baseline** — passive scan against **your** staging URL after deploy
-7. **Nuclei** — only later, carefully, against **own** staging; not a substitute for ZAP baseline
-8. **TestSprite** — additional QA/regression coverage; not sole security scanner
-9. **Manual auth/role checklist** — §E below each release
+3. **Dependency advisory triage** — ✅ Phase 6 Slice 4 — risk table + upgrade roadmap (Slices 5–8); Starlette runtime = high priority before VPS; no auto-fix
+4. **Blocking dependency CI** — promote `npm audit` / `pip-audit` to `ci.yml` only after Slice 8 when baseline is clean
+5. **Trivy** — scan Docker images and filesystem (`api`, `web` builds)
+6. **GitHub secret scanning / gitleaks** — optional pre-commit or CI for accidental key commits
+7. **OWASP ZAP baseline** — passive scan against **your** staging URL after deploy
+8. **Nuclei** — only later, carefully, against **own** staging; not a substitute for ZAP baseline
+9. **TestSprite** — additional QA/regression coverage; not sole security scanner
+10. **Manual auth/role checklist** — §E below each release
 
 ---
 
@@ -152,6 +154,14 @@ This slice does **not** create legal documents or consent UI.
 - **Not** in blocking `ci.yml` until baseline is clean
 - CodeQL = source patterns; dependency audit = known CVEs in packages — both needed
 
+### Phase 6 Slice 4 — Dependency advisory triage (summary)
+
+- [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §I — classified npm/pip-audit findings
+- **Starlette** (runtime): high priority; review before VPS — planned Slice 6
+- **pytest** (test-only): lower priority — planned Slice 5
+- **Vite/esbuild** (dev server): medium; production nginx build lower risk — planned Slice 7
+- No dependency versions changed; scan workflow stays non-blocking
+
 ---
 
-**Last updated:** Phase 6 Slice 3 — dependency security scan baseline.
+**Last updated:** Phase 6 Slice 4 — dependency advisory triage and upgrade plan.

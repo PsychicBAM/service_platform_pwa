@@ -28,9 +28,11 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 
 - [x] **CodeQL analysis** — `.github/workflows/codeql.yml` on push/PR to `main` + weekly Sunday; review **Security → Code scanning**
 - [x] **Dependency audit baseline** — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); `npm run security:audit`, `pip-audit`; optional `.github/workflows/dependency-scan.yml` (non-blocking)
+- [x] **Dependency advisories triaged** — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §I; upgrades planned Slices 5–8; no auto-fix in Slice 4
 
 ### Future CI (not blocking merges yet)
-- [ ] Promote `npm audit` / `pip-audit` to blocking `ci.yml` after baseline is clean
+- [ ] **Starlette/FastAPI upgrade** (Slice 6) — before VPS production if advisories remain open
+- [ ] Promote `npm audit` / `pip-audit` to blocking `ci.yml` after Slice 8 when baseline is clean
 - [ ] Trivy image scan on `api` and `web` builds
 - [ ] gitleaks or GitHub secret scanning alerts reviewed
 - [ ] OWASP ZAP baseline against staging URL
@@ -102,7 +104,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 
 - [x] CodeQL — workflow runs on push/PR/schedule; triage alerts in GitHub Security tab
 - [x] Dependency audit baseline — `npm run security:audit`, `pip-audit`; see [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); optional non-blocking workflow
-- [ ] Dependency audits — triage high/critical; promote to blocking CI when clean
+- [ ] Dependency audits — triage high/critical; **Starlette runtime advisories reviewed before VPS** (Slice 6 upgrade plan)
 - [ ] Trivy — no critical CVEs in production images without plan
 - [ ] OWASP ZAP baseline — review findings on staging
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first
