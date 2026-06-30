@@ -3,7 +3,7 @@
 **Purpose:** Document current manual/demo billing behavior and define what must be built before Stripe integration.  
 **Status:** Billing backend + admin checkout UI + success/cancel pages exist. **Checkout session + webhook (Slice 6–7)** update `Subscription.plan` only via `checkout.session.completed` when `STRIPE_ENABLED=true`. Success page does not verify payment or change plan directly.
 
-Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEND.md](./README_BACKEND.md) · [README_FRONTEND.md](./README_FRONTEND.md) · [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md)
+Related docs: [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) · [README_BACKEND.md](./README_BACKEND.md) · [README_FRONTEND.md](./README_FRONTEND.md) · [FRONTEND_UX_CHECKLIST.md](./FRONTEND_UX_CHECKLIST.md) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
 
 ### Slice 5 — Stripe config validation (no payments)
 
@@ -173,6 +173,20 @@ End-to-end billing/Stripe **preparation** checkpoint — no live Stripe, no real
 
 **Not implemented:** billing portal, refunds, downgrades, success-page payment verification.
 
+**Next step for real Stripe test:** [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) — test keys, Stripe CLI, local checkout flow (Slice 11).
+
+---
+
+## I. Stripe test mode readiness (Slice 11)
+
+Documentation-only slice. No product logic changes.
+
+| Item | Status |
+|------|--------|
+| Test mode operator guide | [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) |
+| Live Stripe enabled | **No** — still `STRIPE_ENABLED=false` by default |
+| Billing portal / refunds / downgrades | Not implemented |
+
 ---
 
 ## Verification
@@ -193,4 +207,4 @@ docker compose exec api python scripts/check_billing_readiness.py
 - `http://localhost:5173/billing/cancel` — cancel page renders
 - `http://localhost:5173/superadmin/businesses` — active plan vs signup intent (after test registration)
 
-**Last updated:** Phase 5 Slice 10 — billing flow smoke audit script.
+**Last updated:** Phase 5 Slice 11 — Stripe test mode readiness guide.
