@@ -35,9 +35,9 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 
 ### Future CI (not blocking merges yet)
 - [x] Promote dependency scan to **blocking** — Slice 8: `dependency-scan.yml` without `continue-on-error`; npm + pip baseline clean
-- [x] **Trivy baseline** — Slice 9: `.github/workflows/trivy.yml` (fs + config + prod images); [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); non-blocking initially
-- [x] **Docker non-root hardening** — Slice 11: `USER appuser` / `USER nginx`; web internal port 8080; DS-0002 resolved (local Trivy config)
-- [ ] Promote Trivy to **blocking** — after GitHub Trivy run confirms DS-0002 clear post–Slice 11
+- [x] **Trivy baseline** — Slice 9: `.github/workflows/trivy.yml` (fs + config + prod images); [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md)
+- [x] **Docker non-root hardening** — Slice 11: `USER appuser` / `USER nginx`; web internal port 8080; DS-0002 resolved
+- [x] Promote Trivy to **blocking** — Slice 12: `trivy.yml` without `continue-on-error`; HIGH/CRITICAL fails workflow
 - [ ] gitleaks or GitHub secret scanning alerts reviewed
 - [ ] OWASP ZAP baseline against staging URL
 
@@ -109,8 +109,8 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] CodeQL — workflow runs on push/PR/schedule; triage alerts in GitHub Security tab
 - [x] Dependency audit baseline — `npm run security:audit`, `pip-audit`; **blocking** [dependency-scan workflow](./.github/workflows/dependency-scan.yml) (Slice 8)
 - [x] Dependency audits — baseline clean; blocking scan enabled (Slices 5–8)
-- [x] Trivy baseline — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G–H (Slices 10–11)
-- [ ] Trivy blocking — after GitHub run confirms DS-0002 cleared post–Slice 11
+- [x] Trivy baseline — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G–I (Slices 10–12)
+- [x] Trivy blocking — Slice 12; future HIGH/CRITICAL findings fail workflow
 - [ ] OWASP ZAP baseline — review findings on staging
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first
 - [ ] TestSprite — regression QA; security findings triaged separately

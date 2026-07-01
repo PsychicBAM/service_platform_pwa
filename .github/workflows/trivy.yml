@@ -1,4 +1,4 @@
-# Trivy filesystem and Docker image scan — baseline, non-blocking initially.
+# Trivy filesystem and Docker image scan — blocking on HIGH/CRITICAL findings.
 # Separate from ci.yml, codeql.yml, and dependency-scan.yml. No secrets required.
 # Table output only (no SARIF upload) to avoid GitHub code-scanning permission issues.
 
@@ -17,7 +17,6 @@ jobs:
     name: trivy-fs-config
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,7 +45,6 @@ jobs:
     name: trivy-docker-images
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4

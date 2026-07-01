@@ -13,7 +13,7 @@ Related: [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECU
 |------|--------|
 | **Workflow** | ✅ `.github/workflows/trivy.yml` |
 | **Triggers** | `workflow_dispatch` + weekly Sunday 02:00 UTC |
-| **Blocking** | **No** — `continue-on-error: true` until post–Slice 11 Trivy run confirms DS-0002 cleared |
+| **Blocking** | **Yes** — Slice 12; HIGH/CRITICAL findings fail the workflow (no `continue-on-error`) |
 | **Secrets** | Not required |
 | **SARIF upload** | **Not enabled** (table logs only; avoids code-scanning API permission issues) |
 | **Web scanning** | **Not included** — no ZAP/Nuclei/aggressive HTTP probes |
@@ -95,8 +95,7 @@ trivy fs --skip-dirs node_modules,web/node_modules,web/dist,.git --severity HIGH
 | **Slice 9 ✅** | Add non-blocking `trivy.yml` (fs + config + prod image scan) |
 | **Slice 10 ✅** | First green run triaged — see §G; CVE baseline clean; config hardening deferred |
 | **Slice 11 ✅** | Non-root `USER` in api/web Dockerfiles; nginx listens on **8080** internally — DS-0002 resolved |
-| **Next** | Confirm DS-0002 clear in GitHub Trivy run; then consider removing `continue-on-error` |
-| **Later** | Remove `continue-on-error` when baseline is clean and stable |
+| **Slice 12 ✅** | Baseline clean; `continue-on-error` removed — Trivy is **blocking** |
 | **Later** | Optional SARIF upload to GitHub Security tab (after permissions verified) |
 | **Later** | OWASP ZAP baseline on owned staging URL only |
 | **Not planned here** | Nuclei, exploit tooling, third-party scanning |
@@ -173,11 +172,9 @@ If only CVEs are considered: **No HIGH/CRITICAL CVE findings were observed in th
 
 Local `trivy config --severity HIGH,CRITICAL` on Dockerfiles: **0 failures** (DS-0002 resolved for api and web).
 
-### H.C. Blocking readiness
+### H.C. Blocking readiness (superseded by §I)
 
-- DS-0002 **resolved** in repo; confirm on next GitHub **Trivy** workflow run.
-- Workflow remains **non-blocking** until that run is reviewed (Slice 10 plan).
-- CVE/fs/image baselines unchanged from Slice 10.
+- DS-0002 **resolved** in repo; Slice 12 promoted Trivy to blocking after clean baseline verification.
 
 ### H.D. Notes
 
@@ -186,4 +183,40 @@ Local `trivy config --severity HIGH,CRITICAL` on Dockerfiles: **0 failures** (DS
 
 ---
 
-**Last updated:** Phase 6 Slice 11 — Docker non-root hardening (DS-0002).
+## I. Phase 6 Slice 12 — Trivy promoted to blocking
+
+**Completed:** CI/security hardening only — no app product logic, dependency version, or auth/Stripe changes.
+
+### I.A. Pre-promotion verification
+
+| Job / scan | Result | HIGH/CRITICAL | Secrets | DS-0002 |
+|------------|--------|---------------|---------|---------|
+| **trivy-fs-config** → filesystem | ✅ Clean | None | None | N/A |
+| **trivy-fs-config** → config | ✅ Clean | None | N/A | **Not present** |
+| **trivy-docker-images** → `svcplat-api:latest` | ✅ Clean | None | N/A | N/A |
+| **trivy-docker-images** → `svcplat-web:latest` | ✅ Clean | None | N/A | N/A |
+
+Verified locally with Trivy 0.36.0 (same severity/skip-dirs as CI). Post–Slice 11 config scan: **0 failures**. CVE/fs/image baselines remain clean from Slice 10.
+
+### I.B. Workflow change
+
+- Removed `continue-on-error: true` from `trivy-fs-config` and `trivy-docker-images` in `.github/workflows/trivy.yml`.
+- Kept: `workflow_dispatch`, weekly schedule, table output, no SARIF upload, no secrets, same scan settings and prod image build.
+
+Future **HIGH/CRITICAL** Trivy findings (vulnerabilities, config misconfigurations, or secret patterns) will **fail** the workflow.
+
+### I.C. Relationship to other scanners
+
+| Tool | Status |
+|------|--------|
+| **CodeQL** | Separate workflow; unchanged |
+| **dependency-scan** | Separate workflow; blocking (npm + pip) |
+| **Trivy** | Separate workflow; **now blocking** |
+| **OWASP ZAP** | Future work — staging URL only |
+| **Nuclei** | Not planned in current slices |
+| **gitleaks** | Future work |
+| **Legal pages** | Future work |
+
+---
+
+**Last updated:** Phase 6 Slice 12 — Trivy promoted to blocking.

@@ -48,10 +48,10 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Starlette/FastAPI runtime upgrade** | ✅ Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |
 | **Vite/esbuild upgrade** | ✅ Phase 6 Slice 7 — `vite@8.1.2`, `@vitejs/plugin-react@6.0.3`; npm audit clean |
 | **Dependency scan in blocking CI** | ✅ Phase 6 Slice 8 — `dependency-scan.yml` fails on advisories; baseline clean (npm + pip) |
-| **Trivy baseline** | ✅ Phase 6 Slice 9 — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); `.github/workflows/trivy.yml` (non-blocking) |
+| **Trivy baseline** | ✅ Phase 6 Slice 9 — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); `.github/workflows/trivy.yml` |
 | **Trivy triage (Slice 10)** | ✅ CVE/fs/image baseline clean; DS-0002 documented — see §G |
 | **Docker non-root (Slice 11)** | ✅ `appuser` / `nginx` USER; web internal port **8080**; DS-0002 resolved locally |
-| **Docker image scan (blocking)** | Not yet — confirm post–Slice 11 Trivy GitHub run, then promote |
+| **Trivy blocking (Slice 12)** | ✅ `trivy.yml` without `continue-on-error`; HIGH/CRITICAL findings fail workflow |
 | **OWASP ZAP baseline** | No staging URL scan automated |
 | **Secrets scan workflow** | No gitleaks / GitHub secret scanning config in repo |
 | **Rate limiting** | Not implemented on auth or public endpoints |
@@ -101,7 +101,7 @@ Ordered for this project (own staging/VPS only — never scan third-party sites)
 2. **Dependency audit baseline** — ✅ Phase 6 Slice 3 — [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md); **blocking** since Slice 8
 3. **Dependency advisory triage** — ✅ Phase 6 Slice 4 — risk table + upgrade roadmap (Slices 5–8); advisories cleared
 4. **Blocking dependency CI** — ✅ Slice 8 — `dependency-scan.yml` blocking; baseline clean
-5. **Trivy** — ✅ Slice 9 — fs/config + prod Docker images; ✅ Slice 10 triage — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G; **non-blocking**
+5. **Trivy** — ✅ Slice 9 — fs/config + prod Docker images; ✅ Slice 10 triage — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G; ✅ Slice 12 **blocking**
 6. **GitHub secret scanning / gitleaks** — optional pre-commit or CI for accidental key commits
 7. **OWASP ZAP baseline** — passive scan against **your** staging URL after deploy (future slice)
 8. **Nuclei** — only later, carefully, against **own** staging; not a substitute for ZAP baseline
@@ -187,7 +187,7 @@ This slice does **not** create legal documents or consent UI.
 
 ### Phase 6 Slice 9 — Trivy baseline (summary)
 
-- Workflow: `.github/workflows/trivy.yml` — `workflow_dispatch` + weekly; **non-blocking** (`continue-on-error: true`)
+- Workflow: `.github/workflows/trivy.yml` — `workflow_dispatch` + weekly; **blocking** (Slice 12; no `continue-on-error`)
 - Scans: filesystem, config (Docker/Compose), production `api` + `web` images from `docker-compose.prod.yml`
 - Report: [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md)
 - **Not** a pentest; **not** OWASP ZAP/Nuclei; separate from CodeQL and dependency-scan
@@ -204,8 +204,15 @@ This slice does **not** create legal documents or consent UI.
 - `api/Dockerfile`: `USER appuser` (uid 1000)
 - `web/Dockerfile` + `nginx.conf`: `USER nginx`, listen **8080**; compose maps `5173:8080` / `${WEB_HTTP_PORT}:8080`
 - Local Trivy config: DS-0002 **resolved** — see [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §H
-- Trivy workflow remains **non-blocking** until next green GitHub run confirms
+
+### Phase 6 Slice 12 — Trivy promoted to blocking (summary)
+
+- Removed `continue-on-error: true` from `trivy-fs-config` and `trivy-docker-images`
+- Baseline clean: fs, config (DS-0002 cleared), prod api/web images — see [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §I
+- Future HIGH/CRITICAL Trivy findings fail the workflow
+- CodeQL and dependency-scan remain separate workflows
+- OWASP ZAP, Nuclei, gitleaks, legal pages — future work
 
 ---
 
-**Last updated:** Phase 6 Slice 11 — Docker non-root hardening (DS-0002).
+**Last updated:** Phase 6 Slice 12 — Trivy promoted to blocking.
