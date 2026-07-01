@@ -19,6 +19,7 @@ from tests.conftest import (
     assert_has_bearer_auth,
     assert_response_status,
     register_and_get_context,
+    refresh_owner_auth,
 )
 from tests.test_bookings_availability_blocking import (
     FIXED_NOW,
@@ -38,6 +39,7 @@ async def _setup_order_business(
     ctx = await register_and_get_context(async_client, safe_suffix)
     assert_has_bearer_auth(ctx["headers"])
     await activate_business(db_session, ctx["slug"])
+    ctx = await refresh_owner_auth(async_client, ctx)
     if operating_mode is not None:
         await db_session.execute(
             update(Business)

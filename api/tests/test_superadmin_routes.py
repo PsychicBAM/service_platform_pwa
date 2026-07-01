@@ -15,6 +15,7 @@ async def _promote_superadmin(db_session, user_id: str) -> None:
         update(User).where(User.id == uuid.UUID(user_id)).values(role=UserRole.superadmin)
     )
     await db_session.commit()
+    db_session.expire_all()
 
 
 async def _set_user_role(db_session, user_id: str, role: UserRole) -> None:
@@ -22,6 +23,7 @@ async def _set_user_role(db_session, user_id: str, role: UserRole) -> None:
         update(User).where(User.id == uuid.UUID(user_id)).values(role=role)
     )
     await db_session.commit()
+    db_session.expire_all()
 
 
 @pytest.mark.asyncio

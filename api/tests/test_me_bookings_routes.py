@@ -97,11 +97,12 @@ async def _setup_user_linked_booking(
     )
     db_session.add(booking)
     await db_session.commit()
+    booking_id = str(booking.id)
     headers = await _login_client(async_client, user.email)
     return {
         **biz_ctx,
         "user_id": str(user.id),
-        "booking_id": str(booking.id),
+        "booking_id": booking_id,
         "client_headers": headers,
         "client_email": user.email,
     }

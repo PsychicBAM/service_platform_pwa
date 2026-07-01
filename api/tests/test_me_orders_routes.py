@@ -68,13 +68,14 @@ async def _setup_user_linked_order(
     )
     db_session.add(order)
     await db_session.commit()
+    order_id = str(order.id)
     headers = await _login_client(async_client, user.email)
     assert_has_bearer_auth(biz_ctx["headers"])
     return {
         **biz_ctx,
         "owner_user_id": biz_ctx["user_id"],
         "user_id": str(user.id),
-        "order_id": str(order.id),
+        "order_id": order_id,
         "client_headers": headers,
         "client_email": user.email,
     }

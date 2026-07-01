@@ -6,6 +6,7 @@ import pytest
 from httpx import AsyncClient
 
 from app.main import app
+from tests.conftest import assert_response_status
 from tests.test_bookings_availability_blocking import (
     FIXED_NOW,
     SLOT_START,
@@ -20,7 +21,7 @@ async def _create_booking(async_client: AsyncClient, ctx: dict) -> dict:
         f"/api/v1/public/b/{ctx['slug']}/bookings",
         json=booking_payload(ctx["service_id"]),
     )
-    assert response.status_code == 201
+    assert_response_status(response, 201, context="public booking create")
     return response.json()
 
 
@@ -169,7 +170,7 @@ async def test_admin_can_cancel_pending_booking(
         json={"reason": "Client requested"},
         headers=ctx["headers"],
     )
-    assert response.status_code == 200
+    assert_response_status(response, 200, context="admin cancel pending booking")
     assert response.json()["status"] == "cancelled"
 
 

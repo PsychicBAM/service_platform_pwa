@@ -77,6 +77,13 @@ def reset_settings_cache() -> None:
     get_settings.cache_clear()
 
 
+@pytest.fixture(autouse=True)
+def reset_dependency_overrides() -> None:
+    app.dependency_overrides.clear()
+    yield
+    app.dependency_overrides.clear()
+
+
 @pytest_asyncio.fixture
 async def db_engine():
     engine = create_async_engine(_test_database_url(), pool_pre_ping=True)
@@ -100,12 +107,16 @@ async def db_session(db_engine):
 @pytest_asyncio.fixture
 async def clean_auth_tables(db_engine, db_session):
     factory = _session_factory(db_engine)
-    async with factory() as purge_session:
-        await _purge_auth_tables_on_session(purge_session)
-    db_session.expire_all()
+
+    async def _reset_db_state() -> None:
+        await db_session.rollback()
+        db_session.expire_all()
+        async with factory() as purge_session:
+            await _purge_auth_tables_on_session(purge_session)
+
+    await _reset_db_state()
     yield
-    await _purge_auth_tables_on_session(db_session)
-    db_session.expire_all()
+    await _reset_db_state()
 
 
 @pytest_asyncio.fixture
@@ -121,7 +132,8 @@ async def async_client(db_session, clean_auth_tables):
 
 
 def register_payload(suffix: str | None = None) -> dict:
-    token = suffix or uuid.uuid4().hex[:8]
+    unique = uuid.uuid4().hex[:8]
+    token = f"{suffix}-{unique}" if suffix else unique
     return {
         "email": f"owner-{token}@example.com",
         "password": "securePass123",
@@ -155,6 +167,24 @@ async def register_and_get_context(client, suffix: str | None = None) -> dict:
         "slug": body["business"]["slug"],
         "user_id": body["user"]["id"],
     }
+
+
+async def refresh_owner_auth(client, ctx: dict) -> dict:
+    """Re-login after direct db_session mutations so API auth reads committed state."""
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": ctx["payload"]["email"],
+            "password": ctx["payload"]["password"],
+        },
+    )
+    assert_response_status(response, 200, context="refresh owner login")
+    token = response.json()["tokens"]["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    assert_has_bearer_auth(headers)
+    ctx["token"] = token
+    ctx["headers"] = headers
+    return ctx
 
 
 BOOKING_SERVICE_PAYLOAD = {
@@ -204,3 +234,4 @@ async def activate_business(db_session, slug: str) -> None:
         .values(status=BusinessStatus.active)
     )
     await db_session.commit()
+    db_session.expire_all()

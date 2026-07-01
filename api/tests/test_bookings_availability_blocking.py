@@ -17,6 +17,7 @@ from tests.conftest import (
     assert_has_bearer_auth,
     assert_response_status,
     register_and_get_context,
+    refresh_owner_auth,
     weekday_working_hours_payload,
 )
 
@@ -31,6 +32,7 @@ async def _setup_booking_business(async_client: AsyncClient, db_session, suffix:
     ctx = await register_and_get_context(async_client, safe_suffix)
     assert_has_bearer_auth(ctx["headers"])
     await activate_business(db_session, ctx["slug"])
+    ctx = await refresh_owner_auth(async_client, ctx)
     schedule_resp = await async_client.put(
         f"/api/v1/businesses/{ctx['business_id']}/schedule/working-hours",
         json=weekday_working_hours_payload(),
