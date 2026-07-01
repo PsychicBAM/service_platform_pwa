@@ -36,8 +36,8 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 ### Future CI (not blocking merges yet)
 - [x] Promote dependency scan to **blocking** — Slice 8: `dependency-scan.yml` without `continue-on-error`; npm + pip baseline clean
 - [x] **Trivy baseline** — Slice 9: `.github/workflows/trivy.yml` (fs + config + prod images); [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); non-blocking initially
-- [x] **Trivy triage** — Slice 10: first green run reviewed; findings in [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G
-- [ ] Promote Trivy to **blocking** — after DS-0002 Dockerfile `USER` fix or formal acceptance + confirm scheduled run
+- [x] **Docker non-root hardening** — Slice 11: `USER appuser` / `USER nginx`; web internal port 8080; DS-0002 resolved (local Trivy config)
+- [ ] Promote Trivy to **blocking** — after GitHub Trivy run confirms DS-0002 clear post–Slice 11
 - [ ] gitleaks or GitHub secret scanning alerts reviewed
 - [ ] OWASP ZAP baseline against staging URL
 
@@ -109,8 +109,8 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] CodeQL — workflow runs on push/PR/schedule; triage alerts in GitHub Security tab
 - [x] Dependency audit baseline — `npm run security:audit`, `pip-audit`; **blocking** [dependency-scan workflow](./.github/workflows/dependency-scan.yml) (Slice 8)
 - [x] Dependency audits — baseline clean; blocking scan enabled (Slices 5–8)
-- [x] Trivy baseline — fs/config + prod Docker images; see [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G (Slice 10 triage)
-- [ ] Trivy blocking — after DS-0002 Dockerfile hardening or documented acceptance
+- [x] Trivy baseline — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G–H (Slices 10–11)
+- [ ] Trivy blocking — after GitHub run confirms DS-0002 cleared post–Slice 11
 - [ ] OWASP ZAP baseline — review findings on staging
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first
 - [ ] TestSprite — regression QA; security findings triaged separately

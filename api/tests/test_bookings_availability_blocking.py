@@ -14,6 +14,8 @@ from tests.conftest import (
     BOOKING_SERVICE_PAYLOAD,
     ORDER_SERVICE_PAYLOAD,
     activate_business,
+    assert_has_bearer_auth,
+    assert_response_status,
     register_and_get_context,
     weekday_working_hours_payload,
 )
@@ -27,18 +29,24 @@ SLOT_END = datetime(2026, 6, 23, 10, 30, tzinfo=ZoneInfo("America/New_York"))
 async def _setup_booking_business(async_client: AsyncClient, db_session, suffix: str):
     safe_suffix = suffix.replace("_", "-")
     ctx = await register_and_get_context(async_client, safe_suffix)
+    assert_has_bearer_auth(ctx["headers"])
     await activate_business(db_session, ctx["slug"])
-    await async_client.put(
+    schedule_resp = await async_client.put(
         f"/api/v1/businesses/{ctx['business_id']}/schedule/working-hours",
         json=weekday_working_hours_payload(),
         headers=ctx["headers"],
+    )
+    assert_response_status(
+        schedule_resp,
+        200,
+        context="booking business working-hours setup",
     )
     service_resp = await async_client.post(
         f"/api/v1/businesses/{ctx['business_id']}/services",
         json=BOOKING_SERVICE_PAYLOAD,
         headers=ctx["headers"],
     )
-    assert service_resp.status_code == 201
+    assert_response_status(service_resp, 201, context="booking service create")
     ctx["service_id"] = service_resp.json()["id"]
     return ctx
 

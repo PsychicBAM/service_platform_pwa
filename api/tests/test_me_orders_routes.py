@@ -9,6 +9,7 @@ from app.models.enums import ClientSource, OrderStatus, UserRole
 from app.models.order import Order
 from app.models.user import User
 from app.services.password_service import hash_password
+from tests.conftest import assert_has_bearer_auth, assert_response_status
 from tests.test_public_order_create import (
     _setup_order_business,
     order_payload,
@@ -32,9 +33,11 @@ async def _login_client(async_client: AsyncClient, email: str) -> dict:
         "/api/v1/auth/login",
         json={"email": email, "password": "securePass123"},
     )
-    assert response.status_code == 200
+    assert_response_status(response, 200, context="client login")
     token = response.json()["tokens"]["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}"}
+    assert_has_bearer_auth(headers)
+    return headers
 
 
 async def _setup_user_linked_order(
@@ -66,6 +69,7 @@ async def _setup_user_linked_order(
     db_session.add(order)
     await db_session.commit()
     headers = await _login_client(async_client, user.email)
+    assert_has_bearer_auth(biz_ctx["headers"])
     return {
         **biz_ctx,
         "owner_user_id": biz_ctx["user_id"],

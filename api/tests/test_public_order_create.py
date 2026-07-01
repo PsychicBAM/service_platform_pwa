@@ -16,6 +16,8 @@ from tests.conftest import (
     BOOKING_SERVICE_PAYLOAD,
     ORDER_SERVICE_PAYLOAD,
     activate_business,
+    assert_has_bearer_auth,
+    assert_response_status,
     register_and_get_context,
 )
 from tests.test_bookings_availability_blocking import (
@@ -34,6 +36,7 @@ async def _setup_order_business(
 ) -> dict:
     safe_suffix = suffix.replace("_", "-")
     ctx = await register_and_get_context(async_client, safe_suffix)
+    assert_has_bearer_auth(ctx["headers"])
     await activate_business(db_session, ctx["slug"])
     if operating_mode is not None:
         await db_session.execute(
@@ -47,7 +50,7 @@ async def _setup_order_business(
         json=ORDER_SERVICE_PAYLOAD,
         headers=ctx["headers"],
     )
-    assert service_resp.status_code == 201
+    assert_response_status(service_resp, 201, context="order service create")
     ctx["service_id"] = service_resp.json()["id"]
     return ctx
 

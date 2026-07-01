@@ -49,8 +49,9 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Vite/esbuild upgrade** | ✅ Phase 6 Slice 7 — `vite@8.1.2`, `@vitejs/plugin-react@6.0.3`; npm audit clean |
 | **Dependency scan in blocking CI** | ✅ Phase 6 Slice 8 — `dependency-scan.yml` fails on advisories; baseline clean (npm + pip) |
 | **Trivy baseline** | ✅ Phase 6 Slice 9 — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md); `.github/workflows/trivy.yml` (non-blocking) |
-| **Trivy triage (Slice 10)** | ✅ CVE/fs/image baseline clean; 2 HIGH Dockerfile config items (DS-0002 root user) — see [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G |
-| **Docker image scan (blocking)** | Not yet — promote Trivy after DS-0002 resolved or accepted + confirm scheduled run |
+| **Trivy triage (Slice 10)** | ✅ CVE/fs/image baseline clean; DS-0002 documented — see §G |
+| **Docker non-root (Slice 11)** | ✅ `appuser` / `nginx` USER; web internal port **8080**; DS-0002 resolved locally |
+| **Docker image scan (blocking)** | Not yet — confirm post–Slice 11 Trivy GitHub run, then promote |
 | **OWASP ZAP baseline** | No staging URL scan automated |
 | **Secrets scan workflow** | No gitleaks / GitHub secret scanning config in repo |
 | **Rate limiting** | Not implemented on auth or public endpoints |
@@ -198,13 +199,13 @@ This slice does **not** create legal documents or consent UI.
   trivy image --severity HIGH,CRITICAL --ignore-unfixed svcplat-api:latest svcplat-web:latest
   ```
 
-### Phase 6 Slice 10 — Trivy triage (summary)
+### Phase 6 Slice 11 — Docker non-root hardening (summary)
 
-- Reviewed latest green Trivy workflow run; findings in [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G
-- **CVE/fs/images:** no HIGH/CRITICAL vulnerability findings with `ignore-unfixed`
-- **Config:** 2 HIGH DS-0002 (Dockerfile missing non-root `USER`) — accepted temporarily; fix in future infra slice
-- **Blocking:** remains **non-blocking** until Dockerfile hardening + optional second scheduled run
+- `api/Dockerfile`: `USER appuser` (uid 1000)
+- `web/Dockerfile` + `nginx.conf`: `USER nginx`, listen **8080**; compose maps `5173:8080` / `${WEB_HTTP_PORT}:8080`
+- Local Trivy config: DS-0002 **resolved** — see [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §H
+- Trivy workflow remains **non-blocking** until next green GitHub run confirms
 
 ---
 
-**Last updated:** Phase 6 Slice 10 — Trivy findings triage and blocking-readiness report.
+**Last updated:** Phase 6 Slice 11 — Docker non-root hardening (DS-0002).

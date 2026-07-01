@@ -59,7 +59,7 @@ services:
     container_name: service_platform_web_prod
     restart: unless-stopped
     ports:
-      - "${WEB_HTTP_PORT:-80}:80"
+      - "${WEB_HTTP_PORT:-80}:8080"
     depends_on:
       api:
         condition: service_healthy

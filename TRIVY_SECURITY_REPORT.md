@@ -13,7 +13,7 @@ Related: [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECU
 |------|--------|
 | **Workflow** | ✅ `.github/workflows/trivy.yml` |
 | **Triggers** | `workflow_dispatch` + weekly Sunday 02:00 UTC |
-| **Blocking** | **No** — `continue-on-error: true`; see §G triage (Slice 10) |
+| **Blocking** | **No** — `continue-on-error: true` until post–Slice 11 Trivy run confirms DS-0002 cleared |
 | **Secrets** | Not required |
 | **SARIF upload** | **Not enabled** (table logs only; avoids code-scanning API permission issues) |
 | **Web scanning** | **Not included** — no ZAP/Nuclei/aggressive HTTP probes |
@@ -94,7 +94,8 @@ trivy fs --skip-dirs node_modules,web/node_modules,web/dist,.git --severity HIGH
 |------|--------|
 | **Slice 9 ✅** | Add non-blocking `trivy.yml` (fs + config + prod image scan) |
 | **Slice 10 ✅** | First green run triaged — see §G; CVE baseline clean; config hardening deferred |
-| **Next** | Dockerfile non-root `USER` (DS-0002); then consider removing `continue-on-error` |
+| **Slice 11 ✅** | Non-root `USER` in api/web Dockerfiles; nginx listens on **8080** internally — DS-0002 resolved |
+| **Next** | Confirm DS-0002 clear in GitHub Trivy run; then consider removing `continue-on-error` |
 | **Later** | Remove `continue-on-error` when baseline is clean and stable |
 | **Later** | Optional SARIF upload to GitHub Security tab (after permissions verified) |
 | **Later** | OWASP ZAP baseline on owned staging URL only |
@@ -154,4 +155,35 @@ If only CVEs are considered: **No HIGH/CRITICAL CVE findings were observed in th
 
 ---
 
-**Last updated:** Phase 6 Slice 10 — Trivy findings triage and blocking-readiness report.
+## H. Phase 6 Slice 11 — Docker non-root hardening (DS-0002)
+
+**Completed:** Infrastructure hardening only — no app product logic or dependency changes.
+
+### H.A. Changes
+
+| Component | Change |
+|-----------|--------|
+| `api/Dockerfile` | `appuser` (uid 1000) / `appgroup`; `chown /app`; `USER appuser` |
+| `web/Dockerfile` | nginx temp dirs under `/tmp/nginx`; pid path in main config; `USER nginx`; `EXPOSE 8080` |
+| `web/nginx.conf` | `listen 8080`; writable temp paths under `/tmp/nginx` |
+| `docker-compose.yml` | `5173:8080` (host 5173 unchanged) |
+| `docker-compose.prod.yml` | `${WEB_HTTP_PORT:-80}:8080` |
+
+### H.B. Trivy config after Slice 11
+
+Local `trivy config --severity HIGH,CRITICAL` on Dockerfiles: **0 failures** (DS-0002 resolved for api and web).
+
+### H.C. Blocking readiness
+
+- DS-0002 **resolved** in repo; confirm on next GitHub **Trivy** workflow run.
+- Workflow remains **non-blocking** until that run is reviewed (Slice 10 plan).
+- CVE/fs/image baselines unchanged from Slice 10.
+
+### H.D. Notes
+
+- Dev `api` still bind-mounts `./api:/app`; `appuser` uid 1000 matches typical host mapping on Docker Desktop.
+- External reverse proxy still maps to host port 80/443 → container **8080** internally.
+
+---
+
+**Last updated:** Phase 6 Slice 11 — Docker non-root hardening (DS-0002).

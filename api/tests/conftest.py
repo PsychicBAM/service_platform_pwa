@@ -16,6 +16,67 @@ def _test_database_url() -> str:
     return os.getenv("TEST_DATABASE_URL", get_settings().database_url)
 
 
+def _session_factory(db_engine):
+    return async_sessionmaker(
+        db_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
+
+_AUTH_TABLES = (
+    "password_reset_tokens",
+    "email_verification_tokens",
+    "audit_logs",
+    "order_messages",
+    "orders",
+    "bookings",
+    "clients",
+    "unavailable_times",
+    "working_breaks",
+    "working_hours",
+    "services",
+    "subscriptions",
+    "business_members",
+    "businesses",
+    "users",
+)
+
+
+async def _purge_auth_tables_on_session(session: AsyncSession) -> None:
+    for table in _AUTH_TABLES:
+        await session.execute(text(f"DELETE FROM {table}"))
+    await session.commit()
+
+
+def assert_has_bearer_auth(headers: dict) -> None:
+    auth = headers.get("Authorization", "")
+    assert auth.startswith("Bearer "), "Authorization header missing or not Bearer"
+    token = auth.removeprefix("Bearer ").strip()
+    assert token, "Bearer token is empty"
+
+
+def assert_response_status(response, expected: int, *, context: str) -> None:
+    if response.status_code == expected:
+        return
+    error_code = "n/a"
+    try:
+        error_code = response.json().get("error", {}).get("code", error_code)
+    except Exception:
+        pass
+    raise AssertionError(
+        f"{context}: expected status {expected}, got {response.status_code}; "
+        f"error_code={error_code}"
+    )
+
+
+@pytest.fixture(autouse=True)
+def reset_settings_cache() -> None:
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
 @pytest_asyncio.fixture
 async def db_engine():
     engine = create_async_engine(_test_database_url(), pool_pre_ping=True)
@@ -31,34 +92,20 @@ async def db_engine():
 
 @pytest_asyncio.fixture
 async def db_session(db_engine):
-    session_factory = async_sessionmaker(
-        db_engine,
-        class_=AsyncSession,
-        expire_on_commit=False,
-    )
-    async with session_factory() as session:
+    factory = _session_factory(db_engine)
+    async with factory() as session:
         yield session
 
 
 @pytest_asyncio.fixture
-async def clean_auth_tables(db_session):
+async def clean_auth_tables(db_engine, db_session):
+    factory = _session_factory(db_engine)
+    async with factory() as purge_session:
+        await _purge_auth_tables_on_session(purge_session)
+    db_session.expire_all()
     yield
-    await db_session.execute(text("DELETE FROM password_reset_tokens"))
-    await db_session.execute(text("DELETE FROM email_verification_tokens"))
-    await db_session.execute(text("DELETE FROM audit_logs"))
-    await db_session.execute(text("DELETE FROM order_messages"))
-    await db_session.execute(text("DELETE FROM orders"))
-    await db_session.execute(text("DELETE FROM bookings"))
-    await db_session.execute(text("DELETE FROM clients"))
-    await db_session.execute(text("DELETE FROM unavailable_times"))
-    await db_session.execute(text("DELETE FROM working_breaks"))
-    await db_session.execute(text("DELETE FROM working_hours"))
-    await db_session.execute(text("DELETE FROM services"))
-    await db_session.execute(text("DELETE FROM subscriptions"))
-    await db_session.execute(text("DELETE FROM business_members"))
-    await db_session.execute(text("DELETE FROM businesses"))
-    await db_session.execute(text("DELETE FROM users"))
-    await db_session.commit()
+    await _purge_auth_tables_on_session(db_session)
+    db_session.expire_all()
 
 
 @pytest_asyncio.fixture
@@ -92,13 +139,18 @@ def register_payload(suffix: str | None = None) -> dict:
 async def register_and_get_context(client, suffix: str | None = None) -> dict:
     payload = register_payload(suffix)
     response = await client.post("/api/v1/auth/register", json=payload)
-    assert response.status_code == 201
+    assert_response_status(response, 201, context="business registration")
     body = response.json()
+    assert body.get("tokens", {}).get("access_token"), "registration response missing access token"
+    assert body.get("business", {}).get("id"), "registration response missing business id"
+    assert body.get("user", {}).get("id"), "registration response missing user id"
     token = body["tokens"]["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    assert_has_bearer_auth(headers)
     return {
         "payload": payload,
         "token": token,
-        "headers": {"Authorization": f"Bearer {token}"},
+        "headers": headers,
         "business_id": body["business"]["id"],
         "slug": body["business"]["slug"],
         "user_id": body["user"]["id"],

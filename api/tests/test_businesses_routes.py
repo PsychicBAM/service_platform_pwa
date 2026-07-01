@@ -168,6 +168,7 @@ async def test_settings_patch_merges_with_existing_settings(
     assert response.status_code == 200
     assert response.json()["settings"]["cancellation_hours"] == 48
 
+    db_session.expire_all()
     result = await db_session.execute(
         select(Business.settings).where(Business.slug == ctx["slug"])
     )
