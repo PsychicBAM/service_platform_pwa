@@ -38,7 +38,7 @@ from app.repositories.business_repository import BusinessRepository
 from app.repositories.client_repository import ClientRepository
 from app.repositories.schedule_repository import ScheduleRepository
 from app.repositories.user_repository import UserRepository
-from app.services.password_service import hash_password
+from app.services.password_service import hash_password, verify_password
 from app.utils.references import generate_booking_reference, generate_order_reference
 
 DEMO_PASSWORD = "ChangeMe123!"
@@ -112,26 +112,31 @@ async def _ensure_user(
     full_name: str,
     phone: str | None = None,
 ) -> tuple[object, str]:
-    user = await users.get_by_email(email)
+    normalized_email = email.strip().lower()
     password_hash = hash_password(password)
+    if not verify_password(password, password_hash):
+        raise RuntimeError("demo_password_hash_verification_failed")
+
+    user = await users.get_by_email(normalized_email)
     if user is None:
         user = await users.create(
-            email=email,
+            email=normalized_email,
             password_hash=password_hash,
             full_name=full_name,
             phone=phone,
             role=role,
         )
         user.email_verified_at = datetime.now(UTC)
+        user.is_active = True
         await session.flush()
         return user, "created"
+
     user.password_hash = password_hash
     user.role = role
     user.full_name = full_name
     user.phone = phone
     user.is_active = True
-    if user.email_verified_at is None:
-        user.email_verified_at = datetime.now(UTC)
+    user.email_verified_at = datetime.now(UTC)
     await session.flush()
     return user, "updated"
 
@@ -500,7 +505,9 @@ def _print_summary(result: dict) -> None:
     print(f"  Superadmin: {SUPERADMIN_EMAIL}")
     print(f"  Owner:      {OWNER_EMAIL}")
     print(f"  Client:     {LINKED_CLIENT_EMAIL}")
-    print("  Password:   use the demo password documented in README_BACKEND.md (not printed here)")
+    print(
+        "  Demo users are ready. Use the documented demo password from README_BACKEND.md."
+    )
 
     print("\nUseful URLs (host machine):")
     print("  API health:     http://localhost:8000/health")

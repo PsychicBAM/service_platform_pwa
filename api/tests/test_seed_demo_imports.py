@@ -51,7 +51,7 @@ def test_seed_demo_summary_does_not_print_demo_password(capsys) -> None:
     captured = capsys.readouterr()
     assert module.DEMO_PASSWORD not in captured.out
     assert "README_BACKEND.md" in captured.out
-    assert "owner@example.com" in captured.out
+    assert "Demo users are ready" in captured.out
 
 
 @pytest.mark.asyncio
