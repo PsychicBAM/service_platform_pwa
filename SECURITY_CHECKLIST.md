@@ -38,7 +38,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] **Trivy baseline** — Slice 9: `.github/workflows/trivy.yml` (fs + config + prod images); [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md)
 - [x] **Docker non-root hardening** — Slice 11: `USER appuser` / `USER nginx`; web internal port 8080; DS-0002 resolved
 - [x] Promote Trivy to **blocking** — Slice 12: `trivy.yml` without `continue-on-error`; HIGH/CRITICAL fails workflow
-- [ ] gitleaks or GitHub secret scanning alerts reviewed
+- [x] **Gitleaks secrets scan** — Slice 13: `.github/workflows/gitleaks.yml` (blocking); [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md)
 - [ ] OWASP ZAP baseline against staging URL
 
 ---

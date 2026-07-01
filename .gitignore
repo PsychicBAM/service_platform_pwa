@@ -1,7 +1,19 @@
 # Environment and secrets
 .env
 .env.local
+.env.production
 .env.*.local
+!.env.example
+!.env.production.example
+
+# Private keys and credential stores
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+private/
 
 # Python
 __pycache__/
@@ -38,10 +50,17 @@ web/node_modules/
 web/dist/
 web/.env
 web/.env.local
+web/.env.*.local
+!web/.env.example
 web/playwright-report/
 web/test-results/
 
-# IDE
+# Local Gitleaks reports (do not commit)
+gitleaks-report.json
+gitleaks-local-report.json
+gitleaks-nogit-report.json
+.gitleaks-baseline.json
+
 .idea/
 .vscode/
 *.swp

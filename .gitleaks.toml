@@ -1,0 +1,29 @@
+# Minimal Gitleaks config — skip build/cache paths only (not source or env files).
+# Do not allowlist .env or broad secret patterns.
+
+title = "service_platform_pwa gitleaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+  '''(?:^|/)node_modules/''',
+  '''(?:^|/)web/node_modules/''',
+  '''(?:^|/)web/dist/''',
+  '''(?:^|/)\.pytest_cache/''',
+  '''(?:^|/)__pycache__/''',
+  '''(?:^|/)postgres_data/''',
+  '''(?:^|/)logs/''',
+  '''(?:^|/)backups/''',
+  '''(?:^|/)web/playwright-report/''',
+  '''(?:^|/)web/test-results/''',
+  '''(?:^|/)\.venv/''',
+]
+# Historical false positives (pre-Slice-13 docs/tests). Current tree uses safe placeholders.
+# Do not add live secret patterns or .env paths here.
+regexes = [
+  '''(?i)CLIENT_TOKEN''',
+  '''(?i)SUPERADMIN_TOKEN''',
+  '''0123456789abcdef0123456789abcdef0123456789ab''',
+]

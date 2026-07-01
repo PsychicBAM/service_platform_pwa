@@ -52,8 +52,8 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Trivy triage (Slice 10)** | ✅ CVE/fs/image baseline clean; DS-0002 documented — see §G |
 | **Docker non-root (Slice 11)** | ✅ `appuser` / `nginx` USER; web internal port **8080**; DS-0002 resolved locally |
 | **Trivy blocking (Slice 12)** | ✅ `trivy.yml` without `continue-on-error`; HIGH/CRITICAL findings fail workflow |
+| **Gitleaks secrets scan (Slice 13)** | ✅ `.github/workflows/gitleaks.yml` — blocking; [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md) |
 | **OWASP ZAP baseline** | No staging URL scan automated |
-| **Secrets scan workflow** | No gitleaks / GitHub secret scanning config in repo |
 | **Rate limiting** | Not implemented on auth or public endpoints |
 | **Content-Security-Policy** | Deferred — validate against Vite bundle before enabling |
 | **Monitoring / alerting** | No uptime, error rate, or intrusion alerts configured |
@@ -102,7 +102,7 @@ Ordered for this project (own staging/VPS only — never scan third-party sites)
 3. **Dependency advisory triage** — ✅ Phase 6 Slice 4 — risk table + upgrade roadmap (Slices 5–8); advisories cleared
 4. **Blocking dependency CI** — ✅ Slice 8 — `dependency-scan.yml` blocking; baseline clean
 5. **Trivy** — ✅ Slice 9 — fs/config + prod Docker images; ✅ Slice 10 triage — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G; ✅ Slice 12 **blocking**
-6. **GitHub secret scanning / gitleaks** — optional pre-commit or CI for accidental key commits
+6. **Gitleaks secrets scan** — ✅ Slice 13 — `.github/workflows/gitleaks.yml` (blocking); [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md); separate from CodeQL/dependency-scan/Trivy
 7. **OWASP ZAP baseline** — passive scan against **your** staging URL after deploy (future slice)
 8. **Nuclei** — only later, carefully, against **own** staging; not a substitute for ZAP baseline
 9. **TestSprite** — additional QA/regression coverage; not sole security scanner
@@ -211,8 +211,19 @@ This slice does **not** create legal documents or consent UI.
 - Baseline clean: fs, config (DS-0002 cleared), prod api/web images — see [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §I
 - Future HIGH/CRITICAL Trivy findings fail the workflow
 - CodeQL and dependency-scan remain separate workflows
-- OWASP ZAP, Nuclei, gitleaks, legal pages — future work
+- OWASP ZAP, Nuclei, legal pages — future work
+
+### Phase 6 Slice 13 — Gitleaks secrets scan baseline (summary)
+
+- Workflow: `.github/workflows/gitleaks.yml` — `gitleaks/gitleaks-action@v2`, `fetch-depth: 0`, blocking
+- Triggers: push/PR to `main`, `workflow_dispatch`, weekly Sunday 04:00 UTC
+- Permissions: `contents: read`, `pull-requests: write` (PR comments); no SARIF upload
+- Config: `.gitleaks.toml` — cache/build paths; narrow historical false-positive regex allowlist (no `.env` allowlist)
+- Placeholder fixes: `README_BACKEND.md` curl tokens; production env test JWT/Stripe strings → safe placeholders
+- Report: [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md) — incident response if a secret is found
+- **No secrets should ever be committed** — `.env` stays local/gitignored
+- Does not replace CodeQL, dependency-scan, Trivy, runtime secret management, or rotation
 
 ---
 
-**Last updated:** Phase 6 Slice 12 — Trivy promoted to blocking.
+**Last updated:** Phase 6 Slice 13 — Gitleaks secrets scan baseline (blocking).

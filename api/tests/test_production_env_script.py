@@ -6,10 +6,10 @@ import pytest
 GOOD_ENV = """
 APP_ENV=production
 POSTGRES_USER=service_platform
-POSTGRES_PASSWORD=super_secure_random_password_value_123
+POSTGRES_PASSWORD=example-postgres-password-for-unit-tests-only
 POSTGRES_DB=service_platform
-DATABASE_URL=postgresql+asyncpg://service_platform:super_secure_random_password_value_123@postgres:5432/service_platform
-JWT_SECRET_KEY=0123456789abcdef0123456789abcdef0123456789ab
+DATABASE_URL=postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only@postgres:5432/service_platform
+JWT_SECRET_KEY=test-jwt-placeholder-thirty-two-characters-min
 WEB_HTTP_PORT=80
 CORS_ORIGINS=https://example.com
 API_DOCS_ENABLED=false
@@ -79,13 +79,13 @@ def test_strict_fails_live_email_without_smtp_host() -> None:
     parsed = {
         "APP_ENV": "production",
         "POSTGRES_USER": "service_platform",
-        "POSTGRES_PASSWORD": "super_secure_random_password_value_123",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
         "POSTGRES_DB": "service_platform",
         "DATABASE_URL": (
-            "postgresql+asyncpg://service_platform:super_secure_random_password_value_123"
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
             "@postgres:5432/service_platform"
         ),
-        "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
         "WEB_HTTP_PORT": "80",
         "CORS_ORIGINS": "https://example.com",
         "API_DOCS_ENABLED": "false",
@@ -106,13 +106,13 @@ def test_strict_warns_when_email_disabled() -> None:
     parsed = {
         "APP_ENV": "production",
         "POSTGRES_USER": "service_platform",
-        "POSTGRES_PASSWORD": "super_secure_random_password_value_123",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
         "POSTGRES_DB": "service_platform",
         "DATABASE_URL": (
-            "postgresql+asyncpg://service_platform:super_secure_random_password_value_123"
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
             "@postgres:5432/service_platform"
         ),
-        "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
         "WEB_HTTP_PORT": "80",
         "CORS_ORIGINS": "https://example.com",
         "API_DOCS_ENABLED": "false",
@@ -153,7 +153,7 @@ def test_fail_missing_database_url() -> None:
         "POSTGRES_USER": "service_platform",
         "POSTGRES_PASSWORD": "long_enough_prod_password_value",
         "POSTGRES_DB": "service_platform",
-        "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
         "WEB_HTTP_PORT": "80",
         "CORS_ORIGINS": "https://example.com",
         "API_DOCS_ENABLED": "false",
@@ -191,13 +191,13 @@ def test_strict_fails_missing_cors_origins() -> None:
     parsed = {
         "APP_ENV": "production",
         "POSTGRES_USER": "service_platform",
-        "POSTGRES_PASSWORD": "super_secure_random_password_value_123",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
         "POSTGRES_DB": "service_platform",
         "DATABASE_URL": (
-            "postgresql+asyncpg://service_platform:super_secure_random_password_value_123"
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
             "@postgres:5432/service_platform"
         ),
-        "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
         "WEB_HTTP_PORT": "80",
         "API_DOCS_ENABLED": "false",
     }
@@ -230,13 +230,13 @@ def _strict_production_base() -> dict[str, str]:
     return {
         "APP_ENV": "production",
         "POSTGRES_USER": "service_platform",
-        "POSTGRES_PASSWORD": "super_secure_random_password_value_123",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
         "POSTGRES_DB": "service_platform",
         "DATABASE_URL": (
-            "postgresql+asyncpg://service_platform:super_secure_random_password_value_123"
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
             "@postgres:5432/service_platform"
         ),
-        "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
         "WEB_HTTP_PORT": "80",
         "CORS_ORIGINS": "https://example.com",
         "API_DOCS_ENABLED": "false",
@@ -260,7 +260,7 @@ def test_stripe_enabled_missing_secret_fails_strict() -> None:
     parsed = _strict_production_base()
     parsed["STRIPE_ENABLED"] = "true"
     parsed["STRIPE_SECRET_KEY"] = ""
-    parsed["STRIPE_WEBHOOK_SECRET"] = "whsec_test_webhook_secret_value_001"
+    parsed["STRIPE_WEBHOOK_SECRET"] = "whsec_REDACTED"
     parsed["STRIPE_PRICE_STARTER"] = "price_starter_test_001"
     parsed["STRIPE_PRICE_BUSINESS"] = "price_business_test_001"
     parsed["STRIPE_PRICE_PRO"] = "price_pro_test_001"
@@ -276,8 +276,8 @@ def test_stripe_enabled_missing_price_ids_fails_strict() -> None:
     module = _load_module()
     parsed = _strict_production_base()
     parsed["STRIPE_ENABLED"] = "true"
-    parsed["STRIPE_SECRET_KEY"] = "sk_test_super_secret_key_value_001"
-    parsed["STRIPE_WEBHOOK_SECRET"] = "whsec_test_webhook_secret_value_001"
+    parsed["STRIPE_SECRET_KEY"] = "sk_test_REDACTED"
+    parsed["STRIPE_WEBHOOK_SECRET"] = "whsec_REDACTED"
     parsed["STRIPE_PRICE_STARTER"] = ""
     parsed["STRIPE_PRICE_BUSINESS"] = "price_business_test_001"
     parsed["STRIPE_PRICE_PRO"] = "price_pro_test_001"
@@ -293,8 +293,8 @@ def test_stripe_enabled_complete_config_passes_strict() -> None:
     module = _load_module()
     parsed = _strict_production_base()
     parsed["STRIPE_ENABLED"] = "true"
-    parsed["STRIPE_SECRET_KEY"] = "sk_test_super_secret_key_value_001"
-    parsed["STRIPE_WEBHOOK_SECRET"] = "whsec_test_webhook_secret_value_001"
+    parsed["STRIPE_SECRET_KEY"] = "sk_test_REDACTED"
+    parsed["STRIPE_WEBHOOK_SECRET"] = "whsec_REDACTED"
     parsed["STRIPE_PRICE_STARTER"] = "price_starter_test_001"
     parsed["STRIPE_PRICE_BUSINESS"] = "price_business_test_001"
     parsed["STRIPE_PRICE_PRO"] = "price_pro_test_001"
@@ -307,8 +307,8 @@ def test_stripe_enabled_complete_config_passes_strict() -> None:
 
 def test_stripe_secrets_are_not_printed_in_validation_messages() -> None:
     module = _load_module()
-    secret = "sk_test_super_secret_key_value_001"
-    webhook = "whsec_test_webhook_secret_value_001"
+    secret = "sk_test_REDACTED"
+    webhook = "whsec_REDACTED"
     parsed = _strict_production_base()
     parsed["STRIPE_ENABLED"] = "true"
     parsed["STRIPE_SECRET_KEY"] = secret
@@ -332,21 +332,21 @@ def test_production_env_script_output_does_not_print_fake_secrets(tmp_path: Path
     import sys
 
     module = _load_module()
-    secret = "sk_test_secret_123"
-    webhook = "whsec_secret_123"
-    jwt = "jwt_secret_value_1230123456789012"
-    smtp_password = "smtp_password_123"
+    secret = "stripe-secret-key-redacted-for-test"
+    webhook = "stripe-webhook-secret-redacted-for-test"
+    jwt = "test-jwt-placeholder-thirty-two-characters-min"
+    smtp_password = "smtp-password-redacted"
     env_file = tmp_path / ".env"
     env_file.write_text(
         "\n".join(
             [
                 "APP_ENV=production",
                 "POSTGRES_USER=service_platform",
-                "POSTGRES_PASSWORD=super_secure_random_password_value_123",
+                "POSTGRES_PASSWORD=example-postgres-password-for-unit-tests-only",
                 "POSTGRES_DB=service_platform",
                 (
                     "DATABASE_URL=postgresql+asyncpg://service_platform:"
-                    "super_secure_random_password_value_123@postgres:5432/service_platform"
+                    "example-postgres-password-for-unit-tests-only@postgres:5432/service_platform"
                 ),
                 f"JWT_SECRET_KEY={jwt}",
                 "WEB_HTTP_PORT=80",
@@ -383,7 +383,7 @@ def test_production_env_script_output_does_not_print_fake_secrets(tmp_path: Path
     assert exit_code == 0
     for forbidden in (
         secret,
-        "sk_live_secret_123",
+        "sk_live_REDACTED",
         webhook,
         jwt,
         smtp_password,

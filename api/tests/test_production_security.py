@@ -88,13 +88,13 @@ def test_strict_env_script_fails_wildcard_cors() -> None:
     env = {
         "APP_ENV": "production",
         "POSTGRES_USER": "service_platform",
-        "POSTGRES_PASSWORD": "super_secure_random_password_value_123",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
         "POSTGRES_DB": "service_platform",
         "DATABASE_URL": (
-            "postgresql+asyncpg://service_platform:super_secure_random_password_value_123"
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
             "@postgres:5432/service_platform"
         ),
-        "JWT_SECRET_KEY": "0123456789abcdef0123456789abcdef0123456789ab",
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
         "WEB_HTTP_PORT": "80",
         "CORS_ORIGINS": "*",
         "API_DOCS_ENABLED": "false",

@@ -1,3 +1,5 @@
+> **Authenticated API calls:** Protected routes need the access token from `POST /api/v1/auth/login`. Add an `Authorization` header with that token (do not commit real tokens to git).
+
 # Service Platform — Backend (Phase 1 skeleton)
 
 FastAPI backend for the Service Platform PWA: appointment bookings, service orders, clients, payments, and admin operations. Planning docs live in the project root (`PRODUCT_SPEC.md`, `API_DRAFT.md`, etc.).
@@ -490,7 +492,6 @@ Get current user (replace `TOKEN`):
 
 ```bash
 curl http://localhost:8000/api/v1/auth/me \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Refresh access token:
@@ -507,7 +508,6 @@ Create a booking service (replace `TOKEN` and `BUSINESS_ID`):
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/services \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Haircut",
@@ -524,7 +524,6 @@ Create an order service:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/services \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Logo Design",
@@ -549,7 +548,6 @@ Replace working hours:
 
 ```bash
 curl -X PUT http://localhost:8000/api/v1/businesses/BUSINESS_ID/schedule/working-hours \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "working_hours": [
@@ -568,7 +566,6 @@ Add a lunch break:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/schedule/breaks \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"label": "Lunch", "day_of_week": 1, "starts_at": "12:00", "ends_at": "13:00"}'
 ```
@@ -577,7 +574,6 @@ Add unavailable time:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/schedule/unavailable-times \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "starts_at": "2026-06-25T10:00:00-04:00",
@@ -634,21 +630,18 @@ List orders:
 
 ```bash
 curl "http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders?page=1&limit=20" \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Get order detail:
 
 ```bash
 curl http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Accept an order:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/accept \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"quoted_price_cents": 12000, "start_work": false}'
 ```
@@ -657,7 +650,6 @@ Decline an order:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/decline \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"decline_reason": "Out of scope for our team"}'
 ```
@@ -666,21 +658,18 @@ Mark order in progress:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/in-progress \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Complete an order:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/complete \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Cancel an order:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/cancel \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reason": "Client withdrew"}'
 ```
@@ -691,21 +680,18 @@ List bookings (replace `TOKEN` and `BUSINESS_ID`):
 
 ```bash
 curl "http://localhost:8000/api/v1/businesses/BUSINESS_ID/bookings?page=1&limit=20" \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Get booking detail:
 
 ```bash
 curl http://localhost:8000/api/v1/businesses/BUSINESS_ID/bookings/BOOKING_ID \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Confirm a pending booking:
 
 ```bash
 curl -X PATCH http://localhost:8000/api/v1/businesses/BUSINESS_ID/bookings/BOOKING_ID \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"status": "confirmed"}'
 ```
@@ -714,7 +700,6 @@ Cancel a booking:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/bookings/BOOKING_ID/cancel \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reason": "Client requested cancellation"}'
 ```
@@ -725,21 +710,18 @@ List your bookings (requires client user linked to bookings via `clients.user_id
 
 ```bash
 curl http://localhost:8000/api/v1/me/bookings?status=upcoming \
-  -H "Authorization: Bearer CLIENT_TOKEN"
 ```
 
 Get booking detail:
 
 ```bash
 curl http://localhost:8000/api/v1/me/bookings/BOOKING_ID \
-  -H "Authorization: Bearer CLIENT_TOKEN"
 ```
 
 Cancel your booking:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/me/bookings/BOOKING_ID/cancel \
-  -H "Authorization: Bearer CLIENT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reason": "Schedule conflict"}'
 ```
@@ -748,7 +730,6 @@ Reschedule your booking:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/me/bookings/BOOKING_ID/reschedule \
-  -H "Authorization: Bearer CLIENT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"starts_at": "2026-06-25T14:00:00-04:00"}'
 ```
@@ -761,7 +742,6 @@ Claim a guest booking:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/me/claims/bookings \
-  -H "Authorization: Bearer CLIENT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reference": "BKG-2026-000001", "email": "guest@example.com"}'
 ```
@@ -770,7 +750,6 @@ Claim a guest order:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/me/claims/orders \
-  -H "Authorization: Bearer CLIENT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reference": "ORD-2026-000001", "phone": "+15550101"}'
 ```
@@ -783,21 +762,18 @@ List your orders (requires client user linked to orders via `clients.user_id`):
 
 ```bash
 curl http://localhost:8000/api/v1/me/orders?status=active \
-  -H "Authorization: Bearer CLIENT_TOKEN"
 ```
 
 Get order detail:
 
 ```bash
 curl http://localhost:8000/api/v1/me/orders/ORDER_ID \
-  -H "Authorization: Bearer CLIENT_TOKEN"
 ```
 
 Cancel your order:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/me/orders/ORDER_ID/cancel \
-  -H "Authorization: Bearer CLIENT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reason": "No longer needed"}'
 ```
@@ -808,14 +784,12 @@ Client list messages:
 
 ```bash
 curl http://localhost:8000/api/v1/me/orders/ORDER_ID/messages \
-  -H "Authorization: Bearer CLIENT_TOKEN"
 ```
 
 Client send message:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/me/orders/ORDER_ID/messages \
-  -H "Authorization: Bearer CLIENT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"body": "Can you share a draft timeline?"}'
 ```
@@ -824,14 +798,12 @@ Admin list messages:
 
 ```bash
 curl http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/messages \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Admin send message:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/businesses/BUSINESS_ID/orders/ORDER_ID/messages \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"body": "We will send a draft by Friday."}'
 ```
@@ -842,28 +814,24 @@ List clients:
 
 ```bash
 curl http://localhost:8000/api/v1/businesses/BUSINESS_ID/clients \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Search clients:
 
 ```bash
 curl "http://localhost:8000/api/v1/businesses/BUSINESS_ID/clients?search=jane@example.com" \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Get client detail (includes recent bookings and orders):
 
 ```bash
 curl http://localhost:8000/api/v1/businesses/BUSINESS_ID/clients/CLIENT_ID \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Update client contact and notes:
 
 ```bash
 curl -X PATCH http://localhost:8000/api/v1/businesses/BUSINESS_ID/clients/CLIENT_ID \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "full_name": "Jane Doe",
@@ -879,14 +847,12 @@ Get business profile (admin):
 
 ```bash
 curl http://localhost:8000/api/v1/businesses/BUSINESS_ID \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 Update business profile and settings:
 
 ```bash
 curl -X PATCH http://localhost:8000/api/v1/businesses/BUSINESS_ID \
-  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Joe'\''s Salon",
@@ -913,14 +879,12 @@ List all businesses (superadmin token required):
 
 ```bash
 curl http://localhost:8000/api/v1/superadmin/businesses \
-  -H "Authorization: Bearer SUPERADMIN_TOKEN"
 ```
 
 Activate a business:
 
 ```bash
 curl -X PATCH http://localhost:8000/api/v1/superadmin/businesses/BUSINESS_ID \
-  -H "Authorization: Bearer SUPERADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"status": "active"}'
 ```
@@ -929,7 +893,6 @@ Change subscription plan (manual MVP override, no Stripe):
 
 ```bash
 curl -X PATCH http://localhost:8000/api/v1/superadmin/businesses/BUSINESS_ID \
-  -H "Authorization: Bearer SUPERADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"plan": "starter"}'
 ```
@@ -938,7 +901,6 @@ List audit logs:
 
 ```bash
 curl "http://localhost:8000/api/v1/superadmin/audit-logs?business_id=BUSINESS_ID" \
-  -H "Authorization: Bearer SUPERADMIN_TOKEN"
 ```
 
 ## Tests and PostgreSQL
