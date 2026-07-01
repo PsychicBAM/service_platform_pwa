@@ -4,10 +4,19 @@
 from __future__ import annotations
 
 import compileall
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
+
+_PYCACHE_PREFIX = Path("/tmp/pycache")
+
+
+def _configure_bytecode_cache() -> None:
+    """Write .pyc files under /tmp so bind-mounted /app stays read-only for appuser."""
+    _PYCACHE_PREFIX.mkdir(parents=True, exist_ok=True)
+    os.environ["PYTHONPYCACHEPREFIX"] = str(_PYCACHE_PREFIX)
 
 
 def main() -> int:
@@ -20,6 +29,7 @@ def main() -> int:
     errors: list[str] = []
 
     print("==> Compiling api/app ...")
+    _configure_bytecode_cache()
     if not compileall.compile_dir(app_dir, quiet=1):
         errors.append("compileall failed for api/app")
 
