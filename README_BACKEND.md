@@ -268,7 +268,8 @@ Playwright browser E2E is **not** in CI yet (needs backend + browser deps). Run 
 | [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) | Phase 7 — VPS readiness plan, env checklist, blockers (no live deploy yet) |
 | [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) | Phase 7 — step-by-step operator guide for real VPS deploy (docs only) |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | First deploy, HTTPS, logs, updates, dev vs prod |
-| [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) | Postgres backup/restore (dev + prod compose) |
+| [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) | Phase 7 — backup principles, checklists, optional VPS helper scripts |
+| [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) | Postgres backup/restore commands (dev + prod compose) |
 | [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) | Pre-launch checks |
 | [.env.production.example](./.env.production.example) | Production env **template only** — copy to `.env` on VPS; never commit secrets |
 | [scripts/check_production_env.py](./scripts/check_production_env.py) | Validate server `.env` before deploy (`--strict`) |

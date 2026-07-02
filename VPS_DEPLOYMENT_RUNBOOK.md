@@ -4,7 +4,7 @@
 **Status:** Documentation only — **no live deployment performed in this slice**.  
 **Not included:** Live secrets, provider-specific automation, legal/privacy pages, or reverse-proxy config files.
 
-Related: [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
+Related: [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
 
 ---
 
@@ -265,12 +265,14 @@ Optional: manual OWASP ZAP baseline on **owned** staging URL — see [ZAP_SECURI
 
 ## G. Backup plan draft
 
+See [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) for principles, checklists, and optional helpers. Summary:
+
 Backups contain all business data — encrypt at rest, restrict permissions. **Never commit dumps to git.**
 
 ### Backup directory
 
 ```bash
-BACKUP_ROOT=/opt/service-platform/backups
+BACKUP_ROOT=/opt/service-platform/backups/postgres
 mkdir -p "$BACKUP_ROOT"
 chmod 700 "$BACKUP_ROOT"
 ```
@@ -281,7 +283,7 @@ From `repo/` with stack running — uses container env for DB user/db name (no p
 
 ```bash
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="${BACKUP_DIR:-/opt/service-platform/backups}"
+BACKUP_DIR="${BACKUP_DIR:-/opt/service-platform/backups/postgres}"
 
 docker compose -p service_platform_prod -f docker-compose.prod.yml \
   exec -T postgres pg_dump \
@@ -291,6 +293,10 @@ docker compose -p service_platform_prod -f docker-compose.prod.yml \
   --no-acl \
   | gzip > "$BACKUP_DIR/service_platform_prod_${TIMESTAMP}.sql.gz"
 ```
+
+**Optional helper (VPS/bash):** `./scripts/backup_postgres.sh --env-file /opt/service-platform/env/.env.production`
+
+Schedule via cron is **future work** — not enabled in this slice.
 
 Schedule via `cron` (e.g. daily off-peak). Copy archives off-host when possible.
 
@@ -306,7 +312,9 @@ gunzip -c "$BACKUP_FILE" | docker compose -p service_platform_prod -f docker-com
   exec -T postgres psql -U "${POSTGRES_USER:-service_platform}" -d "${POSTGRES_DB:-service_platform}"
 ```
 
-Full procedure and warnings: [BACKUP_RESTORE.md](./BACKUP_RESTORE.md).
+Full procedure and warnings: [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md).
+
+**Optional helper:** `./scripts/restore_postgres.sh --backup-file "$BACKUP_FILE" --stop-writers`
 
 ### Volume safety
 
@@ -406,7 +414,7 @@ Monitor Postgres volume growth and host disk; plan retention for backups and log
 | **Legal / privacy / consent pages** | ❌ Required before public marketing site |
 | **Live SMTP on VPS** | ⏳ `EMAIL_ENABLED=false` by default |
 | **Stripe on VPS** | ⏳ `STRIPE_ENABLED=false`; use test mode first — [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) |
-| **Automated backups** | ⏳ Commands documented; cron not in repo |
+| **Automated backups** | ⏳ [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) + optional `scripts/backup_postgres.sh`; cron not enabled |
 | **Monitoring / alerts** | ⏳ Not automated |
 | **Domain + HTTPS** | ⏳ Not configured until VPS provisioned |
 | **Demo credentials** | Must not remain on public production |

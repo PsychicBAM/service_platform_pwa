@@ -1,10 +1,10 @@
-# VPS Production Readiness Report — Phase 7 (Slice 3)
+# VPS Production Readiness Report — Phase 7 (Slice 4)
 
 **Purpose:** Plan and checklist for a future **real VPS deployment**.  
 **Not in scope:** Live server provisioning, DNS changes, HTTPS certificates, or committing secrets.  
-**Status:** Planning only — **no deployment performed**. Operator runbook: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) (Slice 3).
+**Status:** Planning only — **no deployment performed**. Operator runbook: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md). Backup baseline: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) (Slice 4).
 
-Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
+Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
 
 ---
 
@@ -22,6 +22,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [DEPLOYMENT
 | **SMTP / live email** | ⏳ Requires VPS `.env` + provider; dry-run audits pass locally |
 | **Production env validation** | ✅ `scripts/check_production_env.py --strict` — polished (Slice 2); static message codes only |
 | **VPS deployment runbook** | ✅ [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) — operator guide (Slice 3); no live deploy |
+| **Backup readiness** | ✅ [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) — manual backup/restore baseline (Slice 4); no automated schedule yet |
 | **Legal / privacy pages** | ❌ Not implemented — **blocker before public launch** |
 | **Real VPS deployment** | ❌ **Not done yet** — next major phase |
 
@@ -36,7 +37,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [DEPLOYMENT
 | **DNS** | `A` / `AAAA` record → VPS public IP |
 | **HTTPS reverse proxy** | Caddy, Nginx, or Traefik in front of `web` container host port (`WEB_HTTP_PORT`, default **80**) |
 | **PostgreSQL storage** | Named volume `service_platform_postgres_prod_data`; plan disk size |
-| **Backups** | Off-host `pg_dump` storage — see [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) |
+| **Backups** | Off-host `pg_dump` — [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md); optional `scripts/backup_postgres.sh` |
 | **SMTP provider** | Transactional email (verification, reset, notifications) |
 | **Stripe** | Test keys first ([STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)); live keys only after checklist |
 | **Monitoring / logs** | Uptime, error tracking, log retention (not automated in repo yet) |
@@ -230,4 +231,4 @@ docker compose -p service_platform_prod -f docker-compose.prod.yml down
 
 ---
 
-**Last updated:** Phase 7 Slice 3 — VPS deployment runbook added (no live deployment).
+**Last updated:** Phase 7 Slice 4 — PostgreSQL backup/restore baseline (no live deployment).

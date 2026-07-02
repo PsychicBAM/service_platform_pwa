@@ -1,8 +1,8 @@
 # Backup and restore (Postgres)
 
-Manual backup/restore procedures for the Docker Compose stack. **No automated backup service is included yet** — run these on a schedule via cron or your VPS panel.
+Manual backup/restore procedures for the Docker Compose stack. **No automated backup service is included yet** — see [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) for VPS checklists and optional `scripts/backup_postgres.sh`.
 
-Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)
+Related: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [DEPLOYMENT.md](./DEPLOYMENT.md), [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)
 
 ---
 

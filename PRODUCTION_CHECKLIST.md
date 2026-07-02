@@ -2,7 +2,7 @@
 
 Use this before and after deploying to a VPS. Not every item applies to a private demo server — mark N/A where appropriate.
 
-Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md), [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
+Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md), [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md), [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
 
 ---
 
@@ -11,6 +11,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **VPS readiness plan** — [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md); env checklist, deployment steps, smoke tests documented
 - [x] **Production env strict validation** — Slice 2: `check_production_env.py --strict`; static codes; `.env.production.example` template only
 - [x] **VPS deployment runbook** — Slice 3: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md); operator guide for later real deploy; no live deployment in slice
+- [x] **Backup readiness baseline** — Slice 4: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md); manual backup/restore + optional `scripts/backup_postgres.sh`; no automated schedule yet
 - [ ] **Real VPS provisioned** — not done yet
 - [ ] **Domain + HTTPS** — reverse proxy configured on server
 - [ ] **Legal / privacy / consent pages** — required before public launch
@@ -50,7 +51,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 
 ## Operations
 
-- [ ] **Backups configured** — daily `pg_dump` per [BACKUP_RESTORE.md](./BACKUP_RESTORE.md)
+- [ ] **Backups configured** — daily `pg_dump` per [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) / [BACKUP_RESTORE.md](./BACKUP_RESTORE.md); restore tested on clone before launch
 - [ ] **Backup restore tested** at least once on a non-production clone
 - [ ] **Logs reviewed** — `docker compose logs api web` after deploy
 - [ ] **Health check** — `/health` returns OK (via proxy and/or direct)

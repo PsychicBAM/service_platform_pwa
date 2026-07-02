@@ -25,7 +25,7 @@ Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLI
 | **CORS production safety** | `APP_ENV=production` rejects empty origins and wildcard `*` at settings load |
 | **Nginx security headers** | Slices 17–19: CSP baseline, cache refinement, `style-src 'self'` without `unsafe-inline` in `web/nginx.conf` |
 | **Docker production compose** | `docker-compose.prod.yml` — no bind mounts, no `--reload`, API not published publicly, Postgres not port-mapped |
-| **Backup / restore docs** | [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) — manual `pg_dump` / restore procedure |
+| **Backup / restore docs** | [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) |
 | **Guest claim** | Mismatched email/phone returns generic `CLAIM_NOT_FOUND_OR_MISMATCH` (no leak of which field failed) |
 | **Password hashing** | bcrypt via `passlib` `CryptContext`; Slice 20 pinned `bcrypt<4.1.0`; Slice 21 disabled SQL echo logging of `password_hash` |
 | **CI** | GitHub Actions — pytest, `check_backend.py`, migrations, production env template validation |
@@ -303,6 +303,13 @@ This slice does **not** create legal documents or consent UI.
 - Documentation only — **no real VPS deployment** in this slice
 - Legal/privacy/consent pages still required before public launch
 
+### Phase 7 Slice 4 — PostgreSQL backup/restore baseline (summary)
+
+- [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) — principles, pre-update checklist, restore test checklist, future automation plan
+- Optional: `scripts/backup_postgres.sh`, `scripts/restore_postgres.sh` (VPS/bash; static status only; no password output)
+- **No automated backup schedule** — cron/off-server copy remain future work
+- Restore drill on staging clone required before public launch
+
 ---
 
-**Last updated:** Phase 7 Slice 3 — VPS deployment runbook (no live deployment).
+**Last updated:** Phase 7 Slice 4 — PostgreSQL backup/restore baseline (no live deployment).
