@@ -1,10 +1,10 @@
-# VPS Production Readiness Report — Phase 7 (Slice 2)
+# VPS Production Readiness Report — Phase 7 (Slice 3)
 
 **Purpose:** Plan and checklist for a future **real VPS deployment**.  
 **Not in scope:** Live server provisioning, DNS changes, HTTPS certificates, or committing secrets.  
-**Status:** Planning only — **no deployment performed**. Production env **strict validation polished** in Slice 2.
+**Status:** Planning only — **no deployment performed**. Operator runbook: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) (Slice 3).
 
-Related: [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
+Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
 
 ---
 
@@ -21,6 +21,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCT
 | **Stripe** | ✅ Integrated; **`STRIPE_ENABLED=false` by default** — test/live keys on VPS only |
 | **SMTP / live email** | ⏳ Requires VPS `.env` + provider; dry-run audits pass locally |
 | **Production env validation** | ✅ `scripts/check_production_env.py --strict` — polished (Slice 2); static message codes only |
+| **VPS deployment runbook** | ✅ [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) — operator guide (Slice 3); no live deploy |
 | **Legal / privacy pages** | ❌ Not implemented — **blocker before public launch** |
 | **Real VPS deployment** | ❌ **Not done yet** — next major phase |
 
@@ -135,7 +136,7 @@ python scripts/check_production_env.py --env-file .env --strict
 
 ## D. Deployment steps draft
 
-High-level runbook for a future VPS (see [DEPLOYMENT.md](./DEPLOYMENT.md) for detail):
+High-level runbook for a future VPS. **Step-by-step operator guide:** [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md). Summary:
 
 1. **Prepare VPS** — OS updates, deploy user, firewall (22/80/443), SSH keys.
 2. **Install Docker** — Engine + Compose plugin.
@@ -229,4 +230,4 @@ docker compose -p service_platform_prod -f docker-compose.prod.yml down
 
 ---
 
-**Last updated:** Phase 7 Slice 2 — production env strict validation polish (no live deployment).
+**Last updated:** Phase 7 Slice 3 — VPS deployment runbook added (no live deployment).

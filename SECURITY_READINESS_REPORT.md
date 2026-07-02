@@ -20,6 +20,7 @@ Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLI
 | **Stripe webhook** | `POST /api/v1/billing/stripe/webhook` verifies Stripe signature; invalid signature → `STRIPE_WEBHOOK_SIGNATURE_INVALID` |
 | **Checkout access** | `POST .../billing/checkout-session` requires authenticated business admin/owner |
 | **Production env validation** | `scripts/check_production_env.py --strict` — JWT, CORS, docs, DB, SQL echo, public URLs, Stripe, SMTP; static message codes only (Slice 2) |
+| **VPS deployment runbook** | [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) — operator guide (Slice 3); no live deploy yet |
 | **API docs** | OpenAPI UI enabled in `local`/`dev` by default; disabled in `staging`/`production` unless `API_DOCS_ENABLED=true` |
 | **CORS production safety** | `APP_ENV=production` rejects empty origins and wildcard `*` at settings load |
 | **Nginx security headers** | Slices 17–19: CSP baseline, cache refinement, `style-src 'self'` without `unsafe-inline` in `web/nginx.conf` |
@@ -296,6 +297,12 @@ This slice does **not** create legal documents or consent UI.
 - `scripts/check_production_env.py --strict` — fails on unsafe production config; never prints secret values
 - Run `--strict` on server `.env` before VPS launch; `--strict` on the example file is expected to fail until secrets are set on the server
 
+### Phase 7 Slice 3 — VPS deployment runbook (summary)
+
+- [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) — server prep, folder layout, first deploy, HTTPS plan, smoke tests, backup/rollback, logs
+- Documentation only — **no real VPS deployment** in this slice
+- Legal/privacy/consent pages still required before public launch
+
 ---
 
-**Last updated:** Phase 7 Slice 2 — production env strict validation polish (no live deployment).
+**Last updated:** Phase 7 Slice 3 — VPS deployment runbook (no live deployment).

@@ -174,7 +174,7 @@ docker compose exec api python scripts/seed_demo.py
 
 Open http://localhost:5173 — nginx serves the built React app. API calls use `/api/v1` on the same host (proxied to `api:8000`).
 
-The production `web` nginx config adds security headers (CSP baseline, cache control, `X-Content-Type-Options`, `X-Frame-Options`, etc.). See [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) and [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) for VPS deploy planning.
+The production `web` nginx config adds security headers (CSP baseline, cache control, `X-Content-Type-Options`, `X-Frame-Options`, etc.). See [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), and [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) for VPS deploy planning.
 
 | URL | Purpose |
 |-----|---------|
@@ -301,8 +301,9 @@ Production frontend is served by the `web` Docker service (nginx). For a future 
 
 | Doc | Purpose |
 |-----|---------|
+| [VPS_READINESS_REPORT.md](../VPS_READINESS_REPORT.md) | Phase 7 — VPS readiness plan, env checklist, blockers |
+| [VPS_DEPLOYMENT_RUNBOOK.md](../VPS_DEPLOYMENT_RUNBOOK.md) | Phase 7 — operator runbook for real VPS (no live deploy yet) |
 | [DEPLOYMENT.md](../DEPLOYMENT.md) | Full stack deploy, HTTPS, updates |
-| [VPS_READINESS_REPORT.md](../VPS_READINESS_REPORT.md) | Phase 7 — VPS plan, env checklist, smoke tests |
 | [BACKUP_RESTORE.md](../BACKUP_RESTORE.md) | Postgres backup/restore |
 | [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md) | Pre-launch checklist |
 | [.env.production.example](../.env.production.example) | Backend production env template |

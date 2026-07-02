@@ -265,7 +265,8 @@ Playwright browser E2E is **not** in CI yet (needs backend + browser deps). Run 
 | File / doc | Purpose |
 |------------|---------|
 | [docker-compose.prod.yml](./docker-compose.prod.yml) | Production stack — no reload, no api bind mount; host `WEB_HTTP_PORT` → container nginx **8080** |
-| [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) | Phase 7 — VPS deployment plan, env checklist, smoke tests (no live deploy yet) |
+| [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) | Phase 7 — VPS readiness plan, env checklist, blockers (no live deploy yet) |
+| [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) | Phase 7 — step-by-step operator guide for real VPS deploy (docs only) |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | First deploy, HTTPS, logs, updates, dev vs prod |
 | [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) | Postgres backup/restore (dev + prod compose) |
 | [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) | Pre-launch checks |

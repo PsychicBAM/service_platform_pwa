@@ -10,6 +10,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 
 - [x] **VPS readiness plan** — [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md); env checklist, deployment steps, smoke tests documented
 - [x] **Production env strict validation** — Slice 2: `check_production_env.py --strict`; static codes; `.env.production.example` template only
+- [x] **VPS deployment runbook** — Slice 3: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md); operator guide for later real deploy; no live deployment in slice
 - [ ] **Real VPS provisioned** — not done yet
 - [ ] **Domain + HTTPS** — reverse proxy configured on server
 - [ ] **Legal / privacy / consent pages** — required before public launch
@@ -55,7 +56,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [ ] **Health check** — `/health` returns OK (via proxy and/or direct)
 - [ ] **Restart policy** — `restart: unless-stopped` on postgres, api, web
 - [ ] **Disk space** — monitor volume growth (`docker system df`, host disk)
-- [ ] **Update procedure documented** — git pull, build, migrate (see [DEPLOYMENT.md](./DEPLOYMENT.md))
+- [ ] **Update procedure documented** — git pull, build, migrate (see [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) §H)
 - [ ] **Rollback plan** — previous git tag + backup restore path understood
 - [ ] **Timezone** — `TZ` set consistently for support and booking display
 
