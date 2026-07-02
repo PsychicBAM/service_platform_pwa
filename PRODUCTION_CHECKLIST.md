@@ -13,6 +13,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **VPS deployment runbook** — Slice 3: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md); operator guide for later real deploy; no live deployment in slice
 - [x] **Backup readiness baseline** — Slice 4: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md); manual backup/restore + optional helpers; no automated schedule yet
 - [x] **Backup script smoke tests** — Slice 5: `api/tests/test_backup_scripts.py`; no real dump/restore in tests
+- [x] **Restore drill checklist** — Slice 6: [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md); staging drill documented; no real restore in slice
 - [ ] **Real VPS provisioned** — not done yet
 - [ ] **Domain + HTTPS** — reverse proxy configured on server
 - [ ] **Legal / privacy / consent pages** — required before public launch
@@ -52,7 +53,8 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 
 ## Operations
 
-- [ ] **Backups configured** — daily `pg_dump` per [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md); restore drill on staging clone before launch
+- [ ] **Backups configured** — daily `pg_dump` per [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md)
+- [ ] **Restore drill completed** — [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) on isolated staging clone before public launch
 - [ ] **Backup restore tested** at least once on a non-production clone
 - [ ] **Logs reviewed** — `docker compose logs api web` after deploy
 - [ ] **Health check** — `/health` returns OK (via proxy and/or direct)

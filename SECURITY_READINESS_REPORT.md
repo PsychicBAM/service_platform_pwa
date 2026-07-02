@@ -79,7 +79,7 @@ Complete before pointing a real domain at the stack:
 - [ ] **`EMAIL_ENABLED`** — only after SMTP test; `EMAIL_DRY_RUN=false` only when sending is verified
 - [ ] **`STRIPE_ENABLED`** — only after [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) passes in staging
 - [ ] **HTTPS + domain** — TLS certificate valid; HTTP redirects to HTTPS
-- [ ] **Backup / restore tested** — at least one restore drill on a clone ([BACKUP_RESTORE.md](./BACKUP_RESTORE.md))
+- [ ] **Backup / restore tested** — restore drill on staging clone per [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) (not performed yet)
 - [ ] **Demo credentials** — do not run `seed_demo.py` on production; change or remove `superadmin@example.com`, `owner@example.com`, `client@example.com`
 - [ ] **Database not public** — use `docker-compose.prod.yml` (Postgres has no `ports:`); firewall blocks `:5433` / `:5432` from internet
 - [ ] **API not exposed** — only nginx `web` on 80/443; block direct `:8000` if accidentally published
@@ -316,6 +316,13 @@ This slice does **not** create legal documents or consent UI.
 - `restore_postgres.sh` requires `--confirm-destructive` before any restore attempt
 - Shellcheck not in CI — optional local improvement
 
+### Phase 7 Slice 6 — Restore drill checklist (summary)
+
+- [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) — staging restore drill plan, pre/post checklists, failure handling
+- **No real restore performed** in this slice
+- Real drill on isolated staging/VPS clone still required before public launch
+- Backup automation (cron, off-server copy) remains future work
+
 ---
 
-**Last updated:** Phase 7 Slice 5 — backup script smoke tests (no real backup/restore).
+**Last updated:** Phase 7 Slice 6 — restore drill checklist (no real restore performed).

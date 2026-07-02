@@ -373,6 +373,7 @@ Legacy list (Phase 3):
 | VPS deployment runbook | Phase 7 Slice 3 — [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md); operator guide; no live deployment |
 | Backup readiness baseline | Phase 7 Slice 4 — [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md); manual backup/restore; optional helpers; no cron yet |
 | Backup script smoke tests | Phase 7 Slice 5 — `api/tests/test_backup_scripts.py`; no real dump/restore in CI |
+| Restore drill checklist | Phase 7 Slice 6 — [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md); staging drill plan; no real restore in slice |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |

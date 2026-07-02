@@ -1,10 +1,10 @@
-# Backup Readiness Report — Phase 7 (Slice 5)
+# Backup Readiness Report — Phase 7 (Slice 6)
 
 **Purpose:** PostgreSQL backup/restore baseline for future VPS operations.  
 **Status:** Planning + optional helper scripts — **no automated VPS backups active yet**.  
 **Not in scope:** Live deployment, off-server object storage, encrypted backup tooling, or committing database dumps.
 
-Related: [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)
+Related: [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)
 
 ---
 
@@ -15,7 +15,7 @@ Related: [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md]
 | **Automated VPS backups** | ❌ Not implemented — manual `pg_dump` only |
 | **PostgreSQL storage** | Docker named volume `service_platform_postgres_prod_data` (prod compose) |
 | **Backup location** | Must be **outside** the git repo (`backups/` is gitignored) |
-| **Restore tested on clone** | ⏳ Required before public launch — not automated in repo |
+| **Restore tested on clone** | ⏳ [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) — drill checklist; **no real drill yet** |
 | **Helper scripts** | [scripts/backup_postgres.sh](./scripts/backup_postgres.sh), [scripts/restore_postgres.sh](./scripts/restore_postgres.sh) — VPS/bash; static status only |
 | **Script smoke tests** | ✅ `api/tests/test_backup_scripts.py` — no real `pg_dump`/restore (Slice 5) |
 | **Shellcheck** | ⏳ Not in CI — run locally if `shellcheck` is installed (future improvement) |
@@ -206,7 +206,11 @@ Run on a **disposable** VPS clone or local prod-compose smoke — not on live pr
 
 ### Script smoke tests (Slice 5)
 
-`api/tests/test_backup_scripts.py` validates `--help`, argument errors, default backup dir outside repo, and that output never contains fake secret markers. **Tests do not run `pg_dump` or restore.** A real restore drill on a staging/VPS clone is still required before public launch.
+`api/tests/test_backup_scripts.py` validates `--help`, argument errors, default backup dir outside repo, and that output never contains fake secret markers. **Tests do not run `pg_dump` or restore.** Step-by-step staging drill: [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md).
+
+### Restore drill checklist (Slice 6)
+
+[RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) documents pre-restore, post-restore validation, and failure handling for an **isolated staging clone**. No real restore was run in Slice 6.
 
 ---
 
@@ -221,4 +225,4 @@ Run on a **disposable** VPS clone or local prod-compose smoke — not on live pr
 
 ---
 
-**Last updated:** Phase 7 Slice 5 — backup script smoke tests (no real backup/restore).
+**Last updated:** Phase 7 Slice 6 — restore drill checklist (no real restore performed).
