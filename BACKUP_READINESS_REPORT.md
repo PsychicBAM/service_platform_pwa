@@ -1,10 +1,10 @@
-# Backup Readiness Report — Phase 7 (Slice 6)
+# Backup Readiness Report — Phase 7 (Slice 7)
 
 **Purpose:** PostgreSQL backup/restore baseline for future VPS operations.  
 **Status:** Planning + optional helper scripts — **no automated VPS backups active yet**.  
 **Not in scope:** Live deployment, off-server object storage, encrypted backup tooling, or committing database dumps.
 
-Related: [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)
+Related: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)
 
 ---
 
@@ -12,7 +12,7 @@ Related: [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) · [BACKUP_RESTORE
 
 | Item | Status |
 |------|--------|
-| **Automated VPS backups** | ❌ Not implemented — manual `pg_dump` only |
+| **Automated VPS backups** | ❌ Not implemented — schedule documented in [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md); configure on VPS only |
 | **PostgreSQL storage** | Docker named volume `service_platform_postgres_prod_data` (prod compose) |
 | **Backup location** | Must be **outside** the git repo (`backups/` is gitignored) |
 | **Restore tested on clone** | ⏳ [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) — drill checklist; **no real drill yet** |
@@ -193,16 +193,18 @@ Run on a **disposable** VPS clone or local prod-compose smoke — not on live pr
 
 ---
 
-## H. Future automation plan (later slices)
+## H. Backup schedule and retention (Slice 7)
 
-| Item | Planned |
-|------|---------|
-| Scheduled backup script wrapper | Later — cron or systemd timer calling `backup_postgres.sh` |
-| Off-server copy | Later — `scp`, `rsync`, or object storage; encrypt in transit |
-| Retention policy | Later — e.g. keep 7 daily, 4 weekly; prune old `.sql.gz` |
-| Backup failure alerts | Later — monitoring if dump missing or zero-byte |
-| Encrypted backups at rest | Later — `gpg` or provider-side encryption |
-| Point-in-time recovery | Later — Postgres WAL archiving (not in MVP) |
+Full plan: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — frequency, retention tiers, folder layout, cron/systemd **templates**, off-server copy, failure alerts, cleanup safety, launch gate.
+
+| Item | Status |
+|------|--------|
+| Scheduled backup (cron/systemd) | ⏳ Documented — **not installed** in repo |
+| Retention policy | ⏳ Draft — 7 daily / 4 weekly / 3–6 monthly |
+| Off-server copy | ⏳ Planned — rsync, S3, or provider snapshot |
+| Backup failure alerts | ⏳ Future monitoring slice |
+| Encrypted backups at rest | ⏳ Optional `gpg` before upload |
+| Point-in-time recovery | ❌ WAL archiving not in MVP |
 
 ### Script smoke tests (Slice 5)
 
@@ -225,4 +227,4 @@ Run on a **disposable** VPS clone or local prod-compose smoke — not on live pr
 
 ---
 
-**Last updated:** Phase 7 Slice 6 — restore drill checklist (no real restore performed).
+**Last updated:** Phase 7 Slice 7 — backup schedule and retention plan (no live cron/systemd installed).

@@ -58,7 +58,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Rate limiting** | Not implemented on auth or public endpoints |
 | **Content-Security-Policy** | ✅ Slices 17–19 — `style-src 'self'` only (no `unsafe-inline`); COEP/HSTS still deferred |
 | **Monitoring / alerting** | No uptime, error rate, or intrusion alerts configured |
-| **Automated backups** | Documented manually only — no cron / object-storage automation in repo |
+| **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — schedule/retention documented; not active until VPS setup |
 | **Legal / privacy / consent pages** | Terms, Privacy Policy, consent flows not implemented |
 | **Production VPS** | Not deployed — local/Docker dev only |
 | **WAF / DDoS** | Rely on host/provider when deployed |
@@ -307,7 +307,7 @@ This slice does **not** create legal documents or consent UI.
 
 - [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) — principles, pre-update checklist, restore test checklist, future automation plan
 - Optional: `scripts/backup_postgres.sh`, `scripts/restore_postgres.sh` (VPS/bash; static status only; no password output)
-- **No automated backup schedule** — cron/off-server copy remain future work
+- **Automated backup schedule** — documented in [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md); configure on VPS only
 - Restore drill on staging clone required before public launch
 
 ### Phase 7 Slice 5 — Backup script smoke tests (summary)
@@ -321,8 +321,14 @@ This slice does **not** create legal documents or consent UI.
 - [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) — staging restore drill plan, pre/post checklists, failure handling
 - **No real restore performed** in this slice
 - Real drill on isolated staging/VPS clone still required before public launch
-- Backup automation (cron, off-server copy) remains future work
+- Backup automation (cron, off-server copy) — [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md); templates only; configure on VPS
+
+### Phase 7 Slice 7 — Backup schedule & retention (summary)
+
+- [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — frequency, retention tiers, folder layout, cron/systemd templates, off-server copy, failure alerts, cleanup safety, launch gate
+- **No cron/systemd job installed** in this slice — operators configure on VPS only
+- Off-server backup copy remains planned until VPS setup
 
 ---
 
-**Last updated:** Phase 7 Slice 6 — restore drill checklist (no real restore performed).
+**Last updated:** Phase 7 Slice 7 — backup schedule and retention plan (no live cron/systemd installed).

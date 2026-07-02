@@ -4,7 +4,7 @@
 **Status:** Documentation only — **no real restore performed in this slice**.  
 **Not in scope:** Live production restore, committing backup files, or automated drill scheduling.
 
-Related: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [scripts/restore_postgres.sh](./scripts/restore_postgres.sh)
+Related: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [scripts/restore_postgres.sh](./scripts/restore_postgres.sh)
 
 ---
 
@@ -157,9 +157,9 @@ If restore fails on **production** (future): treat as incident — engage mainte
 
 | Item | Planned |
 |------|---------|
-| **Scheduled backups** | cron/systemd calling `backup_postgres.sh` |
+| **Scheduled backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — cron/systemd templates; configure on VPS only |
 | **Off-server copy** | `scp`, `rsync`, or object storage |
-| **Retention policy** | e.g. 7 daily, 4 weekly |
+| **Retention policy** | 7 daily, 4 weekly, 3–6 monthly — see schedule report §C |
 | **Monthly restore drill** | Repeat §C on disposable staging |
 | **Backup failure alerts** | monitoring if dump missing or zero-byte |
 | **Encryption at rest** | `gpg` or provider-side encryption for `.sql.gz` |
@@ -185,4 +185,4 @@ WEB_HTTP_PORT=8090 docker compose -p service_platform_drill \
 
 ---
 
-**Last updated:** Phase 7 Slice 6 — restore drill checklist (no real restore performed).
+**Last updated:** Phase 7 Slice 7 — cross-link to [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) (no live schedule installed).
