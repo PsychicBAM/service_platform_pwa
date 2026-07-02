@@ -4,7 +4,7 @@
 **Status:** Documentation only — **no live deployment performed in this slice**.  
 **Not included:** Live secrets, provider-specific automation, legal/privacy pages, or reverse-proxy config files.
 
-Related: [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
+Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
 
 ---
 
@@ -369,11 +369,18 @@ docker compose -p service_platform_prod \
 
 ## I. Logs and monitoring
 
+Full plan: [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — health checks, manual Docker/log/disk commands, log policy, alert plan, incident checklist.
+
+**Before public launch:** Review monitoring plan; configure at least manual health checks and log review. **No live monitoring is configured in the repo.**
+
 ### Container logs
 
 ```bash
-docker compose -p service_platform_prod -f docker-compose.prod.yml logs -f --tail=200 api web
-docker compose -p service_platform_prod -f docker-compose.prod.yml logs --tail=100 postgres
+docker compose -p service_platform_prod -f docker-compose.prod.yml \
+  --env-file /opt/service-platform/env/.env.production logs -f --tail=200 api web
+
+docker compose -p service_platform_prod -f docker-compose.prod.yml \
+  --env-file /opt/service-platform/env/.env.production logs --tail=100 postgres
 ```
 
 **Do not** enable `SQLALCHEMY_ECHO=true` in production — SQL bind params can leak sensitive fields.
@@ -383,27 +390,31 @@ docker compose -p service_platform_prod -f docker-compose.prod.yml logs --tail=1
 | Check | Command / endpoint |
 |-------|-------------------|
 | Compose health | `docker compose -p service_platform_prod -f docker-compose.prod.yml ps` |
-| HTTP health | `curl -sf https://your-domain.example/health` |
-| API health | `curl -sf https://your-domain.example/api/v1/health` |
+| HTTP health | `curl -sf https://your-domain.example/health` → `{"status":"ok"}` |
+| API health | `curl -sf https://your-domain.example/api/v1/health` → `{"status":"ok"}` |
+| Localhost (VPS only) | `curl -sf http://127.0.0.1:${WEB_HTTP_PORT:-80}/health` |
 
 ### Resource usage
 
 ```bash
 docker system df
 docker volume ls
-df -h /var/lib/docker
+df -h
+du -sh /opt/service-platform/backups
 ```
 
 Monitor Postgres volume growth and host disk; plan retention for backups and logs.
 
-### Future monitoring (not automated in repo)
+### Future alerts (not active)
 
-- Uptime probe on `/health`
-- Error-rate / 5xx alerts from reverse proxy or APM
-- Backup success/failure notifications
+- Uptime probe on `/health` — see [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) §F
+- Error-rate / 5xx from nginx or API logs
+- Backup success/failure — [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) §H
 - Disk-space alerts
+- SSL expiry (after HTTPS)
+- Stripe webhook / SMTP failures (after enabled)
 
----
+Options later: cron + email/Telegram, Uptime Kuma, Healthchecks.io — no paid integration in this slice.
 
 ## J. Production blockers reminder
 
@@ -414,7 +425,7 @@ Monitor Postgres volume growth and host disk; plan retention for backups and log
 | **Stripe on VPS** | ⏳ `STRIPE_ENABLED=false`; use test mode first — [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) |
 | **Automated backups** | ⏳ [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) + `scripts/backup_postgres.sh`; cron/systemd templates only — configure on VPS |
 | **Restore drill on staging** | ⏳ [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) — required before public launch; not performed yet |
-| **Monitoring / alerts** | ⏳ Not automated |
+| **Monitoring / alerts** | ⏳ [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | **Domain + HTTPS** | ⏳ Not configured until VPS provisioned |
 | **Demo credentials** | Must not remain on public production |
 | **Real VPS deployment** | ❌ **Not performed** — follow this runbook when ready |
@@ -444,4 +455,4 @@ docker compose -p service_platform_prod \
 
 ---
 
-**Last updated:** Phase 7 Slice 3 — VPS deployment runbook (documentation only; no live deployment).
+**Last updated:** Phase 7 Slice 8 — monitoring readiness cross-links (no live monitoring configured).

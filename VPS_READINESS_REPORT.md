@@ -4,7 +4,7 @@
 **Not in scope:** Live server provisioning, DNS changes, HTTPS certificates, or committing secrets.  
 **Status:** Planning only — **no deployment performed**. Operator runbook: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md). Backup baseline: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) (Slice 4).
 
-Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
+Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
 
 ---
 
@@ -40,7 +40,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [BACKUP_REA
 | **Backups** | Off-host `pg_dump` — [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md); optional `scripts/backup_postgres.sh` |
 | **SMTP provider** | Transactional email (verification, reset, notifications) |
 | **Stripe** | Test keys first ([STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)); live keys only after checklist |
-| **Monitoring / logs** | Uptime, error tracking, log retention (not automated in repo yet) |
+| **Monitoring / logs** | ⏳ [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; not active until VPS setup |
 | **SSH access** | Key-based deploy user; firewall 22/80/443 only |
 
 **Internal ports (containers):** `web` nginx **8080**, `api` **8000** (not published in prod compose).
@@ -151,7 +151,7 @@ High-level runbook for a future VPS. **Step-by-step operator guide:** [VPS_DEPLO
 10. **Reverse proxy + HTTPS** — terminate TLS; route to `WEB_HTTP_PORT` (container nginx on **8080** internally).
 11. **Production checks** — `check_security_readiness.py`, audit scripts, smoke checklist (§E).
 12. **Backups** — cron `pg_dump` per [BACKUP_RESTORE.md](./BACKUP_RESTORE.md); test restore once.
-13. **Monitoring** — health endpoint uptime, log review, alert contacts.
+13. **Monitoring** — [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md); health uptime, log review, alert plan; configure on VPS before launch.
 14. **Smoke tests** — §E on HTTPS URL; optional manual ZAP baseline on **owned** staging URL.
 
 ---
@@ -207,7 +207,7 @@ Run on **HTTPS staging** before public launch. Use test accounts — do not log 
 | **Live SMTP** | Not configured; email verification/reset/notifications need provider |
 | **Live Stripe on VPS** | `STRIPE_ENABLED=false`; test webhook + HTTPS URL not validated on server |
 | **Automated backups** | Documented manually; no cron/object-storage automation in repo |
-| **Monitoring / alerts** | No uptime or error-rate alerting configured |
+| **Monitoring / alerts** | ⏳ [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — required before public launch; not configured yet |
 | **Domain + HTTPS VPS** | No real deployment yet |
 | **Demo seed on production** | Default `ChangeMe123!` and demo emails must not remain on public prod |
 
@@ -231,4 +231,4 @@ docker compose -p service_platform_prod -f docker-compose.prod.yml down
 
 ---
 
-**Last updated:** Phase 7 Slice 4 — PostgreSQL backup/restore baseline (no live deployment).
+**Last updated:** Phase 7 Slice 8 — monitoring readiness cross-links (no live monitoring configured).

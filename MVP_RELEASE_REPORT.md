@@ -375,6 +375,7 @@ Legacy list (Phase 3):
 | Backup script smoke tests | Phase 7 Slice 5 — `api/tests/test_backup_scripts.py`; no real dump/restore in CI |
 | Restore drill checklist | Phase 7 Slice 6 — [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md); staging drill plan; no real restore in slice |
 | Backup schedule & retention plan | Phase 7 Slice 7 — [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md); frequency, retention, cron/systemd templates; no live job in slice |
+| Monitoring & logging readiness | Phase 7 Slice 8 — [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md); health/log/alert/incident plan; no live monitoring in slice |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |
@@ -401,8 +402,9 @@ Legacy list (Phase 3):
 | OAuth / social login | Email/password only |
 | Service worker / offline mode | PWA manifest only |
 | Mobile app wrapper | Web responsive UI only |
-| Monitoring / alerting | No uptime or error tracking service |
+| Monitoring / alerting | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; not active until VPS setup |
 | **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — templates documented; configure cron/systemd on VPS only |
+| **Monitoring / alerting** | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | Real VPS deployment | Docs and compose prepared; not deployed to production domain |
 
 ### C. Manual demo checklist

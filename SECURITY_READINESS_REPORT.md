@@ -57,7 +57,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **OWASP ZAP baseline** | ✅ Slice 19 — final CSP/cache triage; `unsafe-inline` removed; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G–J |
 | **Rate limiting** | Not implemented on auth or public endpoints |
 | **Content-Security-Policy** | ✅ Slices 17–19 — `style-src 'self'` only (no `unsafe-inline`); COEP/HSTS still deferred |
-| **Monitoring / alerting** | No uptime, error rate, or intrusion alerts configured |
+| **Monitoring / alerting** | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — schedule/retention documented; not active until VPS setup |
 | **Legal / privacy / consent pages** | Terms, Privacy Policy, consent flows not implemented |
 | **Production VPS** | Not deployed — local/Docker dev only |
@@ -329,6 +329,12 @@ This slice does **not** create legal documents or consent UI.
 - **No cron/systemd job installed** in this slice — operators configure on VPS only
 - Off-server backup copy remains planned until VPS setup
 
+### Phase 7 Slice 8 — Monitoring & logging readiness (summary)
+
+- [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — what to monitor, manual VPS checks, health plan, log policy, alert plan, incident checklist
+- **No live monitoring configured** — required before public launch; configure on VPS only
+- Backup freshness monitoring — [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) §H; remains future VPS work
+
 ---
 
-**Last updated:** Phase 7 Slice 7 — backup schedule and retention plan (no live cron/systemd installed).
+**Last updated:** Phase 7 Slice 8 — monitoring and logging readiness (no live monitoring configured).

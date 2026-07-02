@@ -186,7 +186,7 @@ Never rely on backups that exist **only** on the same VPS disk as production.
 
 ## H. Backup failure alert plan (future)
 
-Monitoring is **not implemented** in this slice. Plan for a later ops slice:
+Monitoring is **not implemented** in this slice. Full ops monitoring plan: [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) §F. Plan for a later VPS slice:
 
 | Check | Action |
 |-------|--------|

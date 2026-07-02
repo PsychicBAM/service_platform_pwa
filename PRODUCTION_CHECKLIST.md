@@ -2,7 +2,7 @@
 
 Use this before and after deploying to a VPS. Not every item applies to a private demo server — mark N/A where appropriate.
 
-Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md), [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md), [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
+Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md), [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md), [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
 
 ---
 
@@ -15,6 +15,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Backup script smoke tests** — Slice 5: `api/tests/test_backup_scripts.py`; no real dump/restore in tests
 - [x] **Restore drill checklist** — Slice 6: [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md); staging drill documented; no real restore in slice
 - [x] **Backup schedule & retention plan** — Slice 7: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md); cron/systemd templates documented; no live job installed
+- [x] **Monitoring & logging readiness** — Slice 8: [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md); health/log/alert plan documented; no live monitoring configured
 - [ ] **Real VPS provisioned** — not done yet
 - [ ] **Domain + HTTPS** — reverse proxy configured on server
 - [ ] **Legal / privacy / consent pages** — required before public launch
@@ -57,7 +58,8 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [ ] **Backups configured** — daily schedule per [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) on VPS (not active until server setup)
 - [ ] **Restore drill completed** — [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) on isolated staging clone before public launch
 - [ ] **Backup restore tested** at least once on a non-production clone
-- [ ] **Logs reviewed** — `docker compose logs api web` after deploy
+- [ ] **Monitoring configured** — [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md); uptime + log review on VPS before public launch
+- [ ] **Logs reviewed** — `docker compose logs api web` after deploy; no secrets in shared logs
 - [ ] **Health check** — `/health` returns OK (via proxy and/or direct)
 - [ ] **Restart policy** — `restart: unless-stopped` on postgres, api, web
 - [ ] **Disk space** — monitor volume growth (`docker system df`, host disk)
