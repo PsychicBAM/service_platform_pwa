@@ -362,6 +362,7 @@ Legacy list (Phase 3):
 | ZAP baseline triage | Phase 6 Slice 16 — first run 0 FAIL / 6 WARN; artifact fix |
 | nginx security headers | Phase 6 Slice 17 — `server_tokens off`, conservative CSP, cache headers; COEP/HSTS deferred |
 | nginx CSP/cache refinement | Phase 6 Slice 18 — explicit CSP directives (10055); HTML no-store; assets immutable long-cache |
+| ZAP final CSP/cache triage | Phase 6 Slice 19 — `style-src` without `unsafe-inline`; 10049/10027 triaged; COEP deferred |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |

@@ -22,7 +22,7 @@ Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLI
 | **Production env validation** | `scripts/check_production_env.py --strict` checks JWT, CORS, docs, DB, Stripe, SMTP |
 | **API docs** | OpenAPI UI enabled in `local`/`dev` by default; disabled in `staging`/`production` unless `API_DOCS_ENABLED=true` |
 | **CORS production safety** | `APP_ENV=production` rejects empty origins and wildcard `*` at settings load |
-| **Nginx security headers** | Slice 17 baseline; Slice 18 CSP directives + HTML `no-store` / assets `immutable` cache in `web/nginx.conf` |
+| **Nginx security headers** | Slices 17–19: CSP baseline, cache refinement, `style-src 'self'` without `unsafe-inline` in `web/nginx.conf` |
 | **Docker production compose** | `docker-compose.prod.yml` — no bind mounts, no `--reload`, API not published publicly, Postgres not port-mapped |
 | **Backup / restore docs** | [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) — manual `pg_dump` / restore procedure |
 | **Guest claim** | Mismatched email/phone returns generic `CLAIM_NOT_FOUND_OR_MISMATCH` (no leak of which field failed) |
@@ -53,9 +53,9 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Docker non-root (Slice 11)** | ✅ `appuser` / `nginx` USER; web internal port **8080**; DS-0002 resolved locally |
 | **Trivy blocking (Slice 12)** | ✅ `trivy.yml` without `continue-on-error`; HIGH/CRITICAL findings fail workflow |
 | **Gitleaks secrets scan (Slice 13)** | ✅ `.github/workflows/gitleaks.yml` — blocking; [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md) |
-| **OWASP ZAP baseline** | ✅ Slice 18 — CSP/cache refined for 10055/10049; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G–I |
+| **OWASP ZAP baseline** | ✅ Slice 19 — final CSP/cache triage; `unsafe-inline` removed; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G–J |
 | **Rate limiting** | Not implemented on auth or public endpoints |
-| **Content-Security-Policy** | ✅ Slices 17–18 — explicit CSP directives in `web/nginx.conf`; COEP/HSTS still deferred |
+| **Content-Security-Policy** | ✅ Slices 17–19 — `style-src 'self'` only (no `unsafe-inline`); COEP/HSTS still deferred |
 | **Monitoring / alerting** | No uptime, error rate, or intrusion alerts configured |
 | **Automated backups** | Documented manually only — no cron / object-storage automation in repo |
 | **Legal / privacy / consent pages** | Terms, Privacy Policy, consent flows not implemented |
@@ -266,6 +266,13 @@ This slice does **not** create legal documents or consent UI.
 - `/assets/*`: `public, max-age=31536000, immutable`
 - COEP/COOP/CORP and HSTS still deferred; 10027/10109 documented not suppressed/accepted
 
+### Phase 6 Slice 19 — Final ZAP CSP/cache triage (summary)
+
+- Removed `style-src 'unsafe-inline'` — app uses external Vite/Tailwind CSS only; Playwright + Docker smoke pass
+- 10049 cache policy triaged: HTML no-store intentional; assets immutable; icons/manifest short cache
+- 10027 suspicious comments: comment-free minified bundle; likely false positive; not suppressed
+- ZAP remains manual, non-blocking
+
 ---
 
-**Last updated:** Phase 6 Slice 18 — CSP and cache header refinement.
+**Last updated:** Phase 6 Slice 19 — final ZAP CSP/cache triage.
