@@ -18,6 +18,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **OWASP ZAP workflow** — Slice 15: `.github/workflows/zap-baseline.yml`; manual/non-blocking localhost baseline; unauthenticated public pages only
 - [x] **ZAP baseline triage** — Slice 16: first run 0 FAIL / 6 WARN; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G
 - [x] **nginx security headers** — Slice 17: `server_tokens off`, CSP baseline, cache headers; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §H
+- [x] **nginx CSP/cache refinement** — Slice 18: explicit CSP directives, HTML no-store, assets immutable; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §I
 - [ ] **Security config audit** — `docker compose exec api python scripts/check_security_readiness.py` (with production `.env` on staging)
 - [ ] **Production env validated** — `python scripts/check_production_env.py --env-file .env --strict` exits 0
 - [ ] **JWT_SECRET_KEY** is a long random value (≥ 32 bytes), not `change_me`

@@ -43,6 +43,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] **OWASP ZAP workflow** — Slice 15: `.github/workflows/zap-baseline.yml`; manual `workflow_dispatch`, non-blocking, local Docker target `http://localhost:5173`
 - [x] **ZAP first baseline triaged** — Slice 16: 0 FAIL / 6 WARN; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G; report artifact fix
 - [x] **nginx security headers baseline** — Slice 17: `server_tokens off`, CSP, cache headers; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §H
+- [x] **nginx CSP/cache refinement** — Slice 18: explicit CSP directives, HTML `no-store`, assets `immutable`; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §I
 - [ ] OWASP ZAP baseline on staging URL (after VPS)
 
 ---
@@ -120,6 +121,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] OWASP ZAP workflow — Slice 15; `.github/workflows/zap-baseline.yml`; manual/non-blocking local baseline
 - [x] ZAP first baseline triaged — Slice 16; 0 FAIL / 6 WARN; artifact fix; see [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G
 - [x] nginx security headers baseline — Slice 17; CSP + `server_tokens off` + cache headers; see [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §H
+- [x] nginx CSP/cache refinement — Slice 18; explicit CSP directives + HTML no-store; see [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §I
 - [ ] OWASP ZAP baseline on staging — review findings after VPS deploy
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first
 - [ ] TestSprite — regression QA; security findings triaged separately
