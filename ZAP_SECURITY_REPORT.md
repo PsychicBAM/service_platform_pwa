@@ -15,7 +15,7 @@ Related: [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECU
 | **External targets** | **None scanned** — no VPS/staging URL yet |
 | **Allowed targets** | **Owned local Docker app** (`localhost`) or **our HTTPS staging** after deploy |
 | **Scan mode** | **Baseline / passive only** — no active attack, no authenticated admin routes in this slice |
-| **Workflow** | Slice 15 baseline workflow; Slice 16 artifact/report fix (`zap_report.*`) |
+| **Workflow** | Slice 15 baseline workflow; Slice 16 artifact/report fix (action default `report_*` files) |
 | **First baseline** | **0 FAIL-NEW**, **6 WARN-NEW**, **61 PASS** (manual run, localhost) |
 | **Nuclei** | Not planned in this slice |
 
@@ -94,7 +94,7 @@ Install [OWASP ZAP](https://www.zaproxy.org/) locally **or** use the official Do
 # Scan public home only — expand -t only to owned public paths you intend to test
 docker run --rm -t owasp/zap2docker-stable zap-baseline.py \
   -t http://host.docker.internal:5173/ \
-  -r zap_report.html -J zap_report.json -w zap_report.md \
+  -r report_html.html -J report_json.json -w report_md.md \
   -I
 ```
 
@@ -156,7 +156,7 @@ For each ZAP alert:
 | WARN-NEW | 6 |
 | PASS | 61 |
 
-**Artifact fix (Slice 16):** workflow now writes `zap_report.html`, `zap_report.json`, `zap_report.md` via explicit `cmd_options` and uploads only those files (`if-no-files-found: warn`). Previous failure (`report_md.md does not exist`) came from uploading default action filenames that were not generated.
+**Artifact fix (Slice 16):** workflow uses the action default report files (`report_html.html`, `report_json.json`, `report_md.md`) and uploads those files (`if-no-files-found: warn`) to avoid filename mismatch failures.
 
 | ZAP ID | Alert | Affected area | Severity | Initial assessment | Decision | Future action |
 |--------|-------|---------------|----------|-------------------|----------|---------------|
@@ -176,7 +176,7 @@ For each ZAP alert:
 | Phase | Plan |
 |-------|------|
 | **Slice 15 (implemented)** | `.github/workflows/zap-baseline.yml` — `workflow_dispatch` only, **non-blocking**, starts `docker compose`, baseline target `http://localhost:5173`, unauthenticated/public-only |
-| **Slice 16 (implemented)** | Report artifact fix (`zap_report.*`); first baseline triage documented (0 FAIL, 6 WARN) |
+| **Slice 16 (implemented)** | Report artifact fix (action default `report_*` files); first baseline triage documented (0 FAIL, 6 WARN) |
 | **After staging VPS** | Optional manual or scheduled baseline against **our** HTTPS staging URL |
 | **Later** | Authenticated scan only if safe test accounts and scope are defined |
 | **Blocking promotion** | Only after several clean baselines on staging; never block on flaky dev-only findings |

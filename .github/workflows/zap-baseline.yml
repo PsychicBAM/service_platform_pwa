@@ -58,16 +58,13 @@ jobs:
           rules_file_name: .zap/rules.tsv
           cmd_options: >-
             -m 5
-            -r zap_report.html
-            -J zap_report.json
-            -w zap_report.md
             -z "-config spider.maxDuration=2"
           allow_issue_writing: false
 
       - name: List generated ZAP reports
         if: always()
         run: |
-          ls -la zap_report.* 2>/dev/null || echo "No zap_report.* files in workspace root"
+          ls -la report_*.html report_*.json report_*.md 2>/dev/null || echo "No default ZAP report_* files in workspace root"
 
       - name: Upload ZAP baseline artifacts
         if: always()
@@ -76,9 +73,9 @@ jobs:
           name: zap-baseline-localhost
           if-no-files-found: warn
           path: |
-            zap_report.html
-            zap_report.json
-            zap_report.md
+            report_html.html
+            report_json.json
+            report_md.md
 
       - name: Show docker logs on failure
         if: failure()
