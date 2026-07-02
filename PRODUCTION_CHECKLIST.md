@@ -16,7 +16,8 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Gitleaks secrets scan** — Slice 13: `.github/workflows/gitleaks.yml` (blocking); [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md); no secrets in git
 - [x] **OWASP ZAP readiness** — Slice 14: [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); manual baseline checklist; not blocking; owned local/staging URLs only
 - [x] **OWASP ZAP workflow** — Slice 15: `.github/workflows/zap-baseline.yml`; manual/non-blocking localhost baseline; unauthenticated public pages only
-- [x] **ZAP baseline triage** — Slice 16: first run 0 FAIL / 6 WARN; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G; CSP/header hardening deferred
+- [x] **ZAP baseline triage** — Slice 16: first run 0 FAIL / 6 WARN; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G
+- [x] **nginx security headers** — Slice 17: `server_tokens off`, CSP baseline, cache headers; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §H
 - [ ] **Security config audit** — `docker compose exec api python scripts/check_security_readiness.py` (with production `.env` on staging)
 - [ ] **Production env validated** — `python scripts/check_production_env.py --env-file .env --strict` exits 0
 - [ ] **JWT_SECRET_KEY** is a long random value (≥ 32 bytes), not `change_me`
@@ -60,7 +61,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [ ] **Client area** — logged-in client sees bookings/orders at `/me/*`
 - [ ] **Superadmin** — platform overview accessible only to superadmin role
 - [ ] **Frontend SPA routes** — hard refresh on `/login`, `/admin`, `/b/<slug>` works (nginx fallback)
-- [ ] **Nginx security headers** — `X-Content-Type-Options`, `X-Frame-Options`, etc. present on frontend responses
+- [ ] **Nginx security headers** — verify `X-Content-Type-Options`, `X-Frame-Options`, CSP, `server_tokens off` on frontend responses
 
 ---
 

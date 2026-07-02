@@ -287,7 +287,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | No full browser regression suite | Vitest + limited Playwright smoke; not exhaustive |
 | UX polish scope | Slice 19 fixed spacing/layout only; dedicated inbox, unread badges, and real-time messaging deferred |
 | Single uvicorn process in prod compose | No gunicorn/multi-worker yet |
-| CSP deferred | Basic nginx headers only; Content-Security-Policy not enabled |
+| CSP deferred | ~~Basic nginx headers only~~ — Slice 17 added conservative CSP; COEP/HSTS still deferred |
 | Playwright local/manual only | Not run in GitHub Actions CI |
 | Demo seed | Creates/updates demo users and sample data — do not run on real production DB |
 | `staging` APP_ENV | Docs disabled by default unless `API_DOCS_ENABLED=true` |
@@ -307,7 +307,7 @@ Legacy list (Phase 3):
 5. **Automated backups** — cron + off-site `pg_dump`
 6. **Monitoring / logging** — uptime checks, error aggregation
 7. **Mobile wrapper** — only after web MVP is stable in production
-8. **CSP + hardening pass** — enable Content-Security-Policy after testing
+8. **CSP tightening + HSTS** — tighten CSP if needed; enable HSTS at production HTTPS reverse proxy
 9. **Playwright in CI** — optional staging smoke against Docker stack
 10. **Multi-worker API** — gunicorn + uvicorn workers if traffic requires
 
@@ -359,7 +359,8 @@ Legacy list (Phase 3):
 | Gitleaks secrets scan | Phase 6 Slice 13 — [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md); blocking; separate from CodeQL/dependency-scan/Trivy |
 | OWASP ZAP readiness | Phase 6 Slice 14 — [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); passive baseline docs; not blocking; owned URLs only |
 | OWASP ZAP baseline workflow | Phase 6 Slice 15 — `.github/workflows/zap-baseline.yml`; manual `workflow_dispatch`; non-blocking localhost baseline only |
-| ZAP baseline triage | Phase 6 Slice 16 — first run 0 FAIL / 6 WARN; artifact fix; header/CSP hardening planned separately |
+| ZAP baseline triage | Phase 6 Slice 16 — first run 0 FAIL / 6 WARN; artifact fix |
+| nginx security headers | Phase 6 Slice 17 — `server_tokens off`, conservative CSP, cache headers; COEP/HSTS deferred |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |

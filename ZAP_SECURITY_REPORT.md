@@ -1,4 +1,4 @@
-# OWASP ZAP Security Report — Phase 6 (Slices 14–16)
+# OWASP ZAP Security Report — Phase 6 (Slices 14–17)
 
 **Purpose:** Document safe, defensive **readiness** for OWASP ZAP baseline (passive) scanning of **our** application only.  
 **Not in scope:** Aggressive scans, authenticated admin scans, third-party targets, Nuclei, exploit tooling, or legal/privacy pages.
@@ -16,7 +16,8 @@ Related: [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECU
 | **Allowed targets** | **Owned local Docker app** (`localhost`) or **our HTTPS staging** after deploy |
 | **Scan mode** | **Baseline / passive only** — no active attack, no authenticated admin routes in this slice |
 | **Workflow** | Slice 15 baseline workflow; Slice 16 artifact/report fix (action default `report_*` files) |
-| **First baseline** | **0 FAIL-NEW**, **6 WARN-NEW**, **61 PASS** (manual run, localhost) |
+| **Nginx headers** | Slice 17 — `server_tokens off`, conservative CSP, cache headers in `web/nginx.conf` |
+| **First baseline** | **0 FAIL-NEW**, **6 WARN-NEW**, **61 PASS** (manual run, localhost; pre–Slice 17) |
 | **Nuclei** | Not planned in this slice |
 
 **Rule:** Never scan third-party sites, customer domains, or production without explicit operator approval and a scoped URL list.
@@ -160,23 +161,48 @@ For each ZAP alert:
 
 | ZAP ID | Alert | Affected area | Severity | Initial assessment | Decision | Future action |
 |--------|-------|---------------|----------|-------------------|----------|---------------|
-| 10027 | Information Disclosure - Suspicious Comments | Generated JS bundle / static assets | Low | May flag build comments in Vite output; inspect bundle for sensitive strings | Investigate before suppress | Review `web/dist` output; suppress only if confirmed benign |
-| 10036 | Server Leaks Version Information via `Server` header | nginx (`web` container) | Low | `Server: nginx` visible; version string may leak | Actionable hardening | Future slice: `server_tokens off;` in `web/nginx.conf` and re-scan |
-| 10038 | Content Security Policy Header Not Set | HTML responses via nginx | Medium | CSP intentionally deferred pending Vite bundle validation | Planned fix | Future slice: conservative CSP in nginx; test all routes before enable |
-| 10049 | Storable and Cacheable Content | Static assets (`/assets/*`) | Low | Hashed JS/CSS should be cacheable; HTML should not be long-cached | Partial accept | Future slice: `Cache-Control` for `index.html` vs assets |
+| 10027 | Information Disclosure - Suspicious Comments | Generated JS bundle / static assets | Low | Slice 17 review: no `//`/`/*` comments or `sourceMappingURL` in built `dist/assets/*.js`; likely route strings (e.g. `forgot-password`) in minified code | Likely false positive | Re-scan after Slice 17; suppress only if ZAP still flags with no sensitive content |
+| 10036 | Server Leaks Version Information via `Server` header | nginx (`web` container) | Low | `Server: nginx` without version after `server_tokens off` (Slice 17) | Fixed (Slice 17) | Re-scan to confirm; residual `Server: nginx` name is low risk |
+| 10038 | Content Security Policy Header Not Set | HTML responses via nginx | Medium | Conservative CSP added in Slice 17; validated with Docker smoke + Playwright | Fixed (Slice 17) | Tighten CSP in future slices if needed; no `unsafe-eval` added |
+| 10049 | Storable and Cacheable Content | Static assets (`/assets/*`) | Low | HTML `no-cache`; `/assets/` `max-age=31536000` (Slice 17) | Fixed (Slice 17) | Re-scan; icons/manifest use shorter cache |
 | 10109 | Modern Web Application | SPA (React/Vite) | Informational | Expected for client-rendered app | Accepted risk | No change unless SSR architecture changes |
 | 90004 | Cross-Origin-Embedder-Policy Header Missing or Invalid | HTML responses | Low | COEP not required today; can break third-party embeds if added blindly | Accepted risk | Revisit only if SharedArrayBuffer / cross-origin isolation needed |
 
-**Not changed in Slice 16:** CSP, COEP, cache headers, `server_tokens off` — header hardening is a separate slice after bundle review.
+**Addressed in Slice 17:** `server_tokens off`, conservative CSP, cache headers for HTML vs `/assets/`. **Still deferred:** COEP/COOP/CORP, HSTS (production HTTPS only).
 
 ---
 
-## H. CI plan
+## H. Phase 6 Slice 17 — nginx security headers baseline
+
+**Implemented in `web/nginx.conf` (Docker web container, port 8080):**
+
+| Control | Value / behavior |
+|---------|------------------|
+| `server_tokens` | `off` — `Server` header shows `nginx` without version |
+| `X-Content-Type-Options` | `nosniff` |
+| `X-Frame-Options` | `DENY` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), payment=()` |
+| `Content-Security-Policy` | `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; img-src 'self' data: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self';` |
+| HTML / SPA fallback | `expires -1` → `Cache-Control: no-cache` |
+| `/assets/*` | `expires 1y` → long-lived hashed assets |
+| `/icons/*`, manifest | shorter cache (`1d` / `1h`) |
+
+**Not added (intentional):** COEP, COOP, CORP, HSTS on localhost HTTP.
+
+**10027 triage:** Built bundle (`web/dist/assets/*.js`) contains no block comments, license banners, or `sourceMappingURL`. Alert is likely triggered by benign strings in minified route paths (e.g. `password` in `forgot-password`). **Not suppressed** in ZAP rules — document and re-scan after next baseline.
+
+**Verification:** Docker smoke on `http://localhost:5173/` shows CSP + `no-cache` on HTML; `/assets/*` shows `max-age=31536000`; frontend tests and Playwright pass.
+
+---
+
+## I. CI plan
 
 | Phase | Plan |
 |-------|------|
 | **Slice 15 (implemented)** | `.github/workflows/zap-baseline.yml` — `workflow_dispatch` only, **non-blocking**, starts `docker compose`, baseline target `http://localhost:5173`, unauthenticated/public-only |
 | **Slice 16 (implemented)** | Report artifact fix (action default `report_*` files); first baseline triage documented (0 FAIL, 6 WARN) |
+| **Slice 17 (implemented)** | nginx `server_tokens off`, conservative CSP, cache headers; re-baseline recommended after push |
 | **After staging VPS** | Optional manual or scheduled baseline against **our** HTTPS staging URL |
 | **Later** | Authenticated scan only if safe test accounts and scope are defined |
 | **Blocking promotion** | Only after several clean baselines on staging; never block on flaky dev-only findings |
@@ -185,4 +211,4 @@ Gitleaks, Trivy, CodeQL, and dependency-scan remain separate blocking workflows.
 
 ---
 
-**Last updated:** Phase 6 Slice 16 — ZAP artifact fix and first baseline triage (0 FAIL, 6 WARN).
+**Last updated:** Phase 6 Slice 17 — nginx security headers baseline; re-baseline recommended to confirm WARN reduction.

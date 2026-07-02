@@ -22,7 +22,7 @@ Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLI
 | **Production env validation** | `scripts/check_production_env.py --strict` checks JWT, CORS, docs, DB, Stripe, SMTP |
 | **API docs** | OpenAPI UI enabled in `local`/`dev` by default; disabled in `staging`/`production` unless `API_DOCS_ENABLED=true` |
 | **CORS production safety** | `APP_ENV=production` rejects empty origins and wildcard `*` at settings load |
-| **Nginx security headers** | `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` in `web/nginx.conf` |
+| **Nginx security headers** | Slice 17: `server_tokens off`, CSP baseline, cache headers; plus `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` in `web/nginx.conf` |
 | **Docker production compose** | `docker-compose.prod.yml` — no bind mounts, no `--reload`, API not published publicly, Postgres not port-mapped |
 | **Backup / restore docs** | [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) — manual `pg_dump` / restore procedure |
 | **Guest claim** | Mismatched email/phone returns generic `CLAIM_NOT_FOUND_OR_MISMATCH` (no leak of which field failed) |
@@ -53,9 +53,9 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Docker non-root (Slice 11)** | ✅ `appuser` / `nginx` USER; web internal port **8080**; DS-0002 resolved locally |
 | **Trivy blocking (Slice 12)** | ✅ `trivy.yml` without `continue-on-error`; HIGH/CRITICAL findings fail workflow |
 | **Gitleaks secrets scan (Slice 13)** | ✅ `.github/workflows/gitleaks.yml` — blocking; [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md) |
-| **OWASP ZAP baseline** | ✅ Slice 16 — first run **0 FAIL / 6 WARN**; artifact fix; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G |
+| **OWASP ZAP baseline** | ✅ Slice 17 — nginx headers address 10036/10038/10049; first baseline 0 FAIL / 6 WARN; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G–H |
 | **Rate limiting** | Not implemented on auth or public endpoints |
-| **Content-Security-Policy** | Deferred — validate against Vite bundle before enabling |
+| **Content-Security-Policy** | ✅ Slice 17 — conservative CSP in `web/nginx.conf`; COEP/HSTS still deferred |
 | **Monitoring / alerting** | No uptime, error rate, or intrusion alerts configured |
 | **Automated backups** | Documented manually only — no cron / object-storage automation in repo |
 | **Legal / privacy / consent pages** | Terms, Privacy Policy, consent flows not implemented |
@@ -249,9 +249,16 @@ This slice does **not** create legal documents or consent UI.
 
 - First manual baseline: **0 FAIL-NEW**, **6 WARN-NEW**, **61 PASS** on `http://localhost:5173`
 - Findings triaged in [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G (CSP/cache/COEP deferred; SPA informational accepted)
-- Workflow fix: explicit `zap_report.html/json/md` generation; upload `if-no-files-found: warn` (no `report_md.md` hard failure)
-- ZAP remains manual, non-blocking; no CSP/header/nginx changes in this slice
+- Workflow fix: action default `report_*` files; upload `if-no-files-found: warn`
+- ZAP remains manual, non-blocking
+
+### Phase 6 Slice 17 — nginx security headers baseline (summary)
+
+- `web/nginx.conf`: `server_tokens off`, conservative CSP, cache headers (HTML `no-cache`, `/assets/` long cache)
+- COEP/COOP/CORP and HSTS intentionally not added (localhost HTTP / breakage risk)
+- ZAP 10027 (suspicious comments) triaged — likely false positive from minified route strings; not suppressed
+- Validated: Docker header smoke, frontend tests, Playwright, full backend suite
 
 ---
 
-**Last updated:** Phase 6 Slice 16 — ZAP artifact fix and first baseline triage.
+**Last updated:** Phase 6 Slice 17 — nginx security headers baseline.
