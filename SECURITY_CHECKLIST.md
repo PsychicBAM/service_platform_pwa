@@ -41,6 +41,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] **Gitleaks secrets scan** — Slice 13: `.github/workflows/gitleaks.yml` (blocking); [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md)
 - [x] **OWASP ZAP readiness** — Slice 14: [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); safe baseline policy documented
 - [x] **OWASP ZAP workflow** — Slice 15: `.github/workflows/zap-baseline.yml`; manual `workflow_dispatch`, non-blocking, local Docker target `http://localhost:5173`
+- [x] **ZAP first baseline triaged** — Slice 16: 0 FAIL / 6 WARN; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G; report artifact fix
 - [ ] OWASP ZAP baseline on staging URL (after VPS)
 
 ---
@@ -116,6 +117,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] Gitleaks — Slice 13; [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md); blocking on git secrets
 - [x] OWASP ZAP readiness — Slice 14; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); safe baseline policy documented
 - [x] OWASP ZAP workflow — Slice 15; `.github/workflows/zap-baseline.yml`; manual/non-blocking local baseline
+- [x] ZAP first baseline triaged — Slice 16; 0 FAIL / 6 WARN; artifact fix; see [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G
 - [ ] OWASP ZAP baseline on staging — review findings after VPS deploy
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first
 - [ ] TestSprite — regression QA; security findings triaged separately

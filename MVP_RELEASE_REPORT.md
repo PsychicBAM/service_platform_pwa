@@ -359,6 +359,7 @@ Legacy list (Phase 3):
 | Gitleaks secrets scan | Phase 6 Slice 13 — [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md); blocking; separate from CodeQL/dependency-scan/Trivy |
 | OWASP ZAP readiness | Phase 6 Slice 14 — [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); passive baseline docs; not blocking; owned URLs only |
 | OWASP ZAP baseline workflow | Phase 6 Slice 15 — `.github/workflows/zap-baseline.yml`; manual `workflow_dispatch`; non-blocking localhost baseline only |
+| ZAP baseline triage | Phase 6 Slice 16 — first run 0 FAIL / 6 WARN; artifact fix; header/CSP hardening planned separately |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |

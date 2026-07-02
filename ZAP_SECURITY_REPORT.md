@@ -1,4 +1,4 @@
-# OWASP ZAP Security Report — Phase 6 (Slices 14-15)
+# OWASP ZAP Security Report — Phase 6 (Slices 14–16)
 
 **Purpose:** Document safe, defensive **readiness** for OWASP ZAP baseline (passive) scanning of **our** application only.  
 **Not in scope:** Aggressive scans, authenticated admin scans, third-party targets, Nuclei, exploit tooling, or legal/privacy pages.
@@ -15,7 +15,8 @@ Related: [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECU
 | **External targets** | **None scanned** — no VPS/staging URL yet |
 | **Allowed targets** | **Owned local Docker app** (`localhost`) or **our HTTPS staging** after deploy |
 | **Scan mode** | **Baseline / passive only** — no active attack, no authenticated admin routes in this slice |
-| **Workflow** | Slice 15 baseline workflow added; local Docker target only (`http://localhost:5173`) |
+| **Workflow** | Slice 15 baseline workflow; Slice 16 artifact/report fix (`zap_report.*`) |
+| **First baseline** | **0 FAIL-NEW**, **6 WARN-NEW**, **61 PASS** (manual run, localhost) |
 | **Nuclei** | Not planned in this slice |
 
 **Rule:** Never scan third-party sites, customer domains, or production without explicit operator approval and a scoped URL list.
@@ -93,7 +94,7 @@ Install [OWASP ZAP](https://www.zaproxy.org/) locally **or** use the official Do
 # Scan public home only — expand -t only to owned public paths you intend to test
 docker run --rm -t owasp/zap2docker-stable zap-baseline.py \
   -t http://host.docker.internal:5173/ \
-  -r zap-baseline-report.html \
+  -r zap_report.html -J zap_report.json -w zap_report.md \
   -I
 ```
 
@@ -145,11 +146,37 @@ For each ZAP alert:
 
 ---
 
-## G. CI plan
+## G. Phase 6 Slice 16 — First ZAP baseline findings
+
+**Run summary (manual `workflow_dispatch`, `http://localhost:5173`, unauthenticated):**
+
+| Metric | Count |
+|--------|------:|
+| FAIL-NEW | 0 |
+| WARN-NEW | 6 |
+| PASS | 61 |
+
+**Artifact fix (Slice 16):** workflow now writes `zap_report.html`, `zap_report.json`, `zap_report.md` via explicit `cmd_options` and uploads only those files (`if-no-files-found: warn`). Previous failure (`report_md.md does not exist`) came from uploading default action filenames that were not generated.
+
+| ZAP ID | Alert | Affected area | Severity | Initial assessment | Decision | Future action |
+|--------|-------|---------------|----------|-------------------|----------|---------------|
+| 10027 | Information Disclosure - Suspicious Comments | Generated JS bundle / static assets | Low | May flag build comments in Vite output; inspect bundle for sensitive strings | Investigate before suppress | Review `web/dist` output; suppress only if confirmed benign |
+| 10036 | Server Leaks Version Information via `Server` header | nginx (`web` container) | Low | `Server: nginx` visible; version string may leak | Actionable hardening | Future slice: `server_tokens off;` in `web/nginx.conf` and re-scan |
+| 10038 | Content Security Policy Header Not Set | HTML responses via nginx | Medium | CSP intentionally deferred pending Vite bundle validation | Planned fix | Future slice: conservative CSP in nginx; test all routes before enable |
+| 10049 | Storable and Cacheable Content | Static assets (`/assets/*`) | Low | Hashed JS/CSS should be cacheable; HTML should not be long-cached | Partial accept | Future slice: `Cache-Control` for `index.html` vs assets |
+| 10109 | Modern Web Application | SPA (React/Vite) | Informational | Expected for client-rendered app | Accepted risk | No change unless SSR architecture changes |
+| 90004 | Cross-Origin-Embedder-Policy Header Missing or Invalid | HTML responses | Low | COEP not required today; can break third-party embeds if added blindly | Accepted risk | Revisit only if SharedArrayBuffer / cross-origin isolation needed |
+
+**Not changed in Slice 16:** CSP, COEP, cache headers, `server_tokens off` — header hardening is a separate slice after bundle review.
+
+---
+
+## H. CI plan
 
 | Phase | Plan |
 |-------|------|
 | **Slice 15 (implemented)** | `.github/workflows/zap-baseline.yml` — `workflow_dispatch` only, **non-blocking**, starts `docker compose`, baseline target `http://localhost:5173`, unauthenticated/public-only |
+| **Slice 16 (implemented)** | Report artifact fix (`zap_report.*`); first baseline triage documented (0 FAIL, 6 WARN) |
 | **After staging VPS** | Optional manual or scheduled baseline against **our** HTTPS staging URL |
 | **Later** | Authenticated scan only if safe test accounts and scope are defined |
 | **Blocking promotion** | Only after several clean baselines on staging; never block on flaky dev-only findings |
@@ -158,4 +185,4 @@ Gitleaks, Trivy, CodeQL, and dependency-scan remain separate blocking workflows.
 
 ---
 
-**Last updated:** Phase 6 Slice 15 — OWASP ZAP baseline workflow added (manual, non-blocking).
+**Last updated:** Phase 6 Slice 16 — ZAP artifact fix and first baseline triage (0 FAIL, 6 WARN).

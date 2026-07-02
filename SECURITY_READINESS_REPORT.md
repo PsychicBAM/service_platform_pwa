@@ -53,7 +53,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Docker non-root (Slice 11)** | ✅ `appuser` / `nginx` USER; web internal port **8080**; DS-0002 resolved locally |
 | **Trivy blocking (Slice 12)** | ✅ `trivy.yml` without `continue-on-error`; HIGH/CRITICAL findings fail workflow |
 | **Gitleaks secrets scan (Slice 13)** | ✅ `.github/workflows/gitleaks.yml` — blocking; [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md) |
-| **OWASP ZAP baseline** | ✅ Slice 15 — `.github/workflows/zap-baseline.yml` manual/non-blocking; local Docker target only (`http://localhost:5173`) |
+| **OWASP ZAP baseline** | ✅ Slice 16 — first run **0 FAIL / 6 WARN**; artifact fix; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G |
 | **Rate limiting** | Not implemented on auth or public endpoints |
 | **Content-Security-Policy** | Deferred — validate against Vite bundle before enabling |
 | **Monitoring / alerting** | No uptime, error rate, or intrusion alerts configured |
@@ -245,6 +245,13 @@ This slice does **not** create legal documents or consent UI.
 - Safety: no authenticated/admin scans, no full scan, no third-party targets
 - Artifacts: baseline HTML/JSON/MD reports uploaded when produced
 
+### Phase 6 Slice 16 — ZAP baseline triage and artifact fix (summary)
+
+- First manual baseline: **0 FAIL-NEW**, **6 WARN-NEW**, **61 PASS** on `http://localhost:5173`
+- Findings triaged in [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §G (CSP/cache/COEP deferred; SPA informational accepted)
+- Workflow fix: explicit `zap_report.html/json/md` generation; upload `if-no-files-found: warn` (no `report_md.md` hard failure)
+- ZAP remains manual, non-blocking; no CSP/header/nginx changes in this slice
+
 ---
 
-**Last updated:** Phase 6 Slice 15 — OWASP ZAP baseline workflow added (manual, non-blocking).
+**Last updated:** Phase 6 Slice 16 — ZAP artifact fix and first baseline triage.

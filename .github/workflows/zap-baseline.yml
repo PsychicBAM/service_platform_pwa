@@ -1,5 +1,5 @@
 # OWASP ZAP baseline (passive DAST) for owned local Docker app only.
-# Manual and non-blocking in Slice 15; no auth/admin/full-scan behavior.
+# Manual and non-blocking (Slices 15–16); no auth/admin/full-scan behavior.
 
 name: OWASP ZAP Baseline
 
@@ -58,25 +58,27 @@ jobs:
           rules_file_name: .zap/rules.tsv
           cmd_options: >-
             -m 5
-            -r zap-baseline-report.html
-            -J zap-baseline-report.json
-            -w zap-baseline-report.md
+            -r zap_report.html
+            -J zap_report.json
+            -w zap_report.md
             -z "-config spider.maxDuration=2"
           allow_issue_writing: false
+
+      - name: List generated ZAP reports
+        if: always()
+        run: |
+          ls -la zap_report.* 2>/dev/null || echo "No zap_report.* files in workspace root"
 
       - name: Upload ZAP baseline artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: zap-baseline-localhost
-          if-no-files-found: ignore
+          if-no-files-found: warn
           path: |
-            report_html.html
-            report_json.json
-            report_md.md
-            zap-baseline-report.html
-            zap-baseline-report.json
-            zap-baseline-report.md
+            zap_report.html
+            zap_report.json
+            zap_report.md
 
       - name: Show docker logs on failure
         if: failure()
