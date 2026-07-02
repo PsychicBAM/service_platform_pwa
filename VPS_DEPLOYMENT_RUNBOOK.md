@@ -314,7 +314,7 @@ gunzip -c "$BACKUP_FILE" | docker compose -p service_platform_prod -f docker-com
 
 Full procedure and warnings: [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md).
 
-**Optional helper:** `./scripts/restore_postgres.sh --backup-file "$BACKUP_FILE" --stop-writers`
+**Optional helper:** `./scripts/restore_postgres.sh --backup-file "$BACKUP_FILE" --stop-writers --confirm-destructive`
 
 ### Volume safety
 

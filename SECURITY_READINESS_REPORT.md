@@ -310,6 +310,12 @@ This slice does **not** create legal documents or consent UI.
 - **No automated backup schedule** — cron/off-server copy remain future work
 - Restore drill on staging clone required before public launch
 
+### Phase 7 Slice 5 — Backup script smoke tests (summary)
+
+- `api/tests/test_backup_scripts.py` — `--help`, argument validation, default backup dir outside repo; no real `pg_dump`/restore
+- `restore_postgres.sh` requires `--confirm-destructive` before any restore attempt
+- Shellcheck not in CI — optional local improvement
+
 ---
 
-**Last updated:** Phase 7 Slice 4 — PostgreSQL backup/restore baseline (no live deployment).
+**Last updated:** Phase 7 Slice 5 — backup script smoke tests (no real backup/restore).

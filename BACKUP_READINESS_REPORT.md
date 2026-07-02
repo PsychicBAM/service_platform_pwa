@@ -1,4 +1,4 @@
-# Backup Readiness Report — Phase 7 (Slice 4)
+# Backup Readiness Report — Phase 7 (Slice 5)
 
 **Purpose:** PostgreSQL backup/restore baseline for future VPS operations.  
 **Status:** Planning + optional helper scripts — **no automated VPS backups active yet**.  
@@ -16,7 +16,9 @@ Related: [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md]
 | **PostgreSQL storage** | Docker named volume `service_platform_postgres_prod_data` (prod compose) |
 | **Backup location** | Must be **outside** the git repo (`backups/` is gitignored) |
 | **Restore tested on clone** | ⏳ Required before public launch — not automated in repo |
-| **Helper scripts** | Optional: [scripts/backup_postgres.sh](./scripts/backup_postgres.sh), [scripts/restore_postgres.sh](./scripts/restore_postgres.sh) — VPS/bash only |
+| **Helper scripts** | [scripts/backup_postgres.sh](./scripts/backup_postgres.sh), [scripts/restore_postgres.sh](./scripts/restore_postgres.sh) — VPS/bash; static status only |
+| **Script smoke tests** | ✅ `api/tests/test_backup_scripts.py` — no real `pg_dump`/restore (Slice 5) |
+| **Shellcheck** | ⏳ Not in CI — run locally if `shellcheck` is installed (future improvement) |
 | **Point-in-time recovery** | ❌ WAL archiving not configured |
 
 ---
@@ -150,8 +152,12 @@ curl -sf "http://127.0.0.1:${WEB_HTTP_PORT:-80}/health"
 ```bash
 ./scripts/restore_postgres.sh \
   --env-file /opt/service-platform/env/.env.production \
-  --backup-file /opt/service-platform/backups/postgres/service_platform_prod_YYYYMMDD_HHMMSS.sql.gz
+  --backup-file /opt/service-platform/backups/postgres/service_platform_prod_YYYYMMDD_HHMMSS.sql.gz \
+  --stop-writers \
+  --confirm-destructive
 ```
+
+`--confirm-destructive` is required — the script refuses restore without it.
 
 Full step-by-step: [BACKUP_RESTORE.md](./BACKUP_RESTORE.md).
 
@@ -198,7 +204,9 @@ Run on a **disposable** VPS clone or local prod-compose smoke — not on live pr
 | Encrypted backups at rest | Later — `gpg` or provider-side encryption |
 | Point-in-time recovery | Later — Postgres WAL archiving (not in MVP) |
 
-**This slice does not enable cron or off-server sync** — operators run backups manually until a future slice.
+### Script smoke tests (Slice 5)
+
+`api/tests/test_backup_scripts.py` validates `--help`, argument errors, default backup dir outside repo, and that output never contains fake secret markers. **Tests do not run `pg_dump` or restore.** A real restore drill on a staging/VPS clone is still required before public launch.
 
 ---
 
@@ -213,4 +221,4 @@ Run on a **disposable** VPS clone or local prod-compose smoke — not on live pr
 
 ---
 
-**Last updated:** Phase 7 Slice 4 — PostgreSQL backup/restore baseline (no live deployment).
+**Last updated:** Phase 7 Slice 5 — backup script smoke tests (no real backup/restore).

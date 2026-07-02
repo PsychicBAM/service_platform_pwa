@@ -13,6 +13,7 @@ SERVICE="postgres"
 POSTGRES_USER="service_platform"
 POSTGRES_DB="service_platform"
 STOP_WRITERS=0
+CONFIRM_DESTRUCTIVE=0
 
 usage() {
   cat <<'EOF'
@@ -29,6 +30,7 @@ Options:
   --project-name NAME   Compose project name (default: service_platform_prod)
   --service NAME        Postgres service name (default: postgres)
   --stop-writers        Stop api and web before restore (recommended)
+  --confirm-destructive Required flag — acknowledge restore overwrites database data
   -h, --help            Show this help
 
 Warnings:
@@ -92,6 +94,10 @@ while [[ $# -gt 0 ]]; do
       STOP_WRITERS=1
       shift
       ;;
+    --confirm-destructive)
+      CONFIRM_DESTRUCTIVE=1
+      shift
+      ;;
     -h | --help)
       usage
       exit 0
@@ -117,6 +123,13 @@ fi
 
 if [[ ! -s "$BACKUP_FILE" ]]; then
   echo "FAIL: backup_file_empty"
+  exit 1
+fi
+
+if [[ "$CONFIRM_DESTRUCTIVE" -ne 1 ]]; then
+  echo "FAIL: confirm_destructive_required"
+  echo "WARN: restore_is_destructive"
+  usage >&2
   exit 1
 fi
 
