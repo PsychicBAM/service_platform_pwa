@@ -207,6 +207,92 @@ def test_strict_fails_missing_cors_origins() -> None:
     assert "cors_origins_missing_or_empty" in result.failures
 
 
+def test_strict_fails_wildcard_cors() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["CORS_ORIGINS"] = "*"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert "cors_origins_wildcard_not_allowed" in result.failures
+
+
+def test_strict_fails_api_docs_enabled() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["API_DOCS_ENABLED"] = "true"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert "api_docs_enabled_in_production" in result.failures
+
+
+def test_strict_fails_placeholder_jwt_secret() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["JWT_SECRET_KEY"] = "CHANGE_ME_GENERATE_A_LONG_RANDOM_SECRET"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert "jwt_secret_key_weak_or_placeholder" in result.failures
+
+
+def test_strict_fails_stripe_enabled_missing_fields() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["STRIPE_ENABLED"] = "true"
+    parsed["STRIPE_SECRET_KEY"] = ""
+    parsed["STRIPE_WEBHOOK_SECRET"] = ""
+    parsed["STRIPE_PRICE_STARTER"] = ""
+    parsed["STRIPE_PRICE_BUSINESS"] = ""
+    parsed["STRIPE_PRICE_PRO"] = ""
+    parsed["STRIPE_SUCCESS_URL"] = ""
+    parsed["STRIPE_CANCEL_URL"] = ""
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert "stripe_secret_key_required" in result.failures
+    assert "stripe_webhook_secret_required" in result.failures
+    assert "stripe_price_starter_required" in result.failures
+
+
+def test_env_production_example_has_safe_placeholders() -> None:
+    module = _load_module()
+    project_root = Path(__file__).resolve().parents[2]
+    candidates = [
+        project_root / ".env.production.example",
+        Path("/.env.production.example"),
+    ]
+    example_path = next((path for path in candidates if path.is_file()), None)
+    assert example_path is not None, ".env.production.example not found"
+
+    content = example_path.read_text(encoding="utf-8")
+    forbidden_patterns = (
+        "sk_live_",
+        "sk_test_51",
+        "whsec_51",
+        "password_hash",
+        "Bearer eyJ",
+    )
+    for pattern in forbidden_patterns:
+        assert pattern not in content, f"Unsafe pattern in example: {pattern}"
+
+    parsed = module.parse_env_file(example_path)
+    assert parsed["APP_ENV"] == "production"
+    assert parsed["API_DOCS_ENABLED"] == "false"
+    assert parsed["STRIPE_ENABLED"] == "false"
+    assert parsed["EMAIL_ENABLED"] == "false"
+    assert "CHANGE_ME" in parsed["JWT_SECRET_KEY"]
+    assert parsed["CORS_ORIGINS"] != "*"
+
+    result = module.validate_production_env(parsed, strict=False)
+    assert result.passed, result.failures
+
+    strict_result = module.validate_production_env(parsed, strict=True)
+    assert not strict_result.passed
+    assert "jwt_secret_key_weak_or_placeholder" in strict_result.failures
+
+
 def test_parse_env_file_ignores_comments(tmp_path: Path) -> None:
     module = _load_module()
     env_file = tmp_path / ".env"

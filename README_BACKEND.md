@@ -142,7 +142,7 @@ SMTP_FROM_NAME=Your Business Name
 SMTP_USE_TLS=true
 ```
 
-Run `python scripts/check_production_env.py --env-file .env --strict` before deploy. Event wiring (booking confirmed, order messages, etc.) is implemented; use the dry-run audit below to verify safely.
+Run `python scripts/check_production_env.py --env-file .env --strict` on the **server** before deploy. The example template (`.env.production.example`) is not a real env file — `--strict` on it is expected to fail until placeholders are replaced on the VPS. Output uses static message codes only; no secrets are printed.
 
 **Email verification dry-run audit** (no SMTP required, no real emails sent):
 
@@ -269,16 +269,16 @@ Playwright browser E2E is **not** in CI yet (needs backend + browser deps). Run 
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | First deploy, HTTPS, logs, updates, dev vs prod |
 | [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) | Postgres backup/restore (dev + prod compose) |
 | [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) | Pre-launch checks |
-| [.env.production.example](./.env.production.example) | Production env template |
-| [scripts/check_production_env.py](./scripts/check_production_env.py) | Validate `.env` before deploy |
+| [.env.production.example](./.env.production.example) | Production env **template only** — copy to `.env` on VPS; never commit secrets |
+| [scripts/check_production_env.py](./scripts/check_production_env.py) | Validate server `.env` before deploy (`--strict`) |
 
 **Local dev:** `docker compose up -d --build` ([docker-compose.yml](./docker-compose.yml))
 
 **VPS / staging:**
 
 ```bash
-cp .env.production.example .env
-# edit .env, then:
+cp .env.production.example .env   # on the VPS only
+# Edit .env with real secrets on the server — never commit .env
 python scripts/check_production_env.py --env-file .env --strict
 docker compose -p service_platform_prod -f docker-compose.prod.yml up -d --build
 docker compose -p service_platform_prod -f docker-compose.prod.yml exec api alembic upgrade head
@@ -292,7 +292,7 @@ docker compose -p service_platform_prod -f docker-compose.prod.yml exec api alem
 | `CORS_ORIGINS` | `http://localhost:5173,...` | Your HTTPS domain only; wildcard `*` rejected |
 | `APP_ENV` | `local` | `production` |
 
-The API refuses to start with `APP_ENV=production` and wildcard or empty `CORS_ORIGINS`. Run `python scripts/check_production_env.py --env-file .env --strict` before deploy.
+The API refuses to start with `APP_ENV=production` and wildcard or empty `CORS_ORIGINS`. Run `python scripts/check_production_env.py --env-file .env --strict` on the server before deploy. Legal/privacy pages are still required before public launch.
 
 The `web` nginx container adds basic security headers (see `web/nginx.conf`). Content-Security-Policy is deferred until validated against the Vite bundle.
 

@@ -104,6 +104,133 @@ def test_strict_env_script_fails_wildcard_cors() -> None:
     assert "cors_origins_wildcard_not_allowed" in result.failures
 
 
+def test_strict_env_script_fails_api_docs_enabled() -> None:
+    module = _load_env_script()
+    env = {
+        "APP_ENV": "production",
+        "POSTGRES_USER": "service_platform",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
+        "POSTGRES_DB": "service_platform",
+        "DATABASE_URL": (
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
+            "@postgres:5432/service_platform"
+        ),
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
+        "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "true",
+    }
+    result = module.validate_production_env(env, strict=True)
+    assert not result.passed
+    assert "api_docs_enabled_in_production" in result.failures
+
+
+def test_strict_env_script_fails_placeholder_jwt() -> None:
+    module = _load_env_script()
+    env = {
+        "APP_ENV": "production",
+        "POSTGRES_USER": "service_platform",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
+        "POSTGRES_DB": "service_platform",
+        "DATABASE_URL": (
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
+            "@postgres:5432/service_platform"
+        ),
+        "JWT_SECRET_KEY": "CHANGE_ME_GENERATE_A_LONG_RANDOM_SECRET",
+        "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
+    }
+    result = module.validate_production_env(env, strict=True)
+    assert not result.passed
+    assert "jwt_secret_key_weak_or_placeholder" in result.failures
+
+
+def test_strict_env_script_fails_email_enabled_without_smtp() -> None:
+    module = _load_env_script()
+    env = {
+        "APP_ENV": "production",
+        "POSTGRES_USER": "service_platform",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
+        "POSTGRES_DB": "service_platform",
+        "DATABASE_URL": (
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
+            "@postgres:5432/service_platform"
+        ),
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
+        "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
+        "EMAIL_ENABLED": "true",
+        "EMAIL_DRY_RUN": "false",
+        "SMTP_HOST": "",
+        "SMTP_FROM_EMAIL": "",
+    }
+    result = module.validate_production_env(env, strict=True)
+    assert not result.passed
+    assert "smtp_host_required_live_email" in result.failures
+
+
+def test_strict_env_script_fails_stripe_enabled_without_secrets() -> None:
+    module = _load_env_script()
+    env = {
+        "APP_ENV": "production",
+        "POSTGRES_USER": "service_platform",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
+        "POSTGRES_DB": "service_platform",
+        "DATABASE_URL": (
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
+            "@postgres:5432/service_platform"
+        ),
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
+        "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
+        "STRIPE_ENABLED": "true",
+        "STRIPE_SECRET_KEY": "",
+        "STRIPE_WEBHOOK_SECRET": "",
+        "STRIPE_PRICE_STARTER": "",
+        "STRIPE_PRICE_BUSINESS": "",
+        "STRIPE_PRICE_PRO": "",
+        "STRIPE_SUCCESS_URL": "",
+        "STRIPE_CANCEL_URL": "",
+    }
+    result = module.validate_production_env(env, strict=True)
+    assert not result.passed
+    assert "stripe_secret_key_required" in result.failures
+
+
+def test_env_script_output_never_contains_secret_values(capsys) -> None:
+    module = _load_env_script()
+    env = {
+        "APP_ENV": "production",
+        "POSTGRES_USER": "service_platform",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
+        "POSTGRES_DB": "service_platform",
+        "DATABASE_URL": (
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
+            "@postgres:5432/service_platform"
+        ),
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
+        "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
+        "STRIPE_ENABLED": "true",
+        "STRIPE_SECRET_KEY": "sk_test_REDACTED",
+        "STRIPE_WEBHOOK_SECRET": "whsec_REDACTED",
+        "STRIPE_PRICE_STARTER": "price_starter_test_001",
+        "STRIPE_PRICE_BUSINESS": "price_business_test_001",
+        "STRIPE_PRICE_PRO": "price_pro_test_001",
+        "STRIPE_SUCCESS_URL": "https://example.com/billing/success",
+        "STRIPE_CANCEL_URL": "https://example.com/billing/cancel",
+    }
+    result = module.validate_production_env(env, strict=True)
+    module.print_result(result)
+    output = capsys.readouterr().out
+    for forbidden in ("sk_test_REDACTED", "whsec_REDACTED", "example-postgres-password"):
+        assert forbidden not in output
+
+
 def test_non_strict_env_script_warns_optional_integrations() -> None:
     module = _load_env_script()
     env = {

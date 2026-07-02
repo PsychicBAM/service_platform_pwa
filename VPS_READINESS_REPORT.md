@@ -1,8 +1,8 @@
-# VPS Production Readiness Report — Phase 7 (Slice 1)
+# VPS Production Readiness Report — Phase 7 (Slice 2)
 
 **Purpose:** Plan and checklist for a future **real VPS deployment**.  
 **Not in scope:** Live server provisioning, DNS changes, HTTPS certificates, or committing secrets.  
-**Status:** Planning only — **no deployment performed in Slice 1**.
+**Status:** Planning only — **no deployment performed**. Production env **strict validation polished** in Slice 2.
 
 Related: [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
 
@@ -20,7 +20,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCT
 | **nginx headers** | ✅ CSP baseline, cache headers, `server_tokens off` (Slices 17–19) |
 | **Stripe** | ✅ Integrated; **`STRIPE_ENABLED=false` by default** — test/live keys on VPS only |
 | **SMTP / live email** | ⏳ Requires VPS `.env` + provider; dry-run audits pass locally |
-| **Production env validation** | ✅ `scripts/check_production_env.py --strict` |
+| **Production env validation** | ✅ `scripts/check_production_env.py --strict` — polished (Slice 2); static message codes only |
 | **Legal / privacy pages** | ❌ Not implemented — **blocker before public launch** |
 | **Real VPS deployment** | ❌ **Not done yet** — next major phase |
 
@@ -47,7 +47,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCT
 
 ## C. Production environment variables checklist
 
-Copy [.env.production.example](./.env.production.example) → `.env` **on the server only**. Use placeholders below — **never commit real values**.
+Copy [.env.production.example](./.env.production.example) → `.env` **on the server only**. The example file is a **template only** — placeholders are intentionally unsafe for `--strict`. **Secrets must live only on the server**, never in git.
 
 ### Application
 
@@ -121,8 +121,15 @@ Copy [.env.production.example](./.env.production.example) → `.env` **on the se
 **Validate before deploy:**
 
 ```bash
+# Template sanity (non-strict may pass with warnings; strict fails on placeholders — expected):
+python scripts/check_production_env.py --env-file .env.production.example
+python scripts/check_production_env.py --env-file .env.production.example --strict
+
+# On the VPS after editing real secrets (must exit 0):
 python scripts/check_production_env.py --env-file .env --strict
 ```
+
+**Strict mode fails on:** non-production `APP_ENV`, placeholder/weak `JWT_SECRET_KEY`, wildcard or empty `CORS_ORIGINS`, `API_DOCS_ENABLED=true`, placeholder `DATABASE_URL`, invalid `WEB_HTTP_PORT`, `SQLALCHEMY_ECHO=true`, localhost/placeholder public email URLs, live email without SMTP, Stripe enabled without required fields.
 
 ---
 
@@ -204,13 +211,13 @@ Run on **HTTPS staging** before public launch. Use test accounts — do not log 
 
 ---
 
-## H. Local prod-compose smoke (Slice 1)
+## H. Local prod-compose smoke (Slice 1–2)
 
 Safe local validation **without** a real VPS:
 
 ```bash
-cp .env.production.example .env   # or use existing local .env for smoke only
-# Edit APP_ENV=production and placeholders as needed for strict check optional
+cp .env.production.example .env   # template only — edit on server for real deploy
+# Strict on the example is expected to fail until secrets are replaced on the VPS.
 
 WEB_HTTP_PORT=8080 docker compose -p service_platform_prod -f docker-compose.prod.yml up -d --build
 curl http://localhost:8080/health
@@ -222,4 +229,4 @@ docker compose -p service_platform_prod -f docker-compose.prod.yml down
 
 ---
 
-**Last updated:** Phase 7 Slice 1 — VPS production readiness plan (no live deployment).
+**Last updated:** Phase 7 Slice 2 — production env strict validation polish (no live deployment).

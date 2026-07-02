@@ -48,13 +48,14 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] **passlib/bcrypt warning cleanup** — Slice 20: `bcrypt<4.1.0` pin; hashing unchanged; [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §O
 - [x] **password_hash logging hygiene** — Slice 21: SQL echo off by default; seed_demo does not log auth hashes
 - [x] **VPS readiness plan** — Phase 7 Slice 1: [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md); no live deployment yet
+- [x] **Production env strict validation** — Phase 7 Slice 2: `check_production_env.py --strict`; secrets on server only; `.env.production.example` is template only
 - [ ] OWASP ZAP baseline on staging URL (after VPS)
 
 ---
 
 ## Pre-production checks (before VPS go-live)
 
-- [ ] `python scripts/check_production_env.py --env-file .env --strict` exits 0
+- [ ] `python scripts/check_production_env.py --env-file .env --strict` exits 0 on server `.env` (`.env.production.example --strict` fails on placeholders by design)
 - [ ] `APP_ENV=production` in production `.env`
 - [ ] `JWT_SECRET_KEY` ≥ 32 chars, not a placeholder
 - [ ] `CORS_ORIGINS` = exact HTTPS origin(s), no `*`, no stray localhost

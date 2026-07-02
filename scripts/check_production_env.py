@@ -118,9 +118,31 @@ SAFE_VALIDATION_MESSAGES: dict[str, str] = {
         "CORS_ORIGINS includes localhost (expected for local dev)"
     ),
     "api_docs_enabled_in_production": (
-        "API_DOCS_ENABLED=true in production — OpenAPI UI will be public"
+        "API_DOCS_ENABLED=true in production — OpenAPI UI must not be public"
     ),
     "api_docs_disabled_for_production": "API docs disabled for production",
+    "sqlalchemy_echo_enabled_in_production": (
+        "SQLALCHEMY_ECHO=true in production — sensitive SQL bind params may leak"
+    ),
+    "sqlalchemy_echo_disabled_for_production": "SQL echo disabled for production",
+    "email_verification_base_url_localhost_forbidden": (
+        "EMAIL_VERIFICATION_BASE_URL must not use localhost in production"
+    ),
+    "email_verification_base_url_set": "EMAIL_VERIFICATION_BASE_URL is set",
+    "email_verification_base_url_placeholder": (
+        "EMAIL_VERIFICATION_BASE_URL contains placeholder values"
+    ),
+    "password_reset_base_url_localhost_forbidden": (
+        "PASSWORD_RESET_BASE_URL must not use localhost in production"
+    ),
+    "password_reset_base_url_set": "PASSWORD_RESET_BASE_URL is set",
+    "password_reset_base_url_placeholder": (
+        "PASSWORD_RESET_BASE_URL contains placeholder values"
+    ),
+    "smtp_port_invalid_live_email": (
+        "SMTP_PORT must be a valid port when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
+    ),
+    "smtp_port_valid": "SMTP_PORT is valid",
     "email_notifications_disabled": "Email notifications disabled (EMAIL_ENABLED=false)",
     "email_enabled_true": "EMAIL_ENABLED is true",
     "email_dry_run_enabled": "EMAIL_DRY_RUN is enabled — emails will not be sent over SMTP",
@@ -278,9 +300,81 @@ def _validate_api_docs(env: dict[str, str], *, strict: bool, result: ValidationR
     app_env = env.get("APP_ENV", "").strip().lower()
 
     if raw in {"true", "1", "yes"} and app_env == "production":
-        _append_warn(result, "api_docs_enabled_in_production")
+        if strict:
+            _append_fail(result, "api_docs_enabled_in_production")
+        else:
+            _append_warn(result, "api_docs_enabled_in_production")
     elif strict and app_env == "production" and raw in {"", "false", "0", "no"}:
         _append_ok(result, "api_docs_disabled_for_production")
+
+
+def _validate_sqlalchemy_echo(
+    env: dict[str, str], *, strict: bool, result: ValidationResult
+) -> None:
+    raw = env.get("SQLALCHEMY_ECHO", "").strip().lower()
+    app_env = env.get("APP_ENV", "").strip().lower()
+
+    if app_env != "production":
+        return
+
+    if raw in {"true", "1", "yes"}:
+        if strict:
+            _append_fail(result, "sqlalchemy_echo_enabled_in_production")
+        else:
+            _append_warn(result, "sqlalchemy_echo_enabled_in_production")
+    elif strict:
+        _append_ok(result, "sqlalchemy_echo_disabled_for_production")
+
+
+def _validate_public_base_url(
+    env: dict[str, str],
+    *,
+    key: str,
+    strict: bool,
+    result: ValidationResult,
+    placeholder_code: str,
+    localhost_code: str,
+    set_code: str,
+) -> None:
+    value = env.get(key, "").strip()
+    if not value:
+        return
+
+    if strict and _contains_placeholder(value):
+        _append_fail(result, placeholder_code)
+        return
+
+    if strict and _is_localhost_origin(value):
+        _append_fail(result, localhost_code)
+    elif strict:
+        _append_ok(result, set_code)
+    elif _is_localhost_origin(value):
+        _append_warn(result, localhost_code)
+
+
+def _validate_public_urls(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
+    app_env = env.get("APP_ENV", "").strip().lower()
+    if app_env != "production":
+        return
+
+    _validate_public_base_url(
+        env,
+        key="EMAIL_VERIFICATION_BASE_URL",
+        strict=strict,
+        result=result,
+        placeholder_code="email_verification_base_url_placeholder",
+        localhost_code="email_verification_base_url_localhost_forbidden",
+        set_code="email_verification_base_url_set",
+    )
+    _validate_public_base_url(
+        env,
+        key="PASSWORD_RESET_BASE_URL",
+        strict=strict,
+        result=result,
+        placeholder_code="password_reset_base_url_placeholder",
+        localhost_code="password_reset_base_url_localhost_forbidden",
+        set_code="password_reset_base_url_set",
+    )
 
 
 def _is_truthy(value: str) -> bool:
@@ -324,6 +418,22 @@ def _validate_email(env: dict[str, str], *, strict: bool, result: ValidationResu
             _append_warn(result, "smtp_from_email_required_live_email")
     else:
         _append_ok(result, "smtp_from_email_set")
+
+    smtp_port_raw = env.get("SMTP_PORT", "587").strip()
+    if not smtp_port_raw.isdigit():
+        if strict:
+            _append_fail(result, "smtp_port_invalid_live_email")
+        else:
+            _append_warn(result, "smtp_port_invalid_live_email")
+    else:
+        port_num = int(smtp_port_raw)
+        if not 1 <= port_num <= 65535:
+            if strict:
+                _append_fail(result, "smtp_port_invalid_live_email")
+            else:
+                _append_warn(result, "smtp_port_invalid_live_email")
+        else:
+            _append_ok(result, "smtp_port_valid")
 
     if smtp_user and not smtp_password:
         if strict:
@@ -491,6 +601,8 @@ def validate_production_env(env: dict[str, str], *, strict: bool = False) -> Val
 
     _validate_cors(env, strict=strict, result=result)
     _validate_api_docs(env, strict=strict, result=result)
+    _validate_sqlalchemy_echo(env, strict=strict, result=result)
+    _validate_public_urls(env, strict=strict, result=result)
     _validate_email(env, strict=strict, result=result)
     _validate_stripe(env, strict=strict, result=result)
 
