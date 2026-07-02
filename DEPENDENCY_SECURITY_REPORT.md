@@ -434,4 +434,23 @@ Each slice is a **separate PR** with full regression checks. **No automatic `npm
 
 ---
 
-**Last updated:** Phase 6 Slice 9 — Trivy filesystem and Docker scan baseline.
+## O. Phase 6 Slice 20 — passlib / bcrypt compatibility pin
+
+**Problem:** `passlib` 1.7.4 reads `bcrypt.__about__.__version__` during backend init. `bcrypt` 4.1+ removed `__about__`, causing noisy `(trapped) error reading bcrypt version` logs during `seed_demo.py` and password hashing (hashing still worked).
+
+**Fix (Option A — dependency compatibility):**
+
+| Package | Before | After |
+|---------|--------|-------|
+| `bcrypt` | `>=4.0.0,<4.3.0` (resolved **4.2.1**) | `>=4.0.1,<4.1.0` (resolves **4.0.1**) |
+| `passlib[bcrypt]` | `>=1.7.4,<2.0.0` | unchanged |
+
+**Behavior unchanged:** `CryptContext(schemes=["bcrypt"])` in `password_service.py`; existing `$2b$` hashes remain verifiable; registration/login/reset/seed_demo unchanged.
+
+**Tests added:** `api/tests/test_password_service.py` — hash/verify roundtrip, legacy hash compatibility, subprocess checks that stderr has no `error reading bcrypt version`.
+
+**pip-audit:** clean after pin (verified locally).
+
+---
+
+**Last updated:** Phase 6 Slice 20 — passlib/bcrypt warning cleanup (`bcrypt<4.1.0` pin).

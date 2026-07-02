@@ -20,6 +20,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **nginx security headers** — Slice 17: `server_tokens off`, CSP baseline, cache headers; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §H
 - [x] **nginx CSP/cache refinement** — Slice 18: explicit CSP directives, HTML no-store, assets immutable; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §I
 - [x] **ZAP final CSP/cache triage** — Slice 19: `style-src` without `unsafe-inline`; cache/comments triaged; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §J
+- [x] **passlib/bcrypt warning cleanup** — Slice 20: `bcrypt<4.1.0` compatibility pin; [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §O
 - [ ] **Security config audit** — `docker compose exec api python scripts/check_security_readiness.py` (with production `.env` on staging)
 - [ ] **Production env validated** — `python scripts/check_production_env.py --env-file .env --strict` exits 0
 - [ ] **JWT_SECRET_KEY** is a long random value (≥ 32 bytes), not `change_me`

@@ -26,7 +26,7 @@ Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLI
 | **Docker production compose** | `docker-compose.prod.yml` — no bind mounts, no `--reload`, API not published publicly, Postgres not port-mapped |
 | **Backup / restore docs** | [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) — manual `pg_dump` / restore procedure |
 | **Guest claim** | Mismatched email/phone returns generic `CLAIM_NOT_FOUND_OR_MISMATCH` (no leak of which field failed) |
-| **Audit scripts** | Email, password reset, billing flow audits — no network, no secret printing |
+| **Password hashing** | bcrypt via `passlib` `CryptContext`; Slice 20 pinned `bcrypt<4.1.0` for passlib compatibility (no warning noise) |
 | **CI** | GitHub Actions — pytest, `check_backend.py`, migrations, production env template validation |
 
 Optional local audit (no scanners):
@@ -273,6 +273,12 @@ This slice does **not** create legal documents or consent UI.
 - 10027 suspicious comments: comment-free minified bundle; likely false positive; not suppressed
 - ZAP remains manual, non-blocking
 
+### Phase 6 Slice 20 — passlib/bcrypt warning cleanup (summary)
+
+- Root cause: passlib 1.7.4 incompatible with bcrypt 4.1+ (`__about__` removed)
+- Fix: pin `bcrypt>=4.0.1,<4.1.0` in `api/requirements.txt` — password hashing behavior unchanged
+- Added `api/tests/test_password_service.py`; 573 pytest tests pass; pip-audit clean
+
 ---
 
-**Last updated:** Phase 6 Slice 19 — final ZAP CSP/cache triage.
+**Last updated:** Phase 6 Slice 20 — passlib/bcrypt warning cleanup.

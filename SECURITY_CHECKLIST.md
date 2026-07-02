@@ -45,6 +45,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] **nginx security headers baseline** — Slice 17: `server_tokens off`, CSP, cache headers; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §H
 - [x] **nginx CSP/cache refinement** — Slice 18: explicit CSP directives, HTML `no-store`, assets `immutable`; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §I
 - [x] **ZAP final CSP/cache triage** — Slice 19: `style-src` without `unsafe-inline`; 10049/10027 triaged; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §J
+- [x] **passlib/bcrypt warning cleanup** — Slice 20: `bcrypt<4.1.0` pin; hashing unchanged; [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §O
 - [ ] OWASP ZAP baseline on staging URL (after VPS)
 
 ---
@@ -124,6 +125,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] nginx security headers baseline — Slice 17; CSP + `server_tokens off` + cache headers; see [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §H
 - [x] nginx CSP/cache refinement — Slice 18; explicit CSP directives + HTML no-store; see [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §I
 - [x] ZAP final CSP/cache triage — Slice 19; `unsafe-inline` removed; see [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §J
+- [x] passlib/bcrypt warning cleanup — Slice 20; `bcrypt<4.1.0` pin; see [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §O
 - [ ] OWASP ZAP baseline on staging — review findings after VPS deploy
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first
 - [ ] TestSprite — regression QA; security findings triaged separately
