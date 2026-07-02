@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
@@ -11,9 +12,12 @@ from pathlib import Path
 api_dir = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(api_dir))
 
+# Scripts must not echo SQL bind parameters (password_hash, tokens, etc.).
+os.environ["SQLALCHEMY_ECHO"] = "false"
+
 from sqlalchemy import select
 
-from app.database import async_session_factory
+from app.database import async_session_factory, engine
 from app.models.booking import Booking
 from app.models.client import Client
 from app.models.enums import (
@@ -54,6 +58,10 @@ LINKED_ORDER_FORM_DATA = {
     "details": "I need a Telegram bot with booking and notifications.",
 }
 LINKED_ORDER_MESSAGE_BODY = "Hello, I added more details for the project."
+
+
+def _disable_sql_echo() -> None:
+    engine.echo = False
 
 
 def demo_working_hours() -> list[dict]:
@@ -524,6 +532,7 @@ def _print_summary(result: dict) -> None:
 
 
 async def main() -> int:
+    _disable_sql_echo()
     print("Seeding demo data (idempotent)...")
     try:
         result = await seed_demo()

@@ -364,6 +364,7 @@ Legacy list (Phase 3):
 | nginx CSP/cache refinement | Phase 6 Slice 18 — explicit CSP directives (10055); HTML no-store; assets immutable long-cache |
 | ZAP final CSP/cache triage | Phase 6 Slice 19 — `style-src` without `unsafe-inline`; 10049/10027 triaged; COEP deferred |
 | passlib/bcrypt warning cleanup | Phase 6 Slice 20 — `bcrypt<4.1.0` pin; passlib version trap removed; hashing unchanged |
+| password_hash logging hygiene | Phase 6 Slice 21 — SQL echo off by default; seed_demo logs do not expose bcrypt hashes |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |

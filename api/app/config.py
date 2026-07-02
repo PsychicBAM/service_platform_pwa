@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     app_name: str = "Service Platform API"
     api_v1_prefix: str = "/api/v1"
     api_docs_enabled: bool | None = Field(default=None)
+    sqlalchemy_echo: bool = False
 
     database_url: str = (
         "postgresql+asyncpg://service_platform:service_platform"

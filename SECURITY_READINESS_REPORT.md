@@ -26,7 +26,7 @@ Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLI
 | **Docker production compose** | `docker-compose.prod.yml` — no bind mounts, no `--reload`, API not published publicly, Postgres not port-mapped |
 | **Backup / restore docs** | [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) — manual `pg_dump` / restore procedure |
 | **Guest claim** | Mismatched email/phone returns generic `CLAIM_NOT_FOUND_OR_MISMATCH` (no leak of which field failed) |
-| **Password hashing** | bcrypt via `passlib` `CryptContext`; Slice 20 pinned `bcrypt<4.1.0` for passlib compatibility (no warning noise) |
+| **Password hashing** | bcrypt via `passlib` `CryptContext`; Slice 20 pinned `bcrypt<4.1.0`; Slice 21 disabled SQL echo logging of `password_hash` |
 | **CI** | GitHub Actions — pytest, `check_backend.py`, migrations, production env template validation |
 
 Optional local audit (no scanners):
@@ -279,6 +279,12 @@ This slice does **not** create legal documents or consent UI.
 - Fix: pin `bcrypt>=4.0.1,<4.1.0` in `api/requirements.txt` — password hashing behavior unchanged
 - Added `api/tests/test_password_service.py`; 573 pytest tests pass; pip-audit clean
 
+### Phase 6 Slice 21 — password_hash logging hygiene (summary)
+
+- Root cause: `database.py` had `echo=settings.app_env == "local"`, logging SQL bind params including `password_hash`
+- Fix: `sqlalchemy_echo` setting (default `false`); `seed_demo.py` forces `SQLALCHEMY_ECHO=false` and disables engine echo
+- Added `api/tests/test_sensitive_logging.py`; seed_demo output has no `password_hash` or bcrypt prefixes
+
 ---
 
-**Last updated:** Phase 6 Slice 20 — passlib/bcrypt warning cleanup.
+**Last updated:** Phase 6 Slice 21 — password_hash logging removed from seed/SQL output.
