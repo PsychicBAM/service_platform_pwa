@@ -17,10 +17,12 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Backup schedule & retention plan** — Slice 7: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md); cron/systemd templates documented; no live job installed
 - [x] **Monitoring & logging readiness** — Slice 8: [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md); health/log/alert plan documented; no live monitoring configured
 - [x] **Demo credentials production safety gate** — Slice 9: `seed_demo.py` refuses `APP_ENV=production`; `check_production_env.py --strict` launch gate
-- [x] **Legal & privacy readiness plan** — Slice 10: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md); not legal advice; pages/consent still missing
+- [x] **Legal & privacy readiness plan** — Slice 10: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md); not legal advice
+- [x] **Legal placeholder routes & footer** — Slice 11: `/legal/terms`, `/legal/privacy`, `/legal/consent`, `/legal/cookies`; draft text only
+- [ ] **Lawyer-reviewed legal text** — replace placeholders before public launch
+- [ ] **Consent checkboxes** — registration, booking, order — future slice
 - [ ] **Real VPS provisioned** — not done yet
 - [ ] **Domain + HTTPS** — reverse proxy configured on server
-- [ ] **Legal / privacy / consent pages** — [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md); lawyer review required before public launch
 
 ## Security
 

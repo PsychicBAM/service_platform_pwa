@@ -32,6 +32,10 @@ import { VerifyEmailPage } from "@/pages/VerifyEmailPage";
 import { SuperadminAuditLogsPage } from "@/pages/superadmin/SuperadminAuditLogsPage";
 import { SuperadminBusinessesPage } from "@/pages/superadmin/SuperadminBusinessesPage";
 import { SuperadminDashboardPage } from "@/pages/superadmin/SuperadminDashboardPage";
+import { ConsentPage } from "@/pages/legal/ConsentPage";
+import { CookiesPage } from "@/pages/legal/CookiesPage";
+import { PrivacyPage } from "@/pages/legal/PrivacyPage";
+import { TermsPage } from "@/pages/legal/TermsPage";
 
 export const router = createBrowserRouter([
   {
@@ -56,6 +60,10 @@ export const router = createBrowserRouter([
       { path: "me/orders", element: <MyOrdersPage /> },
       { path: "me/claim", element: <ClaimGuestPage /> },
       { path: "me/orders/:orderId", element: <MyOrderDetailPage /> },
+      { path: "legal/terms", element: <TermsPage /> },
+      { path: "legal/privacy", element: <PrivacyPage /> },
+      { path: "legal/consent", element: <ConsentPage /> },
+      { path: "legal/cookies", element: <CookiesPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

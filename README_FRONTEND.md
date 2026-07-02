@@ -89,7 +89,8 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 
 - [SECURITY_READINESS_REPORT.md](../SECURITY_READINESS_REPORT.md) and [SECURITY_CHECKLIST.md](../SECURITY_CHECKLIST.md)
 - Documents current guards, gaps, and future scanner roadmap (dependency audit, Trivy, OWASP ZAP)
-- Legal/privacy/consent pages are future work (including 152-FZ review for Russia-facing launch)
+- Legal placeholder pages at `/legal/terms`, `/legal/privacy`, `/legal/consent`, `/legal/cookies` (Slice 11 — draft only, not legal advice)
+- Footer links to legal pages on main layout; consent checkboxes and lawyer-reviewed text remain future work
 
 ### Phase 6 Slice 2 — CodeQL code scanning (summary)
 

@@ -61,7 +61,24 @@ export function Layout() {
         <Outlet />
       </main>
       <footer className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-500">
-        Service Platform · Bookings &amp; requests
+        <p className="mb-2">Service Platform · Bookings &amp; requests</p>
+        <nav
+          aria-label="Legal"
+          className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
+        >
+          <Link to="/legal/terms" className="hover:text-brand-700 hover:underline">
+            Terms
+          </Link>
+          <Link to="/legal/privacy" className="hover:text-brand-700 hover:underline">
+            Privacy
+          </Link>
+          <Link to="/legal/consent" className="hover:text-brand-700 hover:underline">
+            Personal Data Consent
+          </Link>
+          <Link to="/legal/cookies" className="hover:text-brand-700 hover:underline">
+            Cookies
+          </Link>
+        </nav>
       </footer>
     </div>
   );

@@ -1,7 +1,7 @@
 # Legal & Privacy Readiness Report — Phase 7 (Slice 10)
 
 **Purpose:** Plan legal and privacy requirements before **public launch**.  
-**Status:** Readiness documentation only — **no legal pages, consent UI, or lawyer review in this slice**.  
+**Status:** Placeholder legal routes and footer links (Slice 11) — **draft text only**; lawyer review and consent UI still required.  
 **Disclaimer:** This document is **not legal advice**. Final policies and consent flows require qualified legal review for your jurisdiction(s).
 
 Related: [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md)
@@ -12,12 +12,13 @@ Related: [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [VPS_READINESS_
 
 | Item | Status |
 |------|--------|
-| **Terms of Service / Privacy Policy pages** | ❌ Not implemented |
-| **Consent checkboxes (registration, booking, order)** | ❌ Not implemented |
+| **Legal placeholder pages** | ⏳ `/legal/terms`, `/legal/privacy`, `/legal/consent`, `/legal/cookies` — draft only (Slice 11) |
+| **Footer legal links** | ✅ Main layout footer (Slice 11) |
+| **Consent checkboxes (registration, booking, order)** | ❌ Not implemented — future slice |
 | **Lawyer review** | ❌ Not performed |
 | **152-FZ / GDPR compliance claimed** | ❌ **Not claimed** — requires legal review |
 | **Platform collects personal/business data** | ✅ Yes — accounts, bookings, orders, messages |
-| **Public launch without legal pages** | ❌ **Blocked** |
+| **Public launch with placeholder legal text only** | ❌ **Blocked** — final lawyer-reviewed text required |
 
 **Launch rule:** Do not point public marketing traffic at the platform until legal documents and consent flows are implemented and reviewed.
 
@@ -80,6 +81,8 @@ Placeholder patterns only — **not final legal wording**. A lawyer must approve
 
 **Routes to add later (not this slice):** e.g. `/terms`, `/privacy`, `/cookies`, `/billing-terms`.
 
+**Implemented (Slice 11 — placeholder only):** `/legal/terms`, `/legal/privacy`, `/legal/consent`, `/legal/cookies` with footer links in main `Layout`. Text is draft — not final legal advice.
+
 ---
 
 ## E. Russian 152-FZ readiness notes
@@ -124,9 +127,9 @@ The product may later serve **UAE, Tunisia, EU**, or other regions. Before inter
 
 | # | Slice | Deliverable |
 |---|-------|-------------|
-| 1 | Legal routes (placeholder) | Static `/terms`, `/privacy` pages with lawyer-approved HTML |
-| 2 | Footer links | Global footer on public + auth layouts |
-| 3 | Registration consent | Required checkbox + validation |
+| 1 | Legal routes (placeholder) | ✅ Slice 11 — `/legal/*` draft pages + footer links |
+| 2 | Footer links | ✅ Slice 11 — Terms, Privacy, Consent, Cookies |
+| 3 | Registration consent | Required checkbox + validation — future |
 | 4 | Booking consent | Guest/client booking form checkbox |
 | 5 | Order consent | Guest/client order form checkbox |
 | 6 | Admin / retention notes | Owner-facing text on client data responsibilities |
@@ -135,7 +138,7 @@ The product may later serve **UAE, Tunisia, EU**, or other regions. Before inter
 | 9 | Billing terms page | Before `STRIPE_ENABLED=true` on public prod |
 | 10 | **Lawyer review** | **Mandatory before public launch** |
 
-**This slice (10):** roadmap and data inventory only — no app changes.
+**Slice 11:** placeholder routes and footer only — not final legal text or consent enforcement.
 
 ---
 
@@ -143,7 +146,7 @@ The product may later serve **UAE, Tunisia, EU**, or other regions. Before inter
 
 Before **public launch**, confirm:
 
-- [ ] **Legal pages live** — Terms, Privacy (minimum); lawyer-reviewed
+- [ ] **Legal pages live** — Placeholder routes exist (Slice 11); **lawyer-reviewed final text** still required
 - [ ] **Consent checkboxes** — registration, booking, order (as required by counsel)
 - [ ] **Data retention / deletion policy** — documented and operational process defined
 - [ ] **Cookie / analytics policy** — if analytics or non-essential cookies are used
@@ -157,4 +160,4 @@ Cross-links: [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [VPS_DEPLOY
 
 ---
 
-**Last updated:** Phase 7 Slice 10 — legal and privacy readiness plan (not legal advice; no pages implemented).
+**Last updated:** Phase 7 Slice 11 — legal placeholder routes and footer links (not legal advice).

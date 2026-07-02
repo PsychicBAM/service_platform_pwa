@@ -59,7 +59,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Content-Security-Policy** | ✅ Slices 17–19 — `style-src 'self'` only (no `unsafe-inline`); COEP/HSTS still deferred |
 | **Monitoring / alerting** | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — schedule/retention documented; not active until VPS setup |
-| **Legal / privacy / consent pages** | [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — launch blocker; lawyer review before public site |
+| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); lawyer-reviewed text + consent UI still required |
 | **Production VPS** | Not deployed — local/Docker dev only |
 | **WAF / DDoS** | Rely on host/provider when deployed |
 | **HSTS** | Set at reverse proxy when HTTPS is live |
@@ -335,12 +335,12 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - `check_production_env.py --strict` fails on `ALLOW_DEMO_SEED_IN_PRODUCTION=true` or `DEMO_PASSWORD` in production
 - Launch gate: `--strict` on server `.env` before public traffic; legal pages still required
 
-### Phase 7 Slice 10 — Legal & privacy readiness (summary)
+### Phase 7 Slice 11 — Legal placeholder routes & footer (summary)
 
-- [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — data inventory, required legal docs, consent UI plan, 152-FZ/GDPR notes, launch blockers
-- **Not legal advice** — final documents and checkboxes require lawyer review
-- Legal/privacy/consent pages remain a **launch blocker**
+- Frontend: `/legal/terms`, `/legal/privacy`, `/legal/consent`, `/legal/cookies` — **draft placeholder text only**
+- Footer links in main `Layout` — Terms, Privacy, Personal Data Consent, Cookies
+- **Not legal advice** — final lawyer-reviewed text and consent checkboxes remain future work
 
 ---
 
-**Last updated:** Phase 7 Slice 10 — legal and privacy readiness plan (not legal advice).
+**Last updated:** Phase 7 Slice 11 — legal placeholder routes and footer links (not legal advice).
