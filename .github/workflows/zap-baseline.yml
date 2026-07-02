@@ -1,0 +1,89 @@
+# OWASP ZAP baseline (passive DAST) for owned local Docker app only.
+# Manual and non-blocking in Slice 15; no auth/admin/full-scan behavior.
+
+name: OWASP ZAP Baseline
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  zap-baseline:
+    name: zap-baseline-localhost
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env from example
+        run: cp .env.example .env
+
+      - name: Start local Docker stack
+        run: docker compose up -d --build postgres api web
+
+      - name: Wait for API health
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8000/health > /dev/null; then
+              echo "API is healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become healthy in time"
+          docker compose logs api
+          exit 1
+
+      - name: Run migrations
+        run: docker compose exec -T api alembic upgrade head
+
+      - name: Seed demo data
+        run: docker compose exec -T api python scripts/seed_demo.py
+
+      - name: Confirm scan target is local app only
+        run: |
+          curl --fail http://localhost:5173/health
+          curl --fail http://localhost:5173/
+
+      - name: Run OWASP ZAP baseline (passive)
+        uses: zaproxy/action-baseline@v0.15.0
+        with:
+          docker_name: ghcr.io/zaproxy/zaproxy:stable
+          target: http://localhost:5173
+          rules_file_name: .zap/rules.tsv
+          cmd_options: >-
+            -m 5
+            -r zap-baseline-report.html
+            -J zap-baseline-report.json
+            -w zap-baseline-report.md
+            -z "-config spider.maxDuration=2"
+          allow_issue_writing: false
+
+      - name: Upload ZAP baseline artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-baseline-localhost
+          if-no-files-found: ignore
+          path: |
+            report_html.html
+            report_json.json
+            report_md.md
+            zap-baseline-report.html
+            zap-baseline-report.json
+            zap-baseline-report.md
+
+      - name: Show docker logs on failure
+        if: failure()
+        run: |
+          docker compose logs api
+          docker compose logs web
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

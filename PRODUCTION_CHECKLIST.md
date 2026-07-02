@@ -15,6 +15,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Trivy blocking** — Slice 12: `.github/workflows/trivy.yml` fails on HIGH/CRITICAL; separate from CodeQL and dependency-scan
 - [x] **Gitleaks secrets scan** — Slice 13: `.github/workflows/gitleaks.yml` (blocking); [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md); no secrets in git
 - [x] **OWASP ZAP readiness** — Slice 14: [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); manual baseline checklist; not blocking; owned local/staging URLs only
+- [x] **OWASP ZAP workflow** — Slice 15: `.github/workflows/zap-baseline.yml`; manual/non-blocking localhost baseline; unauthenticated public pages only
 - [ ] **Security config audit** — `docker compose exec api python scripts/check_security_readiness.py` (with production `.env` on staging)
 - [ ] **Production env validated** — `python scripts/check_production_env.py --env-file .env --strict` exits 0
 - [ ] **JWT_SECRET_KEY** is a long random value (≥ 32 bytes), not `change_me`

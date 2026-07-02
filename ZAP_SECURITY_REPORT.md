@@ -1,4 +1,4 @@
-# OWASP ZAP Security Report — Phase 6 (Slice 14)
+# OWASP ZAP Security Report — Phase 6 (Slices 14-15)
 
 **Purpose:** Document safe, defensive **readiness** for OWASP ZAP baseline (passive) scanning of **our** application only.  
 **Not in scope:** Aggressive scans, authenticated admin scans, third-party targets, Nuclei, exploit tooling, or legal/privacy pages.
@@ -11,11 +11,11 @@ Related: [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECU
 
 | Item | Status |
 |------|--------|
-| **ZAP in CI** | **Not added** — not blocking merges |
+| **ZAP in CI** | ✅ `.github/workflows/zap-baseline.yml` — manual `workflow_dispatch`, **non-blocking** |
 | **External targets** | **None scanned** — no VPS/staging URL yet |
 | **Allowed targets** | **Owned local Docker app** (`localhost`) or **our HTTPS staging** after deploy |
 | **Scan mode** | **Baseline / passive only** — no active attack, no authenticated admin routes in this slice |
-| **Workflow** | **None** — Slice 15 may add optional manual `workflow_dispatch` (non-blocking) |
+| **Workflow** | Slice 15 baseline workflow added; local Docker target only (`http://localhost:5173`) |
 | **Nuclei** | Not planned in this slice |
 
 **Rule:** Never scan third-party sites, customer domains, or production without explicit operator approval and a scoped URL list.
@@ -145,12 +145,12 @@ For each ZAP alert:
 
 ---
 
-## G. Future CI plan
+## G. CI plan
 
 | Phase | Plan |
 |-------|------|
-| **Slice 15 (next)** | Optional `.github/workflows/zap.yml` — `workflow_dispatch` only, **non-blocking**, spins up `docker compose`, baseline against `http://web:8080/` or equivalent **internal** URL — no secrets, no auth |
-| **After staging VPS** | Manual or scheduled baseline against **our** HTTPS staging URL |
+| **Slice 15 (implemented)** | `.github/workflows/zap-baseline.yml` — `workflow_dispatch` only, **non-blocking**, starts `docker compose`, baseline target `http://localhost:5173`, unauthenticated/public-only |
+| **After staging VPS** | Optional manual or scheduled baseline against **our** HTTPS staging URL |
 | **Later** | Authenticated scan only if safe test accounts and scope are defined |
 | **Blocking promotion** | Only after several clean baselines on staging; never block on flaky dev-only findings |
 
@@ -158,4 +158,4 @@ Gitleaks, Trivy, CodeQL, and dependency-scan remain separate blocking workflows.
 
 ---
 
-**Last updated:** Phase 6 Slice 14 — OWASP ZAP baseline readiness (docs only; no workflow).
+**Last updated:** Phase 6 Slice 15 — OWASP ZAP baseline workflow added (manual, non-blocking).

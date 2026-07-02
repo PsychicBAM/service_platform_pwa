@@ -53,7 +53,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Docker non-root (Slice 11)** | ✅ `appuser` / `nginx` USER; web internal port **8080**; DS-0002 resolved locally |
 | **Trivy blocking (Slice 12)** | ✅ `trivy.yml` without `continue-on-error`; HIGH/CRITICAL findings fail workflow |
 | **Gitleaks secrets scan (Slice 13)** | ✅ `.github/workflows/gitleaks.yml` — blocking; [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md) |
-| **OWASP ZAP baseline** | ✅ Slice 14 readiness — [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); **not** in CI; owned URLs only |
+| **OWASP ZAP baseline** | ✅ Slice 15 — `.github/workflows/zap-baseline.yml` manual/non-blocking; local Docker target only (`http://localhost:5173`) |
 | **Rate limiting** | Not implemented on auth or public endpoints |
 | **Content-Security-Policy** | Deferred — validate against Vite bundle before enabling |
 | **Monitoring / alerting** | No uptime, error rate, or intrusion alerts configured |
@@ -103,8 +103,8 @@ Ordered for this project (own staging/VPS only — never scan third-party sites)
 4. **Blocking dependency CI** — ✅ Slice 8 — `dependency-scan.yml` blocking; baseline clean
 5. **Trivy** — ✅ Slice 9 — fs/config + prod Docker images; ✅ Slice 10 triage — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G; ✅ Slice 12 **blocking**
 7. **Gitleaks secrets scan** — ✅ Slice 13 — `.github/workflows/gitleaks.yml` (blocking); [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md)
-8. **OWASP ZAP baseline readiness** — ✅ Slice 14 — [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); passive/local manual; **not blocking**; owned local/staging URLs only
-9. **OWASP ZAP in CI** — Slice 15+ optional non-blocking workflow; staging baseline after VPS
+8. **OWASP ZAP baseline workflow** — ✅ Slice 15 — `.github/workflows/zap-baseline.yml`; `workflow_dispatch` only; non-blocking; local Docker app only; unauthenticated/public pages only
+9. **OWASP ZAP staging baseline** — after VPS, scan **our** HTTPS staging URL first
 10. **Nuclei** — only later, carefully, against **own** staging; not a substitute for ZAP baseline
 11. **TestSprite** — additional QA/regression coverage; not sole security scanner
 12. **Manual auth/role checklist** — §E below each release
@@ -236,4 +236,15 @@ This slice does **not** create legal documents or consent UI.
 
 ---
 
-**Last updated:** Phase 6 Slice 14 — OWASP ZAP baseline readiness (docs only).
+### Phase 6 Slice 15 — OWASP ZAP baseline workflow (summary)
+
+- Workflow: `.github/workflows/zap-baseline.yml` — `zaproxy/action-baseline@v0.15.0`
+- Trigger: `workflow_dispatch` only (manual)
+- Behavior: `continue-on-error: true` (non-blocking baseline)
+- Scope: local Docker app `http://localhost:5173` only; health checks run before scan
+- Safety: no authenticated/admin scans, no full scan, no third-party targets
+- Artifacts: baseline HTML/JSON/MD reports uploaded when produced
+
+---
+
+**Last updated:** Phase 6 Slice 15 — OWASP ZAP baseline workflow added (manual, non-blocking).

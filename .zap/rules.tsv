@@ -1,0 +1,6 @@
+# OWASP ZAP baseline rules configuration (Slice 15).
+# Intentionally minimal for first non-blocking baseline.
+# Keep defaults and triage findings in docs before tuning severities.
+#
+# Format reference:
+# <ruleId>\t<IGNORE|INFO|WARN|FAIL>\t(optional-message)
