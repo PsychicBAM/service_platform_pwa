@@ -213,7 +213,7 @@ Future **HIGH/CRITICAL** Trivy findings (vulnerabilities, config misconfiguratio
 | **dependency-scan** | Separate workflow; blocking (npm + pip) |
 | **Trivy** | Separate workflow; **now blocking** |
 | **Gitleaks** | Separate workflow; **blocking** (Slice 13) — git secrets; see [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md) |
-| **OWASP ZAP** | Future work — staging URL only |
+| **OWASP ZAP** | Slice 14 readiness — [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); **not in CI**; owned local/staging baseline only |
 | **Nuclei** | Not planned in current slices |
 | **Legal pages** | Future work |
 
@@ -221,4 +221,4 @@ Gitleaks (git-tracked secrets) is complementary to Trivy’s optional secret pat
 
 ---
 
-**Last updated:** Phase 6 Slice 13 — Gitleaks baseline added; Trivy remains blocking (Slice 12).
+**Last updated:** Phase 6 Slice 14 — OWASP ZAP readiness docs added; Trivy/Gitleaks unchanged.

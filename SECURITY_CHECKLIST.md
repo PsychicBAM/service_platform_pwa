@@ -39,7 +39,8 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] **Docker non-root hardening** — Slice 11: `USER appuser` / `USER nginx`; web internal port 8080; DS-0002 resolved
 - [x] Promote Trivy to **blocking** — Slice 12: `trivy.yml` without `continue-on-error`; HIGH/CRITICAL fails workflow
 - [x] **Gitleaks secrets scan** — Slice 13: `.github/workflows/gitleaks.yml` (blocking); [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md)
-- [ ] OWASP ZAP baseline against staging URL
+- [x] **OWASP ZAP readiness** — Slice 14: [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); manual baseline on owned local/staging URLs; **not blocking**
+- [ ] OWASP ZAP baseline on staging URL (after VPS)
 
 ---
 
@@ -111,7 +112,9 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] Dependency audits — baseline clean; blocking scan enabled (Slices 5–8)
 - [x] Trivy baseline — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G–I (Slices 10–12)
 - [x] Trivy blocking — Slice 12; future HIGH/CRITICAL findings fail workflow
-- [ ] OWASP ZAP baseline — review findings on staging
+- [x] Gitleaks — Slice 13; [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md); blocking on git secrets
+- [x] OWASP ZAP readiness — Slice 14; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); manual baseline on owned URLs; not blocking
+- [ ] OWASP ZAP baseline on staging — review findings after VPS deploy
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first
 - [ ] TestSprite — regression QA; security findings triaged separately
 

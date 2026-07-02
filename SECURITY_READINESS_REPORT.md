@@ -53,7 +53,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Docker non-root (Slice 11)** | ✅ `appuser` / `nginx` USER; web internal port **8080**; DS-0002 resolved locally |
 | **Trivy blocking (Slice 12)** | ✅ `trivy.yml` without `continue-on-error`; HIGH/CRITICAL findings fail workflow |
 | **Gitleaks secrets scan (Slice 13)** | ✅ `.github/workflows/gitleaks.yml` — blocking; [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md) |
-| **OWASP ZAP baseline** | No staging URL scan automated |
+| **OWASP ZAP baseline** | ✅ Slice 14 readiness — [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); **not** in CI; owned URLs only |
 | **Rate limiting** | Not implemented on auth or public endpoints |
 | **Content-Security-Policy** | Deferred — validate against Vite bundle before enabling |
 | **Monitoring / alerting** | No uptime, error rate, or intrusion alerts configured |
@@ -102,11 +102,12 @@ Ordered for this project (own staging/VPS only — never scan third-party sites)
 3. **Dependency advisory triage** — ✅ Phase 6 Slice 4 — risk table + upgrade roadmap (Slices 5–8); advisories cleared
 4. **Blocking dependency CI** — ✅ Slice 8 — `dependency-scan.yml` blocking; baseline clean
 5. **Trivy** — ✅ Slice 9 — fs/config + prod Docker images; ✅ Slice 10 triage — [TRIVY_SECURITY_REPORT.md](./TRIVY_SECURITY_REPORT.md) §G; ✅ Slice 12 **blocking**
-6. **Gitleaks secrets scan** — ✅ Slice 13 — `.github/workflows/gitleaks.yml` (blocking); [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md); separate from CodeQL/dependency-scan/Trivy
-7. **OWASP ZAP baseline** — passive scan against **your** staging URL after deploy (future slice)
-8. **Nuclei** — only later, carefully, against **own** staging; not a substitute for ZAP baseline
-9. **TestSprite** — additional QA/regression coverage; not sole security scanner
-10. **Manual auth/role checklist** — §E below each release
+7. **Gitleaks secrets scan** — ✅ Slice 13 — `.github/workflows/gitleaks.yml` (blocking); [SECRETS_SCAN_REPORT.md](./SECRETS_SCAN_REPORT.md)
+8. **OWASP ZAP baseline readiness** — ✅ Slice 14 — [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); passive/local manual; **not blocking**; owned local/staging URLs only
+9. **OWASP ZAP in CI** — Slice 15+ optional non-blocking workflow; staging baseline after VPS
+10. **Nuclei** — only later, carefully, against **own** staging; not a substitute for ZAP baseline
+11. **TestSprite** — additional QA/regression coverage; not sole security scanner
+12. **Manual auth/role checklist** — §E below each release
 
 ---
 
@@ -224,6 +225,15 @@ This slice does **not** create legal documents or consent UI.
 - **No secrets should ever be committed** — `.env` stays local/gitignored
 - Does not replace CodeQL, dependency-scan, Trivy, runtime secret management, or rotation
 
+### Phase 6 Slice 14 — OWASP ZAP baseline readiness (summary)
+
+- Report: [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) — safe local manual baseline flow, triage policy, future CI plan
+- **Dynamic web** scanning (HTTP responses); separate from CodeQL, dependency-scan, Trivy, Gitleaks
+- **Not in blocking CI** — no workflow in Slice 14; no external target scanned
+- **Owned URLs only** — `localhost` Docker app now; HTTPS staging after VPS
+- **Passive / baseline only** — no aggressive scan, no authenticated admin pages in this slice
+- Nuclei and legal pages — future work
+
 ---
 
-**Last updated:** Phase 6 Slice 13 — Gitleaks secrets scan baseline (blocking).
+**Last updated:** Phase 6 Slice 14 — OWASP ZAP baseline readiness (docs only).

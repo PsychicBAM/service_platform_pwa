@@ -120,9 +120,10 @@ If new false positives appear, prefer safer placeholder wording before adding al
 | **Gitleaks** | Git-tracked secrets in source/docs/history |
 | **Trivy** | CVEs, Dockerfile misconfig, image OS packages; optional secret scan in images/fs |
 | **CodeQL** | Application source security queries |
+| **OWASP ZAP** | Slice 14 readiness — [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md); dynamic web baseline; not in blocking CI |
 
-All three are separate workflows; a green Gitleaks run does not replace Trivy or dependency-scan.
+All three are separate workflows; a green Gitleaks run does not replace Trivy, dependency-scan, or ZAP.
 
 ---
 
-**Last updated:** Phase 6 Slice 13 — Gitleaks baseline (blocking).
+**Last updated:** Phase 6 Slice 14 — Gitleaks baseline (blocking); ZAP readiness docs added.
