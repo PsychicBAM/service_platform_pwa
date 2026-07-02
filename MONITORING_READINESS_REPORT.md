@@ -44,7 +44,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READIN
 | **Stripe webhooks** | Failed deliveries, 4xx/5xx on webhook route | After `STRIPE_ENABLED=true` |
 | **SMTP / email** | Send failures, bounce logs | After `EMAIL_ENABLED=true` |
 
-**Launch gate:** Monitoring plan reviewed and at least manual health checks documented before public traffic.
+**Launch gate:** Monitoring plan reviewed and at least manual health checks documented before public traffic. Legal/privacy pages are a separate launch blocker — [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md).
 
 ---
 
@@ -207,7 +207,7 @@ Escalation: if restore needed, follow [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_
 | Disk | `df -h` |
 | Backups | `ls -lt /opt/service-platform/backups/postgres/daily/` |
 | Deploy smoke | [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) §F |
-| Backup alerts | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) §H |
+| Legal / privacy | [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) §H — required before public launch |
 
 ---
 

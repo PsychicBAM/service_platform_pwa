@@ -2,7 +2,7 @@
 
 Use this before and after deploying to a VPS. Not every item applies to a private demo server — mark N/A where appropriate.
 
-Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md), [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md), [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
+Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md), [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md), [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md), [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
 
 ---
 
@@ -17,9 +17,10 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Backup schedule & retention plan** — Slice 7: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md); cron/systemd templates documented; no live job installed
 - [x] **Monitoring & logging readiness** — Slice 8: [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md); health/log/alert plan documented; no live monitoring configured
 - [x] **Demo credentials production safety gate** — Slice 9: `seed_demo.py` refuses `APP_ENV=production`; `check_production_env.py --strict` launch gate
+- [x] **Legal & privacy readiness plan** — Slice 10: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md); not legal advice; pages/consent still missing
 - [ ] **Real VPS provisioned** — not done yet
 - [ ] **Domain + HTTPS** — reverse proxy configured on server
-- [ ] **Legal / privacy / consent pages** — required before public launch
+- [ ] **Legal / privacy / consent pages** — [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md); lawyer review required before public launch
 
 ## Security
 

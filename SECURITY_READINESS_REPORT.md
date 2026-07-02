@@ -59,7 +59,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Content-Security-Policy** | ✅ Slices 17–19 — `style-src 'self'` only (no `unsafe-inline`); COEP/HSTS still deferred |
 | **Monitoring / alerting** | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — schedule/retention documented; not active until VPS setup |
-| **Legal / privacy / consent pages** | Terms, Privacy Policy, consent flows not implemented |
+| **Legal / privacy / consent pages** | [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — launch blocker; lawyer review before public site |
 | **Production VPS** | Not deployed — local/Docker dev only |
 | **WAF / DDoS** | Rely on host/provider when deployed |
 | **HSTS** | Set at reverse proxy when HTTPS is live |
@@ -132,17 +132,11 @@ Automated coverage exists in pytest for many of these; manual pass confirms rout
 
 ---
 
-## F. Legal / privacy future note
+## F. Legal / privacy readiness (Slice 10)
 
-Before a public or Russia-facing launch, plan separate legal work (not this slice):
+Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — data categories, required documents, consent UI locations, 152-FZ/GDPR planning notes, implementation roadmap.
 
-- **Terms of Service / user agreement** — platform rules, liability, acceptable use
-- **Privacy Policy** — what data is collected, retention, processors, contact
-- **Personal data processing consent** — explicit consent where required (e.g. registration, marketing)
-- **Cookie / local storage notice** — if analytics or non-essential cookies are added
-- **Russian Federal Law 152-FZ** — review localization, data residency, consent, and notification obligations before marketing to Russian users or storing data of Russian citizens
-
-This slice does **not** create legal documents or consent UI.
+**This is not legal advice.** Final Terms, Privacy Policy, and consent flows require qualified legal review before public launch. This slice does **not** create legal documents or consent UI.
 
 ---
 
@@ -341,6 +335,12 @@ This slice does **not** create legal documents or consent UI.
 - `check_production_env.py --strict` fails on `ALLOW_DEMO_SEED_IN_PRODUCTION=true` or `DEMO_PASSWORD` in production
 - Launch gate: `--strict` on server `.env` before public traffic; legal pages still required
 
+### Phase 7 Slice 10 — Legal & privacy readiness (summary)
+
+- [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — data inventory, required legal docs, consent UI plan, 152-FZ/GDPR notes, launch blockers
+- **Not legal advice** — final documents and checkboxes require lawyer review
+- Legal/privacy/consent pages remain a **launch blocker**
+
 ---
 
-**Last updated:** Phase 7 Slice 9 — demo credentials production safety gate.
+**Last updated:** Phase 7 Slice 10 — legal and privacy readiness plan (not legal advice).

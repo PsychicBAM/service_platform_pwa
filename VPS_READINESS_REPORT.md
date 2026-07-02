@@ -4,7 +4,7 @@
 **Not in scope:** Live server provisioning, DNS changes, HTTPS certificates, or committing secrets.  
 **Status:** Planning only — **no deployment performed**. Operator runbook: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md). Backup baseline: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) (Slice 4).
 
-Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
+Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
 
 ---
 
@@ -23,7 +23,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [MONITORING
 | **Production env validation** | ✅ `scripts/check_production_env.py --strict` — polished (Slice 2); static message codes only |
 | **VPS deployment runbook** | ✅ [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) — operator guide (Slice 3); no live deploy |
 | **Backup readiness** | ✅ [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) — manual backup/restore baseline (Slice 4); no automated schedule yet |
-| **Legal / privacy pages** | ❌ Not implemented — **blocker before public launch** |
+| **Legal / privacy pages** | ❌ [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — plan documented; **blocker before public launch** (not legal advice) |
 | **Real VPS deployment** | ❌ **Not done yet** — next major phase |
 
 ---
@@ -191,7 +191,7 @@ Run on **HTTPS staging** before public launch. Use test accounts — do not log 
 | ZAP baseline reviewed | ✅ triaged; re-run on staging URL recommended |
 | `check_production_env.py --strict` | Required on server `.env` before go-live |
 | `check_security_readiness.py` | Required with production `.env` on staging |
-| Legal / privacy / consent pages | ❌ **Required before public launch** |
+| Legal / privacy / consent pages | ❌ [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — required before public launch; lawyer review needed |
 | Demo credentials changed / disabled | Required on production — `check_production_env.py --strict` + no `seed_demo.py` |
 | Backups tested (restore drill) | Required before launch |
 | HTTPS only on public URL | Required |
@@ -203,7 +203,7 @@ Run on **HTTPS staging** before public launch. Use test accounts — do not log 
 
 | Blocker | Notes |
 |---------|--------|
-| **Legal / privacy / consent pages** | Not in MVP; required for public marketing site |
+| **Legal / privacy / consent pages** | ❌ [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — launch blocker; final docs need lawyer review |
 | **Live SMTP** | Not configured; email verification/reset/notifications need provider |
 | **Live Stripe on VPS** | `STRIPE_ENABLED=false`; test webhook + HTTPS URL not validated on server |
 | **Automated backups** | Documented manually; no cron/object-storage automation in repo |
@@ -231,4 +231,4 @@ docker compose -p service_platform_prod -f docker-compose.prod.yml down
 
 ---
 
-**Last updated:** Phase 7 Slice 9 — demo credentials production safety gate.
+**Last updated:** Phase 7 Slice 10 — legal and privacy readiness plan (not legal advice).

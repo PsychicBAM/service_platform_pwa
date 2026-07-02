@@ -18,7 +18,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READIN
 | **Domain / DNS** | A domain (e.g. `your-domain.example`) will point to the VPS public IP via `A` / `AAAA` records. |
 | **HTTPS** | TLS terminates at a **reverse proxy** on the host or at a cloud/proxy provider — not inside the app containers by default. |
 | **Compose stack** | Production uses [docker-compose.prod.yml](./docker-compose.prod.yml) — no bind mounts, no uvicorn `--reload`, API port **8000** not published to the internet. |
-| **Legal / privacy** | Public launch still requires privacy policy, terms, and consent flows — **not in MVP repo yet**. |
+| **Legal / privacy** | Public launch requires lawyer-reviewed Terms, Privacy, consent — [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) (not legal advice). |
 
 **Out of scope for this runbook:** Marketplace features, language switcher, automated monitoring SaaS setup, live Stripe/SMTP configuration details (see guides when ready).
 
@@ -426,7 +426,7 @@ Options later: cron + email/Telegram, Uptime Kuma, Healthchecks.io — no paid i
 
 | Blocker | Status (pre-VPS) |
 |---------|------------------|
-| **Legal / privacy / consent pages** | ❌ Required before public marketing site |
+| **Legal / privacy / consent pages** | ❌ [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — launch blocker; lawyer review before public site |
 | **Live SMTP on VPS** | ⏳ `EMAIL_ENABLED=false` by default |
 | **Stripe on VPS** | ⏳ `STRIPE_ENABLED=false`; use test mode first — [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) |
 | **Automated backups** | ⏳ [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) + `scripts/backup_postgres.sh`; cron/systemd templates only — configure on VPS |
@@ -461,4 +461,4 @@ docker compose -p service_platform_prod \
 
 ---
 
-**Last updated:** Phase 7 Slice 9 — demo credentials production safety gate.
+**Last updated:** Phase 7 Slice 10 — legal and privacy readiness cross-links (not legal advice).
