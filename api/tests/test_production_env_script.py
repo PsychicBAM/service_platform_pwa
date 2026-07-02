@@ -68,6 +68,8 @@ def test_validate_good_env_strict() -> None:
 
     result = module.validate_production_env(parsed, strict=True)
     assert result.passed, result.failures
+    assert "demo_seed_not_allowed_in_production" in result.ok
+    assert "demo_password_not_set_in_production" in result.ok
     warnings = _texts(module, result.warnings)
     assert "stripe_disabled" in result.warnings
     assert any("Stripe disabled" in warning for warning in warnings)
@@ -256,7 +258,52 @@ def test_strict_fails_stripe_enabled_missing_fields() -> None:
     assert "stripe_price_starter_required" in result.failures
 
 
-def test_env_production_example_has_safe_placeholders() -> None:
+def test_strict_fails_demo_seed_allowed_in_production() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["ALLOW_DEMO_SEED_IN_PRODUCTION"] = "true"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert "demo_seed_allowed_in_production" in result.failures
+
+
+def test_strict_fails_demo_password_in_production() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["DEMO_PASSWORD"] = "ChangeMe123!"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert "demo_password_set_in_production" in result.failures
+    messages = " ".join(_texts(module, result.failures))
+    assert "ChangeMe123!" not in messages
+
+
+def test_strict_warns_email_dry_run_with_email_enabled() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["EMAIL_ENABLED"] = "true"
+    parsed["EMAIL_DRY_RUN"] = "true"
+    parsed["SMTP_HOST"] = "smtp.example.com"
+    parsed["SMTP_FROM_EMAIL"] = "mailer@example.com"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert result.passed, result.failures
+    assert "email_dry_run_with_email_enabled" in result.warnings
+
+
+def test_strict_fails_public_app_url_localhost() -> None:
+    module = _load_module()
+    parsed = _strict_production_base()
+    parsed["PUBLIC_APP_URL"] = "http://localhost:8080"
+
+    result = module.validate_production_env(parsed, strict=True)
+    assert not result.passed
+    assert "public_app_url_localhost_forbidden" in result.failures
+
+
+def test_env_production_example_documents_demo_seed_safety() -> None:
     module = _load_module()
     project_root = Path(__file__).resolve().parents[2]
     candidates = [
@@ -267,6 +314,7 @@ def test_env_production_example_has_safe_placeholders() -> None:
     assert example_path is not None, ".env.production.example not found"
 
     content = example_path.read_text(encoding="utf-8")
+    assert "seed_demo.py" in content.lower() or "demo seed" in content.lower()
     forbidden_patterns = (
         "sk_live_",
         "sk_test_51",
@@ -284,6 +332,11 @@ def test_env_production_example_has_safe_placeholders() -> None:
     assert parsed["EMAIL_ENABLED"] == "false"
     assert "CHANGE_ME" in parsed["JWT_SECRET_KEY"]
     assert parsed["CORS_ORIGINS"] != "*"
+    assert parsed.get("ALLOW_DEMO_SEED_IN_PRODUCTION", "").strip().lower() not in {
+        "true",
+        "1",
+        "yes",
+    }
 
     result = module.validate_production_env(parsed, strict=False)
     assert result.passed, result.failures
@@ -291,6 +344,7 @@ def test_env_production_example_has_safe_placeholders() -> None:
     strict_result = module.validate_production_env(parsed, strict=True)
     assert not strict_result.passed
     assert "jwt_secret_key_weak_or_placeholder" in strict_result.failures
+    assert "demo_seed_not_allowed_in_production" in strict_result.ok
 
 
 def test_parse_env_file_ignores_comments(tmp_path: Path) -> None:

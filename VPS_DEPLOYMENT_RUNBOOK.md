@@ -180,16 +180,22 @@ curl -sI "http://127.0.0.1:${WEB_HTTP_PORT:-80}/" | head -n 1
 
 Expected: HTTP 200; SPA `index.html` served.
 
-### 10. Seed demo data — **staging only**
+### 10. Seed demo data — **local/staging only**
 
-**Do not** run `seed_demo.py` on public production unless this is an intentional demo/staging server.
+**Do not** run `seed_demo.py` on public production — the script **refuses** when `APP_ENV=production` (exit 1, static message).
 
 ```bash
-# Staging / private demo only:
+# Blocked when APP_ENV=production:
 # docker compose -p service_platform_prod -f docker-compose.prod.yml exec api python scripts/seed_demo.py
 ```
 
-If used, change all demo passwords immediately and restrict access.
+Before launch, validate production env:
+
+```bash
+python scripts/check_production_env.py --env-file /opt/service-platform/env/.env.production --strict
+```
+
+Use unique admin credentials and real secrets on public production.
 
 ### 11. Configure reverse proxy + HTTPS
 
@@ -427,7 +433,7 @@ Options later: cron + email/Telegram, Uptime Kuma, Healthchecks.io — no paid i
 | **Restore drill on staging** | ⏳ [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) — required before public launch; not performed yet |
 | **Monitoring / alerts** | ⏳ [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | **Domain + HTTPS** | ⏳ Not configured until VPS provisioned |
-| **Demo credentials** | Must not remain on public production |
+| **Demo credentials** | Must not remain on public production — `seed_demo.py` blocked when `APP_ENV=production` |
 | **Real VPS deployment** | ❌ **Not performed** — follow this runbook when ready |
 
 ---
@@ -455,4 +461,4 @@ docker compose -p service_platform_prod \
 
 ---
 
-**Last updated:** Phase 7 Slice 8 — monitoring readiness cross-links (no live monitoring configured).
+**Last updated:** Phase 7 Slice 9 — demo credentials production safety gate.

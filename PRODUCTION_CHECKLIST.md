@@ -16,6 +16,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Restore drill checklist** — Slice 6: [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md); staging drill documented; no real restore in slice
 - [x] **Backup schedule & retention plan** — Slice 7: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md); cron/systemd templates documented; no live job installed
 - [x] **Monitoring & logging readiness** — Slice 8: [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md); health/log/alert plan documented; no live monitoring configured
+- [x] **Demo credentials production safety gate** — Slice 9: `seed_demo.py` refuses `APP_ENV=production`; `check_production_env.py --strict` launch gate
 - [ ] **Real VPS provisioned** — not done yet
 - [ ] **Domain + HTTPS** — reverse proxy configured on server
 - [ ] **Legal / privacy / consent pages** — required before public launch
@@ -42,7 +43,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [ ] **Postgres password** is strong and matches `DATABASE_URL` in `.env`
 - [ ] **`.env` is not in git** and file permissions are restrictive (`chmod 600 .env`)
 - [ ] **HTTPS enabled** on public domain (reverse proxy / Cloudflare)
-- [ ] **Demo credentials removed** — do not run `seed_demo.py` on real production, or change all demo passwords immediately
+- [ ] **Demo credentials removed** — `seed_demo.py` blocked when `APP_ENV=production`; unique admin passwords on public prod
 - [ ] **Admin and superadmin accounts** reviewed — unique emails, strong passwords, least privilege
 - [ ] **CORS_ORIGINS** lists only your real frontend origin(s), not `*` or `localhost` (except local smoke)
 - [ ] **API_DOCS_ENABLED=false** in production `.env` (OpenAPI UI off)

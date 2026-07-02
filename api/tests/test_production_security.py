@@ -200,6 +200,28 @@ def test_strict_env_script_fails_stripe_enabled_without_secrets() -> None:
     assert "stripe_secret_key_required" in result.failures
 
 
+def test_strict_env_script_fails_demo_seed_allowed_in_production() -> None:
+    module = _load_env_script()
+    env = {
+        "APP_ENV": "production",
+        "POSTGRES_USER": "service_platform",
+        "POSTGRES_PASSWORD": "example-postgres-password-for-unit-tests-only",
+        "POSTGRES_DB": "service_platform",
+        "DATABASE_URL": (
+            "postgresql+asyncpg://service_platform:example-postgres-password-for-unit-tests-only"
+            "@postgres:5432/service_platform"
+        ),
+        "JWT_SECRET_KEY": "test-jwt-placeholder-thirty-two-characters-min",
+        "WEB_HTTP_PORT": "80",
+        "CORS_ORIGINS": "https://example.com",
+        "API_DOCS_ENABLED": "false",
+        "ALLOW_DEMO_SEED_IN_PRODUCTION": "true",
+    }
+    result = module.validate_production_env(env, strict=True)
+    assert not result.passed
+    assert "demo_seed_allowed_in_production" in result.failures
+
+
 def test_env_script_output_never_contains_secret_values(capsys) -> None:
     module = _load_env_script()
     env = {

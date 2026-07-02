@@ -46,6 +46,7 @@ from app.services.password_service import hash_password, verify_password
 from app.utils.references import generate_booking_reference, generate_order_reference
 
 DEMO_PASSWORD = "ChangeMe123!"
+PRODUCTION_GUARD_MESSAGE = "Demo seed refused in production (local/staging only)."
 SUPERADMIN_EMAIL = "superadmin@example.com"
 OWNER_EMAIL = "owner@example.com"
 BUSINESS_SLUG = "demo-business"
@@ -62,6 +63,17 @@ LINKED_ORDER_MESSAGE_BODY = "Hello, I added more details for the project."
 
 def _disable_sql_echo() -> None:
     engine.echo = False
+
+
+def _is_production_app_env() -> bool:
+    return os.environ.get("APP_ENV", "").strip().lower() == "production"
+
+
+def _refuse_production_seed() -> bool:
+    if _is_production_app_env():
+        print(PRODUCTION_GUARD_MESSAGE, file=sys.stderr)
+        return True
+    return False
 
 
 def demo_working_hours() -> list[dict]:
@@ -533,6 +545,8 @@ def _print_summary(result: dict) -> None:
 
 async def main() -> int:
     _disable_sql_echo()
+    if _refuse_production_seed():
+        return 1
     print("Seeding demo data (idempotent)...")
     try:
         result = await seed_demo()

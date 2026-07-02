@@ -80,7 +80,7 @@ Complete before pointing a real domain at the stack:
 - [ ] **`STRIPE_ENABLED`** — only after [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) passes in staging
 - [ ] **HTTPS + domain** — TLS certificate valid; HTTP redirects to HTTPS
 - [ ] **Backup / restore tested** — restore drill on staging clone per [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) (not performed yet)
-- [ ] **Demo credentials** — do not run `seed_demo.py` on production; change or remove `superadmin@example.com`, `owner@example.com`, `client@example.com`
+- [ ] **Demo credentials** — do not run `seed_demo.py` on production (`APP_ENV=production` blocked); replace demo emails/passwords before public launch
 - [ ] **Database not public** — use `docker-compose.prod.yml` (Postgres has no `ports:`); firewall blocks `:5433` / `:5432` from internet
 - [ ] **API not exposed** — only nginx `web` on 80/443; block direct `:8000` if accidentally published
 - [ ] **Docker volumes** — understand `service_platform_postgres_prod_data`; include in backup plan
@@ -335,6 +335,12 @@ This slice does **not** create legal documents or consent UI.
 - **No live monitoring configured** — required before public launch; configure on VPS only
 - Backup freshness monitoring — [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) §H; remains future VPS work
 
+### Phase 7 Slice 9 — Demo credentials production safety gate (summary)
+
+- `seed_demo.py` refuses when `APP_ENV=production` — fail closed, static message only
+- `check_production_env.py --strict` fails on `ALLOW_DEMO_SEED_IN_PRODUCTION=true` or `DEMO_PASSWORD` in production
+- Launch gate: `--strict` on server `.env` before public traffic; legal pages still required
+
 ---
 
-**Last updated:** Phase 7 Slice 8 — monitoring and logging readiness (no live monitoring configured).
+**Last updated:** Phase 7 Slice 9 — demo credentials production safety gate.

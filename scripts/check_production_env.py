@@ -190,6 +190,25 @@ SAFE_VALIDATION_MESSAGES: dict[str, str] = {
         "Stripe cancel URL should not use localhost in production"
     ),
     "stripe_cancel_url_localhost_dev": "STRIPE_CANCEL_URL points to localhost",
+    "demo_seed_allowed_in_production": (
+        "ALLOW_DEMO_SEED_IN_PRODUCTION must not be true in production"
+    ),
+    "demo_seed_not_allowed_in_production": "Demo seed override is not enabled",
+    "demo_password_set_in_production": "DEMO_PASSWORD must not be set in production",
+    "demo_password_not_set_in_production": "DEMO_PASSWORD is not set",
+    "email_dry_run_with_email_enabled": (
+        "EMAIL_DRY_RUN=true with EMAIL_ENABLED=true — confirm intentional staging behavior"
+    ),
+    "public_app_url_localhost_forbidden": (
+        "PUBLIC_APP_URL must not use localhost in production"
+    ),
+    "public_app_url_set": "PUBLIC_APP_URL is set",
+    "public_app_url_placeholder": "PUBLIC_APP_URL contains placeholder values",
+    "public_api_url_localhost_forbidden": (
+        "PUBLIC_API_URL must not use localhost in production"
+    ),
+    "public_api_url_set": "PUBLIC_API_URL is set",
+    "public_api_url_placeholder": "PUBLIC_API_URL contains placeholder values",
 }
 
 
@@ -375,6 +394,49 @@ def _validate_public_urls(env: dict[str, str], *, strict: bool, result: Validati
         localhost_code="password_reset_base_url_localhost_forbidden",
         set_code="password_reset_base_url_set",
     )
+    _validate_public_base_url(
+        env,
+        key="PUBLIC_APP_URL",
+        strict=strict,
+        result=result,
+        placeholder_code="public_app_url_placeholder",
+        localhost_code="public_app_url_localhost_forbidden",
+        set_code="public_app_url_set",
+    )
+    _validate_public_base_url(
+        env,
+        key="PUBLIC_API_URL",
+        strict=strict,
+        result=result,
+        placeholder_code="public_api_url_placeholder",
+        localhost_code="public_api_url_localhost_forbidden",
+        set_code="public_api_url_set",
+    )
+
+
+def _validate_demo_seed_safety(
+    env: dict[str, str], *, strict: bool, result: ValidationResult
+) -> None:
+    app_env = env.get("APP_ENV", "").strip().lower()
+    if app_env != "production":
+        return
+
+    if _is_truthy(env.get("ALLOW_DEMO_SEED_IN_PRODUCTION", "")):
+        if strict:
+            _append_fail(result, "demo_seed_allowed_in_production")
+        else:
+            _append_warn(result, "demo_seed_allowed_in_production")
+    elif strict:
+        _append_ok(result, "demo_seed_not_allowed_in_production")
+
+    demo_password = env.get("DEMO_PASSWORD", "").strip()
+    if demo_password:
+        if strict:
+            _append_fail(result, "demo_password_set_in_production")
+        else:
+            _append_warn(result, "demo_password_set_in_production")
+    elif strict:
+        _append_ok(result, "demo_password_not_set_in_production")
 
 
 def _is_truthy(value: str) -> bool:
@@ -382,6 +444,7 @@ def _is_truthy(value: str) -> bool:
 
 
 def _validate_email(env: dict[str, str], *, strict: bool, result: ValidationResult) -> None:
+    app_env = env.get("APP_ENV", "").strip().lower()
     email_enabled = _is_truthy(env.get("EMAIL_ENABLED", ""))
     email_dry_run_raw = env.get("EMAIL_DRY_RUN", "true").strip().lower()
     email_dry_run = email_dry_run_raw in {"", "true", "1", "yes"}
@@ -394,6 +457,8 @@ def _validate_email(env: dict[str, str], *, strict: bool, result: ValidationResu
 
     if email_dry_run:
         _append_warn(result, "email_dry_run_enabled")
+        if strict and app_env == "production":
+            _append_warn(result, "email_dry_run_with_email_enabled")
         return
 
     _append_ok(result, "email_dry_run_false_live_smtp")
@@ -603,6 +668,7 @@ def validate_production_env(env: dict[str, str], *, strict: bool = False) -> Val
     _validate_api_docs(env, strict=strict, result=result)
     _validate_sqlalchemy_echo(env, strict=strict, result=result)
     _validate_public_urls(env, strict=strict, result=result)
+    _validate_demo_seed_safety(env, strict=strict, result=result)
     _validate_email(env, strict=strict, result=result)
     _validate_stripe(env, strict=strict, result=result)
 

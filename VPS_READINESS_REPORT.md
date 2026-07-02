@@ -192,7 +192,7 @@ Run on **HTTPS staging** before public launch. Use test accounts — do not log 
 | `check_production_env.py --strict` | Required on server `.env` before go-live |
 | `check_security_readiness.py` | Required with production `.env` on staging |
 | Legal / privacy / consent pages | ❌ **Required before public launch** |
-| Demo credentials changed / disabled | Required on production |
+| Demo credentials changed / disabled | Required on production — `check_production_env.py --strict` + no `seed_demo.py` |
 | Backups tested (restore drill) | Required before launch |
 | HTTPS only on public URL | Required |
 | API port 8000 not public | Required (prod compose uses `expose` only) |
@@ -209,7 +209,7 @@ Run on **HTTPS staging** before public launch. Use test accounts — do not log 
 | **Automated backups** | Documented manually; no cron/object-storage automation in repo |
 | **Monitoring / alerts** | ⏳ [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — required before public launch; not configured yet |
 | **Domain + HTTPS VPS** | No real deployment yet |
-| **Demo seed on production** | Default `ChangeMe123!` and demo emails must not remain on public prod |
+| **Demo seed on production** | ❌ `seed_demo.py` refuses `APP_ENV=production`; use unique credentials on public prod |
 
 ---
 
@@ -231,4 +231,4 @@ docker compose -p service_platform_prod -f docker-compose.prod.yml down
 
 ---
 
-**Last updated:** Phase 7 Slice 8 — monitoring readiness cross-links (no live monitoring configured).
+**Last updated:** Phase 7 Slice 9 — demo credentials production safety gate.

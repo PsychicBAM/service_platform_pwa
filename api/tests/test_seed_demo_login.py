@@ -1,4 +1,5 @@
 import importlib.util
+import asyncio
 from pathlib import Path
 
 import pytest
@@ -127,3 +128,59 @@ async def test_ensure_user_keeps_existing_demo_user_usable_after_reseed(db_sessi
     assert user.is_active is True
     assert user.email_verified_at is not None
     assert verify_password(module.DEMO_PASSWORD, user.password_hash or "")
+
+
+def test_refuse_production_seed_when_app_env_production(monkeypatch) -> None:
+    module = _load_seed_demo()
+    monkeypatch.setenv("APP_ENV", "production")
+
+    assert module._refuse_production_seed() is True
+
+
+def test_refuse_production_seed_allows_local(monkeypatch) -> None:
+    module = _load_seed_demo()
+    monkeypatch.setenv("APP_ENV", "local")
+
+    assert module._refuse_production_seed() is False
+
+
+def test_main_refuses_production_without_seeding(monkeypatch, capsys) -> None:
+    module = _load_seed_demo()
+    monkeypatch.setenv("APP_ENV", "production")
+
+    exit_code = asyncio.run(module.main())
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert module.PRODUCTION_GUARD_MESSAGE in captured.err
+    assert module.DEMO_PASSWORD not in captured.out
+    assert module.DEMO_PASSWORD not in captured.err
+    assert "Demo seed complete." not in captured.out
+
+
+def test_refuse_production_seed_when_app_env_production(monkeypatch) -> None:
+    module = _load_seed_demo()
+    monkeypatch.setenv("APP_ENV", "production")
+
+    assert module._refuse_production_seed() is True
+
+
+def test_refuse_production_seed_allows_local(monkeypatch) -> None:
+    module = _load_seed_demo()
+    monkeypatch.setenv("APP_ENV", "local")
+
+    assert module._refuse_production_seed() is False
+
+
+def test_main_refuses_production_without_seeding(monkeypatch, capsys) -> None:
+    module = _load_seed_demo()
+    monkeypatch.setenv("APP_ENV", "production")
+
+    exit_code = asyncio.run(module.main())
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert module.PRODUCTION_GUARD_MESSAGE in captured.err
+    assert module.DEMO_PASSWORD not in captured.out
+    assert module.DEMO_PASSWORD not in captured.err
+    assert "Demo seed complete." not in captured.out

@@ -388,7 +388,9 @@ Seed idempotent demo users, business, services, schedule, guest sample data, and
 docker compose exec api python scripts/seed_demo.py
 ```
 
-**Demo credentials** (local only — change in production):
+**Production safety:** `seed_demo.py` **refuses to run** when `APP_ENV=production` (exit 1, static message). Do not use demo credentials on public production. Before VPS launch, run `python scripts/check_production_env.py --env-file .env --strict`.
+
+**Demo credentials** (local/staging only — change in production):
 
 | Role | Email | Password |
 |------|-------|----------|
