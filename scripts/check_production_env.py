@@ -558,6 +558,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if result.passed:
         print("\nProduction env validation passed.")
+        print("See VPS_READINESS_REPORT.md for VPS deployment steps and smoke checklist.")
         return 0
 
     print(f"\nProduction env validation failed ({len(result.failures)} issue(s)).")

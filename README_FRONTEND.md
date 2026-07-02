@@ -174,7 +174,7 @@ docker compose exec api python scripts/seed_demo.py
 
 Open http://localhost:5173 — nginx serves the built React app. API calls use `/api/v1` on the same host (proxied to `api:8000`).
 
-The production `web` nginx config adds basic security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`). CSP is not enabled yet.
+The production `web` nginx config adds security headers (CSP baseline, cache control, `X-Content-Type-Options`, `X-Frame-Options`, etc.). See [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) and [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) for VPS deploy planning.
 
 | URL | Purpose |
 |-----|---------|
@@ -302,6 +302,7 @@ Production frontend is served by the `web` Docker service (nginx). For a future 
 | Doc | Purpose |
 |-----|---------|
 | [DEPLOYMENT.md](../DEPLOYMENT.md) | Full stack deploy, HTTPS, updates |
+| [VPS_READINESS_REPORT.md](../VPS_READINESS_REPORT.md) | Phase 7 — VPS plan, env checklist, smoke tests |
 | [BACKUP_RESTORE.md](../BACKUP_RESTORE.md) | Postgres backup/restore |
 | [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md) | Pre-launch checklist |
 | [.env.production.example](../.env.production.example) | Backend production env template |

@@ -2,9 +2,16 @@
 
 Use this before and after deploying to a VPS. Not every item applies to a private demo server — mark N/A where appropriate.
 
-Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md), [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
+Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md), [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
 
 ---
+
+## VPS deployment (Phase 7)
+
+- [x] **VPS readiness plan** — [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md); env checklist, deployment steps, smoke tests documented
+- [ ] **Real VPS provisioned** — not done in Slice 1
+- [ ] **Domain + HTTPS** — reverse proxy configured on server
+- [ ] **Legal / privacy / consent pages** — required before public launch
 
 ## Security
 

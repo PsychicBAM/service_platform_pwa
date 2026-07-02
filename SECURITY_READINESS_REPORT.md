@@ -285,6 +285,11 @@ This slice does **not** create legal documents or consent UI.
 - Fix: `sqlalchemy_echo` setting (default `false`); `seed_demo.py` forces `SQLALCHEMY_ECHO=false` and disables engine echo
 - Added `api/tests/test_sensitive_logging.py`; seed_demo output has no `password_hash` or bcrypt prefixes
 
+### Phase 7 Slice 1 — VPS production readiness plan (summary)
+
+- [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) — deployment plan, env checklist, smoke tests, blockers
+- No live VPS deployment in this slice; legal/privacy pages still required before public launch
+
 ---
 
-**Last updated:** Phase 6 Slice 21 — password_hash logging removed from seed/SQL output.
+**Last updated:** Phase 7 Slice 1 — VPS production readiness plan (planning only).

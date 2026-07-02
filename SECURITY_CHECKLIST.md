@@ -47,6 +47,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] **ZAP final CSP/cache triage** — Slice 19: `style-src` without `unsafe-inline`; 10049/10027 triaged; [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §J
 - [x] **passlib/bcrypt warning cleanup** — Slice 20: `bcrypt<4.1.0` pin; hashing unchanged; [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §O
 - [x] **password_hash logging hygiene** — Slice 21: SQL echo off by default; seed_demo does not log auth hashes
+- [x] **VPS readiness plan** — Phase 7 Slice 1: [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md); no live deployment yet
 - [ ] OWASP ZAP baseline on staging URL (after VPS)
 
 ---
@@ -128,6 +129,7 @@ Practical pre-deployment checklist. See [SECURITY_READINESS_REPORT.md](./SECURIT
 - [x] ZAP final CSP/cache triage — Slice 19; `unsafe-inline` removed; see [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) §J
 - [x] passlib/bcrypt warning cleanup — Slice 20; `bcrypt<4.1.0` pin; see [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) §O
 - [x] password_hash logging hygiene — Slice 21; seed/SQL logs do not expose auth hashes
+- [x] VPS readiness plan — Phase 7 Slice 1; see [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md)
 - [ ] OWASP ZAP baseline on staging — review findings after VPS deploy
 - [ ] Nuclei — optional, staging only, low rate, templates reviewed first
 - [ ] TestSprite — regression QA; security findings triaged separately
