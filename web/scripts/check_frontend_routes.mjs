@@ -46,6 +46,7 @@ const REQUIRED_ROUTE_STRINGS = [
   'path: "/superadmin"',
   'path: "businesses"',
   'path: "audit-logs"',
+  'path: "legal-consents"',
 ];
 
 const REQUIRED_PAGE_FILES = [
@@ -80,6 +81,7 @@ const REQUIRED_PAGE_FILES = [
   "src/pages/superadmin/SuperadminDashboardPage.tsx",
   "src/pages/superadmin/SuperadminBusinessesPage.tsx",
   "src/pages/superadmin/SuperadminAuditLogsPage.tsx",
+  "src/pages/superadmin/SuperadminLegalConsentsPage.tsx",
   "src/components/AdminGuard.tsx",
   "src/components/SuperadminGuard.tsx",
 ];

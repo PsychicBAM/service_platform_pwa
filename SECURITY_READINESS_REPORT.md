@@ -366,6 +366,12 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - `/admin/legal-consents` — read-only table for business owners/admins
 - Calls business-scoped API only; filters (source, entity_type); pagination
 - Displays summary fields only — no form_data, tokens, IP/user-agent, or legal text
-- Superadmin UI remains future work; **not legal compliance**
+- **Not legal compliance**
 
-**Last updated:** Phase 7 Slice 19A — business admin consent records UI (not legal advice).
+### Phase 7 Slice 19B — Superadmin consent UI (summary)
+
+- `/superadmin/legal-consents` — platform-wide read-only table for superadmins
+- Calls `GET /api/v1/superadmin/legal-consents`; filters (business_id, source, entity_type); pagination
+- Summary fields only; no export endpoint; **not legal compliance**
+
+**Last updated:** Phase 7 Slice 19B — superadmin consent records UI (not legal advice).

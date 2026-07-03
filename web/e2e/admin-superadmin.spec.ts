@@ -19,4 +19,15 @@ test.describe("superadmin access", () => {
     await page.goto("/superadmin");
     await expect(page.getByText("Superadmin access required")).toBeVisible();
   });
+
+  test("J. superadmin can open legal consent records page", async ({ page }) => {
+    await loginAs(page, USERS.superadmin.email, USERS.superadmin.password);
+    await page.goto("/superadmin/legal-consents");
+    await expect(
+      page.getByRole("heading", { name: "Platform legal consent records" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/audit summary only\. legal text is still pending final review\./i),
+    ).toBeVisible();
+  });
 });

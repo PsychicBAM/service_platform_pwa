@@ -32,6 +32,7 @@ import { ServicesPage } from "@/pages/ServicesPage";
 import { VerifyEmailPage } from "@/pages/VerifyEmailPage";
 import { SuperadminAuditLogsPage } from "@/pages/superadmin/SuperadminAuditLogsPage";
 import { SuperadminBusinessesPage } from "@/pages/superadmin/SuperadminBusinessesPage";
+import { SuperadminLegalConsentsPage } from "@/pages/superadmin/SuperadminLegalConsentsPage";
 import { SuperadminDashboardPage } from "@/pages/superadmin/SuperadminDashboardPage";
 import { ConsentPage } from "@/pages/legal/ConsentPage";
 import { CookiesPage } from "@/pages/legal/CookiesPage";
@@ -97,6 +98,7 @@ export const router = createBrowserRouter([
           { index: true, element: <SuperadminDashboardPage /> },
           { path: "businesses", element: <SuperadminBusinessesPage /> },
           { path: "audit-logs", element: <SuperadminAuditLogsPage /> },
+          { path: "legal-consents", element: <SuperadminLegalConsentsPage /> },
         ],
       },
     ],

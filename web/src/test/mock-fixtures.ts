@@ -314,3 +314,11 @@ export const mockLegalConsentRecords = {
   ],
   meta: { page: 1, limit: 25, total: 2 },
 };
+
+export const mockSuperadminLegalConsentRecords = {
+  data: mockLegalConsentRecords.data.map((record) => ({
+    ...record,
+    business_name: "Demo Service Business",
+  })),
+  meta: mockLegalConsentRecords.meta,
+};

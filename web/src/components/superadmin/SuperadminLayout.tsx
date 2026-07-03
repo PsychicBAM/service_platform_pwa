@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: "/superadmin", label: "Overview", end: true },
   { to: "/superadmin/businesses", label: "Businesses" },
   { to: "/superadmin/audit-logs", label: "Audit logs" },
+  { to: "/superadmin/legal-consents", label: "Legal consent" },
 ];
 
 function navClass(isActive: boolean): string {

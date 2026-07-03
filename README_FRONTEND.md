@@ -94,6 +94,7 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - Required consent checkboxes on registration, public booking, and public order/request forms (Slice 12)
 - API payloads send `legal_consent_accepted: true` after checkbox is checked (Slice 13); backend rejects missing/false
 - Business admin read-only consent records UI at `/admin/legal-consents` (Slice 19A — audit summary only; not legal compliance)
+- Superadmin read-only consent records UI at `/superadmin/legal-consents` (Slice 19B — platform-wide audit summary only; not legal compliance)
 
 ### Phase 6 Slice 2 — CodeQL code scanning (summary)
 
@@ -496,7 +497,7 @@ Read-only admin area at `/admin` for business members:
 - **Admin Settings edit** — business profile, operating mode, booking settings (slug/status read-only)
 - **Admin Clients CRM** — search, client detail, edit contact/notes, recent bookings & orders
 - **Admin Dashboard overview** — stats, attention items, recent bookings/orders, quick links (no charts)
-- **Superadmin UI** — business list/detail, status & plan management, audit logs view
+- **Superadmin UI** — business list/detail, status & plan management, audit logs view, legal consent records (Slice 19B)
 - Stripe billing still TODO
 - OAuth / social login (Google, Apple, Yandex) not implemented
 - Register form wired — POST `/auth/register`; after register, navigates to `/check-email` (email verification login enforcement still disabled by default)

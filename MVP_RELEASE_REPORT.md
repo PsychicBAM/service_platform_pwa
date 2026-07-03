@@ -387,6 +387,7 @@ Legacy list (Phase 3):
 | Superadmin consent read API | Phase 7 Slice 17 — `GET /api/v1/superadmin/legal-consents`; paginated, data-minimized; not legal compliance |
 | Business admin consent read API | Phase 7 Slice 18 — `GET /api/v1/businesses/{business_id}/legal-consents`; tenant-scoped; not legal compliance |
 | Business admin consent UI | Phase 7 Slice 19A — `/admin/legal-consents`; read-only summary table; not legal compliance |
+| Superadmin consent UI | Phase 7 Slice 19B — `/superadmin/legal-consents`; platform-wide read-only table; not legal compliance |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |

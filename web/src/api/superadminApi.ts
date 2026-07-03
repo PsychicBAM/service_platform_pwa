@@ -1,6 +1,7 @@
 import { apiClient } from "@/api/client";
 import type {
   AuditLogListResponse,
+  LegalConsentRecordListResponse,
   SuperadminBusinessDetail,
   SuperadminBusinessListResponse,
   SuperadminBusinessUpdatePayload,
@@ -46,4 +47,12 @@ export function updateSuperadminBusiness(
 
 export function listAuditLogs(params?: Record<string, string | number | undefined>) {
   return apiClient.get<AuditLogListResponse>(`/superadmin/audit-logs${buildQuery(params)}`);
+}
+
+export function getSuperadminLegalConsents(
+  params?: Record<string, string | number | undefined>,
+) {
+  return apiClient.get<LegalConsentRecordListResponse>(
+    `/superadmin/legal-consents${buildQuery(params)}`,
+  );
 }
