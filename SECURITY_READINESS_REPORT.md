@@ -59,7 +59,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Content-Security-Policy** | ✅ Slices 17–19 — `style-src 'self'` only (no `unsafe-inline`); COEP/HSTS still deferred |
 | **Monitoring / alerting** | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — schedule/retention documented; not active until VPS setup |
-| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); frontend + backend consent enforcement (Slice 12–13); audit storage design (Slice 14); lawyer-reviewed text + Slice 15 implementation still required |
+| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); frontend + backend consent (Slice 12–13); audit storage (Slice 15); lawyer-reviewed text + retention policy still required |
 | **Production VPS** | Not deployed — local/Docker dev only |
 | **WAF / DDoS** | Rely on host/provider when deployed |
 | **HSTS** | Set at reverse proxy when HTTPS is live |
@@ -335,10 +335,10 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - `check_production_env.py --strict` fails on `ALLOW_DEMO_SEED_IN_PRODUCTION=true` or `DEMO_PASSWORD` in production
 - Launch gate: `--strict` on server `.env` before public traffic; legal pages still required
 
-### Phase 7 Slice 14 — Consent audit storage design (summary)
+### Phase 7 Slice 15 — Consent audit storage implementation (summary)
 
-- [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md) — options compared; separate `legal_consent_records` table preferred
-- Write-after-create in same transaction; no `form_data` pollution; no API/frontend changes in design slice
-- **Slice 15:** model, migration, repository, service, tests — not legal compliance
+- `legal_consent_records` table (Alembic `0010`) — source, entity_type, entity_id, business_id, user_id, client_id, version, timestamps
+- Writes after successful registration, public booking, and public order (same transaction)
+- No IP/user-agent collected; API responses unchanged; **not legal compliance**
 
-**Last updated:** Phase 7 Slice 14 — consent audit storage design (not legal advice).
+**Last updated:** Phase 7 Slice 15 — consent audit storage implemented (not legal advice).

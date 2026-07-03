@@ -30,6 +30,7 @@ from app.schemas.legal_consent import LEGAL_CONSENT_VERSION
 from app.schemas.user import UserRead
 from app.services.password_service import hash_password, verify_password
 from app.services.email_verification_service import EmailVerificationService
+from app.services.legal_consent_service import LegalConsentService
 from app.services.token_service import (
     create_access_token,
     create_refresh_token,
@@ -97,6 +98,12 @@ class AuthService:
         verification_service = EmailVerificationService(self.session)
         raw_token = await verification_service.create_email_verification_token(user)
         await verification_service.send_verification_email_best_effort(user, raw_token)
+
+        consent_service = LegalConsentService(self.session)
+        await consent_service.record_registration_consent(
+            user_id=user.id,
+            business_id=business.id,
+        )
 
         await self.session.commit()
         await self.session.refresh(user)

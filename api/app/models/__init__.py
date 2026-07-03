@@ -6,6 +6,7 @@ from app.models.business import Business
 from app.models.business_member import BusinessMember
 from app.models.client import Client
 from app.models.email_verification_token import EmailVerificationToken
+from app.models.legal_consent_record import LegalConsentRecord
 from app.models.password_reset_token import PasswordResetToken
 from app.models.enums import (
     BookingStatus,
@@ -13,6 +14,8 @@ from app.models.enums import (
     BusinessStatus,
     CancelledBy,
     ClientSource,
+    ConsentEntityType,
+    ConsentSource,
     OperatingMode,
     OrderMessageSenderType,
     OrderStatus,
@@ -34,6 +37,7 @@ from app.models.working_hour import WorkingHour
 __all__ = [
     "EmailVerificationToken",
     "PasswordResetToken",
+    "LegalConsentRecord",
     "AuditLog",
     "Booking",
     "BookingStatus",
@@ -44,6 +48,8 @@ __all__ = [
     "CancelledBy",
     "Client",
     "ClientSource",
+    "ConsentEntityType",
+    "ConsentSource",
     "OperatingMode",
     "Order",
     "OrderMessage",

@@ -73,6 +73,7 @@ def main() -> int:
             "orders",
             "order_messages",
             "audit_logs",
+            "legal_consent_records",
             "email_verification_tokens",
             "password_reset_tokens",
         }

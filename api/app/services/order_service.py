@@ -19,6 +19,7 @@ from app.repositories.order_repository import OrderRepository
 from app.repositories.service_repository import ServiceRepository
 from app.schemas.order import PublicOrderCreate
 from app.services.email_notification_service import EmailNotificationService
+from app.services.legal_consent_service import LegalConsentService
 from app.utils.references import generate_order_reference
 
 
@@ -72,6 +73,12 @@ class OrderService:
             quoted_price_cents=None,
         )
         await self.order_repo.create(order)
+        consent_service = LegalConsentService(self.session)
+        await consent_service.record_public_order_consent(
+            order_id=order.id,
+            business_id=business.id,
+            client_id=client.id,
+        )
         await self.session.commit()
         await self.session.refresh(order)
         order.business = business

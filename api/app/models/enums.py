@@ -86,3 +86,15 @@ class OrderStatus(str, enum.Enum):
 class OrderMessageSenderType(str, enum.Enum):
     client = "client"
     admin = "admin"
+
+
+class ConsentSource(str, enum.Enum):
+    registration = "registration"
+    public_booking = "public_booking"
+    public_order = "public_order"
+
+
+class ConsentEntityType(str, enum.Enum):
+    business = "business"
+    booking = "booking"
+    order = "order"

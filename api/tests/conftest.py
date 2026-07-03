@@ -27,6 +27,7 @@ def _session_factory(db_engine):
 _AUTH_TABLES = (
     "password_reset_tokens",
     "email_verification_tokens",
+    "legal_consent_records",
     "audit_logs",
     "order_messages",
     "orders",

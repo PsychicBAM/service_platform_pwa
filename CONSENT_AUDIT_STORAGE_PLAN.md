@@ -1,7 +1,7 @@
 # Consent Audit Storage Plan — Phase 7 (Slice 14)
 
 **Purpose:** Design a safe consent audit storage strategy before implementation.  
-**Status:** Design only — **no migration, model, or API changes in this slice.**  
+**Status:** Implemented (Slice 15) — `legal_consent_records` table writes on registration, public booking, and public order. **Not legal compliance** — lawyer review, retention/deletion policy, and IP/user-agent collection still future work.  
 **Disclaimer:** This document is **not legal advice** and does **not** claim legal compliance. Final policies, retention rules, and consent wording require qualified legal review.
 
 Related: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md)
@@ -16,8 +16,8 @@ Related: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md
 | **Frontend consent checkboxes** | Registration, public booking, public order/request (Slice 12) |
 | **Backend consent enforcement** | `legal_consent_accepted: true` required on register, public booking, public order APIs (Slice 13) |
 | **Registration consent storage** | Draft metadata in existing `business.settings` JSONB (`legal_consent_accepted`, `legal_consent_version`, `legal_consent_source`, `legal_consent_recorded_at`) |
-| **Booking/order consent storage** | Enforced at API layer only — **not persisted** |
-| **Full consent audit trail** | **Not implemented** |
+| **Booking/order consent storage** | ✅ `legal_consent_records` rows (Slice 15) |
+| **Full consent audit trail** | ⏳ Authoritative table implemented; retention/deletion/export — future |
 | **Lawyer-reviewed legal text** | **Not done** — launch blocker |
 
 **Launch rule:** Do not claim compliance. Do not point public marketing traffic at the platform until legal documents are lawyer-reviewed and consent audit flows are confirmed by counsel.
@@ -204,6 +204,6 @@ Small, reviewable steps:
 
 ---
 
-**Slice 14:** design only. **Slice 15:** implementation per this plan.
+**Slice 15:** `legal_consent_records` table + migration `0010` + repository/service + writes on register/booking/order — not legal compliance.
 
-**Last updated:** Phase 7 Slice 14 — consent audit storage design (not legal advice).
+**Last updated:** Phase 7 Slice 15 — consent audit storage implemented (not legal advice).

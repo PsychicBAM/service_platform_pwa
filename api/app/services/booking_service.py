@@ -22,6 +22,7 @@ from app.repositories.service_repository import ServiceRepository
 from app.schemas.booking import PublicBookingCreate
 from app.services.availability_service import AvailabilityService
 from app.services.email_notification_service import EmailNotificationService
+from app.services.legal_consent_service import LegalConsentService
 from app.utils.references import generate_booking_reference
 
 
@@ -107,6 +108,12 @@ class BookingService:
             client_notes=payload.client_notes,
         )
         await self.booking_repo.create(booking)
+        consent_service = LegalConsentService(self.session)
+        await consent_service.record_public_booking_consent(
+            booking_id=booking.id,
+            business_id=business.id,
+            client_id=client.id,
+        )
         await self.session.commit()
         await self.session.refresh(booking)
         booking.business = business
