@@ -5,8 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies.superadmin import require_superadmin
-from app.models.enums import BusinessStatus, SubscriptionPlan
+from app.models.enums import BusinessStatus, ConsentEntityType, ConsentSource, SubscriptionPlan
 from app.models.user import User
+from app.schemas.legal_consent_records import LegalConsentRecordListResponse
 from app.schemas.superadmin import (
     AuditLogListResponse,
     SuperadminBusinessDetail,
@@ -14,6 +15,7 @@ from app.schemas.superadmin import (
     SuperadminBusinessUpdate,
 )
 from app.services.audit_log_service import AuditLogService
+from app.services.legal_consent_service import LegalConsentService
 from app.services.superadmin_service import SuperadminService
 
 router = APIRouter(prefix="/superadmin", tags=["superadmin"])
@@ -73,6 +75,25 @@ async def list_audit_logs(
     return await AuditLogService(db).list_audit_logs(
         business_id=business_id,
         action=action,
+        page=page,
+        limit=limit,
+    )
+
+
+@router.get("/legal-consents", response_model=LegalConsentRecordListResponse)
+async def list_legal_consents(
+    source: ConsentSource | None = Query(default=None),
+    entity_type: ConsentEntityType | None = Query(default=None),
+    business_id: uuid.UUID | None = Query(default=None),
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=25, ge=1, le=100),
+    _superadmin: User = Depends(require_superadmin),
+    db: AsyncSession = Depends(get_db),
+) -> LegalConsentRecordListResponse:
+    return await LegalConsentService(db).list_consent_records(
+        source=source,
+        entity_type=entity_type,
+        business_id=business_id,
         page=page,
         limit=limit,
     )

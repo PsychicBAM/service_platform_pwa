@@ -23,8 +23,9 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Backend consent enforcement** — Slice 13: `legal_consent_accepted` required on register, public booking, public order APIs
 - [x] **Consent audit storage design** — Slice 14: [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md)
 - [x] **Consent audit storage implementation** — Slice 15: `legal_consent_records` migration + service writes
-- [x] **Consent records read/admin access design** — Slice 16: [CONSENT_RECORDS_ACCESS_PLAN.md](./CONSENT_RECORDS_ACCESS_PLAN.md); write-only today; staged API/UI; no routes in slice
-- [ ] **Consent read API (superadmin / business admin)** — Slices 17–18 planned
+- [x] **Consent records read/admin access design** — Slice 16: [CONSENT_RECORDS_ACCESS_PLAN.md](./CONSENT_RECORDS_ACCESS_PLAN.md)
+- [x] **Superadmin consent read API** — Slice 17: `GET /api/v1/superadmin/legal-consents`; no UI; not legal compliance
+- [ ] **Business admin consent read API** — Slice 18 planned
 - [ ] **Consent admin UI** — Slice 19 planned
 - [ ] **Consent retention/deletion policy** — future legal + ops work
 - [ ] **Lawyer-reviewed legal text** — replace placeholders before public launch

@@ -59,7 +59,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Content-Security-Policy** | ✅ Slices 17–19 — `style-src 'self'` only (no `unsafe-inline`); COEP/HSTS still deferred |
 | **Monitoring / alerting** | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — schedule/retention documented; not active until VPS setup |
-| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); frontend + backend consent (Slice 12–13); audit storage (Slice 15); read access design (Slice 16); lawyer-reviewed text + retention policy still required |
+| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); frontend + backend consent (Slice 12–13); audit storage (Slice 15); superadmin consent read API (Slice 17); lawyer-reviewed text + retention policy still required |
 | **Production VPS** | Not deployed — local/Docker dev only |
 | **WAF / DDoS** | Rely on host/provider when deployed |
 | **HSTS** | Set at reverse proxy when HTTPS is live |
@@ -347,4 +347,11 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - Staged plan: Slice 17 superadmin read API → Slice 18 business admin API → Slice 19 UI
 - Records remain **write-only**; no routes, UI, or migration in Slice 16; **not legal compliance**
 
-**Last updated:** Phase 7 Slice 16 — consent records access plan documented (not legal advice).
+### Phase 7 Slice 17 — Superadmin consent read API (summary)
+
+- `GET /api/v1/superadmin/legal-consents` — superadmin auth via `require_superadmin`
+- Filters: `source`, `entity_type`, `business_id`; pagination `page` + `limit` (default 25, max 100)
+- Response: data-minimized summary fields + optional `business_name`; no form_data, tokens, or IP/user-agent
+- Business admin API (Slice 18) and UI (Slice 19) remain future work; **not legal compliance**
+
+**Last updated:** Phase 7 Slice 17 — superadmin consent records read API (not legal advice).

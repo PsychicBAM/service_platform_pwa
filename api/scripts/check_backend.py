@@ -114,6 +114,7 @@ def main() -> int:
             "/api/v1/superadmin/businesses": {"get"},
             "/api/v1/superadmin/businesses/{business_id}": {"get", "patch"},
             "/api/v1/superadmin/audit-logs": {"get"},
+            "/api/v1/superadmin/legal-consents": {"get"},
         }
         for path, methods in required_paths.items():
             if path not in paths:
