@@ -97,6 +97,7 @@ describe("RegisterPage", () => {
         password: "ChangeMe123!",
         full_name: "New Owner",
         selected_plan_intent: "free",
+        legal_consent_accepted: true,
         business: {
           name: "New Biz",
           slug: "new-biz",
@@ -162,7 +163,7 @@ describe("RegisterPage", () => {
 
     await waitFor(() => {
       expect(authApi.register).toHaveBeenCalledWith(
-        expect.objectContaining({ selected_plan_intent: "business" }),
+        expect.objectContaining({ selected_plan_intent: "business", legal_consent_accepted: true }),
       );
     });
   });

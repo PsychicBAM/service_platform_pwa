@@ -91,7 +91,8 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - Documents current guards, gaps, and future scanner roadmap (dependency audit, Trivy, OWASP ZAP)
 - Legal placeholder pages at `/legal/terms`, `/legal/privacy`, `/legal/consent`, `/legal/cookies` (Slice 11 — draft only, not legal advice)
 - Footer links to legal pages on main layout
-- Required consent checkboxes on registration, public booking, and public order/request forms (Slice 12 — client-side only; backend consent storage future work)
+- Required consent checkboxes on registration, public booking, and public order/request forms (Slice 12)
+- API payloads send `legal_consent_accepted: true` after checkbox is checked (Slice 13); backend rejects missing/false
 
 ### Phase 6 Slice 2 — CodeQL code scanning (summary)
 

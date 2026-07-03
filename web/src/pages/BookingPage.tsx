@@ -103,6 +103,7 @@ export function BookingPage() {
         service_id: serviceId,
         starts_at: selectedSlot!.starts_at,
         client_notes: note.trim() || null,
+        legal_consent_accepted: true,
         client: {
           full_name: fullName.trim(),
           email: email.trim() || null,

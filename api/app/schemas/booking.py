@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from app.models.enums import BookingStatus, ServiceType
+from app.schemas.legal_consent import LegalConsentRequiredMixin
 
 
 class BookingRead(BaseModel):
@@ -50,7 +51,7 @@ class PublicBookingClientInput(BaseModel):
         return self
 
 
-class PublicBookingCreate(BaseModel):
+class PublicBookingCreate(LegalConsentRequiredMixin, BaseModel):
     service_id: uuid.UUID
     starts_at: datetime
     client_notes: str | None = None

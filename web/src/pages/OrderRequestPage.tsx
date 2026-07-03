@@ -82,6 +82,7 @@ export function OrderRequestPage() {
       createPublicOrder(slug, {
         service_id: serviceId,
         form_data: { details: details.trim() },
+        legal_consent_accepted: true,
         client: {
           full_name: fullName.trim(),
           email: email.trim() || null,

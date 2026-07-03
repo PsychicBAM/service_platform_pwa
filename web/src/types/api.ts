@@ -56,6 +56,7 @@ export interface PublicBookingCreate {
   starts_at: string;
   client_notes?: string | null;
   client: PublicBookingClientInput;
+  legal_consent_accepted: boolean;
 }
 
 export type BookingStatus =
@@ -91,6 +92,7 @@ export interface PublicOrderCreate {
   service_id: string;
   form_data?: Record<string, unknown>;
   client: PublicBookingClientInput;
+  legal_consent_accepted: boolean;
 }
 
 export type OrderStatus =
@@ -167,6 +169,7 @@ export interface RegisterRequest {
   phone?: string | null;
   business: BusinessRegisterInput;
   selected_plan_intent?: SubscriptionPlan;
+  legal_consent_accepted: boolean;
 }
 
 export interface RegisterResponse {

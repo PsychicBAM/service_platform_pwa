@@ -26,6 +26,7 @@ from app.schemas.auth import (
     TokenPair,
 )
 from app.schemas.business import BusinessRead
+from app.schemas.legal_consent import LEGAL_CONSENT_VERSION
 from app.schemas.user import UserRead
 from app.services.password_service import hash_password, verify_password
 from app.services.email_verification_service import EmailVerificationService
@@ -81,6 +82,10 @@ class AuthService:
                 "selected_plan_intent": data.selected_plan_intent.value,
                 "selected_plan_intent_source": "registration",
                 "selected_plan_intent_recorded_at": datetime.now(UTC).isoformat(),
+                "legal_consent_accepted": True,
+                "legal_consent_version": LEGAL_CONSENT_VERSION,
+                "legal_consent_source": "registration",
+                "legal_consent_recorded_at": datetime.now(UTC).isoformat(),
             },
         )
         await self.businesses.create_member(

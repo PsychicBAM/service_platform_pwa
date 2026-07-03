@@ -5,6 +5,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.enums import OrderMessageSenderType, OrderStatus, PriceType, ServiceType
+from app.schemas.legal_consent import LegalConsentRequiredMixin
 
 MAX_FORM_DATA_KEYS = 20
 MAX_FORM_DATA_TEXT_LENGTH = 2000
@@ -121,7 +122,7 @@ def _sanitize_form_data_value(value: Any) -> Any:
     raise ValueError("form_data values must be text, number, boolean, or null")
 
 
-class PublicOrderCreate(BaseModel):
+class PublicOrderCreate(LegalConsentRequiredMixin, BaseModel):
     service_id: uuid.UUID
     form_data: dict[str, Any] = Field(default_factory=dict)
     client: PublicOrderClientInput

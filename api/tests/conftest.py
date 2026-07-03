@@ -145,6 +145,7 @@ def register_payload(suffix: str | None = None) -> dict:
             "operating_mode": "both",
             "timezone": "America/New_York",
         },
+        "legal_consent_accepted": True,
     }
 
 

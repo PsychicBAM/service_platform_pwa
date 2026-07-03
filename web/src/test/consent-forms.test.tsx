@@ -135,7 +135,9 @@ describe("registration consent", () => {
     await user.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => {
-      expect(authApi.register).toHaveBeenCalled();
+      expect(authApi.register).toHaveBeenCalledWith(
+        expect.objectContaining({ legal_consent_accepted: true }),
+      );
     });
     expect(mockNavigate).toHaveBeenCalledWith("/check-email");
   });
@@ -210,7 +212,10 @@ describe("order request consent", () => {
     await user.click(screen.getByRole("button", { name: "Submit request" }));
 
     await waitFor(() => {
-      expect(publicApi.createPublicOrder).toHaveBeenCalled();
+      expect(publicApi.createPublicOrder).toHaveBeenCalledWith(
+        DEMO_SLUG,
+        expect.objectContaining({ legal_consent_accepted: true }),
+      );
     });
     expect(await screen.findByText("Thank you!")).toBeInTheDocument();
   });
@@ -303,7 +308,10 @@ describe("booking consent", () => {
     await user.click(screen.getByRole("button", { name: "Submit booking request" }));
 
     await waitFor(() => {
-      expect(publicApi.createPublicBooking).toHaveBeenCalled();
+      expect(publicApi.createPublicBooking).toHaveBeenCalledWith(
+        DEMO_SLUG,
+        expect.objectContaining({ legal_consent_accepted: true }),
+      );
     });
     expect(await screen.findByText("Booking request submitted")).toBeInTheDocument();
   });

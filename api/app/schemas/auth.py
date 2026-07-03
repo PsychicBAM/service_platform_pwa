@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.models.enums import OperatingMode, SubscriptionPlan, UserRole
 from app.schemas.business import BusinessRead
+from app.schemas.legal_consent import LegalConsentRequiredMixin
 from app.schemas.user import UserRead
 
 SLUG_PATTERN = re.compile(r"^[a-z0-9-]+$")
@@ -27,7 +28,7 @@ class BusinessRegisterInput(BaseModel):
         return normalized
 
 
-class RegisterBusinessRequest(BaseModel):
+class RegisterBusinessRequest(LegalConsentRequiredMixin, BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     full_name: str = Field(min_length=1, max_length=255)

@@ -28,6 +28,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Stripe webhook (Slice 7)** — `POST /api/v1/billing/stripe/webhook`; `checkout.session.completed` updates plan + audit log; mocked tests only.
 - **Admin checkout UI (Slice 8)** — frontend calls checkout-session API from Admin Settings; redirects to Stripe when enabled; `STRIPE_DISABLED` handled in UI.
 - **Billing result pages (Slice 9)** — `/billing/success` and `/billing/cancel` for Stripe redirect URLs; webhook still activates plan.
+- **Legal consent enforcement (Phase 7 Slice 13)** — `legal_consent_accepted: true` required on registration, public booking, and public order create APIs; registration stores draft metadata in `business.settings`; not legal compliance.
 - **Payments / Stripe** — backend checkout + webhook + admin settings checkout buttons (Slice 8); `STRIPE_ENABLED=false` by default; [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) for test-key setup; live Stripe requires production checklist. No billing portal, refunds, or downgrades yet.
 
 ## Stack

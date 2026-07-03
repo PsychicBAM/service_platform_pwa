@@ -201,6 +201,7 @@ def run_audit() -> int:
                 json={
                     "service_id": state["booking_service_id"],
                     "starts_at": slot["starts_at"],
+                    "legal_consent_accepted": True,
                     "client": {
                         "full_name": "E2E Audit Client",
                         "email": "e2e.audit@example.com",
@@ -315,6 +316,7 @@ def run_audit() -> int:
                 json={
                     "service_id": state["order_service_id"],
                     "form_data": {"brief": "E2E audit order"},
+                    "legal_consent_accepted": True,
                     "client": {
                         "full_name": "E2E Order Client",
                         "email": "e2e.order@example.com",

@@ -104,6 +104,7 @@ export function RegisterPage() {
         password,
         full_name: fullName.trim(),
         selected_plan_intent: selectedPlanId,
+        legal_consent_accepted: true,
         business: {
           name: businessName.trim(),
           slug: normalizeSlug(slug),
