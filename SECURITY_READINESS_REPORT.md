@@ -59,7 +59,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Content-Security-Policy** | ✅ Slices 17–19 — `style-src 'self'` only (no `unsafe-inline`); COEP/HSTS still deferred |
 | **Monitoring / alerting** | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — schedule/retention documented; not active until VPS setup |
-| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); frontend + backend consent enforcement (Slice 12–13); lawyer-reviewed text + booking/order audit storage still required |
+| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); frontend + backend consent enforcement (Slice 12–13); audit storage design (Slice 14); lawyer-reviewed text + Slice 15 implementation still required |
 | **Production VPS** | Not deployed — local/Docker dev only |
 | **WAF / DDoS** | Rely on host/provider when deployed |
 | **HSTS** | Set at reverse proxy when HTTPS is live |
@@ -335,11 +335,10 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - `check_production_env.py --strict` fails on `ALLOW_DEMO_SEED_IN_PRODUCTION=true` or `DEMO_PASSWORD` in production
 - Launch gate: `--strict` on server `.env` before public traffic; legal pages still required
 
-### Phase 7 Slice 13 — Backend consent enforcement (summary)
+### Phase 7 Slice 14 — Consent audit storage design (summary)
 
-- `legal_consent_accepted: true` required on `POST /auth/register`, `POST /public/b/{slug}/bookings`, `POST /public/b/{slug}/orders`
-- Validation error `LEGAL_CONSENT_REQUIRED` when missing/false; no personal data in error responses
-- Registration stores draft consent metadata in existing `business.settings` JSONB (no migration)
-- **Not legal advice** — booking/order consent not persisted; no compliance claim
+- [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md) — options compared; separate `legal_consent_records` table preferred
+- Write-after-create in same transaction; no `form_data` pollution; no API/frontend changes in design slice
+- **Slice 15:** model, migration, repository, service, tests — not legal compliance
 
-**Last updated:** Phase 7 Slice 13 — backend consent enforcement on public submission APIs (not legal advice).
+**Last updated:** Phase 7 Slice 14 — consent audit storage design (not legal advice).

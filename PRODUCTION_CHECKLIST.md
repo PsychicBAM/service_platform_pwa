@@ -21,7 +21,8 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Legal placeholder routes & footer** — Slice 11: `/legal/terms`, `/legal/privacy`, `/legal/consent`, `/legal/cookies`; draft text only
 - [x] **Frontend consent checkboxes** — Slice 12: registration, public booking, public order/request
 - [x] **Backend consent enforcement** — Slice 13: `legal_consent_accepted` required on register, public booking, public order APIs
-- [ ] **Backend consent audit/storage (booking/order)** — future slice
+- [x] **Consent audit storage design** — Slice 14: [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md); separate `legal_consent_records` table preferred
+- [ ] **Consent audit storage implementation** — Slice 15: migration + service + tests
 - [ ] **Lawyer-reviewed legal text** — replace placeholders before public launch
 - [ ] **Real VPS provisioned** — not done yet
 - [ ] **Domain + HTTPS** — reverse proxy configured on server

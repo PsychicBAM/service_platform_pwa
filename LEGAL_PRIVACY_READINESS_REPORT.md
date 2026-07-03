@@ -1,7 +1,7 @@
 # Legal & Privacy Readiness Report — Phase 7 (Slice 10)
 
 **Purpose:** Plan legal and privacy requirements before **public launch**.  
-**Status:** Placeholder legal routes, footer links (Slice 11), frontend consent checkboxes (Slice 12), and backend consent enforcement (Slice 13) — **draft text only**; lawyer review and full consent audit/storage still required.  
+**Status:** Placeholder legal routes, footer links (Slice 11), frontend consent checkboxes (Slice 12), backend consent enforcement (Slice 13), and consent audit storage **design** (Slice 14) — **draft text only**; lawyer review and Slice 15 implementation still required.  
 **Disclaimer:** This document is **not legal advice**. Final policies and consent flows require qualified legal review for your jurisdiction(s).
 
 Related: [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md)
@@ -15,7 +15,7 @@ Related: [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [VPS_READINESS_
 | **Legal placeholder pages** | ⏳ `/legal/terms`, `/legal/privacy`, `/legal/consent`, `/legal/cookies` — draft only (Slice 11) |
 | **Footer legal links** | ✅ Main layout footer (Slice 11) |
 | **Consent checkboxes (registration, booking, order)** | ✅ Frontend UI (Slice 12) + backend `legal_consent_accepted` required (Slice 13); registration stores draft metadata in `business.settings` |
-| **Backend consent audit/storage** | ⏳ Registration metadata only; booking/order persistence — future slice |
+| **Backend consent audit/storage** | ⏳ Design complete (Slice 14) — preferred `legal_consent_records` table; implementation Slice 15 |
 | **Lawyer review** | ❌ Not performed |
 | **152-FZ / GDPR compliance claimed** | ❌ **Not claimed** — requires legal review |
 | **Platform collects personal/business data** | ✅ Yes — accounts, bookings, orders, messages |
@@ -86,7 +86,9 @@ Placeholder patterns only — **not final legal wording**. A lawyer must approve
 
 **Implemented (Slice 12 — UI readiness only):** Required consent checkbox on `/register`, public booking form, and public order/request form via shared `LegalConsentCheckbox`. Links to draft Privacy Policy and Personal Data Consent pages. Submit is blocked client-side when unchecked.
 
-**Implemented (Slice 13 — backend enforcement):** `POST /api/v1/auth/register`, `POST /api/v1/public/b/{slug}/bookings`, and `POST /api/v1/public/b/{slug}/orders` require `legal_consent_accepted: true`. Missing/false returns validation error `LEGAL_CONSENT_REQUIRED`. Registration stores draft consent metadata in existing `business.settings` JSONB (no migration). **Not legal compliance** — no full audit trail for booking/order.
+**Implemented (Slice 13 — backend enforcement):** `POST /api/v1/auth/register`, `POST /api/v1/public/b/{slug}/bookings`, and `POST /api/v1/public/b/{slug}/orders` require `legal_consent_accepted: true`. Missing/false returns validation error `LEGAL_CONSENT_REQUIRED`. Registration stores draft consent metadata in existing `business.settings` JSONB (no migration). **Not legal compliance** — no full audit trail for booking/order yet.
+
+**Designed (Slice 14 — storage plan only):** [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md) — separate `legal_consent_records` table preferred over `form_data` or `audit_log` alone; write-after-create in same transaction; no migration in Slice 14.
 
 ---
 
@@ -137,7 +139,7 @@ The product may later serve **UAE, Tunisia, EU**, or other regions. Before inter
 | 3 | Registration consent | ✅ Slice 12–13 — checkbox + `legal_consent_accepted`; settings metadata on register |
 | 4 | Booking consent | ✅ Slice 12–13 — checkbox + backend required flag |
 | 5 | Order consent | ✅ Slice 12–13 — checkbox + backend required flag |
-| 6 | Backend consent audit/storage (booking/order) | Future — persist timestamp/version server-side |
+| 6 | Backend consent audit/storage | ⏳ Slice 14 design — [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md); Slice 15 implementation |
 | 7 | Admin / retention notes | Owner-facing text on client data responsibilities |
 | 8 | Account deletion request | Process + API/form (future) |
 | 9 | Cookie banner | Only if analytics/non-essential cookies added |
@@ -146,7 +148,7 @@ The product may later serve **UAE, Tunisia, EU**, or other regions. Before inter
 
 **Slice 11:** placeholder routes and footer only — not final legal text.
 
-**Slice 13:** backend requires `legal_consent_accepted: true` on registration, public booking, and public order APIs — not final compliance.
+**Slice 14:** consent audit storage design — `legal_consent_records` table chosen; no migration yet.
 
 ---
 
@@ -156,7 +158,8 @@ Before **public launch**, confirm:
 
 - [ ] **Legal pages live** — Placeholder routes exist (Slice 11); **lawyer-reviewed final text** still required
 - [x] **Consent enforcement** — Slice 12–13: frontend checkbox + backend `legal_consent_accepted` on register/booking/order
-- [ ] **Backend consent audit/storage (booking/order)** — future slice
+- [x] **Consent audit storage design** — Slice 14: [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md); `legal_consent_records` table preferred
+- [ ] **Consent audit storage implementation** — Slice 15: migration + repository + writes on register/booking/order
 - [ ] **Data retention / deletion policy** — documented and operational process defined
 - [ ] **Cookie / analytics policy** — if analytics or non-essential cookies are used
 - [ ] **Payment / subscription terms** — before live Stripe billing
