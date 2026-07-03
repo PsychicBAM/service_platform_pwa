@@ -61,6 +61,7 @@ def order_payload(service_id: str, **client) -> dict:
     return {
         "service_id": service_id,
         "form_data": {"brief": "Need a logo redesign", "colors": "blue and white"},
+        "legal_consent_accepted": True,
         "client": {
             "full_name": "Jane Doe",
             "email": "jane.doe@example.com",
@@ -272,6 +273,7 @@ async def test_client_input_requires_name_and_email_or_phone(
         json={
             "service_id": ctx["service_id"],
             "form_data": {},
+            "legal_consent_accepted": True,
             "client": {"full_name": "Jane Doe"},
         },
     )
@@ -289,6 +291,7 @@ async def test_form_data_must_be_object(
         json={
             "service_id": ctx["service_id"],
             "form_data": ["not", "an", "object"],
+            "legal_consent_accepted": True,
             "client": {
                 "full_name": "Jane Doe",
                 "email": "form@example.com",

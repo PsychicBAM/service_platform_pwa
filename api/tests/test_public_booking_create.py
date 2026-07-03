@@ -32,6 +32,7 @@ def booking_payload(service_id: str, starts_at: datetime | None = None, **client
     return {
         "service_id": service_id,
         "starts_at": (starts_at or SLOT_START).isoformat(),
+        "legal_consent_accepted": True,
         "client": {
             "full_name": "Jane Doe",
             "email": "jane.doe@example.com",
@@ -409,6 +410,7 @@ async def test_client_input_requires_name_and_email_or_phone(
         json={
             "service_id": ctx["service_id"],
             "starts_at": SLOT_START.isoformat(),
+            "legal_consent_accepted": True,
             "client": {"full_name": "Jane Doe"},
         },
     )
