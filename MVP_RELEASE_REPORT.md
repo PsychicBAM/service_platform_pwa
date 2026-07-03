@@ -388,6 +388,7 @@ Legacy list (Phase 3):
 | Business admin consent read API | Phase 7 Slice 18 — `GET /api/v1/businesses/{business_id}/legal-consents`; tenant-scoped; not legal compliance |
 | Business admin consent UI | Phase 7 Slice 19A — `/admin/legal-consents`; read-only summary table; not legal compliance |
 | Superadmin consent UI | Phase 7 Slice 19B — `/superadmin/legal-consents`; platform-wide read-only table; not legal compliance |
+| Data retention/deletion/export plan | Phase 7 Slice 20 — [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md); design only; no API/UI; not legal compliance |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |
@@ -418,6 +419,8 @@ Legacy list (Phase 3):
 | **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — templates documented; configure cron/systemd on VPS only |
 | **Monitoring / alerting** | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | Real VPS deployment | Docs and compose prepared; not deployed to production domain |
+| Data export / account deletion | [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) — design only; no endpoints or UI |
+| Final retention / backup policy | Draft in backup docs; finalize after legal review |
 
 ### C. Manual demo checklist
 

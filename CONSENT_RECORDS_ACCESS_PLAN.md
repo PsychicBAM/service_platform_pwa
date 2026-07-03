@@ -4,7 +4,7 @@
 **Status:** Superadmin and business admin read-only APIs (Slices 17–18) and **business + superadmin consent UI (Slices 19A–19B)** implemented. **Not legal compliance.**  
 **Disclaimer:** This document is **not legal advice** and does **not** claim legal compliance. Access rules, retention, export, and deletion require qualified legal review.
 
-Related: [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md)
+Related: [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md) · [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md)
 
 ---
 
@@ -38,7 +38,7 @@ Records are an **append-only audit trail**. Keeping them **write-only** until ac
 | Filter by business, source, entity type | ✅ Planned | `business_id`, `source`, `entity_type` |
 | View raw request payloads | ❌ Never | Not stored in consent table; must not join to expose `form_data` |
 | View passwords, tokens, secrets | ❌ Never | Out of scope |
-| Export bulk CSV/JSON | ❌ Deferred | Until retention/export policy is defined (Slice 20+) |
+| Export bulk CSV/JSON | ❌ Deferred | Until retention/export policy is defined — see [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) (Slice 20) |
 
 Superadmin access supports **platform operations and audit support**, not full personal-data review. Responses should expose only fields listed in §C (data minimization).
 
@@ -59,7 +59,7 @@ Business admins need enough context to confirm consent was recorded for a bookin
 | Capability | Allowed | Notes |
 |------------|---------|-------|
 | Direct UI for consent records | ❌ First version | No client-facing consent history page in MVP |
-| Future data export / access request | ⏳ Slice 20+ | May include consent rows after legal review defines scope |
+| Future data export / access request | ⏳ Slice 22+ | Design in [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) (Slice 20); implementation after legal review |
 
 ### Public / anonymous
 
@@ -246,12 +246,23 @@ Reuse existing dependency patterns from superadmin audit logs and business admin
 | Superadmin page | ✅ Slice 19B — `/superadmin/legal-consents`; platform-wide read-only table |
 | No sensitive data | No form_data, tokens, IP/user-agent, or legal text in UI |
 
-### Slice 20+ — Export / data-subject flows
+### Slice 20 — Retention / deletion / export design
 
 | Task | Deliverable |
 |------|-------------|
-| Retention policy | Legal + ops definition |
-| Account deletion | Include consent row handling |
+| Retention principles | ✅ [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) §C |
+| Deletion scenarios | ✅ §D — client, business, user, superadmin |
+| Consent record handling | ✅ §E — subject to lawyer review |
+| Export scope design | ✅ §F — business/client/superadmin |
+| Backup retention caveat | ✅ §G |
+| Implementation roadmap | ✅ §H — Slices 21–25+ |
+
+### Slice 21+ — Export / deletion implementation
+
+| Task | Deliverable |
+|------|-------------|
+| Retention policy (final) | Lawyer-reviewed period table |
+| Account deletion | Include consent row handling per §E |
 | Data export request | User/business export may attach consent summaries |
 | IP/user-agent | Only if counsel requires and Privacy Policy discloses |
 
@@ -261,8 +272,8 @@ Reuse existing dependency patterns from superadmin audit logs and business admin
 
 - **Not legal compliance** — read access to consent rows does not satisfy GDPR, 152-FZ, or other regimes by itself.
 - **Lawyer review required** — who may view consent audit data, for how long, and in what form must be confirmed by counsel.
-- **Retention / deletion policy** — still undefined; read APIs must not imply indefinite retention or unrestricted export.
-- **Account deletion / data export** — consent records may need inclusion in erasure or portability flows; design only in Slice 20+.
+- **Retention / deletion policy** — design in [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) (Slice 20); final periods TBD; read APIs must not imply indefinite retention or unrestricted export.
+- **Account deletion / data export** — design documented; implementation in future slices; not legal compliance.
 - **No final legal text** — `legal_consent_version` remains `draft-placeholder-v1` until lawyer-reviewed versions exist.
 - **No IP/user-agent** — not collected; do not add in read layer until policy allows collection and disclosure.
 
@@ -278,4 +289,6 @@ Reuse existing dependency patterns from superadmin audit logs and business admin
 
 **Slice 19B:** Superadmin read-only UI — `/superadmin/legal-consents`; platform-wide summary; not legal compliance.
 
-**Last updated:** Phase 7 Slice 19B — superadmin consent records UI (not legal advice).
+**Slice 20:** Retention/deletion/export design — [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md); no API/UI changes; not legal compliance.
+
+**Last updated:** Phase 7 Slice 20 — data retention/deletion/export plan (not legal advice).

@@ -95,6 +95,7 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - API payloads send `legal_consent_accepted: true` after checkbox is checked (Slice 13); backend rejects missing/false
 - Business admin read-only consent records UI at `/admin/legal-consents` (Slice 19A — audit summary only; not legal compliance)
 - Superadmin read-only consent records UI at `/superadmin/legal-consents` (Slice 19B — platform-wide audit summary only; not legal compliance)
+- Data retention/deletion/export plan in [DATA_RETENTION_DELETION_EXPORT_PLAN.md](../DATA_RETENTION_DELETION_EXPORT_PLAN.md) (Slice 20 — design only; no export/deletion UI; not legal compliance)
 
 ### Phase 6 Slice 2 — CodeQL code scanning (summary)
 

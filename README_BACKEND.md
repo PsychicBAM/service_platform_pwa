@@ -36,6 +36,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Business admin consent read API (Phase 7 Slice 18)** — `GET /api/v1/businesses/{business_id}/legal-consents`; business owner/admin only; tenant-scoped; cross-business rejected; not legal compliance.
 - **Business admin consent UI (Phase 7 Slice 19A)** — `/admin/legal-consents`; read-only summary table; no sensitive fields displayed; not legal compliance.
 - **Superadmin consent UI (Phase 7 Slice 19B)** — `/superadmin/legal-consents`; platform-wide read-only summary table; not legal compliance.
+- **Data retention/deletion/export design (Phase 7 Slice 20)** — [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md); design only; no export/deletion endpoints; not legal compliance.
 - **Payments / Stripe** — backend checkout + webhook + admin settings checkout buttons (Slice 8); `STRIPE_ENABLED=false` by default; [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) for test-key setup; live Stripe requires production checklist. No billing portal, refunds, or downgrades yet.
 
 ## Stack

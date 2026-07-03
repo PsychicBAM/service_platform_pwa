@@ -4,7 +4,7 @@
 **Status:** Documentation only — **no real restore performed in this slice**.  
 **Not in scope:** Live production restore, committing backup files, or automated drill scheduling.
 
-Related: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [scripts/restore_postgres.sh](./scripts/restore_postgres.sh)
+Related: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [scripts/restore_postgres.sh](./scripts/restore_postgres.sh)
 
 ---
 
@@ -185,4 +185,4 @@ WEB_HTTP_PORT=8090 docker compose -p service_platform_drill \
 
 ---
 
-**Last updated:** Phase 7 Slice 7 — cross-link to [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) (no live schedule installed).
+**Last updated:** Phase 7 Slice 20 — cross-link to [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) (no live schedule installed).

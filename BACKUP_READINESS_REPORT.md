@@ -4,7 +4,7 @@
 **Status:** Planning + optional helper scripts — **no automated VPS backups active yet**.  
 **Not in scope:** Live deployment, off-server object storage, encrypted backup tooling, or committing database dumps.
 
-Related: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)
+Related: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) · [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)
 
 ---
 
@@ -200,7 +200,7 @@ Full plan: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — frequenc
 | Item | Status |
 |------|--------|
 | Scheduled backup (cron/systemd) | ⏳ Documented — **not installed** in repo |
-| Retention policy | ⏳ Draft — 7 daily / 4 weekly / 3–6 monthly |
+| Retention policy | ⏳ Draft — 7 daily / 4 weekly / 3–6 monthly; align with [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) §G after legal review |
 | Off-server copy | ⏳ Planned — rsync, S3, or provider snapshot |
 | Backup failure alerts | ⏳ Future monitoring slice |
 | Encrypted backups at rest | ⏳ Optional `gpg` before upload |
@@ -227,4 +227,4 @@ Full plan: [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — frequenc
 
 ---
 
-**Last updated:** Phase 7 Slice 7 — backup schedule and retention plan (no live cron/systemd installed).
+**Last updated:** Phase 7 Slice 20 — cross-link to [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) (backup retention still TBD after legal review).

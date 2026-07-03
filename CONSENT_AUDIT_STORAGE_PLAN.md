@@ -1,7 +1,7 @@
 # Consent Audit Storage Plan — Phase 7 (Slice 14)
 
 **Purpose:** Design a safe consent audit storage strategy before implementation.  
-**Status:** Implemented (Slice 15) — `legal_consent_records` table writes on registration, public booking, and public order. **Not legal compliance** — lawyer review, retention/deletion policy, and IP/user-agent collection still future work.  
+**Status:** Implemented (Slice 15) — `legal_consent_records` table writes on registration, public booking, and public order. Retention/deletion/export **design** in [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) (Slice 20). **Not legal compliance** — lawyer review, final retention periods, and IP/user-agent collection still future work.  
 **Disclaimer:** This document is **not legal advice** and does **not** claim legal compliance. Final policies, retention rules, and consent wording require qualified legal review.
 
 Related: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md)
@@ -17,7 +17,7 @@ Related: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md
 | **Backend consent enforcement** | `legal_consent_accepted: true` required on register, public booking, public order APIs (Slice 13) |
 | **Registration consent storage** | Draft metadata in existing `business.settings` JSONB (`legal_consent_accepted`, `legal_consent_version`, `legal_consent_source`, `legal_consent_recorded_at`) |
 | **Booking/order consent storage** | ✅ `legal_consent_records` rows (Slice 15) |
-| **Full consent audit trail** | ⏳ Authoritative table implemented; read/admin access designed (Slice 16); retention/deletion/export — future |
+| **Full consent audit trail** | ⏳ Authoritative table implemented; read/admin access (Slices 16–19B); retention/deletion/export **design** (Slice 20); implementation — future |
 | **Consent records read access** | ✅ Superadmin API + UI (Slices 17, 19B) + business admin API + UI (Slices 18, 19A) |
 | **Lawyer-reviewed legal text** | **Not done** — launch blocker |
 
@@ -198,8 +198,8 @@ Small, reviewable steps:
 
 - **Not legal compliance** — storing consent rows does not satisfy GDPR, 152-FZ, or other regimes without lawyer-reviewed text, lawful basis, retention policy, and user rights processes.
 - **Lawyer-reviewed legal text** — still required before public launch; version field must track real policy versions after review.
-- **Retention / deletion** — how long consent records are kept and how they are deleted on account erasure is **future work** (policy + implementation).
-- **Account deletion / data export** — consent records must be included in future data-subject flows; not in Slice 15.
+- **Retention / deletion** — design in [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) (Slice 20); final periods and implementation **future work** after legal review.
+- **Account deletion / data export** — consent records addressed in export/deletion plan; no endpoints yet.
 - **IP / user-agent** — do not collect unless legal review requires and Privacy Policy discloses it.
 - **Demo / seed data** — `seed_demo.py` should not create fake consent records unless explicitly added for test realism; document if added.
 
@@ -217,4 +217,6 @@ Small, reviewable steps:
 
 **Slice 19B:** Superadmin read-only UI at `/superadmin/legal-consents` — platform-wide summary; not legal compliance.
 
-**Last updated:** Phase 7 Slice 19B — superadmin consent records UI (not legal advice).
+**Slice 20:** Retention/deletion/export **design** in [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) — no implementation; not legal compliance.
+
+**Last updated:** Phase 7 Slice 20 — data retention/deletion/export plan (not legal advice).

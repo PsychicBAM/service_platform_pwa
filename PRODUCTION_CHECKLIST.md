@@ -28,8 +28,9 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Business admin consent read API** — Slice 18: `GET /api/v1/businesses/{business_id}/legal-consents`; cross-business rejected
 - [x] **Business admin consent UI** — Slice 19A: `/admin/legal-consents`; read-only summary table
 - [x] **Superadmin consent UI** — Slice 19B: `/superadmin/legal-consents`; read-only; not legal compliance
-- [ ] **Consent export / data-subject flows** — future work
-- [ ] **Consent retention/deletion policy** — future legal + ops work
+- [x] **Retention/deletion/export design** — Slice 20: [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md); no implementation; not legal compliance
+- [ ] **Consent export / data-subject flows** — future implementation (Slices 22+)
+- [ ] **Consent retention/deletion policy (final)** — lawyer-reviewed periods; backup retention still TBD
 - [ ] **Lawyer-reviewed legal text** — replace placeholders before public launch
 - [ ] **Real VPS provisioned** — not done yet
 - [ ] **Domain + HTTPS** — reverse proxy configured on server

@@ -59,7 +59,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Content-Security-Policy** | ✅ Slices 17–19 — `style-src 'self'` only (no `unsafe-inline`); COEP/HSTS still deferred |
 | **Monitoring / alerting** | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — schedule/retention documented; not active until VPS setup |
-| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); frontend + backend consent (Slice 12–13); audit storage (Slice 15); superadmin + business admin consent read APIs (Slices 17–18); lawyer-reviewed text + retention policy still required |
+| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); consent enforcement + audit storage (Slices 12–15); read APIs + UI (Slices 17–19B); retention/deletion/export **design** (Slice 20); lawyer-reviewed text + operational flows still required |
 | **Production VPS** | Not deployed — local/Docker dev only |
 | **WAF / DDoS** | Rely on host/provider when deployed |
 | **HSTS** | Set at reverse proxy when HTTPS is live |
@@ -374,4 +374,10 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - Calls `GET /api/v1/superadmin/legal-consents`; filters (business_id, source, entity_type); pagination
 - Summary fields only; no export endpoint; **not legal compliance**
 
-**Last updated:** Phase 7 Slice 19B — superadmin consent records UI (not legal advice).
+### Phase 7 Slice 20 — Data retention/deletion/export design (summary)
+
+- [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) — retention principles, deletion scenarios, export scope, consent record handling, backup caveat, security requirements
+- **Design only** — no deletion/export API, UI, or migration; **not legal compliance**
+- Future slices: export API (22), deletion design (23), anonymization (24), admin UI (25)
+
+**Last updated:** Phase 7 Slice 20 — data retention/deletion/export plan (design only; not legal advice).

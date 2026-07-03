@@ -4,7 +4,7 @@
 **Status:** Planning only — **no cron, systemd timer, or live backup job installed in this slice**.  
 **Not in scope:** Real VPS setup, committing backup files, or automated cleanup scripts.
 
-Related: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [scripts/backup_postgres.sh](./scripts/backup_postgres.sh)
+Related: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) · [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [scripts/backup_postgres.sh](./scripts/backup_postgres.sh)
 
 ---
 
@@ -39,7 +39,7 @@ Related: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [RESTORE_
 
 ## C. Retention policy draft
 
-Adjust for disk cost, legal hold, and data-policy requirements.
+Adjust for disk cost, legal hold, and data-policy requirements. Final alignment with application data retention: [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) §G — **TBD after legal review**.
 
 | Tier | Keep | Example promotion |
 |------|------|-------------------|
@@ -246,4 +246,4 @@ Before **public launch**, confirm:
 
 ---
 
-**Last updated:** Phase 7 Slice 7 — backup schedule and retention plan (no live cron/systemd installed).
+**Last updated:** Phase 7 Slice 20 — cross-link to [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) (no live cron/systemd installed).

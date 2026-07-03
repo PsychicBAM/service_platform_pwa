@@ -1,10 +1,10 @@
 # Legal & Privacy Readiness Report — Phase 7 (Slice 10)
 
 **Purpose:** Plan legal and privacy requirements before **public launch**.  
-**Status:** … superadmin read-only consent API (Slice 17), business admin read-only consent API (Slice 18), business admin consent records UI (Slice 19A), and **superadmin consent records UI (Slice 19B)** — **draft text only**; lawyer review and retention/deletion policy still required.  
+**Status:** … superadmin consent UI (Slice 19B) and **data retention/deletion/export design (Slice 20)** — **draft text only**; lawyer review and operational deletion/export flows still required.  
 **Disclaimer:** This document is **not legal advice**. Final policies and consent flows require qualified legal review for your jurisdiction(s).
 
-Related: [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md)
+Related: [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md)
 
 ---
 
@@ -189,8 +189,9 @@ Before **public launch**, confirm:
 - [x] **Business admin consent read API** — Slice 18: `GET /api/v1/businesses/{business_id}/legal-consents`; tenant isolation tested
 - [x] **Business admin consent UI** — Slice 19A: `/admin/legal-consents`; summary fields only
 - [x] **Superadmin consent UI** — Slice 19B: `/superadmin/legal-consents`; platform-wide summary
-- [ ] **Consent retention/deletion policy** — future legal + ops work
-- [ ] **Data retention / deletion policy** — documented and operational process defined
+- [x] **Retention/deletion/export design** — Slice 20: [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md); design only; **not legal compliance**
+- [ ] **Consent retention/deletion policy (final)** — lawyer-reviewed periods and procedures
+- [ ] **Data retention / deletion / export implementation** — no API, UI, or workflows yet
 - [ ] **Cookie / analytics policy** — if analytics or non-essential cookies are used
 - [ ] **Payment / subscription terms** — before live Stripe billing
 - [ ] **Public listing / map consent** — before marketplace or map features
@@ -202,4 +203,4 @@ Cross-links: [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [VPS_DEPLOY
 
 ---
 
-**Last updated:** Phase 7 Slice 11 — legal placeholder routes and footer links (not legal advice).
+**Last updated:** Phase 7 Slice 20 — data retention/deletion/export plan (design only; not legal advice).
