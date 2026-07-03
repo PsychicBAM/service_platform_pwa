@@ -19,8 +19,9 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Demo credentials production safety gate** — Slice 9: `seed_demo.py` refuses `APP_ENV=production`; `check_production_env.py --strict` launch gate
 - [x] **Legal & privacy readiness plan** — Slice 10: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md); not legal advice
 - [x] **Legal placeholder routes & footer** — Slice 11: `/legal/terms`, `/legal/privacy`, `/legal/consent`, `/legal/cookies`; draft text only
+- [x] **Frontend consent checkboxes** — Slice 12: registration, public booking, public order/request; client-side validation only; no backend storage
 - [ ] **Lawyer-reviewed legal text** — replace placeholders before public launch
-- [ ] **Consent checkboxes** — registration, booking, order — future slice
+- [ ] **Backend consent audit/storage** — future slice
 - [ ] **Real VPS provisioned** — not done yet
 - [ ] **Domain + HTTPS** — reverse proxy configured on server
 

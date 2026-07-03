@@ -5,6 +5,10 @@ import { createPublicBooking, getAvailability, getPublicService } from "@/api/pu
 import { ApiClientError } from "@/api/client";
 import type { AvailabilitySlot } from "@/types/api";
 import { FormPageShell } from "@/components/FormPageShell";
+import {
+  LEGAL_CONSENT_ERROR_MESSAGE,
+  LegalConsentCheckbox,
+} from "@/components/LegalConsentCheckbox";
 import { DateSelector } from "@/components/DateSelector";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -28,6 +32,7 @@ type FieldErrors = {
   fullName?: string;
   contact?: string;
   note?: string;
+  legalConsent?: string;
 };
 
 function validateForm(
@@ -76,6 +81,7 @@ export function BookingPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
+  const [legalConsent, setLegalConsent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -126,6 +132,9 @@ export function BookingPage() {
     }
 
     const errors = validateForm(fullName, email, phone, note);
+    if (!legalConsent) {
+      errors.legalConsent = LEGAL_CONSENT_ERROR_MESSAGE;
+    }
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
       return;
@@ -314,6 +323,14 @@ export function BookingPage() {
             error={fieldErrors.note}
             maxLength={NOTE_MAX_LENGTH}
             hint={`Up to ${NOTE_MAX_LENGTH} characters.`}
+            disabled={bookingMutation.isPending}
+          />
+
+          <LegalConsentCheckbox
+            id="booking-legal-consent"
+            checked={legalConsent}
+            onChange={setLegalConsent}
+            error={fieldErrors.legalConsent}
             disabled={bookingMutation.isPending}
           />
 

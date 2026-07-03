@@ -378,7 +378,8 @@ Legacy list (Phase 3):
 | Monitoring & logging readiness | Phase 7 Slice 8 — [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md); health/log/alert/incident plan; no live monitoring in slice |
 | Demo credentials production safety gate | Phase 7 Slice 9 — `seed_demo.py` refuses production; `check_production_env.py --strict` demo-seed checks |
 | Legal & privacy readiness plan | Phase 7 Slice 10 — [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md); data inventory, consent roadmap; not legal advice |
-| Legal placeholder routes & footer | Phase 7 Slice 11 — `/legal/*` draft pages + footer links; lawyer review still required; no consent enforcement |
+| Legal placeholder routes & footer | Phase 7 Slice 11 — `/legal/*` draft pages + footer links; lawyer review still required |
+| Frontend consent checkboxes | Phase 7 Slice 12 — registration, booking, order forms; draft acknowledgment UI only; no backend storage; not legal compliance |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |

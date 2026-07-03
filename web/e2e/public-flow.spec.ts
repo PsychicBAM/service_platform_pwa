@@ -20,6 +20,9 @@ test.describe("public smoke flows", () => {
     await page.goto(`/b/${DEMO.slug}/services`);
     await page.getByRole("link", { name: "View & request" }).click();
     await page.getByRole("link", { name: "Submit request" }).click();
+    await expect(
+      page.getByRole("checkbox", { name: /acknowledge the draft privacy policy/i }),
+    ).toBeVisible();
     await page.getByRole("button", { name: "Submit request" }).click();
     await expect(page.getByText("Full name is required.")).toBeVisible();
     await expect(page.getByText("Project details are required.")).toBeVisible();
@@ -51,5 +54,22 @@ test.describe("public smoke flows", () => {
     await expect(page.getByText(/platform plan \(signup intent\)/i)).toBeVisible();
     await expect(page.getByText(/selected:.*business/i)).toBeVisible();
     await expect(page.locator('input[value="business"]')).toBeChecked();
+  });
+
+  test("G. registration requires consent before submit", async ({ page }) => {
+    await page.goto("/register");
+    await expect(page.getByRole("heading", { name: "Create account" })).toBeVisible();
+    await expect(
+      page.getByRole("checkbox", { name: /acknowledge the draft privacy policy/i }),
+    ).toBeVisible();
+    await page.locator('form input[type="text"]').nth(0).fill("E2E Owner");
+    await page.locator('input[type="email"]').fill("e2e-owner@example.com");
+    await page.locator('input[type="password"]').fill("ChangeMe123!");
+    await page.locator('form input[type="text"]').nth(1).fill("E2E Biz");
+    await page.locator('input[placeholder="my-business"]').fill("e2e-biz");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(
+      page.getByText(/please acknowledge the draft privacy policy and personal data consent/i),
+    ).toBeVisible();
   });
 });

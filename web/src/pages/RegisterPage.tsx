@@ -5,6 +5,10 @@ import { register } from "@/api/authApi";
 import { AuthPageShell } from "@/components/AuthPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import {
+  LEGAL_CONSENT_ERROR_MESSAGE,
+  LegalConsentCheckbox,
+} from "@/components/LegalConsentCheckbox";
+import {
   getPricingPlan,
   parsePricingPlanId,
   PRICING_PLANS,
@@ -65,6 +69,7 @@ export function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [legalConsent, setLegalConsent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -84,6 +89,9 @@ export function RegisterPage() {
       businessName,
       slug,
     });
+    if (!legalConsent) {
+      errors.legalConsent = LEGAL_CONSENT_ERROR_MESSAGE;
+    }
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
       return;
@@ -234,6 +242,13 @@ export function RegisterPage() {
             <p className="text-xs text-red-600">{fieldErrors.slug}</p>
           ) : null}
         </label>
+        <LegalConsentCheckbox
+          id="register-legal-consent"
+          checked={legalConsent}
+          onChange={setLegalConsent}
+          error={fieldErrors.legalConsent}
+          disabled={loading}
+        />
         <button
           type="submit"
           disabled={loading}

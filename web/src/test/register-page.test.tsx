@@ -6,6 +6,14 @@ import * as authApi from "@/api/authApi";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { renderRoute } from "@/test/test-utils";
 
+function getConsentCheckbox() {
+  return screen.getByRole("checkbox", { name: /acknowledge the draft privacy policy/i });
+}
+
+async function acceptLegalConsent(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(getConsentCheckbox());
+}
+
 const mockNavigate = vi.fn();
 
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -80,6 +88,7 @@ describe("RegisterPage", () => {
     await user.type(screen.getByLabelText(/password/i), "ChangeMe123!");
     await user.type(screen.getByLabelText(/business name/i), "New Biz");
     await user.type(screen.getByLabelText(/business slug/i), "new-biz");
+    await acceptLegalConsent(user);
     await user.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => {
@@ -110,6 +119,7 @@ describe("RegisterPage", () => {
     await user.type(screen.getByLabelText(/password/i), "ChangeMe123!");
     await user.type(screen.getByLabelText(/business name/i), "Demo Biz");
     await user.type(screen.getByLabelText(/business slug/i), "demo-biz");
+    await acceptLegalConsent(user);
     await user.click(screen.getByRole("button", { name: /create account/i }));
 
     expect(await screen.findByText("This email is already registered.")).toBeInTheDocument();
@@ -147,6 +157,7 @@ describe("RegisterPage", () => {
     await user.type(screen.getByLabelText(/password/i), "ChangeMe123!");
     await user.type(screen.getByLabelText(/business name/i), "New Biz");
     await user.type(screen.getByLabelText(/business slug/i), "new-biz");
+    await acceptLegalConsent(user);
     await user.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => {

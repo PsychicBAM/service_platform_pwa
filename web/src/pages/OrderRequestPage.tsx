@@ -3,6 +3,10 @@ import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createPublicOrder, getPublicService } from "@/api/publicApi";
 import { FormPageShell } from "@/components/FormPageShell";
+import {
+  LEGAL_CONSENT_ERROR_MESSAGE,
+  LegalConsentCheckbox,
+} from "@/components/LegalConsentCheckbox";
 import { ErrorState } from "@/components/ErrorState";
 import { FormField } from "@/components/FormField";
 import { LoadingState } from "@/components/LoadingState";
@@ -21,6 +25,7 @@ type FieldErrors = {
   fullName?: string;
   contact?: string;
   details?: string;
+  legalConsent?: string;
 };
 
 function validateForm(fullName: string, email: string, phone: string, details: string): FieldErrors {
@@ -62,6 +67,7 @@ export function OrderRequestPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [details, setDetails] = useState("");
+  const [legalConsent, setLegalConsent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -89,6 +95,9 @@ export function OrderRequestPage() {
     setSubmitError(null);
 
     const errors = validateForm(fullName, email, phone, details);
+    if (!legalConsent) {
+      errors.legalConsent = LEGAL_CONSENT_ERROR_MESSAGE;
+    }
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
       return;
@@ -234,6 +243,14 @@ export function OrderRequestPage() {
           error={fieldErrors.details}
           maxLength={DETAILS_MAX_LENGTH}
           hint={`Up to ${DETAILS_MAX_LENGTH} characters.`}
+          disabled={orderMutation.isPending}
+        />
+
+        <LegalConsentCheckbox
+          id="order-legal-consent"
+          checked={legalConsent}
+          onChange={setLegalConsent}
+          error={fieldErrors.legalConsent}
           disabled={orderMutation.isPending}
         />
 
