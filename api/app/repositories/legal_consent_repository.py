@@ -67,6 +67,36 @@ class LegalConsentRepository:
         result = await self.session.execute(stmt)
         return int(result.scalar_one())
 
+    async def list_consent_records_for_business(
+        self,
+        *,
+        business_id: uuid.UUID,
+        source: ConsentSource | None = None,
+        entity_type: ConsentEntityType | None = None,
+        page: int = 1,
+        limit: int = 25,
+    ) -> list[LegalConsentRecordRow]:
+        return await self.list_consent_records(
+            business_id=business_id,
+            source=source,
+            entity_type=entity_type,
+            page=page,
+            limit=limit,
+        )
+
+    async def count_consent_records_for_business(
+        self,
+        *,
+        business_id: uuid.UUID,
+        source: ConsentSource | None = None,
+        entity_type: ConsentEntityType | None = None,
+    ) -> int:
+        return await self.count_consent_records(
+            business_id=business_id,
+            source=source,
+            entity_type=entity_type,
+        )
+
     def _list_select(self):
         return select(LegalConsentRecord, Business.name).outerjoin(
             Business,

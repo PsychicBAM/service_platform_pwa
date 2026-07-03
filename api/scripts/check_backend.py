@@ -97,6 +97,7 @@ def main() -> int:
             "/api/v1/auth/request-password-reset": {"post"},
             "/api/v1/auth/reset-password": {"post"},
             "/api/v1/businesses/{business_id}": {"get", "patch"},
+            "/api/v1/businesses/{business_id}/legal-consents": {"get"},
             "/api/v1/businesses/{business_id}/billing/checkout-session": {"post"},
             "/api/v1/billing/stripe/webhook": {"post"},
             "/api/v1/public/b/{slug}": {"get"},

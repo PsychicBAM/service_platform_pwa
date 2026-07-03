@@ -62,6 +62,47 @@ class LegalConsentService:
             meta=SuperadminListMeta(page=page, limit=limit, total=total),
         )
 
+    async def list_consent_records_for_business(
+        self,
+        *,
+        business_id: uuid.UUID,
+        source: ConsentSource | None = None,
+        entity_type: ConsentEntityType | None = None,
+        page: int = 1,
+        limit: int = 25,
+    ) -> LegalConsentRecordListResponse:
+        rows = await self.repo.list_consent_records_for_business(
+            business_id=business_id,
+            source=source,
+            entity_type=entity_type,
+            page=page,
+            limit=limit,
+        )
+        total = await self.repo.count_consent_records_for_business(
+            business_id=business_id,
+            source=source,
+            entity_type=entity_type,
+        )
+        return LegalConsentRecordListResponse(
+            data=[
+                LegalConsentRecordSummary(
+                    id=row.record.id,
+                    business_id=row.record.business_id,
+                    user_id=row.record.user_id,
+                    client_id=row.record.client_id,
+                    source=ConsentSource(row.record.source),
+                    entity_type=ConsentEntityType(row.record.entity_type),
+                    entity_id=row.record.entity_id,
+                    legal_consent_version=row.record.legal_consent_version,
+                    accepted_at=row.record.accepted_at,
+                    created_at=row.record.created_at,
+                    business_name=row.business_name,
+                )
+                for row in rows
+            ],
+            meta=SuperadminListMeta(page=page, limit=limit, total=total),
+        )
+
     async def record_registration_consent(
         self,
         *,

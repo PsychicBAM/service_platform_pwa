@@ -1,7 +1,7 @@
 # Consent Records Read/Admin Access Plan — Phase 7 (Slice 16)
 
 **Purpose:** Design safe read and admin access for `legal_consent_records` before any API or UI implementation.  
-**Status:** Superadmin read-only API implemented (Slice 17). Business admin API (Slice 18) and UI (Slice 19) remain future work. **Not legal compliance.**  
+**Status:** Superadmin and business admin read-only APIs implemented (Slices 17–18). UI (Slice 19) remains future work. **Not legal compliance.**  
 **Disclaimer:** This document is **not legal advice** and does **not** claim legal compliance. Access rules, retention, export, and deletion require qualified legal review.
 
 Related: [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md)
@@ -17,7 +17,7 @@ Related: [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md) · [LE
 | **Writes on public booking** | ✅ `source=public_booking`, `entity_type=booking` |
 | **Writes on public order** | ✅ `source=public_order`, `entity_type=order` |
 | **Read API** | ✅ Superadmin `GET /api/v1/superadmin/legal-consents` (Slice 17) |
-| **Business admin read API** | ❌ Slice 18 |
+| **Business admin read API** | ✅ Slice 18 — `GET /api/v1/businesses/{business_id}/legal-consents` |
 | **Admin / superadmin UI** | ❌ Slice 19 |
 | **IP / user-agent** | ❌ Not collected |
 | **Lawyer-reviewed legal text** | ❌ Not done |
@@ -46,7 +46,7 @@ Superadmin access supports **platform operations and audit support**, not full p
 
 | Capability | Allowed | Notes |
 |------------|---------|-------|
-| View consent records for **their business only** | ✅ Planned (Slice 18) | Strict `business_id` filter |
+| View consent records for **their business only** | ✅ Slice 18 | Mandatory `business_id` scope + membership check |
 | View platform-wide records | ❌ Never | Superadmin only |
 | View other businesses' records | ❌ Never | Tenant isolation required |
 | View client PII beyond existing admin screens | ❌ No expansion | `client_id` as opaque reference only; no new name/email/phone from consent API |
@@ -229,14 +229,14 @@ Reuse existing dependency patterns from superadmin audit logs and business admin
 
 **Pagination:** Uses existing superadmin `{ data, meta: { page, limit, total } }` shape; default `limit=25`, max `100`.
 
-### Slice 18 — Business admin read-only API
+### Slice 18 — Business admin read-only API ✅
 
 | Task | Deliverable |
 |------|-------------|
 | Route | `GET /api/v1/businesses/{business_id}/legal-consents` |
-| Auth | Business admin membership check |
-| Tests | **Tenant isolation** — A cannot read B |
-| Query | Hard-coded `business_id` from authorized context |
+| Auth | `get_business_for_admin_or_403` — owner/admin membership; cross-business → `403` |
+| Repository | `list_consent_records_for_business` / `count_consent_records_for_business` |
+| Tests | `test_business_legal_consents.py` — tenant isolation, auth, filters, pagination |
 
 ### Slice 19 — Admin UI tables
 
@@ -272,4 +272,6 @@ Reuse existing dependency patterns from superadmin audit logs and business admin
 
 **Slice 17:** Superadmin read-only API — `GET /api/v1/superadmin/legal-consents`; data-minimized; not legal compliance.
 
-**Last updated:** Phase 7 Slice 17 — superadmin consent records read API (not legal advice).
+**Slice 18:** Business admin read-only API — `GET /api/v1/businesses/{business_id}/legal-consents`; tenant-scoped; not legal compliance.
+
+**Last updated:** Phase 7 Slice 18 — business admin consent records read API (not legal advice).

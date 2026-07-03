@@ -25,7 +25,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **Consent audit storage implementation** — Slice 15: `legal_consent_records` migration + service writes
 - [x] **Consent records read/admin access design** — Slice 16: [CONSENT_RECORDS_ACCESS_PLAN.md](./CONSENT_RECORDS_ACCESS_PLAN.md)
 - [x] **Superadmin consent read API** — Slice 17: `GET /api/v1/superadmin/legal-consents`; no UI; not legal compliance
-- [ ] **Business admin consent read API** — Slice 18 planned
+- [x] **Business admin consent read API** — Slice 18: `GET /api/v1/businesses/{business_id}/legal-consents`; cross-business rejected; no UI
 - [ ] **Consent admin UI** — Slice 19 planned
 - [ ] **Consent retention/deletion policy** — future legal + ops work
 - [ ] **Lawyer-reviewed legal text** — replace placeholders before public launch
