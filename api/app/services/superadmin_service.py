@@ -103,6 +103,7 @@ class SuperadminService:
     ) -> SuperadminBusinessDetail:
         business = await self._get_business_or_404(business_id)
         subscription = await self.repo.get_subscription(business_id)
+        changed = False
 
         if payload.status is not None and payload.status != business.status:
             old_status = business.status
@@ -118,6 +119,7 @@ class SuperadminService:
                     "new_status": payload.status.value,
                 },
             )
+            changed = True
 
         if payload.plan is not None:
             if subscription is None:
@@ -147,6 +149,10 @@ class SuperadminService:
                     target_id=subscription.id,
                     metadata=metadata,
                 )
+                changed = True
+
+        if changed:
+            await self.session.commit()
 
         await self.session.refresh(business)
         if subscription is not None:

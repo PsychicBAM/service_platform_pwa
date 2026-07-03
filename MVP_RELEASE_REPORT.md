@@ -343,7 +343,7 @@ Legacy list (Phase 3):
 | Message polling + in-app banners | 1s polling while order page/panel open; dismissible banner for new incoming messages |
 | Landing page pricing section | Hero, features, SaaS plans with prices ($0/$19/$49/$99), expandable details, Choose plan links |
 | Registration plan intent | Slice 2 — `selected_plan_intent` in business.settings; subscription stays `free` on signup |
-| Superadmin manual plan management | Slice 3 — active plan + signup intent UI; audited manual changes |
+| Superadmin manual plan management | Slice 3 — active plan on `subscriptions.plan`; manual changes persist after refresh; audited; Stripe not required |
 | Billing readiness checkpoint | Slice 4 — [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md); `check_billing_readiness.py` |
 | Stripe config / env validation | Slice 5 — settings + production env checks; disabled by default; no checkout/webhooks |
 | Stripe checkout session API | Slice 6 — `POST .../billing/checkout-session`; mocked tests; no plan change on create |

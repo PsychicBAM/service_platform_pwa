@@ -38,6 +38,7 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - Business list shows **Active plan**, **Signup intent**, and **Plan request** badge when intent differs
 - Detail panel: subscription vs signup intent sections, mismatch note, clearer manual plan form
 - Plan change audit logs include `selected_plan_intent`, source, and `change_source: superadmin_manual`
+- **Plan persistence fix** — superadmin manual plan changes commit to `subscriptions.plan` and survive page refresh; Stripe still not required
 - Stripe/checkout still not connected
 
 ### Phase 5 Slice 4 — Billing readiness checkpoint (summary)

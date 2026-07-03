@@ -17,7 +17,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Email verification** and **password reset** dry-run audits: `check_email_verification.py`, `check_password_reset.py` (included in `check_backend.py`).
 - **SMTP real delivery** requires operator configuration on VPS (`EMAIL_ENABLED`, SMTP credentials in `.env` — never commit secrets).
 - **Registration plan intent** — `POST /auth/register` accepts `selected_plan_intent`; stored in `business.settings`; subscription plan remains `free` until manual/billing action.
-- **Superadmin manual plans** — active plan vs signup intent on list/detail; manual changes audited with intent metadata; no Stripe.
+- **Superadmin manual plans** — active plan stored on `subscriptions.plan`; superadmin PATCH commits to DB; signup intent stays in `business.settings`; manual changes audited; no Stripe.
 - **Billing readiness checkpoint** — [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md); `scripts/check_billing_readiness.py` (included in `check_backend.py`).
 - **Billing flow smoke audit (Slice 10)** — `scripts/check_billing_flow.py` verifies checkout/webhook OpenAPI wiring, plan eligibility, and Stripe-safe defaults without network calls (included in `check_backend.py`).
 - **Security readiness (Phase 6 Slice 1)** — [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md); `scripts/check_security_readiness.py` checks production-unsafe config without scanners (included in `check_backend.py`).

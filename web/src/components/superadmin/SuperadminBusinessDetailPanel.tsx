@@ -58,9 +58,9 @@ export function SuperadminBusinessDetailPanel({
   const updateMutation = useMutation({
     mutationFn: (payload: Parameters<typeof updateSuperadminBusiness>[1]) =>
       updateSuperadminBusiness(businessId, payload),
-    onSuccess: async () => {
+    onSuccess: async (updated) => {
+      queryClient.setQueryData(["superadmin-business", businessId], updated);
       await queryClient.invalidateQueries({ queryKey: ["superadmin-businesses"] });
-      await queryClient.invalidateQueries({ queryKey: ["superadmin-business", businessId] });
       await queryClient.invalidateQueries({ queryKey: ["superadmin-audit-logs"] });
     },
   });
@@ -71,10 +71,11 @@ export function SuperadminBusinessDetailPanel({
       return;
     }
     try {
-      await updateMutation.mutateAsync({
+      const updated = await updateMutation.mutateAsync({
         status: form.status,
         plan: form.plan,
       });
+      setForm(formFromBusiness(updated));
       onSuccess("Manual plan change saved.");
     } catch (error) {
       onError(getSuperadminErrorMessage(error, "Could not update business."));
