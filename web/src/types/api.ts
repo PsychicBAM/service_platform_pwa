@@ -846,3 +846,25 @@ export interface AuditLogListResponse {
   data: AuditLogRead[];
   meta: ListMeta;
 }
+
+export type LegalConsentSource = "registration" | "public_booking" | "public_order";
+export type LegalConsentEntityType = "business" | "booking" | "order";
+
+export interface LegalConsentRecordItem {
+  id: string;
+  business_id: string | null;
+  user_id: string | null;
+  client_id: string | null;
+  source: LegalConsentSource;
+  entity_type: LegalConsentEntityType;
+  entity_id: string | null;
+  legal_consent_version: string;
+  accepted_at: string;
+  created_at: string;
+  business_name?: string | null;
+}
+
+export interface LegalConsentRecordListResponse {
+  data: LegalConsentRecordItem[];
+  meta: ListMeta;
+}

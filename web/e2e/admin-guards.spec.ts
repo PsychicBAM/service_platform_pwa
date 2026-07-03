@@ -30,4 +30,13 @@ test.describe("admin access guards", () => {
     await expect(page.getByText(/Stripe checkout is optional/i)).toBeVisible();
     await expect(page.getByRole("button", { name: "Start Starter checkout" })).toBeVisible();
   });
+
+  test("I. owner can open legal consent records page", async ({ page }) => {
+    await loginAs(page, USERS.owner.email, USERS.owner.password);
+    await page.goto("/admin/legal-consents");
+    await expect(page.getByRole("heading", { name: "Legal consent records" })).toBeVisible();
+    await expect(
+      page.getByText(/audit summary only\. legal text is still pending final review\./i),
+    ).toBeVisible();
+  });
 });

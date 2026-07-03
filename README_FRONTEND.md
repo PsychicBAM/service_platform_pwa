@@ -93,6 +93,7 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 - Footer links to legal pages on main layout
 - Required consent checkboxes on registration, public booking, and public order/request forms (Slice 12)
 - API payloads send `legal_consent_accepted: true` after checkbox is checked (Slice 13); backend rejects missing/false
+- Business admin read-only consent records UI at `/admin/legal-consents` (Slice 19A — audit summary only; not legal compliance)
 
 ### Phase 6 Slice 2 — CodeQL code scanning (summary)
 

@@ -1,7 +1,7 @@
 # Legal & Privacy Readiness Report — Phase 7 (Slice 10)
 
 **Purpose:** Plan legal and privacy requirements before **public launch**.  
-**Status:** Placeholder legal routes, footer links (Slice 11), frontend consent checkboxes (Slice 12), backend consent enforcement (Slice 13), consent audit storage (Slices 14–15), consent records read/admin access design (Slice 16), superadmin read-only consent API (Slice 17), and **business admin read-only consent API (Slice 18)** — **draft text only**; lawyer review and retention/deletion policy still required.  
+**Status:** … superadmin read-only consent API (Slice 17), **business admin read-only consent API (Slice 18)**, and **business admin consent records UI (Slice 19A)** — **draft text only**; lawyer review and retention/deletion policy still required.  
 **Disclaimer:** This document is **not legal advice**. Final policies and consent flows require qualified legal review for your jurisdiction(s).
 
 Related: [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md)
@@ -16,7 +16,7 @@ Related: [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [VPS_READINESS_
 | **Footer legal links** | ✅ Main layout footer (Slice 11) |
 | **Consent checkboxes (registration, booking, order)** | ✅ Frontend UI (Slice 12) + backend `legal_consent_accepted` required (Slice 13); registration stores draft metadata in `business.settings` |
 | **Backend consent audit/storage** | ✅ `legal_consent_records` table (Slice 15); registration/booking/order write audit rows; no IP/user-agent yet |
-| **Consent records read/admin access** | ✅ Superadmin read API (Slice 17) + business admin read API (Slice 18); UI — Slice 19 |
+| **Consent records read/admin access** | ✅ Superadmin read API (Slice 17) + business admin read API (Slice 18) + business admin UI (Slice 19A); superadmin UI — future |
 | **Lawyer review** | ❌ Not performed |
 | **152-FZ / GDPR compliance claimed** | ❌ **Not claimed** — requires legal review |
 | **Platform collects personal/business data** | ✅ Yes — accounts, bookings, orders, messages |
@@ -95,7 +95,9 @@ Placeholder patterns only — **not final legal wording**. A lawyer must approve
 
 **Implemented (Slice 17 — superadmin read API):** `GET /api/v1/superadmin/legal-consents` — superadmin-only, paginated, filterable by `source` / `entity_type` / `business_id`; data-minimized summary fields only. **Not legal compliance.**
 
-**Implemented (Slice 18 — business admin read API):** `GET /api/v1/businesses/{business_id}/legal-consents` — business owner/admin only; records scoped to authorized business; cross-business access rejected (`403`); same data-minimized response shape. UI remains Slice 19. **Not legal compliance.**
+**Implemented (Slice 18 — business admin read API):** `GET /api/v1/businesses/{business_id}/legal-consents` — business owner/admin only; records scoped to authorized business; cross-business access rejected (`403`); same data-minimized response shape. **Not legal compliance.**
+
+**Implemented (Slice 19A — business admin UI):** `/admin/legal-consents` — read-only table; source/entity filters; pagination; audit notice; no form_data, tokens, IP/user-agent, or legal text displayed. Superadmin UI remains future work. **Not legal compliance.**
 
 ---
 
@@ -150,7 +152,7 @@ The product may later serve **UAE, Tunisia, EU**, or other regions. Before inter
 | 6b | Consent records read access design | ✅ Slice 16 — [CONSENT_RECORDS_ACCESS_PLAN.md](./CONSENT_RECORDS_ACCESS_PLAN.md) |
 | 7 | Superadmin consent read API | ✅ Slice 17 — `GET /api/v1/superadmin/legal-consents` |
 | 8 | Business admin consent read API | ✅ Slice 18 — `GET /api/v1/businesses/{business_id}/legal-consents` + tenant isolation tests |
-| 9 | Consent admin UI tables | Slice 19 — planned |
+| 9 | Consent admin UI tables | ✅ Slice 19A — business admin `/admin/legal-consents`; superadmin UI — future |
 | 10 | Admin / retention notes | Owner-facing text on client data responsibilities |
 | 11 | Account deletion request | Process + API/form (future) |
 | 12 | Cookie banner | Only if analytics/non-essential cookies added |
@@ -167,6 +169,8 @@ The product may later serve **UAE, Tunisia, EU**, or other regions. Before inter
 
 **Slice 18:** Business admin read-only consent records API — tenant-scoped; not legal compliance.
 
+**Slice 19A:** Business admin read-only consent records UI — not legal compliance.
+
 ---
 
 ## H. Launch blockers
@@ -179,7 +183,8 @@ Before **public launch**, confirm:
 - [x] **Consent records read access design** — Slice 16: [CONSENT_RECORDS_ACCESS_PLAN.md](./CONSENT_RECORDS_ACCESS_PLAN.md); staged API/UI
 - [x] **Superadmin consent read API** — Slice 17: `GET /api/v1/superadmin/legal-consents`; data-minimized
 - [x] **Business admin consent read API** — Slice 18: `GET /api/v1/businesses/{business_id}/legal-consents`; tenant isolation tested
-- [ ] **Consent admin UI** — Slice 19 (planned)
+- [x] **Business admin consent UI** — Slice 19A: `/admin/legal-consents`; summary fields only
+- [ ] **Superadmin consent UI** — future work
 - [ ] **Consent retention/deletion policy** — future legal + ops work
 - [ ] **Data retention / deletion policy** — documented and operational process defined
 - [ ] **Cookie / analytics policy** — if analytics or non-essential cookies are used

@@ -7,6 +7,7 @@ import { Layout } from "@/components/Layout";
 import { AdminBookingsPage } from "@/pages/admin/AdminBookingsPage";
 import { AdminClientsPage } from "@/pages/admin/AdminClientsPage";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
+import { AdminLegalConsentsPage } from "@/pages/admin/AdminLegalConsentsPage";
 import { AdminOrdersPage } from "@/pages/admin/AdminOrdersPage";
 import { AdminSchedulePage } from "@/pages/admin/AdminSchedulePage";
 import { AdminServicesPage } from "@/pages/admin/AdminServicesPage";
@@ -80,6 +81,7 @@ export const router = createBrowserRouter([
           { path: "orders", element: <AdminOrdersPage /> },
           { path: "clients", element: <AdminClientsPage /> },
           { path: "schedule", element: <AdminSchedulePage /> },
+          { path: "legal-consents", element: <AdminLegalConsentsPage /> },
           { path: "settings", element: <AdminSettingsPage /> },
         ],
       },

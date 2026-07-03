@@ -284,3 +284,33 @@ export const mockAuditLog: AuditLogRead = {
 };
 
 export const emptyListMeta = { page: 1, limit: 50, total: 0 };
+
+export const mockLegalConsentRecords = {
+  data: [
+    {
+      id: "consent-record-001",
+      business_id: BUSINESS_ID,
+      user_id: "owner-user-id",
+      client_id: null,
+      source: "registration" as const,
+      entity_type: "business" as const,
+      entity_id: BUSINESS_ID,
+      legal_consent_version: "draft-placeholder-v1",
+      accepted_at: "2026-01-02T10:00:00Z",
+      created_at: "2026-01-02T10:00:00Z",
+    },
+    {
+      id: "consent-record-002",
+      business_id: BUSINESS_ID,
+      user_id: null,
+      client_id: "client-id-001",
+      source: "public_booking" as const,
+      entity_type: "booking" as const,
+      entity_id: "booking-id-001",
+      legal_consent_version: "draft-placeholder-v1",
+      accepted_at: "2026-01-03T12:00:00Z",
+      created_at: "2026-01-03T12:00:00Z",
+    },
+  ],
+  meta: { page: 1, limit: 25, total: 2 },
+};

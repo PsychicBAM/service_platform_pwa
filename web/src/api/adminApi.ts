@@ -17,6 +17,7 @@ import type {
   ClientListResponse,
   ClientDetail,
   ClientUpdatePayload,
+  LegalConsentRecordListResponse,
   OrderMessageCreatePayload,
   OrderMessageListResponse,
   OrderMessageRead,
@@ -311,5 +312,14 @@ export function updateUnavailableTime(
 export function deleteUnavailableTime(businessId: string, blockId: string) {
   return apiClient.delete<void>(
     `/businesses/${encodeURIComponent(businessId)}/schedule/unavailable-times/${encodeURIComponent(blockId)}`,
+  );
+}
+
+export function getBusinessLegalConsents(
+  businessId: string,
+  params?: Record<string, string | number | undefined>,
+) {
+  return apiClient.get<LegalConsentRecordListResponse>(
+    `/businesses/${encodeURIComponent(businessId)}/legal-consents${buildQuery(params)}`,
   );
 }

@@ -1,7 +1,7 @@
 # Consent Records Read/Admin Access Plan — Phase 7 (Slice 16)
 
 **Purpose:** Design safe read and admin access for `legal_consent_records` before any API or UI implementation.  
-**Status:** Superadmin and business admin read-only APIs implemented (Slices 17–18). UI (Slice 19) remains future work. **Not legal compliance.**  
+**Status:** Superadmin and business admin read-only APIs (Slices 17–18) and **business admin UI (Slice 19A)** implemented. Superadmin UI remains future work. **Not legal compliance.**  
 **Disclaimer:** This document is **not legal advice** and does **not** claim legal compliance. Access rules, retention, export, and deletion require qualified legal review.
 
 Related: [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md)
@@ -18,7 +18,7 @@ Related: [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md) · [LE
 | **Writes on public order** | ✅ `source=public_order`, `entity_type=order` |
 | **Read API** | ✅ Superadmin `GET /api/v1/superadmin/legal-consents` (Slice 17) |
 | **Business admin read API** | ✅ Slice 18 — `GET /api/v1/businesses/{business_id}/legal-consents` |
-| **Admin / superadmin UI** | ❌ Slice 19 |
+| **Admin / superadmin UI** | ⏳ Business admin UI (Slice 19A); superadmin UI — future |
 | **IP / user-agent** | ❌ Not collected |
 | **Lawyer-reviewed legal text** | ❌ Not done |
 
@@ -242,9 +242,9 @@ Reuse existing dependency patterns from superadmin audit logs and business admin
 
 | Task | Deliverable |
 |------|-------------|
-| Superadmin page | Read-only table; source, entity, version, timestamps |
-| Business admin page | Same columns; scoped to current business |
-| No sensitive data | No expandable rows with `form_data` or client contact fields |
+| Business admin page | ✅ Slice 19A — `/admin/legal-consents`; read-only table; summary fields only |
+| Superadmin page | Future — `/superadmin/legal-consents` or similar |
+| No sensitive data | No form_data, tokens, IP/user-agent, or legal text in UI |
 
 ### Slice 20+ — Export / data-subject flows
 
@@ -274,4 +274,6 @@ Reuse existing dependency patterns from superadmin audit logs and business admin
 
 **Slice 18:** Business admin read-only API — `GET /api/v1/businesses/{business_id}/legal-consents`; tenant-scoped; not legal compliance.
 
-**Last updated:** Phase 7 Slice 18 — business admin consent records read API (not legal advice).
+**Slice 19A:** Business admin read-only UI — `/admin/legal-consents`; summary fields only; not legal compliance.
+
+**Last updated:** Phase 7 Slice 19A — business admin consent records UI (not legal advice).

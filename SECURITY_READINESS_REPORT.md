@@ -359,6 +359,13 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - `GET /api/v1/businesses/{business_id}/legal-consents` — `get_business_for_admin_or_403`
 - Records always scoped to authorized `business_id`; cross-business access → `403`
 - Same filters/pagination/response shape as Slice 17; tenant isolation tests in `test_business_legal_consents.py`
-- UI (Slice 19) and export (Slice 20+) remain future work; **not legal compliance**
+- **Not legal compliance**
 
-**Last updated:** Phase 7 Slice 18 — business admin consent records read API (not legal advice).
+### Phase 7 Slice 19A — Business admin consent UI (summary)
+
+- `/admin/legal-consents` — read-only table for business owners/admins
+- Calls business-scoped API only; filters (source, entity_type); pagination
+- Displays summary fields only — no form_data, tokens, IP/user-agent, or legal text
+- Superadmin UI remains future work; **not legal compliance**
+
+**Last updated:** Phase 7 Slice 19A — business admin consent records UI (not legal advice).

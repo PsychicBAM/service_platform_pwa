@@ -18,7 +18,7 @@ Related: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md
 | **Registration consent storage** | Draft metadata in existing `business.settings` JSONB (`legal_consent_accepted`, `legal_consent_version`, `legal_consent_source`, `legal_consent_recorded_at`) |
 | **Booking/order consent storage** | ✅ `legal_consent_records` rows (Slice 15) |
 | **Full consent audit trail** | ⏳ Authoritative table implemented; read/admin access designed (Slice 16); retention/deletion/export — future |
-| **Consent records read access** | ✅ Superadmin API (Slice 17) + business admin API (Slice 18); UI (Slice 19) — future |
+| **Consent records read access** | ✅ Superadmin API (Slice 17) + business admin API (Slice 18) + business admin UI (Slice 19A); superadmin UI — future |
 | **Lawyer-reviewed legal text** | **Not done** — launch blocker |
 
 **Launch rule:** Do not claim compliance. Do not point public marketing traffic at the platform until legal documents are lawyer-reviewed and consent audit flows are confirmed by counsel.
@@ -213,4 +213,6 @@ Small, reviewable steps:
 
 **Slice 18:** Business admin read-only `GET /api/v1/businesses/{business_id}/legal-consents` — tenant-scoped; cross-business rejected; not legal compliance.
 
-**Last updated:** Phase 7 Slice 18 — business admin consent records read API (not legal advice).
+**Slice 19A:** Business admin read-only UI at `/admin/legal-consents` — summary fields only; not legal compliance.
+
+**Last updated:** Phase 7 Slice 19A — business admin consent records UI (not legal advice).
