@@ -59,7 +59,7 @@ docker compose exec api python scripts/check_security_readiness.py
 | **Content-Security-Policy** | ✅ Slices 17–19 — `style-src 'self'` only (no `unsafe-inline`); COEP/HSTS still deferred |
 | **Monitoring / alerting** | [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; configure on VPS before launch |
 | **Automated backups** | [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) — schedule/retention documented; not active until VPS setup |
-| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); frontend + backend consent (Slice 12–13); audit storage (Slice 15); lawyer-reviewed text + retention policy still required |
+| **Legal / privacy / consent pages** | ⏳ Placeholder routes `/legal/*` (Slice 11); frontend + backend consent (Slice 12–13); audit storage (Slice 15); read access design (Slice 16); lawyer-reviewed text + retention policy still required |
 | **Production VPS** | Not deployed — local/Docker dev only |
 | **WAF / DDoS** | Rely on host/provider when deployed |
 | **HSTS** | Set at reverse proxy when HTTPS is live |
@@ -341,4 +341,10 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - Writes after successful registration, public booking, and public order (same transaction)
 - No IP/user-agent collected; API responses unchanged; **not legal compliance**
 
-**Last updated:** Phase 7 Slice 15 — consent audit storage implemented (not legal advice).
+### Phase 7 Slice 16 — Consent records read/admin access design (summary)
+
+- [CONSENT_RECORDS_ACCESS_PLAN.md](./CONSENT_RECORDS_ACCESS_PLAN.md) — access roles, data minimization, tenant isolation requirements
+- Staged plan: Slice 17 superadmin read API → Slice 18 business admin API → Slice 19 UI
+- Records remain **write-only**; no routes, UI, or migration in Slice 16; **not legal compliance**
+
+**Last updated:** Phase 7 Slice 16 — consent records access plan documented (not legal advice).

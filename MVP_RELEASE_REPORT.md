@@ -383,6 +383,7 @@ Legacy list (Phase 3):
 | Backend consent enforcement | Phase 7 Slice 13 — `legal_consent_accepted` required on register, public booking, public order APIs |
 | Consent audit storage design | Phase 7 Slice 14 — [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md) |
 | Consent audit storage implementation | Phase 7 Slice 15 — `legal_consent_records` table; writes on register/booking/order; not legal compliance |
+| Consent records read/admin access design | Phase 7 Slice 16 — [CONSENT_RECORDS_ACCESS_PLAN.md](./CONSENT_RECORDS_ACCESS_PLAN.md); write-only today; staged superadmin/business APIs + UI; no routes added |
 | Dependency advisory triage | Phase 6 Slice 4 — risk classification + upgrade roadmap (Slices 5–8); no version changes |
 | pytest test-only upgrade | Phase 6 Slice 5 — `pytest>=9.0.3,<10.0.0`, `pytest-asyncio>=1.3.0`; CVE-2025-71176 cleared |
 | Starlette/FastAPI runtime upgrade | Phase 6 Slice 6 — `fastapi>=0.136.3,<0.139.0` → starlette 1.3.1; pip-audit backend clean |

@@ -31,6 +31,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Legal consent enforcement (Phase 7 Slice 13)** — `legal_consent_accepted: true` required on registration, public booking, and public order create APIs; registration stores draft metadata in `business.settings`; not legal compliance.
 - **Consent audit storage design (Phase 7 Slice 14)** — [CONSENT_AUDIT_STORAGE_PLAN.md](./CONSENT_AUDIT_STORAGE_PLAN.md); preferred `legal_consent_records` table.
 - **Consent audit storage (Phase 7 Slice 15)** — `legal_consent_records` table; writes on registration, public booking, and public order; no IP/user-agent; not legal compliance.
+- **Consent records read access design (Phase 7 Slice 16)** — [CONSENT_RECORDS_ACCESS_PLAN.md](./CONSENT_RECORDS_ACCESS_PLAN.md); write-only today; staged superadmin/business admin APIs + UI (Slices 17–19); no routes added in Slice 16.
 - **Payments / Stripe** — backend checkout + webhook + admin settings checkout buttons (Slice 8); `STRIPE_ENABLED=false` by default; [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) for test-key setup; live Stripe requires production checklist. No billing portal, refunds, or downgrades yet.
 
 ## Stack
