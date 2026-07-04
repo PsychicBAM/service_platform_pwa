@@ -49,8 +49,8 @@ Configure these in `.env` **on the VPS only** (copy from `.env.production.exampl
 | Variable                                    | Purpose                                | Placeholder (not real)                        |
 | ------------------------------------------- | -------------------------------------- | --------------------------------------------- |
 | `STRIPE_ENABLED`                            | Master switch for checkout/webhook     | `false` → `true` when test-ready              |
-| <STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>     | Stripe API secret key (**test only**)  | `sk_test_placeholder`                         |
-| <STRIPE_TEST_WEBHOOK_SECRET_FROM_DASHBOARD> | Webhook signing secret (**test only**) | `whsec_test_placeholder`                      |
+| <STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>     | Stripe API secret key (**test only**)  | `<STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>`                         |
+| <STRIPE_TEST_WEBHOOK_SECRET_FROM_DASHBOARD> | Webhook signing secret (**test only**) | `<STRIPE_TEST_WEBHOOK_SECRET_FROM_DASHBOARD>`                      |
 | <STRIPE_TEST_PRICE_ID_Starter>              | Price ID for Starter plan              | `price_test_starter_placeholder`              |
 | <STRIPE_TEST_PRICE_ID_Business>             | Price ID for Business plan             | `price_test_business_placeholder`             |
 | <STRIPE_TEST_PRICE_ID_Pro>                  | Price ID for Pro plan                  | `price_test_pro_placeholder`                  |
@@ -292,7 +292,7 @@ Before considering test-mode Stripe “working” on VPS:
 
 - [ ] Git working tree has no `.env` or secret files staged
 - [ ] `.env` exists **only on VPS** (not in repo)
-- [ ] Stripe keys are **test mode only** (`sk_test_…`, test price IDs)
+- [ ] Stripe keys are test-mode keys from the Stripe dashboard, not live keys.
 - [ ] `check_production_env.py --strict` passes on server `.env`
 - [ ] `check_billing_flow.py` and `check_billing_readiness.py` pass
 - [ ] Checkout **disabled** mode verified (`STRIPE_ENABLED=false`)
