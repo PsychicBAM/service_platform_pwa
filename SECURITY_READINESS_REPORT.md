@@ -4,7 +4,7 @@
 **Scope:** Document what is protected today, what is still missing, and which tools to add later.  
 **Not in scope:** Offensive pentesting, aggressive scanners, exploit code, or legal document creation.
 
-Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
+Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md)
 
 ---
 
@@ -77,7 +77,7 @@ Complete before pointing a real domain at the stack:
 - [ ] **`API_DOCS_ENABLED=false`** — confirm `/docs`, `/redoc`, `/openapi.json` return 404
 - [ ] **`APP_ENV=production`** — triggers CORS validation at startup
 - [ ] **`EMAIL_ENABLED`** — only after SMTP test; `EMAIL_DRY_RUN=false` only when sending is verified; run `check_email_readiness.py` first (no real send)
-- [ ] **`STRIPE_ENABLED`** — only after [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) passes in staging
+- [ ] **`STRIPE_ENABLED`** — only after [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) test-mode stages pass on staging (test keys only); local dev: [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
 - [ ] **HTTPS + domain** — TLS certificate valid; HTTP redirects to HTTPS
 - [ ] **Backup / restore tested** — restore drill on staging clone per [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) (not performed yet)
 - [ ] **Demo credentials** — do not run `seed_demo.py` on production (`APP_ENV=production` blocked); replace demo emails/passwords before public launch
@@ -391,4 +391,9 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) — staged VPS activation (disabled → dry-run → one live test → production), rollback, secret-safety rules, troubleshooting
 - Live email activation is operator-controlled; dry-run must precede live mode; no secrets in repo; no compliance/deliverability guarantee
 
-**Last updated:** Phase 8 Slice 2 — SMTP operator runbook (docs only).
+### Phase 8 Slice 3 — Stripe test mode operator runbook (summary)
+
+- [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) — staged VPS test-mode activation (disabled → test config → test checkout → test webhook → rollback)
+- `STRIPE_ENABLED=false` by default; test keys only for rollout; manual superadmin plan changes separate; no live payment activation claim; no compliance guarantee
+
+**Last updated:** Phase 8 Slice 3 — Stripe test mode operator runbook (docs only).

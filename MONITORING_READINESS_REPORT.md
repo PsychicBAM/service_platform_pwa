@@ -41,7 +41,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READIN
 | **Backup file size** | Non-zero dump; sudden shrink | After each backup job |
 | **SSL certificate** | Expiry date | After HTTPS — alert 14 days before |
 | **Domain / DNS** | Resolves to VPS; HTTPS valid | After launch |
-| **Stripe webhooks** | Failed deliveries, 4xx/5xx on webhook route | After `STRIPE_ENABLED=true` |
+| **Stripe webhooks** | Failed deliveries, 4xx/5xx on webhook route; activation stages in [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) | After `STRIPE_ENABLED=true` (test mode first) |
 | **SMTP / email** | Send failures, bounce logs; preflight with `check_email_readiness.py`; activation stages in [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) | After `EMAIL_ENABLED=true` (dry-run first) |
 
 **Launch gate:** Monitoring plan reviewed and at least manual health checks documented before public traffic. Legal/privacy pages are a separate launch blocker — [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md).

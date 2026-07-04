@@ -8,6 +8,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 
 **Billing readiness (pre-Stripe):** [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md) — manual billing today, plan table, Stripe checklist.  
 **Stripe test mode (operators):** [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI webhook forwarding, local checkout flow.  
+**Stripe test mode VPS runbook (Phase 8 Slice 3):** [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) — staged VPS activation (disabled → test config → test checkout → test webhook → rollback); operator-controlled; test keys only; no live payment activation.  
 **Security readiness:** [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) — pre-VPS baseline; CodeQL code scanning on GitHub (Slice 2); dependency audit commands (Slice 3).
 
 **Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](./MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, commands, next roadmap (Slice 20).
@@ -39,7 +40,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 - **Business admin consent UI (Phase 7 Slice 19A)** — `/admin/legal-consents`; read-only summary table; no sensitive fields displayed; not legal compliance.
 - **Superadmin consent UI (Phase 7 Slice 19B)** — `/superadmin/legal-consents`; platform-wide read-only summary table; not legal compliance.
 - **Data retention/deletion/export design (Phase 7 Slice 20)** — [DATA_RETENTION_DELETION_EXPORT_PLAN.md](./DATA_RETENTION_DELETION_EXPORT_PLAN.md); design only; no export/deletion endpoints; not legal compliance.
-- **Payments / Stripe** — backend checkout + webhook + admin settings checkout buttons (Slice 8); `STRIPE_ENABLED=false` by default; [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) for test-key setup; live Stripe requires production checklist. No billing portal, refunds, or downgrades yet.
+- **Payments / Stripe** — backend checkout + webhook + admin settings checkout buttons (Slice 8); `STRIPE_ENABLED=false` by default; [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) for local test-key setup; [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) for VPS test-mode activation; live Stripe requires production checklist. Manual superadmin plan changes remain separate. No billing portal, refunds, or downgrades yet.
 
 ## Stack
 

@@ -158,7 +158,7 @@ The product may later serve **UAE, Tunisia, EU**, or other regions. Before inter
 | 10 | Admin / retention notes | Owner-facing text on client data responsibilities |
 | 11 | Account deletion request | Process + API/form (future) |
 | 12 | Cookie banner | Only if analytics/non-essential cookies added |
-| 13 | Billing terms page | Before `STRIPE_ENABLED=true` on public prod |
+| 13 | Billing terms page | Before `STRIPE_ENABLED=true` on public prod; VPS test rollout: [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) (test keys only) |
 | 14 | **Lawyer review** | **Mandatory before public launch** |
 
 **Slice 11:** placeholder routes and footer only — not final legal text.

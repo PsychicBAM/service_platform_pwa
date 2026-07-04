@@ -4,7 +4,7 @@
 **Not in scope:** Live server provisioning, DNS changes, HTTPS certificates, or committing secrets.  
 **Status:** Planning only — **no deployment performed**. Operator runbook: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md). Backup baseline: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) (Slice 4).
 
-Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)
+Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md)
 
 ---
 
@@ -39,7 +39,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [LEGAL_PRIV
 | **PostgreSQL storage** | Named volume `service_platform_postgres_prod_data`; plan disk size |
 | **Backups** | Off-host `pg_dump` — [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md); optional `scripts/backup_postgres.sh` |
 | **SMTP provider** | Transactional email (verification, reset, notifications) |
-| **Stripe** | Test keys first ([STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md)); live keys only after checklist |
+| **Stripe** | Test keys first ([STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) local; [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) VPS); live keys only after checklist |
 | **Monitoring / logs** | ⏳ [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) — plan documented; not active until VPS setup |
 | **SSH access** | Key-based deploy user; firewall 22/80/443 only |
 
@@ -174,7 +174,7 @@ Run on **HTTPS staging** before public launch. Use test accounts — do not log 
 | 10 | Superadmin login → platform businesses view | ☐ |
 | 10 | Email readiness — `check_email_readiness.py` (no real send) | ☐ |
 | 11 | Email test — follow [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) Stage 3; one explicit recipient only | ☐ |
-| 12 | Stripe test checkout — only after `STRIPE_ENABLED=true` + webhook URL | ☐ |
+| 12 | Stripe test checkout — follow [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) Stages 3–4 (test keys + webhook only) | ☐ |
 
 **Hard refresh:** `/login`, `/admin`, `/b/<slug>` must not 404 (nginx SPA fallback).
 
