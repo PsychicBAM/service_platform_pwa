@@ -16,6 +16,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 
 - **Email verification** and **password reset** dry-run audits: `check_email_verification.py`, `check_password_reset.py` (included in `check_backend.py`).
 - **Email/SMTP readiness audit (Phase 8 Slice 1)** — `check_email_readiness.py`; safe config summary, dry-run probe, optional `--strict` / `--send-test`; no real email by default (included in `check_backend.py`).
+- **SMTP operator runbook (Phase 8 Slice 2)** — [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md); staged activation (disabled → dry-run → one live test → production), rollback, troubleshooting; live email is operator-controlled; no secrets in repo; no deliverability/compliance guarantee.
 - **SMTP real delivery** requires operator configuration on VPS (`EMAIL_ENABLED`, SMTP credentials in `.env` — never commit secrets).
 - **Registration plan intent** — `POST /auth/register` accepts `selected_plan_intent`; stored in `business.settings`; subscription plan remains `free` until manual/billing action.
 - **Superadmin manual plans** — active plan stored on `subscriptions.plan`; superadmin PATCH commits to DB; signup intent stays in `business.settings`; manual changes audited; no Stripe.
@@ -185,6 +186,8 @@ docker compose exec api python scripts/check_email_readiness.py
 ```
 
 Prints safe static summary (`EMAIL_ENABLED`, `EMAIL_DRY_RUN`, `SMTP_*=set|not_set` — never passwords). Runs a dry-run probe with static result codes. Use `--strict` before enabling live SMTP on VPS. Optional `--send-test your-email@example.com` sends **one** live message only when `EMAIL_ENABLED=true` and `EMAIL_DRY_RUN=false` (delegates to `send_test_email.py`).
+
+**SMTP operator runbook** — staged VPS activation, rollback, and troubleshooting: [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md). Use dry-run before live mode; never commit SMTP secrets.
 
 **Manual SMTP live smoke test** (operator only — sends one email to explicit `--to`):
 

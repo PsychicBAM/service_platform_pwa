@@ -386,4 +386,9 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - `EMAIL_ENABLED=false` and `EMAIL_DRY_RUN=true` remain defaults; SMTP secrets never printed
 - `--strict` fails incomplete live SMTP config; `--send-test` refused unless live send explicitly enabled
 
-**Last updated:** Phase 8 Slice 1 — email/SMTP readiness audit (no real send by default).
+### Phase 8 Slice 2 — SMTP operator runbook (summary)
+
+- [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) — staged VPS activation (disabled → dry-run → one live test → production), rollback, secret-safety rules, troubleshooting
+- Live email activation is operator-controlled; dry-run must precede live mode; no secrets in repo; no compliance/deliverability guarantee
+
+**Last updated:** Phase 8 Slice 2 — SMTP operator runbook (docs only).

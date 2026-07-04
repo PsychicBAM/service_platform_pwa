@@ -19,7 +19,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [LEGAL_PRIV
 | **ZAP baseline** | ✅ Manual, non-blocking; triaged in [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md) |
 | **nginx headers** | ✅ CSP baseline, cache headers, `server_tokens off` (Slices 17–19) |
 | **Stripe** | ✅ Integrated; **`STRIPE_ENABLED=false` by default** — test/live keys on VPS only |
-| **SMTP / live email** | ⏳ Requires VPS `.env` + provider; dry-run audits pass locally |
+| **SMTP / live email** | ⏳ Requires VPS `.env` + provider; dry-run audits pass locally; operator runbook: [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) |
 | **Production env validation** | ✅ `scripts/check_production_env.py --strict` — polished (Slice 2); static message codes only |
 | **VPS deployment runbook** | ✅ [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) — operator guide (Slice 3); no live deploy |
 | **Backup readiness** | ✅ [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) — manual backup/restore baseline (Slice 4); no automated schedule yet |
@@ -173,7 +173,7 @@ Run on **HTTPS staging** before public launch. Use test accounts — do not log 
 | 9 | Admin order flow + message thread | ☐ |
 | 10 | Superadmin login → platform businesses view | ☐ |
 | 10 | Email readiness — `check_email_readiness.py` (no real send) | ☐ |
-| 11 | Email test — `send_test_email.py` or `check_email_readiness.py --send-test` one recipient (after SMTP) | ☐ |
+| 11 | Email test — follow [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) Stage 3; one explicit recipient only | ☐ |
 | 12 | Stripe test checkout — only after `STRIPE_ENABLED=true` + webhook URL | ☐ |
 
 **Hard refresh:** `/login`, `/admin`, `/b/<slug>` must not 404 (nginx SPA fallback).

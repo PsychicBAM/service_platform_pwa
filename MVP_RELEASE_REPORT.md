@@ -50,6 +50,7 @@ Related docs:
 | Email foundation + event wiring | `EmailService`, dry-run/disabled by default; booking/order/message notifications |
 | Email dry-run audit | `scripts/check_email_notifications.py` — no real emails sent |
 | Email/SMTP readiness audit | `scripts/check_email_readiness.py` — safe config summary; no real send by default |
+| SMTP operator runbook | [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) — staged VPS activation; operator-controlled live email |
 | Email verification dry-run audit | `scripts/check_email_verification.py` — config, templates, token hashing; no SMTP |
 | Password reset dry-run audit | `scripts/check_password_reset.py` — config, templates, token hashing; no SMTP |
 | Backend email verification | Verify/resend API; optional login enforcement ready (`EMAIL_VERIFICATION_REQUIRED`); disabled by default |
