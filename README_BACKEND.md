@@ -6,6 +6,8 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 
 **MVP release checkpoint:** [MVP_RELEASE_REPORT.md](./MVP_RELEASE_REPORT.md) — what is done, how to run/test, and what remains before production.
 
+**Production launch control center (Phase 8 Slice 6):** [PRODUCTION_LAUNCH_CONTROL_CENTER.md](./PRODUCTION_LAUNCH_CONTROL_CENTER.md) — main readiness index before VPS/public launch; GREEN/YELLOW/RED/BLUE status; go/no-go; links all runbooks.
+
 **Billing readiness (pre-Stripe):** [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md) — manual billing today, plan table, Stripe checklist.  
 **Stripe test mode (operators):** [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI webhook forwarding, local checkout flow.  
 **Stripe test mode VPS runbook (Phase 8 Slice 3):** [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) — staged VPS activation (disabled → test config → test checkout → test webhook → rollback); operator-controlled; test keys only; no live payment activation.  

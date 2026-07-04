@@ -4,7 +4,7 @@
 **Scope:** Document what is protected today, what is still missing, and which tools to add later.  
 **Not in scope:** Offensive pentesting, aggressive scanners, exploit code, or legal document creation.
 
-Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) · [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) · [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md)
+Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [PRODUCTION_LAUNCH_CONTROL_CENTER.md](./PRODUCTION_LAUNCH_CONTROL_CENTER.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) · [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) · [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md)
 
 ---
 
@@ -406,4 +406,9 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md) — pre-flight → VPS layout → env → build/migrate → strict validation → smoke → HTTPS → backups → email/Stripe dry-run → rollback → go/no-go
 - Use before public launch; no live Stripe/email required; secrets on VPS only; final go/no-go remains manual
 
-**Last updated:** Phase 8 Slice 5 — VPS dry-run deployment checklist (docs only).
+### Phase 8 Slice 6 — Production launch control center (summary)
+
+- [PRODUCTION_LAUNCH_CONTROL_CENTER.md](./PRODUCTION_LAUNCH_CONTROL_CENTER.md) — main readiness index; GREEN/YELLOW/RED/BLUE status; runbook order; go/no-go; feature map; public launch blockers
+- Use as entry point before VPS/public launch; does not replace legal review; no secrets
+
+**Last updated:** Phase 8 Slice 6 — production launch control center (docs only).

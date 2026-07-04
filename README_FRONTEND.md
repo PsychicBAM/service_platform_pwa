@@ -4,6 +4,8 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 
 **MVP release checkpoint:** [MVP_RELEASE_REPORT.md](../MVP_RELEASE_REPORT.md) — implemented UI, smoke checklist, and known limitations.
 
+**Production launch control center:** [PRODUCTION_LAUNCH_CONTROL_CENTER.md](../PRODUCTION_LAUNCH_CONTROL_CENTER.md) — main production readiness index before VPS/public launch.
+
 **Billing readiness (pre-Stripe):** [BILLING_READINESS_REPORT.md](../BILLING_READINESS_REPORT.md) — manual billing, plan table, Stripe slice order.  
 **Stripe test mode:** [STRIPE_TEST_MODE_GUIDE.md](../STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI, local checkout checklist (live Stripe not enabled by default).  
 **Stripe test mode VPS runbook:** [STRIPE_TEST_MODE_RUNBOOK.md](../STRIPE_TEST_MODE_RUNBOOK.md) — staged VPS test activation (test keys only).  
