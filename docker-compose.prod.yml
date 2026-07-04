@@ -26,7 +26,9 @@ services:
       retries: 5
 
   api:
-    build: ./api
+    build:
+      context: .
+      dockerfile: api/Dockerfile.prod
     container_name: service_platform_api_prod
     restart: unless-stopped
     env_file:

@@ -1,0 +1,31 @@
+# Production API image — build from repo root:
+#   docker compose -f docker-compose.prod.yml build api
+FROM python:3.12-slim
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY api/requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+COPY api/ .
+
+COPY scripts/check_production_env.py /scripts/check_production_env.py
+COPY .env.production.example /.env.production.example
+
+RUN groupadd --gid 1000 appgroup \
+    && useradd --uid 1000 --gid appgroup --shell /bin/bash --create-home appuser \
+    && chown -R appuser:appgroup /app \
+    && chown appuser:appgroup /scripts/check_production_env.py \
+    && chown appuser:appgroup /.env.production.example
+
+USER appuser
+
+EXPOSE 8000
