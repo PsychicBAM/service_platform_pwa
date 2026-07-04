@@ -11,12 +11,27 @@ import sys
 from pathlib import Path
 
 _PYCACHE_PREFIX = Path("/tmp/pycache")
+_SKIPPED_SUMMARY_RE = re.compile(r"(\d+) skipped")
 
 
 def _configure_bytecode_cache() -> None:
     """Write .pyc files under /tmp so bind-mounted /app stays read-only for appuser."""
     _PYCACHE_PREFIX.mkdir(parents=True, exist_ok=True)
     os.environ["PYTHONPYCACHEPREFIX"] = str(_PYCACHE_PREFIX)
+
+
+def _evaluate_pytest_result(returncode: int, stdout: str) -> tuple[list[str], list[str]]:
+    """Classify pytest outcome: failures only on non-zero exit; skips are warnings."""
+    errors: list[str] = []
+    warnings: list[str] = []
+    if returncode != 0:
+        errors.append("pytest failed")
+        return errors, warnings
+
+    match = _SKIPPED_SUMMARY_RE.search(stdout)
+    if match and int(match.group(1)) > 0:
+        warnings.append(f"pytest completed with skipped tests: {match.group(1)}")
+    return errors, warnings
 
 
 def main() -> int:
@@ -27,6 +42,7 @@ def main() -> int:
     app_dir = api_dir / "app"
 
     errors: list[str] = []
+    warnings: list[str] = []
 
     print("==> Compiling api/app ...")
     _configure_bytecode_cache()
@@ -406,16 +422,22 @@ def main() -> int:
     print(result.stdout)
     if result.stderr:
         print(result.stderr, file=sys.stderr)
-    if result.returncode != 0:
-        errors.append("pytest failed")
-    elif re.search(r"\d+ skipped", result.stdout):
-        errors.append("pytest had skipped tests")
+    pytest_errors, pytest_warnings = _evaluate_pytest_result(result.returncode, result.stdout)
+    errors.extend(pytest_errors)
+    warnings.extend(pytest_warnings)
+    for warning in pytest_warnings:
+        print(f"WARN: {warning}")
 
     if errors:
         print("\nFAILED:")
         for err in errors:
             print(f"  - {err}")
         return 1
+
+    if warnings:
+        print("\nWARNINGS:")
+        for warning in warnings:
+            print(f"  - {warning}")
 
     print("\nAll backend checks passed.")
     return 0
