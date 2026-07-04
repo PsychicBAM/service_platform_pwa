@@ -140,7 +140,8 @@ def run_audit() -> int:
         mock_email.send_email.return_value = EmailSendResult(
             sent=True,
             dry_run=True,
-            message="Email dry-run (not sent)",
+            message="EMAIL_DRY_RUN",
+            message_code="EMAIL_DRY_RUN",
         )
         service = PasswordResetService(
             session=MagicMock(),

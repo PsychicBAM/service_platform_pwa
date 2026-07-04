@@ -15,6 +15,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 ### Post-Phase-4 notes (backend)
 
 - **Email verification** and **password reset** dry-run audits: `check_email_verification.py`, `check_password_reset.py` (included in `check_backend.py`).
+- **Email/SMTP readiness audit (Phase 8 Slice 1)** — `check_email_readiness.py`; safe config summary, dry-run probe, optional `--strict` / `--send-test`; no real email by default (included in `check_backend.py`).
 - **SMTP real delivery** requires operator configuration on VPS (`EMAIL_ENABLED`, SMTP credentials in `.env` — never commit secrets).
 - **Registration plan intent** — `POST /auth/register` accepts `selected_plan_intent`; stored in `business.settings`; subscription plan remains `free` until manual/billing action.
 - **Superadmin manual plans** — active plan stored on `subscriptions.plan`; superadmin PATCH commits to DB; signup intent stays in `business.settings`; manual changes audited; no Stripe.
@@ -135,7 +136,7 @@ Requires a running Postgres matching `DATABASE_URL` in `.env`.
 
 ### Email (disabled by default)
 
-Local and test environments use `EMAIL_ENABLED=false` and `EMAIL_DRY_RUN=true` (see `.env.example`). No real SMTP is required for development; the email service logs dry-run metadata only (recipient + subject, never passwords).
+Local and test environments use `EMAIL_ENABLED=false` and `EMAIL_DRY_RUN=true` (see `.env.example`). No real SMTP is required for development; the email service returns static result codes (`EMAIL_DISABLED`, `EMAIL_DRY_RUN`) and logs subject only — never passwords or message bodies.
 
 To enable live SMTP on a VPS, set in `.env`:
 
@@ -176,6 +177,14 @@ docker compose exec api python scripts/check_email_notifications.py
 ```
 
 Verifies imports, template builders, and notification service wiring with mocked sender. Real SMTP must still be configured manually on the VPS when enabling live email.
+
+**Email/SMTP readiness audit** (no real emails sent by default):
+
+```bash
+docker compose exec api python scripts/check_email_readiness.py
+```
+
+Prints safe static summary (`EMAIL_ENABLED`, `EMAIL_DRY_RUN`, `SMTP_*=set|not_set` — never passwords). Runs a dry-run probe with static result codes. Use `--strict` before enabling live SMTP on VPS. Optional `--send-test your-email@example.com` sends **one** live message only when `EMAIL_ENABLED=true` and `EMAIL_DRY_RUN=false` (delegates to `send_test_email.py`).
 
 **Manual SMTP live smoke test** (operator only — sends one email to explicit `--to`):
 
@@ -363,6 +372,7 @@ alembic revision --autogenerate -m "describe change"
 - **Email notification foundation** (`EmailService`, templates, dry-run/disabled by default)
 - **Email event wiring** (booking/order create, admin status changes, order messages — best-effort, respects `notification_email_enabled`)
 - **Email notification dry-run audit** (`scripts/check_email_notifications.py` — verifies wiring without SMTP)
+- **Email/SMTP readiness audit** (`scripts/check_email_readiness.py` — safe config summary; no real send by default)
 - **Manual SMTP test email** (`scripts/send_test_email.py` — one explicit recipient; operator/VPS only)
 - **Email verification dry-run audit** (`scripts/check_email_verification.py` — config, templates, token hashing; no SMTP)
 - **Password reset dry-run audit** (`scripts/check_password_reset.py` — config, templates, token hashing; no SMTP)

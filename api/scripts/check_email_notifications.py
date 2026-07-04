@@ -292,7 +292,8 @@ def run_audit() -> int:
         mock_email.send_email.return_value = EmailSendResult(
             sent=True,
             dry_run=True,
-            message="Email dry-run (not sent)",
+            message="EMAIL_DRY_RUN",
+            message_code="EMAIL_DRY_RUN",
         )
         notifier = EmailNotificationService(email_service=mock_email)
         fixtures = _build_fixtures()
@@ -338,7 +339,7 @@ def run_audit() -> int:
         fixtures = _build_fixtures()
         skip_mock = MagicMock()
         skip_mock.send_email.return_value = EmailSendResult(
-            sent=True, dry_run=True, message="dry-run"
+            sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"
         )
         skip_notifier = EmailNotificationService(email_service=skip_mock)
 

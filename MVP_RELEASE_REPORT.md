@@ -49,6 +49,7 @@ Related docs:
 | Guest claim UI | `/me/claim` page — reference + email/phone |
 | Email foundation + event wiring | `EmailService`, dry-run/disabled by default; booking/order/message notifications |
 | Email dry-run audit | `scripts/check_email_notifications.py` — no real emails sent |
+| Email/SMTP readiness audit | `scripts/check_email_readiness.py` — safe config summary; no real send by default |
 | Email verification dry-run audit | `scripts/check_email_verification.py` — config, templates, token hashing; no SMTP |
 | Password reset dry-run audit | `scripts/check_password_reset.py` — config, templates, token hashing; no SMTP |
 | Backend email verification | Verify/resend API; optional login enforcement ready (`EMAIL_VERIFICATION_REQUIRED`); disabled by default |
@@ -167,6 +168,7 @@ Open http://localhost:8080
 ```bash
 docker compose exec api python -m pytest
 docker compose exec api python scripts/check_backend.py
+docker compose exec api python scripts/check_email_readiness.py
 docker compose exec api python scripts/check_email_verification.py
 docker compose exec api python scripts/check_password_reset.py
 docker compose exec api python scripts/check_email_notifications.py
@@ -274,6 +276,7 @@ Run after `seed_demo.py`. Use Docker dev (`localhost:5173` + `localhost:8000`) o
 | No payments / Stripe | Bookings and orders are not paid online; landing shows static SaaS pricing only — no checkout |
 | Email foundation + event wiring | Service + templates; disabled/dry-run by default; respects `notification_email_enabled` |
 | Email dry-run audit | `check_email_notifications.py` verifies wiring without SMTP; does not send real email |
+| Email/SMTP readiness audit | `check_email_readiness.py` — safe config summary; dry-run probe; no real send by default |
 | Email verification dry-run audit | `check_email_verification.py` verifies config/templates/token hashing; no real email |
 | Password reset dry-run audit | `check_password_reset.py` verifies config/templates/token hashing; no real email; request never reveals account existence |
 | Manual SMTP smoke | `send_test_email.py` sends one test email to explicit `--to` when live SMTP configured |

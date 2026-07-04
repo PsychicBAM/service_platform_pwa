@@ -26,7 +26,7 @@ async def test_request_reset_existing_user_creates_token(
         "app.services.password_reset_service.EmailService.send_email",
         return_value=__import__(
             "app.services.email_service", fromlist=["EmailSendResult"]
-        ).EmailSendResult(sent=True, dry_run=True, message="dry-run"),
+        ).EmailSendResult(sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"),
     ):
         response = await async_client.post(
             "/api/v1/auth/request-password-reset",
@@ -55,7 +55,7 @@ async def test_request_reset_sends_email_with_mock(async_client: AsyncClient) ->
         "app.services.password_reset_service.EmailService.send_email",
         return_value=__import__(
             "app.services.email_service", fromlist=["EmailSendResult"]
-        ).EmailSendResult(sent=True, dry_run=True, message="dry-run"),
+        ).EmailSendResult(sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"),
     ) as send_mock:
         response = await async_client.post(
             "/api/v1/auth/request-password-reset",
@@ -100,7 +100,7 @@ async def test_raw_token_not_stored_in_db(
         "app.services.password_reset_service.EmailService.send_email",
         return_value=__import__(
             "app.services.email_service", fromlist=["EmailSendResult"]
-        ).EmailSendResult(sent=True, dry_run=True, message="dry-run"),
+        ).EmailSendResult(sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"),
     ):
         await async_client.post(
             "/api/v1/auth/request-password-reset",
@@ -128,7 +128,7 @@ async def test_valid_token_resets_password(async_client: AsyncClient) -> None:
         "app.services.password_reset_service.EmailService.send_email",
         return_value=__import__(
             "app.services.email_service", fromlist=["EmailSendResult"]
-        ).EmailSendResult(sent=True, dry_run=True, message="dry-run"),
+        ).EmailSendResult(sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"),
     ):
         await async_client.post(
             "/api/v1/auth/request-password-reset",
@@ -183,7 +183,7 @@ async def test_expired_token_fails(
         "app.services.password_reset_service.EmailService.send_email",
         return_value=__import__(
             "app.services.email_service", fromlist=["EmailSendResult"]
-        ).EmailSendResult(sent=True, dry_run=True, message="dry-run"),
+        ).EmailSendResult(sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"),
     ):
         await async_client.post(
             "/api/v1/auth/request-password-reset",
@@ -217,7 +217,7 @@ async def test_used_token_cannot_be_reused(async_client: AsyncClient) -> None:
         "app.services.password_reset_service.EmailService.send_email",
         return_value=__import__(
             "app.services.email_service", fromlist=["EmailSendResult"]
-        ).EmailSendResult(sent=True, dry_run=True, message="dry-run"),
+        ).EmailSendResult(sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"),
     ):
         await async_client.post(
             "/api/v1/auth/request-password-reset",
@@ -277,7 +277,7 @@ async def test_reset_password_updates_hash_in_db(
         "app.services.password_reset_service.EmailService.send_email",
         return_value=__import__(
             "app.services.email_service", fromlist=["EmailSendResult"]
-        ).EmailSendResult(sent=True, dry_run=True, message="dry-run"),
+        ).EmailSendResult(sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"),
     ):
         await async_client.post(
             "/api/v1/auth/request-password-reset",

@@ -26,8 +26,8 @@ def is_valid_email(value: str) -> bool:
 
 
 def format_email_mode(settings) -> str:
-    smtp_host = settings.smtp_host or "(not set)"
-    smtp_from = settings.smtp_from_email or "(not set)"
+    smtp_host = "set" if (settings.smtp_host or "").strip() else "not_set"
+    smtp_from = "set" if (settings.smtp_from_email or "").strip() else "not_set"
     return (
         f"EMAIL_ENABLED={settings.email_enabled}\n"
         f"EMAIL_DRY_RUN={settings.email_dry_run}\n"
@@ -69,8 +69,7 @@ def send_test_email(
         print(f"Recipient: {to_email}")
         print(f"Subject: {subject}")
         print("Dry-run mode: no real email was sent.")
-        if result.message:
-            print(result.message)
+        print(f"Result code: {result.message_code}")
         return 0
 
     print(f"Sending one live test email to: {to_email}")
@@ -79,7 +78,7 @@ def send_test_email(
         print("Test email sent successfully.")
         return 0
 
-    print(f"Failed to send test email: {result.message}")
+    print(f"Failed to send test email: {result.message_code}")
     return 1
 
 

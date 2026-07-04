@@ -23,7 +23,9 @@ def capture_send_email():
         sent.append(message)
         from app.services.email_service import EmailSendResult
 
-        return EmailSendResult(sent=True, dry_run=True, message="Email dry-run (not sent)")
+        return EmailSendResult(
+            sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"
+        )
 
     with patch(
         "app.services.email_notification_service.EmailService.send_email",
@@ -332,7 +334,7 @@ async def test_email_disabled_does_not_break_order_creation(
     get_settings.cache_clear()
     mock_send.return_value = __import__(
         "app.services.email_service", fromlist=["EmailSendResult"]
-    ).EmailSendResult(sent=False, dry_run=True, message="Email disabled")
+    ).EmailSendResult(sent=False, dry_run=True, message="EMAIL_DISABLED", message_code="EMAIL_DISABLED")
 
     ctx = await _setup_order_business(async_client, db_session, "email-order-disabled")
     response = await async_client.post(

@@ -42,7 +42,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_READIN
 | **SSL certificate** | Expiry date | After HTTPS — alert 14 days before |
 | **Domain / DNS** | Resolves to VPS; HTTPS valid | After launch |
 | **Stripe webhooks** | Failed deliveries, 4xx/5xx on webhook route | After `STRIPE_ENABLED=true` |
-| **SMTP / email** | Send failures, bounce logs | After `EMAIL_ENABLED=true` |
+| **SMTP / email** | Send failures, bounce logs; preflight with `check_email_readiness.py` | After `EMAIL_ENABLED=true` |
 
 **Launch gate:** Monitoring plan reviewed and at least manual health checks documented before public traffic. Legal/privacy pages are a separate launch blocker — [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md).
 

@@ -76,7 +76,7 @@ Complete before pointing a real domain at the stack:
 - [ ] **`CORS_ORIGINS`** — exact HTTPS frontend origin(s); not `*`; not leftover `localhost` in production
 - [ ] **`API_DOCS_ENABLED=false`** — confirm `/docs`, `/redoc`, `/openapi.json` return 404
 - [ ] **`APP_ENV=production`** — triggers CORS validation at startup
-- [ ] **`EMAIL_ENABLED`** — only after SMTP test; `EMAIL_DRY_RUN=false` only when sending is verified
+- [ ] **`EMAIL_ENABLED`** — only after SMTP test; `EMAIL_DRY_RUN=false` only when sending is verified; run `check_email_readiness.py` first (no real send)
 - [ ] **`STRIPE_ENABLED`** — only after [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) passes in staging
 - [ ] **HTTPS + domain** — TLS certificate valid; HTTP redirects to HTTPS
 - [ ] **Backup / restore tested** — restore drill on staging clone per [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md) (not performed yet)
@@ -380,4 +380,10 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - **Design only** — no deletion/export API, UI, or migration; **not legal compliance**
 - Future slices: export API (22), deletion design (23), anonymization (24), admin UI (25)
 
-**Last updated:** Phase 7 Slice 20 — data retention/deletion/export plan (design only; not legal advice).
+### Phase 8 Slice 1 — Email/SMTP readiness (summary)
+
+- `scripts/check_email_readiness.py` — safe config audit; dry-run probe; static result codes; no real email by default
+- `EMAIL_ENABLED=false` and `EMAIL_DRY_RUN=true` remain defaults; SMTP secrets never printed
+- `--strict` fails incomplete live SMTP config; `--send-test` refused unless live send explicitly enabled
+
+**Last updated:** Phase 8 Slice 1 — email/SMTP readiness audit (no real send by default).

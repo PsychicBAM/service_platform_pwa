@@ -30,7 +30,8 @@ def _mock_email_service() -> MagicMock:
     mock.send_email.return_value = EmailSendResult(
         sent=True,
         dry_run=True,
-        message="Email dry-run (not sent)",
+        message="EMAIL_DRY_RUN",
+        message_code="EMAIL_DRY_RUN",
     )
     return mock
 

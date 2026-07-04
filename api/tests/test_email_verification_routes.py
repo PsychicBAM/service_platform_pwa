@@ -49,7 +49,7 @@ async def test_register_attempts_verification_email_with_mock(
         "app.services.email_verification_service.EmailService.send_email",
         return_value=__import__(
             "app.services.email_service", fromlist=["EmailSendResult"]
-        ).EmailSendResult(sent=True, dry_run=True, message="dry-run"),
+        ).EmailSendResult(sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"),
     ) as send_mock:
         response = await async_client.post("/api/v1/auth/register", json=payload)
     assert response.status_code == 201
@@ -173,7 +173,7 @@ async def test_resend_verification_creates_token_for_unverified_user(
         "app.services.email_verification_service.EmailService.send_email",
         return_value=__import__(
             "app.services.email_service", fromlist=["EmailSendResult"]
-        ).EmailSendResult(sent=True, dry_run=True, message="dry-run"),
+        ).EmailSendResult(sent=True, dry_run=True, message="EMAIL_DRY_RUN", message_code="EMAIL_DRY_RUN"),
     ):
         response = await async_client.post(
             "/api/v1/auth/resend-verification",

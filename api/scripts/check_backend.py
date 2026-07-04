@@ -153,6 +153,7 @@ def main() -> int:
         "e2e_backend_audit.py",
         "check_email_notifications.py",
         "check_email_verification.py",
+        "check_email_readiness.py",
         "check_password_reset.py",
         "send_test_email.py",
     ):
@@ -224,6 +225,36 @@ def main() -> int:
             errors.append("send_test_email.py import spec failed")
     except Exception as exc:  # pragma: no cover - diagnostic script
         errors.append(f"send_test_email import failed: {exc}")
+
+    print("==> Import smoke for email readiness audit ...")
+    try:
+        import importlib.util
+
+        readiness_path = scripts_dir / "check_email_readiness.py"
+        spec = importlib.util.spec_from_file_location("check_email_readiness", readiness_path)
+        if spec and spec.loader:
+            readiness_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(readiness_module)
+            if not hasattr(readiness_module, "main"):
+                errors.append("check_email_readiness.py missing main()")
+        else:
+            errors.append("check_email_readiness.py import spec failed")
+    except Exception as exc:  # pragma: no cover - diagnostic script
+        errors.append(f"check_email_readiness import failed: {exc}")
+
+    print("==> Running email readiness audit ...")
+    readiness_result = subprocess.run(
+        [sys.executable, "scripts/check_email_readiness.py"],
+        cwd=api_dir,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    print(readiness_result.stdout)
+    if readiness_result.stderr:
+        print(readiness_result.stderr, file=sys.stderr)
+    if readiness_result.returncode != 0:
+        errors.append("check_email_readiness.py failed")
 
     print("==> Running email notification dry-run audit ...")
     audit_result = subprocess.run(

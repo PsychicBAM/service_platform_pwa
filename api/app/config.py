@@ -98,18 +98,39 @@ class Settings(BaseSettings):
     def _validate_production_email(self) -> None:
         if not self.email_enabled or self.email_dry_run:
             return
-        if not self.smtp_host:
-            raise ValueError(
-                "SMTP_HOST is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
-            )
-        if not self.smtp_from_email:
-            raise ValueError(
-                "SMTP_FROM_EMAIL is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
-            )
-        if self.smtp_user and not self.smtp_password:
-            raise ValueError(
-                "SMTP_PASSWORD is required when SMTP_USER is set in production"
-            )
+        for issue in self.email_config_issue_codes():
+            if issue == "SMTP_HOST_MISSING":
+                raise ValueError(
+                    "SMTP_HOST is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
+                )
+            if issue == "SMTP_FROM_EMAIL_MISSING":
+                raise ValueError(
+                    "SMTP_FROM_EMAIL is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
+                )
+            if issue == "SMTP_PASSWORD_MISSING":
+                raise ValueError(
+                    "SMTP_PASSWORD is required when SMTP_USER is set in production"
+                )
+
+    @property
+    def live_smtp_send_enabled(self) -> bool:
+        return self.email_enabled and not self.email_dry_run
+
+    def email_config_issue_codes(self) -> list[str]:
+        """Static issue codes for SMTP readiness — never includes secret values."""
+        if not self.live_smtp_send_enabled:
+            return []
+        issues: list[str] = []
+        if not (self.smtp_host or "").strip():
+            issues.append("SMTP_HOST_MISSING")
+        if not (self.smtp_from_email or "").strip():
+            issues.append("SMTP_FROM_EMAIL_MISSING")
+        smtp_port = self.smtp_port
+        if not isinstance(smtp_port, int) or smtp_port < 1 or smtp_port > 65535:
+            issues.append("SMTP_PORT_INVALID")
+        if (self.smtp_user or "").strip() and not (self.smtp_password or "").strip():
+            issues.append("SMTP_PASSWORD_MISSING")
+        return issues
 
 
 @lru_cache

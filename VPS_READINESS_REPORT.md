@@ -172,7 +172,8 @@ Run on **HTTPS staging** before public launch. Use test accounts — do not log 
 | 8 | Client login → `/me/bookings` or `/me/orders` | ☐ |
 | 9 | Admin order flow + message thread | ☐ |
 | 10 | Superadmin login → platform businesses view | ☐ |
-| 11 | Email test — `send_test_email.py` one recipient (after SMTP) | ☐ |
+| 10 | Email readiness — `check_email_readiness.py` (no real send) | ☐ |
+| 11 | Email test — `send_test_email.py` or `check_email_readiness.py --send-test` one recipient (after SMTP) | ☐ |
 | 12 | Stripe test checkout — only after `STRIPE_ENABLED=true` + webhook URL | ☐ |
 
 **Hard refresh:** `/login`, `/admin`, `/b/<slug>` must not 404 (nginx SPA fallback).

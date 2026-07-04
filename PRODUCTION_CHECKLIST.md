@@ -104,7 +104,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 
 - [ ] GitHub Actions **backend-tests** green
 - [ ] GitHub Actions **frontend-tests** green
-- [ ] Local or staging: `pytest`, `check_backend.py`, `check_email_verification.py`, `check_password_reset.py`, `check_email_notifications.py`, `e2e_backend_audit.py`
+- [ ] Local or staging: `pytest`, `check_backend.py`, `check_email_readiness.py`, `check_email_verification.py`, `check_password_reset.py`, `check_email_notifications.py`, `e2e_backend_audit.py`
 - [ ] Frontend: `npm run test`, `typecheck`, `build`, `check:routes`
 
 ---
@@ -112,7 +112,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 ## Future (not in MVP — track separately)
 
 - [ ] **Payments** (Stripe) — checkout session + webhook + admin checkout + result pages (Slices 6–10); `STRIPE_ENABLED=false` by default; test setup: [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md); run `scripts/check_billing_flow.py` before go-live; billing portal/refunds/downgrades not implemented — see [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md)
-- [ ] **Email notifications** — foundation + event wiring implemented; dry-run audit: `docker compose exec api python scripts/check_email_notifications.py` (no real emails); live SMTP smoke: `docker compose exec api python scripts/send_test_email.py --to your-email@example.com` (one explicit recipient only, after VPS `.env` configured); enable live SMTP with `EMAIL_ENABLED` + SMTP on VPS
+- [ ] **Email notifications** — foundation + event wiring implemented; dry-run audit: `docker compose exec api python scripts/check_email_notifications.py` (no real emails); **SMTP readiness:** `docker compose exec api python scripts/check_email_readiness.py` (no real send by default); live SMTP smoke: `docker compose exec api python scripts/send_test_email.py --to your-email@example.com` or `check_email_readiness.py --send-test your-email@example.com` (one explicit recipient only, after VPS `.env` configured); enable live SMTP with `EMAIL_ENABLED=true`, `EMAIL_DRY_RUN=false`, and SMTP vars on VPS
 - [ ] **Email verification** — backend + frontend wired; enforcement ready but **disabled by default** (`REQUIRE_EMAIL_VERIFICATION_FOR_LOGIN=false`); dry-run audit: `docker compose exec api python scripts/check_email_verification.py`; before enabling enforcement: live SMTP + `send_test_email.py`, verified admin accounts, set `EMAIL_VERIFICATION_BASE_URL` on VPS; OAuth/social login not implemented
 - [ ] **Password reset** — backend + frontend wired (`/forgot-password`, `/reset-password`); no account enumeration (request always returns `{ "sent": true }`); dry-run audit: `docker compose exec api python scripts/check_password_reset.py`; real delivery requires SMTP + `PASSWORD_RESET_BASE_URL` on VPS
 - [ ] **Domain email** (SPF/DKIM for transactional mail)

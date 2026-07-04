@@ -6,7 +6,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.config import Settings
-from app.services.email_service import EmailMessage, EmailService
+from app.services.email_service import (
+    EMAIL_CONFIG_INVALID,
+    EMAIL_DISABLED,
+    EMAIL_DRY_RUN,
+    EMAIL_SENT,
+    EmailMessage,
+    EmailService,
+)
 
 
 def _settings(**overrides) -> Settings:
@@ -22,7 +29,7 @@ def _settings(**overrides) -> Settings:
         "smtp_use_tls": True,
     }
     base.update(overrides)
-    return Settings(**base)
+    return Settings(**overrides)
 
 
 def test_email_disabled_returns_disabled_dry_run_result() -> None:
@@ -36,7 +43,7 @@ def test_email_disabled_returns_disabled_dry_run_result() -> None:
     )
     assert result.sent is False
     assert result.dry_run is True
-    assert result.message == "Email disabled"
+    assert result.message_code == EMAIL_DISABLED
 
 
 def test_email_dry_run_returns_success_without_smtp(
@@ -54,9 +61,9 @@ def test_email_dry_run_returns_success_without_smtp(
 
     assert result.sent is True
     assert result.dry_run is True
-    assert "not sent" in result.message.lower()
-    assert "guest@example.com" in caplog.text
+    assert result.message_code == EMAIL_DRY_RUN
     assert "Booking confirmed" in caplog.text
+    assert "Your booking is confirmed." not in caplog.text
 
 
 def test_email_dry_run_does_not_call_smtp() -> None:
@@ -71,6 +78,7 @@ def test_email_dry_run_does_not_call_smtp() -> None:
         )
 
     assert result.sent is True
+    assert result.message_code == EMAIL_DRY_RUN
     smtp_mock.assert_not_called()
 
 
@@ -124,7 +132,7 @@ def test_missing_smtp_config_fails_safely_when_live_send_enabled() -> None:
 
     assert result.sent is False
     assert result.dry_run is False
-    assert "SMTP_HOST" in result.message
+    assert result.message_code == EMAIL_CONFIG_INVALID
     smtp_mock.assert_not_called()
 
 
@@ -152,6 +160,7 @@ def test_live_send_uses_smtp_when_configured() -> None:
 
     assert result.sent is True
     assert result.dry_run is False
+    assert result.message_code == EMAIL_SENT
     smtp_mock.assert_called_once_with("smtp.example.com", 587, timeout=30)
     smtp_instance.starttls.assert_called_once()
     smtp_instance.login.assert_called_once_with("mailer", "secret")

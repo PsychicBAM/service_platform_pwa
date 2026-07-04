@@ -9,6 +9,12 @@ from app.config import Settings, get_settings
 
 logger = logging.getLogger(__name__)
 
+EMAIL_DISABLED = "EMAIL_DISABLED"
+EMAIL_DRY_RUN = "EMAIL_DRY_RUN"
+EMAIL_SENT = "EMAIL_SENT"
+EMAIL_CONFIG_INVALID = "EMAIL_CONFIG_INVALID"
+EMAIL_SEND_FAILED = "EMAIL_SEND_FAILED"
+
 
 @dataclass(frozen=True)
 class EmailMessage:
@@ -23,6 +29,7 @@ class EmailSendResult:
     sent: bool
     dry_run: bool
     message: str
+    message_code: str
 
 
 class EmailService:
@@ -34,67 +41,69 @@ class EmailService:
             return EmailSendResult(
                 sent=False,
                 dry_run=True,
-                message="Email disabled",
+                message=EMAIL_DISABLED,
+                message_code=EMAIL_DISABLED,
             )
 
         if self.settings.email_dry_run:
-            logger.info(
-                "Email dry-run: to=%s subject=%s",
-                message.to_email,
-                message.subject,
-            )
+            logger.info("Email dry-run: subject=%s", message.subject)
             return EmailSendResult(
                 sent=True,
                 dry_run=True,
-                message="Email dry-run (not sent)",
+                message=EMAIL_DRY_RUN,
+                message_code=EMAIL_DRY_RUN,
             )
 
-        config_error = self._smtp_config_error()
-        if config_error is not None:
-            logger.warning("Email not sent: %s", config_error)
+        if self._smtp_config_error() is not None:
+            logger.warning("Email not sent: %s", EMAIL_CONFIG_INVALID)
             return EmailSendResult(
                 sent=False,
                 dry_run=False,
-                message=config_error,
+                message=EMAIL_CONFIG_INVALID,
+                message_code=EMAIL_CONFIG_INVALID,
             )
 
         try:
             self._send_via_smtp(message)
         except smtplib.SMTPException:
-            logger.exception("SMTP send failed for %s", message.to_email)
+            logger.exception("SMTP send failed")
             return EmailSendResult(
                 sent=False,
                 dry_run=False,
-                message="Failed to send email",
+                message=EMAIL_SEND_FAILED,
+                message_code=EMAIL_SEND_FAILED,
             )
         except OSError:
-            logger.exception("SMTP connection failed for %s", message.to_email)
+            logger.exception("SMTP connection failed")
             return EmailSendResult(
                 sent=False,
                 dry_run=False,
-                message="Failed to connect to SMTP server",
+                message=EMAIL_SEND_FAILED,
+                message_code=EMAIL_SEND_FAILED,
             )
         except Exception:
-            logger.exception("Unexpected email send failure for %s", message.to_email)
+            logger.exception("Unexpected email send failure")
             return EmailSendResult(
                 sent=False,
                 dry_run=False,
-                message="Failed to send email",
+                message=EMAIL_SEND_FAILED,
+                message_code=EMAIL_SEND_FAILED,
             )
 
         return EmailSendResult(
             sent=True,
             dry_run=False,
-            message="Email sent",
+            message=EMAIL_SENT,
+            message_code=EMAIL_SENT,
         )
 
     def _smtp_config_error(self) -> str | None:
         if not self.settings.smtp_host:
-            return "SMTP_HOST is not configured"
+            return "SMTP_HOST_MISSING"
         if not self.settings.smtp_from_email:
-            return "SMTP_FROM_EMAIL is not configured"
+            return "SMTP_FROM_EMAIL_MISSING"
         if self.settings.smtp_user and not self.settings.smtp_password:
-            return "SMTP_PASSWORD is required when SMTP_USER is set"
+            return "SMTP_PASSWORD_MISSING"
         return None
 
     def _send_via_smtp(self, message: EmailMessage) -> None:
