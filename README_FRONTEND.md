@@ -6,6 +6,8 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 
 **Billing readiness (pre-Stripe):** [BILLING_READINESS_REPORT.md](../BILLING_READINESS_REPORT.md) — manual billing, plan table, Stripe slice order.  
 **Stripe test mode:** [STRIPE_TEST_MODE_GUIDE.md](../STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI, local checkout checklist (live Stripe not enabled by default).  
+**Stripe test mode VPS runbook:** [STRIPE_TEST_MODE_RUNBOOK.md](../STRIPE_TEST_MODE_RUNBOOK.md) — staged VPS test activation (test keys only).  
+**VPS reverse proxy / HTTPS:** [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](../VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) — DNS, TLS, CORS, public URLs for production deploy.  
 **Security readiness:** [SECURITY_READINESS_REPORT.md](../SECURITY_READINESS_REPORT.md) · [SECURITY_CHECKLIST.md](../SECURITY_CHECKLIST.md) · [DEPENDENCY_SECURITY_REPORT.md](../DEPENDENCY_SECURITY_REPORT.md) — pre-VPS hardening; CodeQL on GitHub (Slice 2); dependency audit commands (Slice 3); ZAP/Trivy planned later.
 
 **Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](../MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, next roadmap (Slice 20).
@@ -181,7 +183,7 @@ docker compose exec api python scripts/seed_demo.py
 
 Open http://localhost:5173 — nginx serves the built React app. API calls use `/api/v1` on the same host (proxied to `api:8000`).
 
-The production `web` nginx config adds security headers (CSP baseline, cache control, `X-Content-Type-Options`, `X-Frame-Options`, etc.). See [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), and [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) for VPS deploy planning.
+The production `web` nginx config adds security headers (CSP baseline, cache control, `X-Content-Type-Options`, `X-Frame-Options`, etc.). See [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md), and [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) for VPS deploy planning.
 
 | URL | Purpose |
 |-----|---------|

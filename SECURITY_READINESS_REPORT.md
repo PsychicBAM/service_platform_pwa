@@ -4,7 +4,7 @@
 **Scope:** Document what is protected today, what is still missing, and which tools to add later.  
 **Not in scope:** Offensive pentesting, aggressive scanners, exploit code, or legal document creation.
 
-Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md)
+Related: [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) · [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md)
 
 ---
 
@@ -287,7 +287,7 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 
 ### Phase 7 Slice 2 — Production env strict validation polish (summary)
 
-- [`.env.production.example`](./.env.production.example) — template only; obviously fake placeholders (`CHANGE_ME`, `sk_test_REDACTED` in comments)
+- [`.env.production.example`](./.env.production.example) — template only; obviously fake placeholders (`CHANGE_ME`, `<STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>` in comments)
 - `scripts/check_production_env.py --strict` — fails on unsafe production config; never prints secret values
 - Run `--strict` on server `.env` before VPS launch; `--strict` on the example file is expected to fail until secrets are set on the server
 
@@ -396,4 +396,9 @@ Full plan: [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.
 - [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) — staged VPS test-mode activation (disabled → test config → test checkout → test webhook → rollback)
 - `STRIPE_ENABLED=false` by default; test keys only for rollout; manual superadmin plan changes separate; no live payment activation claim; no compliance guarantee
 
-**Last updated:** Phase 8 Slice 3 — Stripe test mode operator runbook (docs only).
+### Phase 8 Slice 4 — VPS reverse proxy / HTTPS runbook (summary)
+
+- [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) — DNS, TLS termination, reverse proxy architecture, CORS/PUBLIC URL alignment, firewall, smoke tests, rollback
+- Public deployment should use HTTPS reverse proxy; rerun production env strict check and ZAP after VPS deploy; no secrets in repo
+
+**Last updated:** Phase 8 Slice 4 — VPS reverse proxy & HTTPS runbook (docs only).

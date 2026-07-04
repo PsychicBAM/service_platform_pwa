@@ -9,6 +9,7 @@ FastAPI backend for the Service Platform PWA: appointment bookings, service orde
 **Billing readiness (pre-Stripe):** [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md) — manual billing today, plan table, Stripe checklist.  
 **Stripe test mode (operators):** [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI webhook forwarding, local checkout flow.  
 **Stripe test mode VPS runbook (Phase 8 Slice 3):** [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) — staged VPS activation (disabled → test config → test checkout → test webhook → rollback); operator-controlled; test keys only; no live payment activation.  
+**VPS reverse proxy / HTTPS runbook (Phase 8 Slice 4):** [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) — DNS, TLS, CORS/PUBLIC URLs, firewall, smoke tests; public deploy via HTTPS reverse proxy; no secrets in repo.  
 **Security readiness:** [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md) · [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md) — pre-VPS baseline; CodeQL code scanning on GitHub (Slice 2); dependency audit commands (Slice 3).
 
 **Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](./MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, commands, next roadmap (Slice 20).
@@ -289,6 +290,7 @@ Playwright browser E2E is **not** in CI yet (needs backend + browser deps). Run 
 | [docker-compose.prod.yml](./docker-compose.prod.yml) | Production stack — no reload, no api bind mount; host `WEB_HTTP_PORT` → container nginx **8080** |
 | [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) | Phase 7 — VPS readiness plan, env checklist, blockers (no live deploy yet) |
 | [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) | Phase 7 — step-by-step operator guide for real VPS deploy (docs only) |
+| [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) | Phase 8 — DNS, HTTPS reverse proxy, CORS/PUBLIC URLs, firewall, smoke tests (docs only) |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | First deploy, HTTPS, logs, updates, dev vs prod |
 | [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) | Phase 7 — backup principles, checklists, optional VPS helper scripts |
 | [BACKUP_RESTORE.md](./BACKUP_RESTORE.md) | Postgres backup/restore commands (dev + prod compose) |

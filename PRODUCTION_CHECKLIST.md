@@ -33,7 +33,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [ ] **Consent retention/deletion policy (final)** — lawyer-reviewed periods; backup retention still TBD
 - [ ] **Lawyer-reviewed legal text** — replace placeholders before public launch
 - [ ] **Real VPS provisioned** — not done yet
-- [ ] **Domain + HTTPS** — reverse proxy configured on server
+- [ ] **Domain + HTTPS** — reverse proxy configured on server; see [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) (DNS, TLS, CORS/PUBLIC URLs aligned; no secrets in repo)
 
 ## Security
 
@@ -56,7 +56,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [ ] **JWT_SECRET_KEY** is a long random value (≥ 32 bytes), not `change_me`
 - [ ] **Postgres password** is strong and matches `DATABASE_URL` in `.env`
 - [ ] **`.env` is not in git** and file permissions are restrictive (`chmod 600 .env`)
-- [ ] **HTTPS enabled** on public domain (reverse proxy / Cloudflare)
+- [ ] **HTTPS enabled** on public domain (reverse proxy / Cloudflare); `CORS_ORIGINS` and `PUBLIC_*` URLs match final HTTPS domain — [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md)
 - [ ] **Demo credentials removed** — `seed_demo.py` blocked when `APP_ENV=production`; unique admin passwords on public prod
 - [ ] **Admin and superadmin accounts** reviewed — unique emails, strong passwords, least privilege
 - [ ] **CORS_ORIGINS** lists only your real frontend origin(s), not `*` or `localhost` (except local smoke)

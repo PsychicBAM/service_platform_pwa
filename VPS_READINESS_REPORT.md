@@ -4,7 +4,7 @@
 **Not in scope:** Live server provisioning, DNS changes, HTTPS certificates, or committing secrets.  
 **Status:** Planning only — **no deployment performed**. Operator runbook: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md). Backup baseline: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) (Slice 4).
 
-Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md)
+Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) · [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md)
 
 ---
 
@@ -22,6 +22,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [LEGAL_PRIV
 | **SMTP / live email** | ⏳ Requires VPS `.env` + provider; dry-run audits pass locally; operator runbook: [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) |
 | **Production env validation** | ✅ `scripts/check_production_env.py --strict` — polished (Slice 2); static message codes only |
 | **VPS deployment runbook** | ✅ [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) — operator guide (Slice 3); no live deploy |
+| **Reverse proxy / HTTPS runbook** | ✅ [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) — DNS, TLS, CORS, public URLs, firewall, smoke tests (Phase 8 Slice 4) |
 | **Backup readiness** | ✅ [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) — manual backup/restore baseline (Slice 4); no automated schedule yet |
 | **Legal / privacy pages** | ❌ [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — plan documented; **blocker before public launch** (not legal advice) |
 | **Real VPS deployment** | ❌ **Not done yet** — next major phase |
@@ -35,7 +36,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [LEGAL_PRIV
 | **VPS** | Linux host with Docker Engine + Docker Compose v2 |
 | **Domain name** | Public hostname for frontend + API (same origin via nginx proxy) |
 | **DNS** | `A` / `AAAA` record → VPS public IP |
-| **HTTPS reverse proxy** | Caddy, Nginx, or Traefik in front of `web` container host port (`WEB_HTTP_PORT`, default **80**) |
+| **HTTPS reverse proxy** | Caddy, Nginx, or Traefik in front of `web` container host port (`WEB_HTTP_PORT`, default **80**) — operator guide: [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) |
 | **PostgreSQL storage** | Named volume `service_platform_postgres_prod_data`; plan disk size |
 | **Backups** | Off-host `pg_dump` — [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md); optional `scripts/backup_postgres.sh` |
 | **SMTP provider** | Transactional email (verification, reset, notifications) |
@@ -112,8 +113,8 @@ Copy [.env.production.example](./.env.production.example) → `.env` **on the se
 | Variable | Required when enabled | Example / placeholder |
 |----------|----------------------|-------------------------|
 | `STRIPE_ENABLED` | Yes | `false` until ready |
-| `STRIPE_SECRET_KEY` | If enabled | `sk_test_REDACTED` or live key on VPS only |
-| `STRIPE_WEBHOOK_SECRET` | If enabled | `whsec_REDACTED` |
+| `STRIPE_SECRET_KEY` | If enabled | `<STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>` or live key on VPS only |
+| `STRIPE_WEBHOOK_SECRET` | If enabled | `<STRIPE_TEST_WEBHOOK_SECRET_FROM_DASHBOARD>` |
 | `STRIPE_PRICE_STARTER` | If enabled | Stripe Price ID |
 | `STRIPE_PRICE_BUSINESS` | If enabled | Stripe Price ID |
 | `STRIPE_PRICE_PRO` | If enabled | Stripe Price ID |
