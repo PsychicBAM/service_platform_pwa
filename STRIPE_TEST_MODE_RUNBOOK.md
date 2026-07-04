@@ -6,23 +6,29 @@ Operator guide for safely configuring and testing **Stripe test mode** on the VP
 
 **API endpoints (existing):**
 
-| Endpoint | Purpose |
-|----------|---------|
+
+| Endpoint                                                         | Purpose                                          |
+| ---------------------------------------------------------------- | ------------------------------------------------ |
 | `POST /api/v1/businesses/{business_id}/billing/checkout-session` | Create Stripe Checkout session (paid plans only) |
-| `POST /api/v1/billing/stripe/webhook` | Receive Stripe webhook events (plan activation) |
+| `POST /api/v1/billing/stripe/webhook`                            | Receive Stripe webhook events (plan activation)  |
+
 
 **Frontend:** Admin → Settings checkout buttons; redirect pages `/billing/success`, `/billing/cancel`.
 
 ---
 
+
+
 ## A. Current safe defaults
 
-| Item | Default | Meaning |
-|------|---------|---------|
-| `STRIPE_ENABLED` | `false` | Checkout API returns disabled/safe error; no Stripe calls |
-| Stripe secret keys | unset in repo | `.env.production.example` has empty placeholders only |
-| Live payments | **off** | No live keys (`sk_live_…`) in this runbook |
-| Manual plan changes | **separate** | Superadmin can set `subscriptions.plan` without Stripe |
+
+| Item                | Default       | Meaning                                                          |
+| ------------------- | ------------- | ---------------------------------------------------------------- |
+| `STRIPE_ENABLED`    | `false`       | Checkout API returns disabled/safe error; no Stripe calls        |
+| Stripe secret keys  | unset in repo | `.env.production.example` has empty placeholders only            |
+| Live payments       | **off**       | No live keys (`sk matta live matta three point`) in this runbook |
+| Manual plan changes | **separate**  | Superadmin can set `subscriptions.plan` without Stripe           |
+
 
 **Implications:**
 
@@ -33,38 +39,46 @@ Operator guide for safely configuring and testing **Stripe test mode** on the VP
 
 ---
 
+
+
 ## B. Required Stripe test variables
 
-Configure these in **`.env` on the VPS only** (copy from `.env.production.example`). Use **test mode keys only** during this rollout.
+Configure these in `.env` **on the VPS only** (copy from `.env.production.example`). Use **test mode keys only** during this rollout.
 
-| Variable | Purpose | Placeholder (not real) |
-|----------|---------|------------------------|
-| `STRIPE_ENABLED` | Master switch for checkout/webhook | `false` → `true` when test-ready |
-| `STRIPE_SECRET_KEY` | Stripe API secret key (**test only**) | `sk_test_placeholder` |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret (**test only**) | `whsec_test_placeholder` |
-| `STRIPE_PRICE_STARTER` | Price ID for Starter plan | `price_test_starter_placeholder` |
-| `STRIPE_PRICE_BUSINESS` | Price ID for Business plan | `price_test_business_placeholder` |
-| `STRIPE_PRICE_PRO` | Price ID for Pro plan | `price_test_pro_placeholder` |
-| `STRIPE_SUCCESS_URL` | Post-checkout success redirect | `https://your-domain.example/billing/success` |
-| `STRIPE_CANCEL_URL` | Checkout cancel redirect | `https://your-domain.example/billing/cancel` |
+
+| Variable                                    | Purpose                                | Placeholder (not real)                        |
+| ------------------------------------------- | -------------------------------------- | --------------------------------------------- |
+| `STRIPE_ENABLED`                            | Master switch for checkout/webhook     | `false` → `true` when test-ready              |
+| <STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>     | Stripe API secret key (**test only**)  | `sk_test_placeholder`                         |
+| <STRIPE_TEST_WEBHOOK_SECRET_FROM_DASHBOARD> | Webhook signing secret (**test only**) | `whsec_test_placeholder`                      |
+| <STRIPE_TEST_PRICE_ID_Starter>              | Price ID for Starter plan              | `price_test_starter_placeholder`              |
+| <STRIPE_TEST_PRICE_ID_Business>             | Price ID for Business plan             | `price_test_business_placeholder`             |
+| <STRIPE_TEST_PRICE_ID_Pro>                  | Price ID for Pro plan                  | `price_test_pro_placeholder`                  |
+| `STRIPE_SUCCESS_URL`                        | Post-checkout success redirect         | `https://your-domain.example/billing/success` |
+| `STRIPE_CANCEL_URL`                         | Checkout cancel redirect               | `https://your-domain.example/billing/cancel`  |
+
 
 **Related public URLs** (also in `.env`; must match your deployed domain):
 
-| Variable | Purpose |
-|----------|---------|
-| `PUBLIC_APP_URL` | Public frontend base URL (ops reference) |
-| `PUBLIC_API_URL` | Public API base URL (ops reference) |
-| `CORS_ORIGINS` | Allowed browser origins — must include your HTTPS frontend |
+
+| Variable         | Purpose                                                    |
+| ---------------- | ---------------------------------------------------------- |
+| `PUBLIC_APP_URL` | Public frontend base URL (ops reference)                   |
+| `PUBLIC_API_URL` | Public API base URL (ops reference)                        |
+| `CORS_ORIGINS`   | Allowed browser origins — must include your HTTPS frontend |
+
 
 **Secret handling:**
 
 - Secrets belong **only** in `.env` on the server.
 - **Never** commit `.env.production` or paste `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` into chat, issues, or logs.
-- Use **test** keys (`sk_test_…`) and **test** price IDs during this runbook — **never** `sk_live_…` for test rollout.
+- Use **test** keys (<STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>) and **test** price IDs during this runbook — **never** <STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD liv> for test rollout.
 
 **Free plan:** No Stripe price ID — Free is not checkout-eligible. Activation remains default signup or superadmin manual change.
 
 ---
+
+
 
 ## C. Safe activation stages
 
@@ -92,17 +106,19 @@ docker compose exec api python scripts/check_backend.py
 
 ---
 
+
+
 ### Stage 2 — Test-mode config prepared
 
 Set **test mode only** values in VPS `.env`:
 
 ```env
 STRIPE_ENABLED=true
-STRIPE_SECRET_KEY=sk_test_...          # test mode only — VPS only
-STRIPE_WEBHOOK_SECRET=whsec_...        # test mode only — VPS only
-STRIPE_PRICE_STARTER=price_...
-STRIPE_PRICE_BUSINESS=price_...
-STRIPE_PRICE_PRO=price_...
+STRIPE_SECRET_KEY=<STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>          # test mode only — VPS only
+STRIPE_WEBHOOK_SECRET=<STRIPE_TEST_WEBHOOK_SECRET_FROM_DASHBOARD>        # test mode only — VPS only
+STRIPE_PRICE_STARTER=<STRIPE_TEST_PRICE_ID_STARTER>
+STRIPE_PRICE_BUSINESS=<STRIPE_TEST_PRICE_ID_BUSINESS>
+STRIPE_PRICE_PRO=<STRIPE_TEST_PRICE_ID_PRO>
 STRIPE_SUCCESS_URL=https://your-domain.example/billing/success
 STRIPE_CANCEL_URL=https://your-domain.example/billing/cancel
 ```
@@ -125,10 +141,12 @@ docker compose exec api python scripts/check_security_readiness.py
 
 **Rules:**
 
-- Use **test** secret key (`sk_test_…`) — reject any `sk_live_…` for this rollout.
+- Use **test** secret key (<STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>) — reject any <STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD> for this rollout.
 - Do **not** enable live payments in this stage.
 
 ---
+
+
 
 ### Stage 3 — Test checkout (one session)
 
@@ -148,6 +166,8 @@ Use Stripe **test card only** (e.g. `4242 4242 4242 4242`, any future expiry, an
 
 ---
 
+
+
 ### Stage 4 — Test webhook
 
 Register a **test mode** webhook endpoint in Stripe Dashboard:
@@ -162,7 +182,7 @@ Or use [Stripe CLI forwarding](./STRIPE_TEST_MODE_GUIDE.md) during staging only:
 stripe listen --forward-to https://your-domain.example/api/v1/billing/stripe/webhook
 ```
 
-Copy the signing secret to `STRIPE_WEBHOOK_SECRET` on the VPS (test `whsec_…` only). Restart API.
+Copy the signing secret to `STRIPE_WEBHOOK_SECRET` on the VPS (test `whsec` only). Restart API.
 
 **After completing Stage 3 checkout:**
 
@@ -175,6 +195,8 @@ Copy the signing secret to `STRIPE_WEBHOOK_SECRET` on the VPS (test `whsec_…` 
 **Webhook is authoritative:** Plan activation must come from server-side webhook processing, not from the success redirect alone.
 
 ---
+
+
 
 ### Stage 5 — Rollback
 
@@ -189,56 +211,68 @@ docker compose exec api python scripts/check_billing_flow.py
 docker compose exec api python scripts/check_backend.py
 ```
 
-4. Confirm checkout returns `STRIPE_DISABLED` again.
-5. Use **superadmin manual plan change** if a business needs a plan adjustment while Stripe is off.
-6. **Do not** delete Stripe keys from `.env` unless rotating credentials — keeping them simplifies re-enabling after fixing webhook/DNS issues.
+1. Confirm checkout returns `STRIPE_DISABLED` again.
+2. Use **superadmin manual plan change** if a business needs a plan adjustment while Stripe is off.
+3. **Do not** delete Stripe keys from `.env` unless rotating credentials — keeping them simplifies re-enabling after fixing webhook/DNS issues.
 
 ---
+
+
 
 ## D. Security rules
 
-| Rule | Why |
-|------|-----|
-| Never commit `.env.production` | Contains live/test secrets |
-| Never paste `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in chat/issues/logs | Credential exposure |
-| Never use live keys (`sk_live_…`) during test-mode rollout | Accidental live charges |
-| Never use real card data during tests | PCI / customer safety |
-| Rotate keys immediately if exposed | Assume compromise |
-| Keep Gitleaks / CI green | Repo must not contain secrets |
-| Do not share checkout session URLs publicly if they contain sensitive context | Reduce session hijack risk |
-| Redact logs before external support posts | May contain session or business IDs |
+
+| Rule                                                                                   | Why                                 |
+| -------------------------------------------------------------------------------------- | ----------------------------------- |
+| Never commit `.env.production`                                                         | Contains live/test secrets          |
+| Never paste `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in chat/issues/logs         | Credential exposure                 |
+| Never use live keys (<STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>) during test-mode rollout | Accidental live charges             |
+| Never use real card data during tests                                                  | PCI / customer safety               |
+| Rotate keys immediately if exposed                                                     | Assume compromise                   |
+| Keep Gitleaks / CI green                                                               | Repo must not contain secrets       |
+| Do not share checkout session URLs publicly if they contain sensitive context          | Reduce session hijack risk          |
+| Redact logs before external support posts                                              | May contain session or business IDs |
+
 
 ---
+
+
 
 ## E. Webhook safety
 
-| Principle | Detail |
-|-----------|--------|
-| **Secret must match endpoint** | `STRIPE_WEBHOOK_SECRET` must match the signing secret for the URL receiving events — mismatch → `STRIPE_WEBHOOK_SIGNATURE_INVALID` (400) |
-| **Invalid signatures rejected** | API verifies Stripe signature before processing payload |
-| **Idempotency** | Duplicate deliveries with the same `stripe_event_id` are skipped — safe to retry |
-| **Do not trust success page alone** | `/billing/success` is UX only; plan updates happen in webhook handler |
-| **Server-side activation** | `checkout.session.completed` webhook updates `Subscription.plan` + audit log |
-| **HTTPS required on VPS** | Public webhook URL must be HTTPS; reverse proxy must forward `POST` body and `Stripe-Signature` header |
-| **Test vs live separation** | Test mode keys, prices, and webhook endpoints are separate from live mode — do not mix |
+
+| Principle                           | Detail                                                                                                                                   |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Secret must match endpoint**      | `STRIPE_WEBHOOK_SECRET` must match the signing secret for the URL receiving events — mismatch → `STRIPE_WEBHOOK_SIGNATURE_INVALID` (400) |
+| **Invalid signatures rejected**     | API verifies Stripe signature before processing payload                                                                                  |
+| **Idempotency**                     | Duplicate deliveries with the same `stripe_event_id` are skipped — safe to retry                                                         |
+| **Do not trust success page alone** | `/billing/success` is UX only; plan updates happen in webhook handler                                                                    |
+| **Server-side activation**          | `checkout.session.completed` webhook updates `Subscription.plan` + audit log                                                             |
+| **HTTPS required on VPS**           | Public webhook URL must be HTTPS; reverse proxy must forward `POST` body and `Stripe-Signature` header                                   |
+| **Test vs live separation**         | Test mode keys, prices, and webhook endpoints are separate from live mode — do not mix                                                   |
+
 
 ---
 
+
+
 ## F. Troubleshooting
 
-| Symptom | Likely cause | What to try |
-|---------|--------------|-------------|
-| `STRIPE_DISABLED` (503) | `STRIPE_ENABLED=false` | Set `STRIPE_ENABLED=true`, restart API |
-| `STRIPE_PRICE_NOT_CONFIGURED` (503) | Missing `STRIPE_PRICE_*` for requested plan | Create test price in Dashboard; copy `price_…` to `.env` |
-| `STRIPE_WEBHOOK_SIGNATURE_INVALID` (400) | Wrong `STRIPE_WEBHOOK_SECRET` | Copy secret from active webhook endpoint or CLI session; restart API |
-| Accidental live key | `sk_live_…` in `.env` | **Stop** — replace with `sk_test_…`; rotate live key in Dashboard if exposed |
-| Checkout works, plan unchanged | Webhook not received or failed | Check Stripe webhook log; API logs; HTTPS/proxy forwarding |
-| Success page OK, no audit log | Webhook never fired | Register endpoint URL; confirm `checkout.session.completed` subscribed |
-| URL mismatch | `STRIPE_SUCCESS_URL` / `CORS_ORIGINS` wrong domain | Align with `PUBLIC_APP_URL` and actual HTTPS origin |
-| Webhook unreachable | Firewall, wrong path, HTTP not HTTPS | Confirm `POST /api/v1/billing/stripe/webhook` returns non-404 from internet |
-| Proxy strips body/headers | nginx/reverse proxy misconfig | Ensure raw body + `Stripe-Signature` forwarded to API |
-| Manual plan works, Stripe doesn't | Expected when disabled | Complete Stage 2–4; superadmin path is independent |
-| Strict env validation fails | Missing fields when enabled | Run `check_production_env.py --strict`; fix static issue codes only |
+
+| Symptom                                  | Likely cause                                       | What to try                                                                                              |
+| ---------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `STRIPE_DISABLED` (503)                  | `STRIPE_ENABLED=false`                             | Set `STRIPE_ENABLED=true`, restart API                                                                   |
+| `STRIPE_PRICE_NOT_CONFIGURED` (503)      | Missing `STRIPE_PRICE_*` for requested plan        | Create test price in Dashboard; copy <STRIPE_TEST_PRICE_ID> to `.env`                                    |
+| `STRIPE_WEBHOOK_SIGNATURE_INVALID` (400) | Wrong `STRIPE_WEBHOOK_SECRET`                      | Copy secret from active webhook endpoint or CLI session; restart API                                     |
+| Accidental live key                      | <STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD> in `.env`  | **Stop** — replace with <STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD>; rotate live key in Dashboard if exposed |
+| Checkout works, plan unchanged           | Webhook not received or failed                     | Check Stripe webhook log; API logs; HTTPS/proxy forwarding                                               |
+| Success page OK, no audit log            | Webhook never fired                                | Register endpoint URL; confirm `checkout.session.completed` subscribed                                   |
+| URL mismatch                             | `STRIPE_SUCCESS_URL` / `CORS_ORIGINS` wrong domain | Align with `PUBLIC_APP_URL` and actual HTTPS origin                                                      |
+| Webhook unreachable                      | Firewall, wrong path, HTTP not HTTPS               | Confirm `POST /api/v1/billing/stripe/webhook` returns non-404 from internet                              |
+| Proxy strips body/headers                | nginx/reverse proxy misconfig                      | Ensure raw body + `Stripe-Signature` forwarded to API                                                    |
+| Manual plan works, Stripe doesn't        | Expected when disabled                             | Complete Stage 2–4; superadmin path is independent                                                       |
+| Strict env validation fails              | Missing fields when enabled                        | Run `check_production_env.py --strict`; fix static issue codes only                                      |
+
 
 **Audit commands (no Stripe network in CI):**
 
@@ -249,6 +283,8 @@ docker compose exec api python scripts/check_production_env.py --env-file .env -
 ```
 
 ---
+
+
 
 ## G. Verification checklist
 
@@ -270,6 +306,8 @@ Before considering test-mode Stripe “working” on VPS:
 
 ---
 
+
+
 ## H. Rollback checklist
 
 Use when disabling Stripe or recovering from a failed test:
@@ -283,6 +321,8 @@ Use when disabling Stripe or recovering from a failed test:
 - [ ] If secrets were exposed, rotate in Stripe Dashboard and update `.env`
 
 ---
+
+
 
 ## I. Known limitations
 
