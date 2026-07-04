@@ -8,6 +8,7 @@ Mobile-first client-facing Progressive Web App for browsing businesses, booking 
 **Stripe test mode:** [STRIPE_TEST_MODE_GUIDE.md](../STRIPE_TEST_MODE_GUIDE.md) — test keys, CLI, local checkout checklist (live Stripe not enabled by default).  
 **Stripe test mode VPS runbook:** [STRIPE_TEST_MODE_RUNBOOK.md](../STRIPE_TEST_MODE_RUNBOOK.md) — staged VPS test activation (test keys only).  
 **VPS reverse proxy / HTTPS:** [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](../VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) — DNS, TLS, CORS, public URLs for production deploy.  
+**VPS dry-run deployment:** [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](../VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md) — full staging checklist before public launch.  
 **Security readiness:** [SECURITY_READINESS_REPORT.md](../SECURITY_READINESS_REPORT.md) · [SECURITY_CHECKLIST.md](../SECURITY_CHECKLIST.md) · [DEPENDENCY_SECURITY_REPORT.md](../DEPENDENCY_SECURITY_REPORT.md) — pre-VPS hardening; CodeQL on GitHub (Slice 2); dependency audit commands (Slice 3); ZAP/Trivy planned later.
 
 **Post-Phase-4 status:** [MVP_RELEASE_REPORT.md § Post-Phase-4 checkpoint](../MVP_RELEASE_REPORT.md#post-phase-4-checkpoint) — ready vs not-ready, demo checklist, next roadmap (Slice 20).

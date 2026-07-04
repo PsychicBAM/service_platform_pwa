@@ -53,6 +53,7 @@ Related docs:
 | SMTP operator runbook | [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) — staged VPS activation; operator-controlled live email |
 | Stripe test mode runbook | [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) — VPS test-mode activation; test keys only; manual plans separate |
 | VPS reverse proxy / HTTPS runbook | [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) — DNS, TLS, CORS, public URLs for public deploy |
+| VPS dry-run deployment checklist | [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md) — full staging dry-run before public launch |
 | Email verification dry-run audit | `scripts/check_email_verification.py` — config, templates, token hashing; no SMTP |
 | Password reset dry-run audit | `scripts/check_password_reset.py` — config, templates, token hashing; no SMTP |
 | Backend email verification | Verify/resend API; optional login enforcement ready (`EMAIL_VERIFICATION_REQUIRED`); disabled by default |

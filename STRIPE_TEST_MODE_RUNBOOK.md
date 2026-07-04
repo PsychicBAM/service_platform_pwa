@@ -2,7 +2,7 @@
 
 Operator guide for safely configuring and testing **Stripe test mode** on the VPS. This is **production operations documentation only** — not tax/VAT advice, not payment compliance, and **not** live payment activation.
 
-**Related:** [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) (local dev + Stripe CLI) · [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md) · [README_BACKEND.md](./README_BACKEND.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) (parallel operator pattern).
+**Related:** [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) (local dev + Stripe CLI) · [BILLING_READINESS_REPORT.md](./BILLING_READINESS_REPORT.md) · [README_BACKEND.md](./README_BACKEND.md) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md) · [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) (parallel operator pattern).
 
 **API endpoints (existing):**
 

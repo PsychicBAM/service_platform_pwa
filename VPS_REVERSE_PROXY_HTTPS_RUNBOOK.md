@@ -2,7 +2,7 @@
 
 Operator guide for safely exposing the Service Platform on a VPS with DNS, HTTPS reverse proxy, CORS, and public URL alignment. This is **production operations documentation only** — not automated deployment, not provider-specific setup, and **not** a legal/payment/email compliance guarantee.
 
-**Related:** [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md)
+**Related:** [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md) · [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [ZAP_SECURITY_REPORT.md](./ZAP_SECURITY_REPORT.md)
 
 ---
 

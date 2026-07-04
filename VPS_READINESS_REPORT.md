@@ -4,7 +4,7 @@
 **Not in scope:** Live server provisioning, DNS changes, HTTPS certificates, or committing secrets.  
 **Status:** Planning only — **no deployment performed**. Operator runbook: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md). Backup baseline: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) (Slice 4).
 
-Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) · [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md)
+Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) · [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md) · [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) · [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md) · [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) · [BACKUP_SCHEDULE_REPORT.md](./BACKUP_SCHEDULE_REPORT.md) · [DEPLOYMENT.md](./DEPLOYMENT.md) · [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) · [docker-compose.prod.yml](./docker-compose.prod.yml) · [.env.production.example](./.env.production.example) · [STRIPE_TEST_MODE_GUIDE.md](./STRIPE_TEST_MODE_GUIDE.md) · [STRIPE_TEST_MODE_RUNBOOK.md](./STRIPE_TEST_MODE_RUNBOOK.md) · [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md)
 
 ---
 
@@ -23,6 +23,7 @@ Related: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) · [VPS_REVERS
 | **Production env validation** | ✅ `scripts/check_production_env.py --strict` — polished (Slice 2); static message codes only |
 | **VPS deployment runbook** | ✅ [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md) — operator guide (Slice 3); no live deploy |
 | **Reverse proxy / HTTPS runbook** | ✅ [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) — DNS, TLS, CORS, public URLs, firewall, smoke tests (Phase 8 Slice 4) |
+| **VPS dry-run deployment checklist** | ✅ [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md) — pre-flight → deploy → validate → smoke → go/no-go (Phase 8 Slice 5) |
 | **Backup readiness** | ✅ [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md) — manual backup/restore baseline (Slice 4); no automated schedule yet |
 | **Legal / privacy pages** | ❌ [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md) — plan documented; **blocker before public launch** (not legal advice) |
 | **Real VPS deployment** | ❌ **Not done yet** — next major phase |

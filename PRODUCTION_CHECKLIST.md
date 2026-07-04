@@ -2,7 +2,7 @@
 
 Use this before and after deploying to a VPS. Not every item applies to a private demo server — mark N/A where appropriate.
 
-Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md), [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md), [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md), [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
+Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.md), [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md), [MONITORING_READINESS_REPORT.md](./MONITORING_READINESS_REPORT.md), [LEGAL_PRIVACY_READINESS_REPORT.md](./LEGAL_PRIVACY_READINESS_REPORT.md), [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md), [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md), [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md), [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md), [SECURITY_CHECKLIST.md](./SECURITY_CHECKLIST.md), [DEPENDENCY_SECURITY_REPORT.md](./DEPENDENCY_SECURITY_REPORT.md)
 
 ---
 
@@ -11,6 +11,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [x] **VPS readiness plan** — [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md); env checklist, deployment steps, smoke tests documented
 - [x] **Production env strict validation** — Slice 2: `check_production_env.py --strict`; static codes; `.env.production.example` template only
 - [x] **VPS deployment runbook** — Slice 3: [VPS_DEPLOYMENT_RUNBOOK.md](./VPS_DEPLOYMENT_RUNBOOK.md); operator guide for later real deploy; no live deployment in slice
+- [x] **VPS dry-run deployment checklist** — Phase 8 Slice 5: [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md); use before public launch; Stripe/email operator-controlled; final go/no-go manual
 - [x] **Backup readiness baseline** — Slice 4: [BACKUP_READINESS_REPORT.md](./BACKUP_READINESS_REPORT.md); manual backup/restore + optional helpers; no automated schedule yet
 - [x] **Backup script smoke tests** — Slice 5: `api/tests/test_backup_scripts.py`; no real dump/restore in tests
 - [x] **Restore drill checklist** — Slice 6: [RESTORE_DRILL_REPORT.md](./RESTORE_DRILL_REPORT.md); staging drill documented; no real restore in slice
@@ -32,7 +33,7 @@ Related: [DEPLOYMENT.md](./DEPLOYMENT.md), [BACKUP_RESTORE.md](./BACKUP_RESTORE.
 - [ ] **Consent export / data-subject flows** — future implementation (Slices 22+)
 - [ ] **Consent retention/deletion policy (final)** — lawyer-reviewed periods; backup retention still TBD
 - [ ] **Lawyer-reviewed legal text** — replace placeholders before public launch
-- [ ] **Real VPS provisioned** — not done yet
+- [ ] **Real VPS provisioned** — not done yet; follow [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md) for staging dry-run
 - [ ] **Domain + HTTPS** — reverse proxy configured on server; see [VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md](./VPS_REVERSE_PROXY_HTTPS_RUNBOOK.md) (DNS, TLS, CORS/PUBLIC URLs aligned; no secrets in repo)
 
 ## Security

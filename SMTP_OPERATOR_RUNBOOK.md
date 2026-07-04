@@ -2,7 +2,7 @@
 
 Operator guide for safely configuring and testing outbound email on the VPS. This is **production operations documentation only** — not legal advice, not a deliverability guarantee, and not provider-specific setup.
 
-**Related:** [README_BACKEND.md](./README_BACKEND.md) (email settings reference) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · Phase 8 Slice 1 readiness audit (`scripts/check_email_readiness.py`).
+**Related:** [README_BACKEND.md](./README_BACKEND.md) (email settings reference) · [VPS_READINESS_REPORT.md](./VPS_READINESS_REPORT.md) · [VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md](./VPS_DRY_RUN_DEPLOYMENT_CHECKLIST.md) · [SECURITY_READINESS_REPORT.md](./SECURITY_READINESS_REPORT.md) · Phase 8 Slice 1 readiness audit (`scripts/check_email_readiness.py`).
 
 ---
 
