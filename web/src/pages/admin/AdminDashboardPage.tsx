@@ -16,6 +16,7 @@ import {
   DashboardRecentList,
   type DashboardRecentItem,
 } from "@/components/admin/DashboardRecentList";
+import { CurrentPlanCard } from "@/components/admin/CurrentPlanCard";
 import { DashboardStatCard } from "@/components/admin/DashboardStatCard";
 import { PublicBusinessLinkCard } from "@/components/admin/PublicBusinessLinkCard";
 import { ErrorState } from "@/components/ErrorState";
@@ -235,6 +236,11 @@ export function AdminDashboardPage() {
 
       <PublicBusinessLinkCard businessName={business.name} businessSlug={business.slug} />
 
+      <CurrentPlanCard
+        plan={business.subscription?.plan}
+        status={business.subscription?.status}
+      />
+
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -252,14 +258,6 @@ export function AdminDashboardPage() {
                 <dt className="inline text-slate-500">Status: </dt>
                 <dd className="inline">{formatStatusLabel(business.status)}</dd>
               </div>
-              {business.subscription ? (
-                <div>
-                  <dt className="inline text-slate-500">Subscription: </dt>
-                  <dd className="inline">
-                    {business.subscription.plan} · {business.subscription.status}
-                  </dd>
-                </div>
-              ) : null}
             </dl>
           </div>
           <Link
