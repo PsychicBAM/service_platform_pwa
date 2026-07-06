@@ -4,6 +4,7 @@ import { createBillingCheckoutSession } from "@/api/billingApi";
 import { getBusiness, updateBusiness } from "@/api/adminApi";
 import { PlanFeatureComparison } from "@/components/admin/PlanFeatureComparison";
 import { ProToolsComingSoonCard } from "@/components/admin/ProToolsComingSoonCard";
+import { PublicProfileSettingsCard } from "@/components/admin/PublicProfileSettingsCard";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { TextAreaField } from "@/components/TextAreaField";
@@ -611,6 +612,8 @@ export function AdminSettingsPage() {
               </p>
             ) : null}
           </div>
+
+          <PublicProfileSettingsCard currentPlan={data.subscription?.plan} />
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-sm">
             <h3 className="font-medium text-slate-700">Read-only</h3>
