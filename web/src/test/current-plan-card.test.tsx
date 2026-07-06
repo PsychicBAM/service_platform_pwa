@@ -38,6 +38,17 @@ describe("CurrentPlanCard", () => {
       "Advanced business profile and premium tools.",
     );
     expect(screen.getByTestId("current-plan-status")).toHaveTextContent("Status: Trialing");
+    expect(screen.getByTestId("current-plan-pro-hint")).toHaveTextContent(
+      /Advanced tools will appear here as they are released/i,
+    );
+  });
+
+  it("shows coming-soon hint for non-Pro plans", () => {
+    renderCurrentPlanCard({ plan: "business", status: "active" });
+
+    expect(screen.getByTestId("current-plan-pro-hint")).toHaveTextContent(
+      /Pro features are coming soon/i,
+    );
   });
 
   it("shows fallback when plan and status are missing", () => {

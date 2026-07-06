@@ -44,6 +44,8 @@ describe("PlanFeatureComparison", () => {
     expect(screen.getByTestId("plan-feature-current-business")).toHaveTextContent("Current plan");
     expect(screen.getByTestId("plan-feature-card-business")).toHaveAttribute("data-current", "true");
     expect(screen.getByTestId("plan-feature-card-pro")).toHaveAttribute("data-current", "false");
+    expect(screen.getByTestId("plan-feature-pro-coming-soon")).toHaveTextContent("Coming soon");
+    expect(screen.getByTestId("plan-feature-pro-upgrade")).toHaveTextContent("Upgrade");
   });
 
   it("highlights current plan when currentPlan is pro", () => {

@@ -1,4 +1,10 @@
 import { Link } from "react-router-dom";
+import { PlanBadge, getPlanBadgeClassName, isProPlan } from "@/components/admin/PlanBadge";
+import type { PlanTier } from "@/components/admin/PlanBadge";
+import {
+  PRO_FEATURES_COMING_SOON_HINT,
+  PRO_TOOLS_ON_PRO_MESSAGE,
+} from "@/components/admin/ProToolsComingSoonCard";
 import { formatPlanLabel } from "@/utils/planManagement";
 
 type CurrentPlanCardProps = {
@@ -14,13 +20,6 @@ const PLAN_HELPER_TEXT: Record<string, string> = {
   starter: "Simple booking tools for small teams.",
   business: "Booking and request management for growing businesses.",
   pro: "Advanced business profile and premium tools.",
-};
-
-const PLAN_BADGE_CLASS: Record<string, string> = {
-  free: "border-slate-200 bg-slate-100 text-slate-700",
-  starter: "border-sky-200 bg-sky-50 text-sky-800",
-  business: "border-brand-200 bg-brand-50 text-brand-800",
-  pro: "border-violet-200 bg-violet-50 text-violet-800",
 };
 
 function normalizePlanKey(plan?: string): string | null {
@@ -47,13 +46,7 @@ export function getPlanHelperText(plan?: string): string | null {
   return PLAN_HELPER_TEXT[key] ?? null;
 }
 
-export function getPlanBadgeClassName(plan?: string): string {
-  const key = normalizePlanKey(plan);
-  if (!key) {
-    return "border-slate-200 bg-slate-100 text-slate-700";
-  }
-  return PLAN_BADGE_CLASS[key];
-}
+export { getPlanBadgeClassName } from "@/components/admin/PlanBadge";
 
 function formatSubscriptionStatus(status?: string): string | null {
   if (!status?.trim()) {
@@ -71,7 +64,7 @@ export function CurrentPlanCard({
   settingsHref = "/admin/settings",
 }: CurrentPlanCardProps) {
   const hasPlanInfo = Boolean(plan?.trim() || status?.trim());
-  const planLabel = getPlanDisplayName(plan);
+  const planTier = normalizePlanKey(plan);
   const statusLabel = formatSubscriptionStatus(status);
   const helperText = getPlanHelperText(plan);
 
@@ -86,12 +79,16 @@ export function CurrentPlanCard({
           {hasPlanInfo ? (
             <>
               <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex rounded-full border px-2.5 py-0.5 text-sm font-medium ${getPlanBadgeClassName(plan)}`}
-                  data-testid="current-plan-badge"
-                >
-                  {planLabel}
-                </span>
+                {planTier ? (
+                  <PlanBadge variant={planTier as PlanTier} size="md" testId="current-plan-badge" />
+                ) : plan?.trim() ? (
+                  <span
+                    className={`inline-flex rounded-full border px-2.5 py-0.5 text-sm font-medium ${getPlanBadgeClassName(plan)}`}
+                    data-testid="current-plan-badge"
+                  >
+                    {getPlanDisplayName(plan)}
+                  </span>
+                ) : null}
                 {statusLabel ? (
                   <span className="text-sm text-slate-600" data-testid="current-plan-status">
                     Status: {statusLabel}
@@ -103,6 +100,18 @@ export function CurrentPlanCard({
                   {helperText}
                 </p>
               ) : null}
+              {isProPlan(plan) ? (
+                <p className="text-xs text-violet-700" data-testid="current-plan-pro-hint">
+                  {PRO_TOOLS_ON_PRO_MESSAGE}
+                </p>
+              ) : (
+                <p className="text-xs text-slate-500" data-testid="current-plan-pro-hint">
+                  {PRO_FEATURES_COMING_SOON_HINT}{" "}
+                  <Link to={settingsHref} className="font-medium text-brand-700 hover:underline">
+                    Learn more
+                  </Link>
+                </p>
+              )}
             </>
           ) : (
             <p className="text-sm text-amber-700" role="status">

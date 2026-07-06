@@ -1,11 +1,8 @@
-import { formatPlanLabel } from "@/utils/planManagement";
-
-type PlanFeatureComparisonProps = {
-  currentPlan?: string;
-};
+import { PlanBadge } from "@/components/admin/PlanBadge";
+import type { PlanTier } from "@/components/admin/PlanBadge";
 
 type PlanFeatureDefinition = {
-  id: string;
+  id: PlanTier;
   features: string[];
 };
 
@@ -40,25 +37,18 @@ export const PLAN_FEATURE_DEFINITIONS: PlanFeatureDefinition[] = [
   {
     id: "pro",
     features: [
-      "Advanced business profile included",
-      "Premium public page tools included",
+      "Advanced business profile planned",
+      "Premium public page tools planned",
       "Media and growth features coming soon",
     ],
   },
 ];
 
-const PLAN_BADGE_CLASS: Record<string, string> = {
-  free: "border-slate-200 bg-slate-100 text-slate-700",
-  starter: "border-sky-200 bg-sky-50 text-sky-800",
-  business: "border-brand-200 bg-brand-50 text-brand-800",
-  pro: "border-violet-200 bg-violet-50 text-violet-800",
-};
-
-function normalizePlanKey(plan?: string): string | null {
+function normalizePlanKey(plan?: string): PlanTier | null {
   if (!plan?.trim()) {
     return null;
   }
-  const key = plan.toLowerCase();
+  const key = plan.toLowerCase() as PlanTier;
   return PLAN_FEATURE_DEFINITIONS.some((definition) => definition.id === key) ? key : null;
 }
 
@@ -70,6 +60,10 @@ export function getPlanFeatureCardClassName(planId: string, currentPlan?: string
   }
   return `${base} border-slate-200 bg-white`;
 }
+
+type PlanFeatureComparisonProps = {
+  currentPlan?: string;
+};
 
 export function PlanFeatureComparison({ currentPlan }: PlanFeatureComparisonProps) {
   const currentPlanKey = normalizePlanKey(currentPlan);
@@ -84,7 +78,8 @@ export function PlanFeatureComparison({ currentPlan }: PlanFeatureComparisonProp
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {PLAN_FEATURE_DEFINITIONS.map((plan) => {
           const isCurrent = currentPlanKey === plan.id;
-          const badgeClass = PLAN_BADGE_CLASS[plan.id] ?? PLAN_BADGE_CLASS.free;
+          const showProHints = plan.id === "pro";
+          const showUpgradeHint = showProHints && currentPlanKey === "business";
 
           return (
             <article
@@ -94,11 +89,7 @@ export function PlanFeatureComparison({ currentPlan }: PlanFeatureComparisonProp
               data-current={isCurrent ? "true" : "false"}
             >
               <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${badgeClass}`}
-                >
-                  {formatPlanLabel(plan.id)}
-                </span>
+                <PlanBadge variant={plan.id} testId={`plan-feature-badge-${plan.id}`} />
                 {isCurrent ? (
                   <span
                     className="text-xs font-medium text-brand-700"
@@ -106,6 +97,12 @@ export function PlanFeatureComparison({ currentPlan }: PlanFeatureComparisonProp
                   >
                     Current plan
                   </span>
+                ) : null}
+                {showProHints ? (
+                  <PlanBadge variant="coming-soon" testId="plan-feature-pro-coming-soon" />
+                ) : null}
+                {showUpgradeHint ? (
+                  <PlanBadge variant="upgrade" testId="plan-feature-pro-upgrade" />
                 ) : null}
               </div>
               <ul className="mt-2 space-y-1 text-xs text-slate-600">
