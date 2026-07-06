@@ -26,6 +26,12 @@ def test_jwt_secret_key_exists() -> None:
     assert settings.jwt_secret_key
 
 
+def test_jwt_secret_key_meets_minimum_length_for_tests() -> None:
+    get_settings.cache_clear()
+    settings = get_settings()
+    assert len(settings.jwt_secret_key.encode("utf-8")) >= 32
+
+
 def test_api_v1_prefix_exists() -> None:
     get_settings.cache_clear()
     settings = get_settings()

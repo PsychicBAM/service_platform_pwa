@@ -11,6 +11,9 @@ from app.config import get_settings
 from app.database import get_db
 from app.main import app
 
+# Fake test-only JWT secret (≥32 bytes). Set via autouse fixture; never use in production.
+TEST_JWT_SECRET_KEY = "test-secret-key-for-jwt-signing-32-bytes-minimum"
+
 
 def _test_database_url() -> str:
     return os.getenv("TEST_DATABASE_URL", get_settings().database_url)
@@ -72,7 +75,8 @@ def assert_response_status(response, expected: int, *, context: str) -> None:
 
 
 @pytest.fixture(autouse=True)
-def reset_settings_cache() -> None:
+def reset_settings_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("JWT_SECRET_KEY", TEST_JWT_SECRET_KEY)
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
