@@ -163,6 +163,15 @@ function BusinessHomeContent({ slug }: { slug: string }) {
     return <ErrorState title="Could not load business" message="No data returned." />;
   }
 
+  // TODO(Phase 10 Slice 3F): Wire ProMiniSiteLayout when PublicBusiness includes a public-safe
+  // subscription plan (planned in Slice 3D). Example:
+  // data.plan === "pro" ? (
+  //   <ProMiniSiteLayout business={data} publicSlug={slug} services={services} />
+  // ) : (
+  //   <Standard layout below />
+  // )
+  // PublicBusinessRead does not expose plan today, so all businesses keep the standard layout.
+
   const copy = modeCopy(data.operating_mode);
 
   return (
