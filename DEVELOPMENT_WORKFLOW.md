@@ -96,9 +96,9 @@ Security scans are **not** removed or weakened on `main`. Weekly/manual scans (d
 
 ### CI path filtering (`ci.yml`)
 
-- **backend-tests** runs when `api/**`, `scripts/**`, Docker/env templates, API Dockerfiles, or `ci.yml` change.
-- **frontend-tests** runs when `web/**`, shared compose files, or `ci.yml` change.
-- **Docs-only** changes skip both heavy jobs.
+- **backend-tests** runs when `api/**`, `scripts/**`, Docker/env templates, or API Dockerfiles change.
+- **frontend-tests** runs when `web/**` or shared compose files change.
+- **Docs-only** and **workflow-only** changes (e.g. `.github/workflows/ci.yml` alone) skip both heavy jobs; `detect-changes` still runs.
 - **Concurrency:** new pushes cancel in-progress runs for the same PR/branch.
 
 ### What CI does not duplicate locally

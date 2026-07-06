@@ -30,6 +30,7 @@ jobs:
         id: filter
         with:
           filters: |
+            # Workflow-only edits (e.g. .github/workflows/ci.yml) do not match — heavy jobs skip.
             backend:
               - 'api/**'
               - 'scripts/**'
@@ -39,12 +40,10 @@ jobs:
               - '.env.production.example'
               - 'api/Dockerfile'
               - 'api/Dockerfile.prod'
-              - '.github/workflows/ci.yml'
             frontend:
               - 'web/**'
               - 'docker-compose.yml'
               - 'docker-compose.prod.yml'
-              - '.github/workflows/ci.yml'
 
   backend-tests:
     name: backend-tests
