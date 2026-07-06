@@ -1,223 +1,238 @@
-# Pro Mini-site MVP Plan — Phase 10 Slice 3
+# Pro Mini-site Builder Plan — Phase 10
 
-**Status:** Planning only (Slice 3A). No code, migrations, or API changes in this slice.
+**Status:** Living design document. Planning and incremental implementation.
 
-**Last updated:** Phase 10 Slice 3A — design and implementation roadmap before coding.
+**Last updated:** Phase 10 — expand from simple profile page to **section-based mini-site builder** direction.
 
 ---
 
-## 1. Purpose
+## 1. Purpose and product direction
 
-The **Pro mini-site** is a richer public business page for Pro subscribers. Today every business shares the same simple `/b/<slug>` layout: name, optional logo URL, description, contact details, and links into the existing services / booking / request flows.
+The **Pro mini-site** is a richer public business page for eligible Pro businesses. It should feel like a small **website / landing page**, not just a booking card with a logo.
 
-Pro should feel meaningfully higher tier than Business. The mini-site turns the public page into a small **business profile / lightweight website**: clearer hero, about section, prominent service and action CTAs, contact and social links, and placeholders for future media — without replacing booking or order functionality.
+### What we are building
 
-Goals:
+A **controlled section-based mini-site builder** inside the SaaS:
 
-- Make Pro **visibly more valuable** on the public side (not only in admin plan UI).
-- Reuse existing data and routes where possible; add only what is needed for MVP.
+- The owner edits **structured sections** (hero, about, services, FAQ, etc.).
+- The public page at `/b/<slug>` **renders those sections** as a polished landing page.
+- Theme options (colors, button style) apply consistently across sections.
+- Booking and request flows stay on existing routes — the mini-site **drives CTAs**, not replacements.
+
+### What we are NOT building (MVP)
+
+- **Not** a freeform Webflow/Tilda-style editor with arbitrary div positioning.
+- **Not** pixel-level layout control, custom CSS, or user-placed blocks anywhere on a canvas.
+- **Not** a full website builder with unlimited pages, blogs, or marketplaces.
+
+**Why controlled sections:** Freeform builders add high complexity — broken mobile layouts, inconsistent customer designs, more storage/testing surface, and higher risk of breaking public pages. MVP stays **structured, safe, and maintainable**.
+
+### Goals
+
+- Make Pro **visibly more valuable** on the public side.
+- Let owners create a page that feels like a **small brand landing page**.
 - Ship in **small, safe slices** with CI green after each step.
-- Defer media upload, custom domains, enforcement, and advanced themes to later phases.
+- Defer **media upload** (Phase 10 Slice 4), **custom domains**, and **plan enforcement** (Phase 10 Slice 8).
 
 ---
 
-## 2. Current state
+## 2. Current state (as of Phase 10 Slice 3D)
 
 ### Public page (`/b/<slug>`)
 
-- **Entry:** `PublicHomePage` — platform landing at `/`; business home at `/b/:slug`.
-- **Data:** `GET` public business by slug → `PublicBusinessRead` (name, slug, description, logo_url, operating_mode, contact_phone, address).
-- **UI:** Single card with logo or initial, name, operating-mode intro, optional description / address / phone; CTAs to `/b/<slug>/services`, `/me/bookings`, `/me/orders` as appropriate.
-- **Related routes (unchanged in MVP planning):** `/b/:slug/services`, service detail, `/book`, `/request`.
-- **Plan not on public API:** Subscription plan is **not** exposed on `PublicBusinessRead` today. Pro vs non-Pro layout will need a deliberate, minimal addition later (see §6 and §8).
+| Item | State |
+|------|--------|
+| Standard layout | `StandardPublicBusinessHome` for non–mini-site businesses |
+| Pro layout skeleton | `ProMiniSiteLayout` — hero, services preview, contact, gallery placeholder |
+| Plan branching | `public_page_variant`: `"standard"` \| `"mini_site"` on public business API |
+| Eligibility | `mini_site` only for **active Pro** subscriptions (server-computed; no billing internals exposed) |
+| Booking / request | Unchanged routes: `/b/<slug>/services`, `/book`, `/request` |
 
 ### Owner admin
 
-- **Dashboard:** `CurrentPlanCard`, `PublicBusinessLinkCard` (URL, copy, share, QR).
-- **Settings:** Business profile fields (name, description, logo URL, contact email/phone, address, timezone), operating mode, booking settings, billing/plan section with `PlanFeatureComparison` and `ProToolsComingSoonCard`.
-- **Logo:** `logo_url` is a **URL string** only — no upload pipeline.
-
-### Plan UI (Phase 10 Slice 2)
-
-- Plan badges, feature comparison, and “Pro tools coming soon” hints are **UI-only**.
-- No feature locking or route blocking.
-
-### Gaps relevant to mini-site
-
-| Area | State |
+| Item | State |
 |------|--------|
-| Rich public layout | Not implemented |
-| Social links (Instagram, website, etc.) | Not on business model |
-| Cover / banner image | Not supported |
-| Gallery / media | No Media Foundation (Phase 10 Slice 4) |
-| Plan-based public rendering | No public `plan` field yet |
-| Real plan enforcement | Planned Phase 10 Slice 8 |
-| Custom domains | Out of scope |
+| Plan UI | `CurrentPlanCard`, `PlanFeatureComparison`, `ProToolsComingSoonCard`, `PlanBadge` |
+| Public profile skeleton | `PublicProfileSettingsCard` on Settings — disabled fields, “Saving coming soon” |
+| Mini-site editor | **Not implemented** |
+| Theme editor | **Not implemented** |
+| Section config persistence | **Not implemented** |
+
+### Media and enforcement
+
+| Item | State |
+|------|--------|
+| Logo / images | `logo_url` string only; no upload pipeline |
+| Gallery / cover | Placeholders only until **Media Foundation** (Phase 10 Slice 4) |
+| Plan enforcement | UI hints only; real locks in **Phase 10 Slice 8** |
 
 ---
 
-## 3. MVP scope
+## 3. Builder sections (proposed)
 
-**In scope for the Pro mini-site MVP** (first shippable version):
+Each section is a **typed block** with a fixed layout variant and editable content fields. Owners can **enable/disable** sections in MVP; **reordering** can follow in a later slice.
 
-| Item | MVP approach |
-|------|----------------|
-| Public mini-site **layout** for Pro businesses | New layout component(s); same URL `/b/<slug>` |
-| Business identity | Existing `name`, `slug` |
-| About / description | Existing `description` (admin Settings → Business profile) |
-| Logo | Existing `logo_url` if set; placeholder initial otherwise |
-| Services | Link / embed path to existing `/b/<slug>/services` list |
-| Booking CTA | Link into existing book flow (operating_mode aware) |
-| Request / order CTA | Link into existing request flow (operating_mode aware) |
-| Contact | Existing `contact_phone`, `address`; optional `contact_email` if added to public read |
-| Social links | **Simple text/URL fields** (e.g. website, Instagram) — no OAuth |
-| Non-Pro businesses | Keep **current** simple public page |
-| Media | **No upload** — placeholder “Gallery coming soon” section only until Media Foundation |
+| Section | Purpose | MVP content fields (examples) |
+|---------|---------|-------------------------------|
+| **Hero** | Brand first impression | Headline, subheadline/tagline, primary CTA label, cover image ref (URL placeholder until upload) |
+| **About** | Company story | Title, body (markdown or plain text); can default from `business.description` |
+| **Services** | What you offer | Show featured services or link to full `/b/<slug>/services` list |
+| **Benefits** | Why choose you | 3–6 bullet items (title + short text) |
+| **Gallery** | Company photos | Placeholder until media upload; later: ordered image asset refs |
+| **Pricing / packages** | Packages or price tiers | Simple cards: name, price text, description, optional CTA link |
+| **FAQ** | Common questions | Q&A pairs (question + answer) |
+| **Contact / social** | Reach you | Phone, address (from business), email if public-safe, website, Instagram, etc. |
+| **Booking / request CTA** | Conversion | Primary/secondary CTAs respecting `operating_mode`; links to existing flows |
 
-**MVP page sections (Pro layout, top to bottom):**
-
-1. **Hero** — name, logo, short tagline (from description excerpt or first line).
-2. **About** — full `description` when present.
-3. **Services** — preview + “View all services” → existing services route.
-4. **Actions** — primary “Book” / “Request” CTAs (respect `operating_mode`).
-5. **Contact** — phone, address, email (if exposed).
-6. **Social** — optional links (website, etc.) when fields exist.
-7. **Gallery (placeholder)** — static “Media gallery coming soon” — no images until Slice 4.
+**MVP defaults:** Sensible default section set for new Pro businesses; missing section config falls back to current `ProMiniSiteLayout` behavior.
 
 ---
 
-## 4. Out of scope for MVP
+## 4. Theme customization (proposed)
 
-Do **not** include in the Pro mini-site MVP:
+Theme applies **globally** to the rendered mini-site — not per-section arbitrary CSS.
 
-- Custom domains
-- Media upload, image CDN, or gallery storage (wait for **Media Foundation**, Phase 10 Slice 4)
-- Paid plan **enforcement** or hard feature locks (wait for Phase 10 Slice 8)
-- Advanced themes / per-business CSS
-- Analytics or visit tracking
-- SEO automation (sitemaps, structured data beyond basic page title)
-- Reviews or ratings
-- Blog, posts, or feed
-- Marketplace or discovery
-- Complex social network features (followers, DMs, etc.)
-- Stripe, checkout, or billing changes
-- Breaking changes to `/b/<slug>/services`, book, or request flows
+| Token | MVP |
+|-------|-----|
+| **Primary color** | Brand main (buttons, links, accents) |
+| **Accent color** | Secondary highlight |
+| **Background style** | Preset: light / soft tint / dark (enum, not custom CSS) |
+| **Button style** | Preset: solid / outline / rounded (small enum) |
+| **Logo** | Ref to logo URL (existing `logo_url` or future asset id) |
+| **Cover / hero image** | URL placeholder or asset ref after Media Foundation |
+
+**Important:** Real **image upload** for logo, cover, and gallery waits for **Media Foundation** (Phase 10 Slice 4). Until then, URL fields or disabled placeholders only.
 
 ---
 
-## 5. Proposed data model options
+## 5. Data model direction
 
-### Option A — Extend `business.settings` JSON
+### Recommendation: structured JSON first
 
-Add a nested object, e.g. `settings.public_profile`:
+Store mini-site configuration as **one structured JSON document** per business (nested in `business.settings` or a dedicated column/table later). Shape (illustrative):
 
 ```json
 {
-  "tagline": "Optional short line",
-  "social_links": {
-    "website": "https://example.com",
-    "instagram": "https://instagram.com/handle"
-  },
-  "show_gallery_placeholder": true
+  "mini_site": {
+    "version": 1,
+    "theme": {
+      "primary_color": "#2563eb",
+      "accent_color": "#7c3aed",
+      "background_style": "light",
+      "button_style": "solid"
+    },
+    "sections": [
+      {
+        "id": "hero",
+        "type": "hero",
+        "enabled": true,
+        "order": 0,
+        "content": {
+          "headline": "Welcome",
+          "tagline": "Quality service you can trust",
+          "cover_image_ref": null
+        }
+      },
+      {
+        "id": "about",
+        "type": "about",
+        "enabled": true,
+        "order": 1,
+        "content": { "title": "About us", "body": "..." }
+      }
+    ],
+    "social_links": {
+      "website": "https://example.com",
+      "instagram": "https://instagram.com/handle"
+    }
+  }
 }
 ```
 
-| Pros | Cons |
-|------|------|
-| No new table or migration complexity beyond JSON merge | Less structured; harder to query/index later |
-| Matches existing `settings` pattern for booking options | Public vs admin field validation must be explicit |
-| Fastest path for MVP | Social links schema can grow messy without discipline |
+### Principles
 
-### Option B — New `business_public_profiles` table
+- **Theme**, **sections** (type, enabled, order, content), and **social_links** live in config JSON.
+- **Media assets** stay **separate** when upload exists (asset ids/refs in section content, not embedded binary).
+- Reuse existing business fields where possible (`name`, `description`, `logo_url`, `contact_phone`, `address`) — avoid duplicating unless override is needed.
+- Public API exposes a **sanitized DTO** only (no admin settings, Stripe, or internal ids beyond what’s already public).
 
-Dedicated row per business: `business_id`, `tagline`, `about_override`, JSON `social_links`, `theme_key`, timestamps.
+### Options considered (unchanged rationale)
 
-| Pros | Cons |
-|------|------|
-| Clear separation of public marketing vs operational settings | New model, repository, migration, tests |
-| Easier to extend with media FKs later | More moving parts for MVP |
-| Cleaner public API mapping | Duplication risk with `description` on `businesses` |
+| Option | Notes |
+|--------|--------|
+| A — `settings` JSON only | Fastest; good for MVP config blob |
+| B — Dedicated table | Better if config grows large or needs versioning |
+| C — Hybrid | Core business fields on `businesses` + `settings.mini_site` JSON for builder |
 
-### Option C — Hybrid
-
-Keep **core fields** on `businesses` (`name`, `description`, `logo_url`, `contact_*`, `address`). Add **`settings.public_profile`** (or slim JSON column) only for **mini-site extras**: tagline, social links, future `cover_image_url` / gallery refs.
-
-| Pros | Cons |
-|------|------|
-| Reuses fields owners already edit in Settings | Two places to document for “public profile” |
-| Avoids duplicating description | Still requires schema/docs for JSON shape |
-| Safe stepping stone to table later if needed | |
-
-### Recommendation for MVP: **Option C (hybrid)**
-
-**Reasoning:**
-
-- `description`, `logo_url`, and contact fields **already exist** and are edited in Admin Settings — do not duplicate them.
-- MVP-only extras (tagline, social URLs) fit a **small JSON blob** in `settings` without a new table.
-- Avoids over-engineering before we know gallery/media shape (Slice 4 may justify a table or media join table).
-- Public API can expose a flattened `PublicBusinessProfileRead` DTO assembled from `businesses` + `settings.public_profile` + (later) `plan`.
-
-**Validation rules (when implemented):**
-
-- Social URLs: optional, max length, `http`/`https` only.
-- Tagline: optional, short max length (e.g. 160 chars).
-- No binary upload fields until Media Foundation.
+**MVP recommendation:** Start with **Option C** — `settings.mini_site` (or `settings.public_profile` evolved into `mini_site`) with documented schema version.
 
 ---
 
-## 6. Proposed frontend approach
+## 6. Editor approach (admin)
 
-### Routing
+### Location
 
-- **Keep** `/b/<slug>` as the single public entry point (no new public URL scheme for MVP).
-- **Branch inside** `PublicHomePage` / `BusinessHomeContent`:
-  - If business is **Pro** (once plan is available on public read) → render `ProMiniSiteLayout`.
-  - Else → render existing simple layout (**no regression**).
+Dedicated **Mini-site editor** — either:
 
-### Components (future slices)
+- New admin route (e.g. `/admin/mini-site`), or
+- Expanded area linked from Settings / Public profile card.
 
-| Component | Role |
-|-----------|------|
-| `ProMiniSiteLayout` | Section shell: hero, about, services strip, CTAs, contact, social, gallery placeholder |
-| `PublicBusinessHero` | Name, logo, tagline |
-| `PublicServicesPreview` | Teaser + link to `/b/<slug>/services` |
-| `PublicActionCtas` | Book / request buttons (reuse `operating_mode` helpers from today) |
-| `PublicContactBlock` | Phone, address, email |
-| `PublicSocialLinks` | External links, `rel="noopener noreferrer"` |
-| `PublicGalleryPlaceholder` | “Coming soon” copy only |
+`PublicProfileSettingsCard` skeleton is the **entry point** until the full editor ships.
 
-### Data loading
+### Layout (MVP)
 
-- Extend public API response with `plan` (or `is_pro_mini_site: boolean`) and optional `public_profile` fields — **minimal backend change in Slice 3D**, not in 3A.
-- Until then, Slice 3B may use a **feature flag or dev-only prop** for layout skeleton work (clearly marked, not production gating).
+```
+┌─────────────────────────────────────────────────────────┐
+│  Mini-site editor                                       │
+├──────────────────────┬──────────────────────────────────┤
+│  Section forms       │  Live preview                    │
+│  (left)              │  (right)                         │
+│                      │                                  │
+│  • Hero              │  Renders current config as       │
+│  • About             │  public page would look          │
+│  • Services          │  (iframe or inline component)    │
+│  • …                 │                                  │
+│  Theme colors        │                                  │
+│  Enable/disable      │                                  │
+│  [Save]              │  [Open public page]              │
+└──────────────────────┴──────────────────────────────────┘
+```
 
-### Non-negotiables
+### MVP editor rules
 
-- Existing **booking** and **order/request** flows remain the same routes and APIs.
-- Services list/detail/book/request pages **unchanged** in early slices; mini-site only enhances the **home** view at `/b/<slug>`.
+- **No drag-and-drop** in MVP (section order fixed or by simple up/down later).
+- **No freeform canvas** — only forms for each section type.
+- **Live preview** updates from draft state (client-side) before save.
+- **Save** persists config JSON when backend slice is ready.
+- Disabled / coming-soon fields until storage and media exist.
+
+### Future (post-MVP)
+
+- Drag-and-drop **section reordering**
+- **Layout variants** per section (e.g. hero with image left vs centered)
+- Custom spacing controls — only after core builder is stable
 
 ---
 
-## 7. Proposed admin approach
+## 7. Public rendering approach
 
-### New section: **Public profile** (future)
+### Entry point
 
-Location: Admin Settings (below Business profile or as a sub-section), or a dedicated tab later if the form grows.
+- **Keep** `/b/<slug>` as the single public URL.
+- Branch on `public_page_variant === "mini_site"` (already implemented).
 
-| Field | MVP |
-|-------|-----|
-| Description / about | **Already in** Business profile — link or duplicate read-only hint “Shown on public page” |
-| Tagline | New (from `settings.public_profile`) when backend ready |
-| Social links | New URL fields (website, Instagram, etc.) |
-| Logo | Existing `logo_url` — URL only; label “Image upload coming with Media Foundation” |
-| Cover / banner | **Disabled** placeholder input or help text only |
-| Gallery | **Disabled** — “Available after Media Foundation” |
+### Rendering logic (target)
 
-### UX principles
+1. Load public business + mini-site config (when available).
+2. If **no saved config** or partial config → **safe fallback** to `ProMiniSiteLayout` using existing business/services data.
+3. If **saved config** → render **section components** in order; skip disabled sections.
+4. Apply **theme tokens** to section wrappers (CSS variables or Tailwind-friendly tokens).
+5. **CTA sections** always link to existing book/request/services routes.
+6. **Never** expose admin-only fields, subscription objects, or Stripe data.
 
-- Pro-only **labels** (“Pro public profile”) are OK in Slice 3C UI mockups.
-- Do **not** block saving other settings if user is not on Pro.
-- Preview link continues to use `PublicBusinessLinkCard` → `/b/<slug>`.
+### Non-Pro businesses
+
+- `public_page_variant === "standard"` → `StandardPublicBusinessHome` (unchanged).
 
 ---
 
@@ -225,72 +240,95 @@ Location: Admin Settings (below Business profile or as a sub-section), or a dedi
 
 | Phase | Behavior |
 |-------|----------|
-| **Slices 3B–3E (MVP build)** | Prefer **soft** gating: render Pro layout when `plan === "pro"` on public read; otherwise current page. Optional dev flag for local testing. |
-| **Admin UI** | Show “Pro” badges and coming-soon copy (already started in Slice 2C). |
-| **No hard blocks** | Non-Pro owners can still use all current admin and public features; no 403 on routes. |
-| **Phase 10 Slice 8** | Introduce real **plan enforcement** (limits, optional blocks) after mini-site and media foundations are stable. |
-
-**Public plan exposure (required before 3F):**
-
-- Add `plan` (or `subscription_plan`) to `PublicBusinessRead` — sourced from subscription, defaulting to `free` when absent.
-- Only expose **plan tier**, not billing IDs or Stripe fields.
-
-**Fallback if plan missing:** Treat as non-Pro (simple layout). Public page must never error.
+| **Now – Slice 3J** | Soft gating: `mini_site` variant for active Pro only; admin shows Pro / coming-soon labels |
+| **Slice 8** | Real plan enforcement (limits, optional blocks) after builder + media are stable |
+| **No hard blocks early** | Non-Pro owners keep current admin and public behavior |
 
 ---
 
-## 9. Implementation slices
+## 9. Phased implementation slices
 
-| Slice | Deliverable | Code? |
-|-------|-------------|-------|
-| **3A** ✅ | This document | Docs only |
-| **3B** | Public mini-site **layout skeleton** using existing `PublicBusinessRead` fields only; Pro branch behind flag or mock `plan` | Frontend |
-| **3C** | Admin **Public profile** section — UI/mock fields, disabled media; no new persistence required initially | Frontend |
-| **3D** | Backend: `settings.public_profile` shape, validation, admin update + public read fields; optional `plan` on public API | Backend + types |
-| **3E** | Wire saved profile fields into `ProMiniSiteLayout`; tagline + social links live | Full stack |
-| **3F** | Pro-only visual gating on public home; non-Pro fallback verified; remove dev flags | Frontend + API |
-| **4+** | **Media Foundation** — upload, cover, gallery (separate phase; blocks real gallery) | TBD |
-| **8** | Plan enforcement (limits, locking per product decision) | Backend + frontend |
+| Slice | Deliverable | Notes |
+|-------|-------------|--------|
+| **3A** ✅ | This plan (initial) | Docs |
+| **3B** ✅ | `ProMiniSiteLayout` skeleton | Existing public fields only |
+| **3C** ✅ | `public_page_variant` + public wiring | Active Pro → mini-site layout |
+| **3D** ✅ | `PublicProfileSettingsCard` skeleton | Disabled fields; no save |
+| **3E** | Builder **data model / schema design** | Document JSON shape, validation rules, public DTO; no migrations required in doc-only slice |
+| **3F** | Backend **storage** for `mini_site` config JSON | Admin read/write; public sanitized read |
+| **3G** | Admin **editor skeleton UI** | Section list + disabled save; no preview yet |
+| **3H** | **Live preview** UI | Right panel mirrors public render from draft state |
+| **3I** | Public **render saved sections** | Replace/fallback from `ProMiniSiteLayout` to config-driven sections |
+| **3J** | **Theme colors** support | Primary/accent/background/button presets on public + editor |
+| **4** | **Media Foundation** | Upload, cover, gallery assets; wire refs in hero/gallery |
+| **8** | **Plan enforcement** | Feature locks per product decision |
 
-**Dependency order:** 3B can start with existing data → 3D enables 3E → 3F needs public `plan` → media slices depend on Phase 10 Slice 4.
+**Dependency order:** 3E (schema) → 3F (storage) → 3G/3H (editor) → 3I (public) → 3J (theme) → 4 (media refs) → 8 (enforcement).
 
-**Testing expectations per slice:**
-
-- Unit/smoke tests for layout branch and admin section.
-- Existing `public-pages` and e2e admin-guards / public business tests must pass.
-- No new Playwright requirement for 3A.
-
----
-
-## 10. Acceptance criteria (future MVP complete)
-
-When Slices 3B–3F are done (and still **without** media upload or enforcement):
-
-- [ ] `/b/<slug>` loads for all businesses; **no 404/500** for non-Pro.
-- [ ] **Booking flow** unchanged: `/b/<slug>/services/.../book` still works.
-- [ ] **Order/request flow** unchanged: `/b/<slug>/services/.../request` still works.
-- [ ] Non-Pro businesses see the **current simple** public home layout.
-- [ ] Pro businesses see the **richer mini-site** layout on the same URL.
-- [ ] Description, logo URL, contact fields reflect admin Settings (and new public profile fields when saved).
-- [ ] Social links render only when valid URLs are saved.
-- [ ] Gallery section shows **coming soon** placeholder only — no upload UI.
-- [ ] No custom domain, Stripe, or enforcement changes in this MVP.
-- [ ] **CI green:** `npm run test`, `typecheck`, `build`, `check:routes`; API tests pass when backend touched.
+**Section reordering:** After 3I stable; not required for first shippable builder.
 
 ---
 
-## References (in-repo)
+## 10. Risks and limits
+
+| Risk | Mitigation |
+|------|------------|
+| Scope creep into full website builder | Fixed section types only; no arbitrary HTML/CSS |
+| Broken mobile layouts | Server-defined section templates; responsive by design |
+| Storing files before media foundation | URL placeholders only; asset refs after Slice 4 |
+| Leaking private data on public page | Strict public DTO; review each new field |
+| Hard plan blocks too early | Soft gating until Slice 8 |
+| Editor complexity | No drag-and-drop in MVP; forms + preview only |
+| Duplicate business data | Prefer overrides in config; default from `businesses` row |
+| Testing burden | One renderer for preview and public; shared section components |
+
+---
+
+## 11. Out of scope (MVP and near-term)
+
+- Freeform Webflow/Tilda-style arbitrary div editor
+- Custom domains
+- Media upload (until Phase 10 Slice 4)
+- Real plan enforcement (until Phase 10 Slice 8)
+- Analytics, SEO automation, reviews, blog/posts
+- Marketplace / discovery
+- Stripe, checkout, webhook, or billing portal changes
+- Breaking `/b/<slug>/services`, book, or request flows
+- Arbitrary per-section CSS or user-supplied HTML blocks
+
+---
+
+## 12. Acceptance criteria (builder MVP complete)
+
+When Slices 3F–3J are done (media upload still optional / placeholder until Slice 4):
+
+- [ ] `/b/<slug>` loads for all businesses; no regression for standard variant.
+- [ ] Pro eligible businesses can **save** mini-site config from admin editor.
+- [ ] Public page renders **enabled sections** from saved config with theme applied.
+- [ ] Missing or invalid config **falls back** safely (no 500).
+- [ ] Booking and request flows unchanged.
+- [ ] Gallery/cover/logo use placeholders or URLs until Slice 4 upload.
+- [ ] Live preview matches public render (same section components).
+- [ ] No subscription/Stripe/admin internals on public API.
+- [ ] CI green: frontend tests, typecheck, build, API tests.
+
+---
+
+## 13. References (in-repo)
 
 | Topic | Location |
 |-------|----------|
-| Public home UI | `web/src/pages/PublicHomePage.tsx` |
-| Public API types | `web/src/api/publicApi.ts`, `api/app/schemas/business.py` (`PublicBusinessRead`) |
+| Public home + branching | `web/src/pages/PublicHomePage.tsx` |
+| Pro layout skeleton | `web/src/components/public/ProMiniSiteLayout.tsx` |
+| Standard layout | `web/src/components/public/StandardPublicBusinessHome.tsx` |
+| Public API | `web/src/api/publicApi.ts`, `api/app/schemas/business.py` |
+| `public_page_variant` | `api/app/utils/public_page_variant.py` |
 | Admin settings | `web/src/pages/admin/AdminSettingsPage.tsx` |
+| Public profile skeleton | `web/src/components/admin/PublicProfileSettingsCard.tsx` |
 | Plan UI | `CurrentPlanCard`, `PlanFeatureComparison`, `ProToolsComingSoonCard`, `PlanBadge` |
-| Public routes | `web/src` router — `/b/:slug`, services, book, request |
 
 ---
 
 ## Summary
 
-The Pro mini-site MVP enhances **`/b/<slug>`** for Pro businesses with a structured profile layout while **reusing** existing services, booking, and request flows. Store mini-site extras in a **hybrid** model (`businesses` + `settings.public_profile`). Ship incrementally from layout skeleton → admin UI → backend fields → live rendering → plan-based display. Defer **media** to Phase 10 Slice 4 and **enforcement** to Phase 10 Slice 8.
+The Pro mini-site evolves from a **single layout skeleton** into a **section-based mini-site builder**: owners edit structured sections and theme tokens; the public page renders a polished landing page at `/b/<slug>`. Store configuration as **versioned JSON** (`theme`, `sections`, `social_links`, visibility/order); keep **media assets separate** until Media Foundation. Use a **form + live preview** editor — not a freeform canvas. Ship via slices **3E–3J**, then media (Slice 4) and enforcement (Slice 8).
