@@ -59,6 +59,9 @@ describe("admin billing checkout", () => {
     expect(screen.getByText(/Current active plan/i)).toBeInTheDocument();
     expect(screen.getByText(/Signup plan intent/i)).toBeInTheDocument();
     expect(screen.getByText(/Stripe checkout is optional/i)).toBeInTheDocument();
+    expect(screen.getByText("Plan features")).toBeInTheDocument();
+    expect(screen.getByText(/Feature limits are being prepared/i)).toBeInTheDocument();
+    expect(screen.getByTestId("plan-feature-card-free")).toHaveAttribute("data-current", "true");
     expect(screen.getByRole("button", { name: "Start Starter checkout" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start Business checkout" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start Pro checkout" })).toBeInTheDocument();

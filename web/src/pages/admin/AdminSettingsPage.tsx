@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createBillingCheckoutSession } from "@/api/billingApi";
 import { getBusiness, updateBusiness } from "@/api/adminApi";
+import { PlanFeatureComparison } from "@/components/admin/PlanFeatureComparison";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { TextAreaField } from "@/components/TextAreaField";
@@ -579,6 +580,8 @@ export function AdminSettingsPage() {
             ) : (
               <p className="text-sm text-slate-500">No subscription summary available.</p>
             )}
+
+            <PlanFeatureComparison currentPlan={data.subscription?.plan} />
 
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               {CHECKOUT_PLANS.map((plan) => (
