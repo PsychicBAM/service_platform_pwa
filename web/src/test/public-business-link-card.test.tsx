@@ -1,8 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { PublicBusinessLinkCard } from "@/components/admin/PublicBusinessLinkCard";
 import { DEMO_SLUG } from "@/test/mock-fixtures";
+
+vi.mock("qrcode.react", () => ({
+  QRCodeSVG: ({ value, title }: { value: string; title?: string }) => (
+    <svg data-testid="public-business-qr" data-value={value} aria-label={title} />
+  ),
+}));
+
+import { PublicBusinessLinkCard } from "@/components/admin/PublicBusinessLinkCard";
 
 const DEMO_BUSINESS_NAME = "Demo Service Business";
 
@@ -83,6 +90,7 @@ describe("PublicBusinessLinkCard", () => {
     expect(screen.queryByRole("link", { name: "Preview page" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Copy link" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Share" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("public-business-qr-section")).not.toBeInTheDocument();
   });
 
   it("renders Copy link button when slug exists", () => {
@@ -245,5 +253,25 @@ describe("PublicBusinessLinkCard", () => {
     expect(
       screen.queryByText("Sharing is not available in this browser. You can copy the link instead."),
     ).not.toBeInTheDocument();
+  });
+
+  it("renders QR section when businessSlug exists", () => {
+    render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
+
+    expect(screen.getByTestId("public-business-qr-section")).toBeInTheDocument();
+    expect(screen.getByText("QR code")).toBeInTheDocument();
+    expect(
+      screen.getByText("Clients can scan this code to open your public page."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("This QR code stays valid as long as your public page link does not change."),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("QR code for public business page")).toBeInTheDocument();
+  });
+
+  it("encodes the canonical public URL in the QR code", () => {
+    render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
+
+    expect(screen.getByTestId("public-business-qr")).toHaveAttribute("data-value", publicUrl);
   });
 });
