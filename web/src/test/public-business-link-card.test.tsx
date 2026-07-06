@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { PublicBusinessLinkCard } from "@/components/admin/PublicBusinessLinkCard";
 import { DEMO_SLUG } from "@/test/mock-fixtures";
 
+const DEMO_BUSINESS_NAME = "Demo Service Business";
+
 describe("PublicBusinessLinkCard", () => {
   const originalOrigin = window.location.origin;
   const publicUrl = `http://localhost:5173/b/${DEMO_SLUG}`;
@@ -18,6 +20,7 @@ describe("PublicBusinessLinkCard", () => {
       clipboard: {
         writeText: vi.fn().mockResolvedValue(undefined),
       },
+      share: vi.fn().mockResolvedValue(undefined),
     });
   });
 
@@ -79,6 +82,7 @@ describe("PublicBusinessLinkCard", () => {
     expect(screen.queryByTestId("public-business-url")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Preview page" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Copy link" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Share" })).not.toBeInTheDocument();
   });
 
   it("renders Copy link button when slug exists", () => {
@@ -136,5 +140,110 @@ describe("PublicBusinessLinkCard", () => {
       expect(screen.getByText("Copy failed. You can copy the link manually.")).toBeInTheDocument();
     });
     expect(screen.getByTestId("public-business-url")).toHaveTextContent(publicUrl);
+  });
+
+  it("renders Share button when slug exists", () => {
+    render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
+
+    expect(screen.getByRole("button", { name: "Share" })).toBeInTheDocument();
+  });
+
+  it("shares the public URL with businessName as title when provided", async () => {
+    const user = userEvent.setup();
+    const share = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+      share,
+    });
+
+    render(
+      <PublicBusinessLinkCard businessName={DEMO_BUSINESS_NAME} businessSlug={DEMO_SLUG} />,
+    );
+    await user.click(screen.getByRole("button", { name: "Share" }));
+
+    await waitFor(() => {
+      expect(share).toHaveBeenCalledWith({
+        title: DEMO_BUSINESS_NAME,
+        text: "Book services or send requests here.",
+        url: publicUrl,
+      });
+    });
+    expect(screen.getByText("Share dialog opened")).toBeInTheDocument();
+  });
+
+  it("uses default share title when businessName is missing", async () => {
+    const user = userEvent.setup();
+    const share = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+      share,
+    });
+
+    render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
+    await user.click(screen.getByRole("button", { name: "Share" }));
+
+    await waitFor(() => {
+      expect(share).toHaveBeenCalledWith({
+        title: "Public business page",
+        text: "Book services or send requests here.",
+        url: publicUrl,
+      });
+    });
+  });
+
+  it("shows fallback message when navigator.share is unavailable", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+      share: undefined,
+    });
+
+    render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
+    await user.click(screen.getByRole("button", { name: "Share" }));
+
+    expect(
+      screen.getByText("Sharing is not available in this browser. You can copy the link instead."),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("public-business-url")).toHaveTextContent(publicUrl);
+  });
+
+  it("shows fallback message when navigator.share rejects", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+      share: vi.fn().mockRejectedValue(new Error("share failed")),
+    });
+
+    render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
+    await user.click(screen.getByRole("button", { name: "Share" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Sharing failed. You can copy the link instead.")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("public-business-url")).toHaveTextContent(publicUrl);
+  });
+
+  it("does not show an error when share is cancelled by the user", async () => {
+    const user = userEvent.setup();
+    const abortError = new Error("Share canceled");
+    abortError.name = "AbortError";
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+      share: vi.fn().mockRejectedValue(abortError),
+    });
+
+    render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
+    await user.click(screen.getByRole("button", { name: "Share" }));
+
+    expect(screen.queryByText("Sharing failed. You can copy the link instead.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Share dialog opened")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Sharing is not available in this browser. You can copy the link instead."),
+    ).not.toBeInTheDocument();
   });
 });

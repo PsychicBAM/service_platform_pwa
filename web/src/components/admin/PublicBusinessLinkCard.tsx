@@ -6,6 +6,10 @@ type PublicBusinessLinkCardProps = {
 };
 
 type CopyStatus = "idle" | "copied" | "failed";
+type ShareStatus = "idle" | "opened" | "unavailable" | "failed";
+
+const SHARE_TEXT = "Book services or send requests here.";
+const DEFAULT_SHARE_TITLE = "Public business page";
 
 async function copyTextToClipboard(text: string): Promise<boolean> {
   if (!navigator.clipboard?.writeText) {
@@ -19,10 +23,34 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
   }
 }
 
+function isShareCancellation(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return error.name === "AbortError" || /cancel/i.test(error.message);
+}
+
+async function sharePublicUrl(payload: ShareData): Promise<"opened" | "unavailable" | "cancelled" | "failed"> {
+  if (!navigator.share) {
+    return "unavailable";
+  }
+  try {
+    await navigator.share(payload);
+    return "opened";
+  } catch (error) {
+    if (isShareCancellation(error)) {
+      return "cancelled";
+    }
+    return "failed";
+  }
+}
+
 export function PublicBusinessLinkCard({
+  businessName,
   businessSlug,
 }: PublicBusinessLinkCardProps) {
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
+  const [shareStatus, setShareStatus] = useState<ShareStatus>("idle");
   const publicPath = businessSlug ? `/b/${businessSlug}` : null;
   const publicUrl =
     businessSlug && typeof window !== "undefined"
@@ -35,6 +63,29 @@ export function PublicBusinessLinkCard({
     }
     const copied = await copyTextToClipboard(publicUrl);
     setCopyStatus(copied ? "copied" : "failed");
+  };
+
+  const handleShare = async () => {
+    if (!publicUrl) {
+      return;
+    }
+    const title = businessName?.trim() || DEFAULT_SHARE_TITLE;
+    const result = await sharePublicUrl({
+      title,
+      text: SHARE_TEXT,
+      url: publicUrl,
+    });
+    if (result === "opened") {
+      setShareStatus("opened");
+      return;
+    }
+    if (result === "unavailable") {
+      setShareStatus("unavailable");
+      return;
+    }
+    if (result === "failed") {
+      setShareStatus("failed");
+    }
   };
 
   return (
@@ -61,6 +112,15 @@ export function PublicBusinessLinkCard({
             >
               {copyStatus === "copied" ? "Copied" : "Copy link"}
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                void handleShare();
+              }}
+              className="inline-flex rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Share
+            </button>
             <a
               href={publicPath}
               target="_blank"
@@ -78,6 +138,21 @@ export function PublicBusinessLinkCard({
           {copyStatus === "failed" ? (
             <p className="text-sm text-amber-700" role="status">
               Copy failed. You can copy the link manually.
+            </p>
+          ) : null}
+          {shareStatus === "opened" ? (
+            <p className="text-sm text-green-700" role="status">
+              Share dialog opened
+            </p>
+          ) : null}
+          {shareStatus === "unavailable" ? (
+            <p className="text-sm text-amber-700" role="status">
+              Sharing is not available in this browser. You can copy the link instead.
+            </p>
+          ) : null}
+          {shareStatus === "failed" ? (
+            <p className="text-sm text-amber-700" role="status">
+              Sharing failed. You can copy the link instead.
             </p>
           ) : null}
         </div>
