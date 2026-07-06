@@ -6,7 +6,8 @@ title = "service_platform_pwa gitleaks"
 [extend]
 useDefault = true
 
-[allowlist]
+[[allowlists]]
+description = "Build/cache paths"
 paths = [
   '''(?:^|/)node_modules/''',
   '''(?:^|/)web/node_modules/''',
@@ -20,10 +21,22 @@ paths = [
   '''(?:^|/)web/test-results/''',
   '''(?:^|/)\.venv/''',
 ]
+
 # Historical false positives (pre-Slice-13 docs/tests). Current tree uses safe placeholders.
 # Do not add live secret patterns or .env paths here.
+[[allowlists]]
+description = "Historical doc/test token placeholders"
 regexes = [
   '''(?i)CLIENT_TOKEN''',
   '''(?i)SUPERADMIN_TOKEN''',
   '''0123456789abcdef0123456789abcdef0123456789ab''',
+]
+
+# Historical false positives: STRIPE_TEST_MODE_RUNBOOK.md used sk_test_/whsec_ placeholders
+# before safe <STRIPE_*_FROM_DASHBOARD> tokens. Current tree uses safe placeholders only.
+[[allowlists]]
+description = "STRIPE_TEST_MODE_RUNBOOK.md historical Stripe placeholder commits"
+commits = [
+  "c9106d7ed6a19f792f913d087996b1a36e97ac53",
+  "d4badf0d68b1c7ff348d87cd03c5c33401979b10",
 ]
