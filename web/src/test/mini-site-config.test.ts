@@ -88,8 +88,11 @@ describe("mini-site config helpers", () => {
       theme: DEFAULT_MINI_SITE_CONFIG.theme,
       sections: [
         { id: "hero", type: "hero", enabled: true, order: 0 },
-        { id: "gallery", type: "gallery", enabled: false, order: 1 },
-        { id: "contact", type: "contact", enabled: true, order: 2 },
+        { id: "about", type: "about", enabled: false, order: 1 },
+        { id: "services", type: "services", enabled: false, order: 2 },
+        { id: "gallery", type: "gallery", enabled: false, order: 3 },
+        { id: "contact", type: "contact", enabled: true, order: 4 },
+        { id: "booking_cta", type: "booking_cta", enabled: false, order: 5 },
       ],
       socialLinks: {},
     });
