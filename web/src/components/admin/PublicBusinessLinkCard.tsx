@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { useRef, useState } from "react";
+import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 
 type PublicBusinessLinkCardProps = {
   businessName?: string;
@@ -8,10 +8,28 @@ type PublicBusinessLinkCardProps = {
 
 type CopyStatus = "idle" | "copied" | "failed";
 type ShareStatus = "idle" | "opened" | "unavailable" | "failed";
+type QrDownloadStatus = "idle" | "failed";
 
 const SHARE_TEXT = "Book services or send requests here.";
 const DEFAULT_SHARE_TITLE = "Public business page";
 const QR_CODE_SIZE = 112;
+
+export function buildQrDownloadFilename(businessSlug: string): string {
+  return `${businessSlug}-qr-code.png`;
+}
+
+export function downloadQrPngFromCanvas(canvas: HTMLCanvasElement, filename: string): boolean {
+  try {
+    const dataUrl = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = filename;
+    link.click();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 async function copyTextToClipboard(text: string): Promise<boolean> {
   if (!navigator.clipboard?.writeText) {
@@ -53,6 +71,8 @@ export function PublicBusinessLinkCard({
 }: PublicBusinessLinkCardProps) {
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
   const [shareStatus, setShareStatus] = useState<ShareStatus>("idle");
+  const [qrDownloadStatus, setQrDownloadStatus] = useState<QrDownloadStatus>("idle");
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
   const publicPath = businessSlug ? `/b/${businessSlug}` : null;
   const publicUrl =
     businessSlug && typeof window !== "undefined"
@@ -87,6 +107,25 @@ export function PublicBusinessLinkCard({
     }
     if (result === "failed") {
       setShareStatus("failed");
+    }
+  };
+
+  const handleDownloadQr = () => {
+    if (!businessSlug || !publicUrl) {
+      return;
+    }
+    setQrDownloadStatus("idle");
+    const canvas = qrCanvasRef.current;
+    if (!canvas) {
+      setQrDownloadStatus("failed");
+      return;
+    }
+    const downloaded = downloadQrPngFromCanvas(
+      canvas,
+      buildQrDownloadFilename(businessSlug),
+    );
+    if (!downloaded) {
+      setQrDownloadStatus("failed");
     }
   };
 
@@ -162,24 +201,36 @@ export function PublicBusinessLinkCard({
             ) : null}
           </div>
           <div
-            className="w-fit max-w-full shrink-0 border-t border-slate-100 pt-3 md:border-l md:border-t-0 md:pl-4 md:pt-0"
+            className="flex w-fit max-w-full shrink-0 flex-col gap-2 border-t border-slate-100 pt-3 md:border-l md:border-t-0 md:pl-4 md:pt-0"
             data-testid="public-business-qr-section"
           >
             <p className="text-sm font-medium text-slate-700">QR code</p>
-            <p className="mt-1 max-w-[11rem] text-xs text-slate-600 sm:text-sm">
-              Clients can scan this code to open your public page.
-            </p>
-            <div className="mt-2 inline-block rounded-lg border border-slate-200 bg-white p-1.5">
-              <QRCodeSVG
-                value={publicUrl}
-                size={QR_CODE_SIZE}
-                title="QR code for public business page"
-                aria-label="QR code for public business page"
-              />
+            <p className="text-xs text-slate-500">Scan to open page</p>
+            <div className="flex w-fit flex-col items-stretch gap-2">
+              <div className="rounded-lg border border-slate-200 bg-white p-1.5">
+                <QRCodeSVG
+                  value={publicUrl}
+                  size={QR_CODE_SIZE}
+                  title="QR code for public business page"
+                  aria-label="QR code for public business page"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleDownloadQr}
+                className="inline-flex w-full justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Download QR
+              </button>
             </div>
-            <p className="mt-2 max-w-[11rem] text-xs text-slate-500">
-              This QR code stays valid as long as your public page link does not change.
-            </p>
+            {qrDownloadStatus === "failed" ? (
+              <p className="max-w-[11rem] text-xs text-amber-700 sm:text-sm" role="status">
+                QR download failed. You can still use the public link.
+              </p>
+            ) : null}
+            <div className="sr-only" aria-hidden="true">
+              <QRCodeCanvas ref={qrCanvasRef} value={publicUrl} size={QR_CODE_SIZE} />
+            </div>
           </div>
         </div>
       ) : (

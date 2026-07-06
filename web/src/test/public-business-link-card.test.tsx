@@ -1,15 +1,31 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import React from "react";
 import { DEMO_SLUG } from "@/test/mock-fixtures";
 
 vi.mock("qrcode.react", () => ({
   QRCodeSVG: ({ value, title }: { value: string; title?: string }) => (
     <svg data-testid="public-business-qr" data-value={value} aria-label={title} />
   ),
+  QRCodeCanvas: React.forwardRef<HTMLCanvasElement, { value: string; size?: number }>(
+    ({ value, size }, ref) => (
+      <canvas
+        ref={ref}
+        data-testid="public-business-qr-canvas"
+        data-value={value}
+        width={size}
+        height={size}
+      />
+    ),
+  ),
 }));
 
-import { PublicBusinessLinkCard } from "@/components/admin/PublicBusinessLinkCard";
+import {
+  PublicBusinessLinkCard,
+  buildQrDownloadFilename,
+  downloadQrPngFromCanvas,
+} from "@/components/admin/PublicBusinessLinkCard";
 
 const DEMO_BUSINESS_NAME = "Demo Service Business";
 
@@ -90,6 +106,7 @@ describe("PublicBusinessLinkCard", () => {
     expect(screen.queryByRole("link", { name: "Preview page" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Copy link" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Share" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Download QR" })).not.toBeInTheDocument();
     expect(screen.queryByTestId("public-business-qr-section")).not.toBeInTheDocument();
   });
 
@@ -260,12 +277,13 @@ describe("PublicBusinessLinkCard", () => {
 
     expect(screen.getByTestId("public-business-qr-section")).toBeInTheDocument();
     expect(screen.getByText("QR code")).toBeInTheDocument();
+    expect(screen.getByText("Scan to open page")).toBeInTheDocument();
     expect(
-      screen.getByText("Clients can scan this code to open your public page."),
-    ).toBeInTheDocument();
+      screen.queryByText("Clients can scan this code to open your public page."),
+    ).not.toBeInTheDocument();
     expect(
-      screen.getByText("This QR code stays valid as long as your public page link does not change."),
-    ).toBeInTheDocument();
+      screen.queryByText("This QR code stays valid as long as your public page link does not change."),
+    ).not.toBeInTheDocument();
     expect(screen.getByLabelText("QR code for public business page")).toBeInTheDocument();
   });
 
@@ -273,5 +291,77 @@ describe("PublicBusinessLinkCard", () => {
     render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
 
     expect(screen.getByTestId("public-business-qr")).toHaveAttribute("data-value", publicUrl);
+  });
+
+  it("renders Download QR button when slug exists", () => {
+    render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
+
+    expect(screen.getByRole("button", { name: "Download QR" })).toBeInTheDocument();
+    expect(screen.getByTestId("public-business-qr-canvas")).toHaveAttribute("data-value", publicUrl);
+  });
+
+  it("builds a stable QR download filename from business slug", () => {
+    expect(buildQrDownloadFilename(DEMO_SLUG)).toBe(`${DEMO_SLUG}-qr-code.png`);
+  });
+
+  it("triggers PNG download with the expected filename", async () => {
+    const user = userEvent.setup();
+    const clickSpy = vi.fn();
+    const downloadAnchor = { current: null as HTMLAnchorElement | null };
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
+      if (tagName === "a") {
+        const anchor = originalCreateElement("a");
+        anchor.click = clickSpy;
+        downloadAnchor.current = anchor;
+        return anchor;
+      }
+      return originalCreateElement(tagName);
+    });
+    const toDataURLSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, "toDataURL")
+      .mockReturnValue("data:image/png;base64,test");
+
+    render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
+    await user.click(screen.getByRole("button", { name: "Download QR" }));
+
+    expect(toDataURLSpy).toHaveBeenCalledWith("image/png");
+    expect(clickSpy).toHaveBeenCalled();
+    expect(downloadAnchor.current).not.toBeNull();
+    expect(downloadAnchor.current?.download).toBe(`${DEMO_SLUG}-qr-code.png`);
+    expect(downloadAnchor.current?.href).toBe("data:image/png;base64,test");
+
+    createElementSpy.mockRestore();
+    toDataURLSpy.mockRestore();
+  });
+
+  it("shows fallback message when QR download fails", async () => {
+    const user = userEvent.setup();
+    const toDataURLSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, "toDataURL")
+      .mockImplementation(() => {
+        throw new Error("canvas export failed");
+      });
+
+    render(<PublicBusinessLinkCard businessSlug={DEMO_SLUG} />);
+    await user.click(screen.getByRole("button", { name: "Download QR" }));
+
+    expect(
+      screen.getByText("QR download failed. You can still use the public link."),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("public-business-url")).toHaveTextContent(publicUrl);
+
+    toDataURLSpy.mockRestore();
+  });
+
+  it("downloadQrPngFromCanvas returns false when canvas export fails", () => {
+    const canvas = document.createElement("canvas");
+    const toDataURLSpy = vi.spyOn(canvas, "toDataURL").mockImplementation(() => {
+      throw new Error("export failed");
+    });
+
+    expect(downloadQrPngFromCanvas(canvas, `${DEMO_SLUG}-qr-code.png`)).toBe(false);
+
+    toDataURLSpy.mockRestore();
   });
 });
