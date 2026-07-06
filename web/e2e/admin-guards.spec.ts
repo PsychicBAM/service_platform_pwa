@@ -7,6 +7,10 @@ test.describe("admin access guards", () => {
     await page.goto("/admin");
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
     await expect(page.getByText(`Overview for ${DEMO.businessName}`)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Public business page" })).toBeVisible();
+    const previewLink = page.getByRole("link", { name: "Preview page" });
+    await expect(previewLink).toBeVisible();
+    await expect(previewLink).toHaveAttribute("href", `/b/${DEMO.slug}`);
 
     await page.goto("/admin/services");
     await expect(page.getByRole("heading", { name: "Services" })).toBeVisible();

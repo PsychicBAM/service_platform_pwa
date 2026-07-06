@@ -88,6 +88,14 @@ describe("admin pages smoke", () => {
 
     expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByText(`Overview for ${mockAdminBusiness.name}`)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Public business page" })).toBeInTheDocument();
+    expect(screen.getByTestId("public-business-url")).toHaveTextContent(
+      `/b/${mockAdminBusiness.slug}`,
+    );
+    expect(screen.getByRole("link", { name: "Preview page" })).toHaveAttribute(
+      "href",
+      `/b/${mockAdminBusiness.slug}`,
+    );
     expect(screen.getByText("Appointments and requests")).toBeInTheDocument();
   });
 

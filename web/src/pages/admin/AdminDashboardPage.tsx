@@ -17,6 +17,7 @@ import {
   type DashboardRecentItem,
 } from "@/components/admin/DashboardRecentList";
 import { DashboardStatCard } from "@/components/admin/DashboardStatCard";
+import { PublicBusinessLinkCard } from "@/components/admin/PublicBusinessLinkCard";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { useAdminBusiness } from "@/hooks/useAdminBusiness";
@@ -231,6 +232,8 @@ export function AdminDashboardPage() {
         <h2 className="text-xl font-bold text-slate-900">Dashboard</h2>
         <p className="mt-1 text-sm text-slate-600">Overview for {business.name}</p>
       </div>
+
+      <PublicBusinessLinkCard businessName={business.name} businessSlug={business.slug} />
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
