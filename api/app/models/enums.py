@@ -41,6 +41,11 @@ class SubscriptionStatus(str, enum.Enum):
     trialing = "trialing"
 
 
+class PublicPageVariant(str, enum.Enum):
+    standard = "standard"
+    mini_site = "mini_site"
+
+
 class ServiceType(str, enum.Enum):
     booking = "booking"
     order = "order"

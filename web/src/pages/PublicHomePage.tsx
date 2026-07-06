@@ -1,10 +1,11 @@
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getPublicBusiness } from "@/api/publicApi";
+import { getPublicBusiness, listPublicServices } from "@/api/publicApi";
+import { ProMiniSiteLayout } from "@/components/public/ProMiniSiteLayout";
+import { StandardPublicBusinessHome } from "@/components/public/StandardPublicBusinessHome";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { PricingSection } from "@/components/PricingSection";
-import type { OperatingMode } from "@/types/api";
 import { getApiErrorMessage, isNotFoundError } from "@/utils/errors";
 
 const DEMO_SLUG = "demo-business";
@@ -107,46 +108,23 @@ function WelcomeLanding() {
   );
 }
 
-function modeCopy(mode: OperatingMode) {
-  switch (mode) {
-    case "booking_only":
-      return {
-        intro: "Book appointments and manage your visits.",
-        bookingsLabel: "📅 My bookings",
-        ordersLabel: null,
-      };
-    case "orders_only":
-      return {
-        intro: "Browse services and submit requests online.",
-        bookingsLabel: null,
-        ordersLabel: "📝 My requests",
-      };
-    default:
-      return {
-        intro: "Book appointments or submit service requests in one place.",
-        bookingsLabel: "📅 My bookings",
-        ordersLabel: "📝 My requests",
-      };
-  }
-}
-
-export function PublicHomePage() {
-  const { slug } = useParams<{ slug?: string }>();
-
-  if (!slug) {
-    return <WelcomeLanding />;
-  }
-
-  return <BusinessHomeContent slug={slug} />;
-}
-
 function BusinessHomeContent({ slug }: { slug: string }) {
-  const { data, isLoading, isError, error } = useQuery({
+  const businessQuery = useQuery({
     queryKey: ["public-business", slug],
     queryFn: () => getPublicBusiness(slug),
   });
 
-  if (isLoading) {
+  const isMiniSite = businessQuery.data?.public_page_variant === "mini_site";
+
+  const servicesQuery = useQuery({
+    queryKey: ["public-services", slug],
+    queryFn: () => listPublicServices(slug),
+    enabled: isMiniSite,
+  });
+
+  const { data, isLoading, isError, error } = businessQuery;
+
+  if (isLoading || (isMiniSite && servicesQuery.isLoading)) {
     return <LoadingState message="Loading business…" />;
   }
 
@@ -163,80 +141,34 @@ function BusinessHomeContent({ slug }: { slug: string }) {
     return <ErrorState title="Could not load business" message="No data returned." />;
   }
 
-  // TODO(Phase 10 Slice 3F): Wire ProMiniSiteLayout when PublicBusiness includes a public-safe
-  // subscription plan (planned in Slice 3D). Example:
-  // data.plan === "pro" ? (
-  //   <ProMiniSiteLayout business={data} publicSlug={slug} services={services} />
-  // ) : (
-  //   <Standard layout below />
-  // )
-  // PublicBusinessRead does not expose plan today, so all businesses keep the standard layout.
+  if (isMiniSite) {
+    if (servicesQuery.isError) {
+      return (
+        <ErrorState
+          title="Could not load services"
+          message={getApiErrorMessage(servicesQuery.error, "Unable to load services")}
+        />
+      );
+    }
 
-  const copy = modeCopy(data.operating_mode);
+    return (
+      <ProMiniSiteLayout
+        business={data}
+        publicSlug={slug}
+        services={servicesQuery.data ?? []}
+      />
+    );
+  }
 
-  return (
-    <section className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-        <div className="flex items-start gap-4">
-          {data.logo_url ? (
-            <img
-              src={data.logo_url}
-              alt=""
-              className="h-14 w-14 rounded-xl object-cover md:h-16 md:w-16"
-            />
-          ) : (
-            <div
-              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-xl font-bold text-brand-700 md:h-16 md:w-16 md:text-2xl"
-              aria-hidden
-            >
-              {data.name.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Business</p>
-            <h1 className="mt-1 text-2xl font-bold text-slate-900 md:text-3xl">{data.name}</h1>
-          </div>
-        </div>
-        <p className="mt-4 text-sm text-slate-600 md:text-base">{copy.intro}</p>
-        {data.description ? (
-          <p className="mt-2 text-sm text-slate-600">{data.description}</p>
-        ) : null}
-        {data.address ? (
-          <p className="mt-3 text-sm text-slate-500">{data.address}</p>
-        ) : null}
-        {data.contact_phone ? (
-          <p className="mt-1 text-sm text-slate-500">
-            <a href={`tel:${data.contact_phone}`} className="text-brand-700 hover:underline">
-              {data.contact_phone}
-            </a>
-          </p>
-        ) : null}
-      </div>
+  return <StandardPublicBusinessHome business={data} slug={slug} />;
+}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Link
-          to={`/b/${slug}/services`}
-          className="rounded-xl bg-brand-600 px-4 py-3 text-center font-medium text-white hover:bg-brand-700 sm:col-span-2 lg:col-span-1"
-        >
-          📋 Choose service
-        </Link>
-        {copy.bookingsLabel ? (
-          <Link
-            to="/me/bookings"
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-800 hover:bg-slate-50"
-          >
-            {copy.bookingsLabel}
-          </Link>
-        ) : null}
-        {copy.ordersLabel ? (
-          <Link
-            to="/me/orders"
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-800 hover:bg-slate-50"
-          >
-            {copy.ordersLabel}
-          </Link>
-        ) : null}
-      </div>
-    </section>
-  );
+export function PublicHomePage() {
+  const { slug } = useParams<{ slug?: string }>();
+
+  if (!slug) {
+    return <WelcomeLanding />;
+  }
+
+  return <BusinessHomeContent slug={slug} />;
 }

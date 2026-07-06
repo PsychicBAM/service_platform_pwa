@@ -239,6 +239,7 @@ async def test_public_business_returns_safe_fields_only(
         "operating_mode",
         "contact_phone",
         "address",
+        "public_page_variant",
     }
     assert body["name"] == "Joe's Salon"
 

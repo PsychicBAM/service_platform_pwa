@@ -10,6 +10,8 @@ export interface ApiErrorBody {
   };
 }
 
+export type PublicPageVariant = "standard" | "mini_site";
+
 export interface PublicBusiness {
   id: string;
   name: string;
@@ -19,6 +21,7 @@ export interface PublicBusiness {
   operating_mode: OperatingMode;
   contact_phone: string | null;
   address: string | null;
+  public_page_variant: PublicPageVariant;
 }
 
 export interface PublicService {

@@ -33,6 +33,38 @@ describe("public pages smoke", () => {
     });
 
     expect(await screen.findByRole("heading", { name: mockPublicBusiness.name })).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-business-home")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /choose service/i })).toHaveAttribute(
+      "href",
+      `/b/${DEMO_SLUG}/services`,
+    );
+  });
+
+  it("A2. renders Pro mini-site layout when public_page_variant is mini_site", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
+      ...mockPublicBusiness,
+      public_page_variant: "mini_site",
+    });
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([
+      mockBookingService,
+      mockOrderService,
+    ]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("pro-mini-site-layout")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-book-cta")).toHaveAttribute(
+      "href",
+      `/b/${DEMO_SLUG}/services`,
+    );
+    expect(screen.getByTestId("pro-mini-site-request-cta")).toHaveAttribute(
+      "href",
+      `/b/${DEMO_SLUG}/services/${ORDER_SERVICE_ID}/request`,
+    );
+    expect(screen.queryByTestId("standard-public-business-home")).not.toBeInTheDocument();
   });
 
   it("B. renders booking and order service cards", async () => {

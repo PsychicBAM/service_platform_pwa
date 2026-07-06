@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from app.models.enums import BusinessStatus, OperatingMode, SubscriptionPlan, SubscriptionStatus
+from app.models.enums import BusinessStatus, OperatingMode, PublicPageVariant, SubscriptionPlan, SubscriptionStatus
 from app.repositories.business_repository import DEFAULT_BUSINESS_SETTINGS
 
 
@@ -162,3 +162,4 @@ class PublicBusinessRead(BaseModel):
     operating_mode: OperatingMode
     contact_phone: str | None
     address: str | None
+    public_page_variant: PublicPageVariant

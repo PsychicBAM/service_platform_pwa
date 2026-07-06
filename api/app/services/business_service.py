@@ -8,6 +8,7 @@ from app.exceptions.business import BusinessNotFoundError, InvalidTimezoneError
 from app.models.business import Business
 from app.models.subscription import Subscription
 from app.repositories.business_repository import BusinessRepository
+from app.utils.public_page_variant import resolve_public_page_variant
 from app.schemas.business import (
     BusinessAdminRead,
     BusinessSettingsRead,
@@ -51,6 +52,7 @@ class BusinessService:
         business = await self.repo.get_public_by_slug(slug)
         if business is None:
             raise BusinessNotFoundError()
+        subscription = await self.repo.get_subscription(business.id)
         return PublicBusinessRead(
             id=business.id,
             name=business.name,
@@ -60,6 +62,7 @@ class BusinessService:
             operating_mode=business.operating_mode,
             contact_phone=business.contact_phone,
             address=business.address,
+            public_page_variant=resolve_public_page_variant(subscription),
         )
 
     @staticmethod

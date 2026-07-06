@@ -28,6 +28,7 @@ export const mockPublicBusiness: PublicBusiness = {
   operating_mode: "both",
   contact_phone: "+10000000001",
   address: "123 Demo Street",
+  public_page_variant: "standard",
 };
 
 export const mockBookingService: PublicService = {
