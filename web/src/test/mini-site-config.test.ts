@@ -133,7 +133,7 @@ describe("mini-site config helpers", () => {
 
     const hero = config.sections.find((section) => section.type === "hero");
     expect(hero?.title).toBe("scriptalert(1)/scriptSafe title");
-    expect(hero?.body).toBe("bHellob world");
+    expect(hero?.body).toBe("bHello/b world");
     expect(hero?.title).not.toMatch(/[<>]/);
     expect(hero?.body).not.toMatch(/[<>]/);
   });
