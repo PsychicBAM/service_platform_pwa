@@ -160,20 +160,29 @@ describe("ProMiniSiteLayout", () => {
     expect(within(servicesSection).getByRole("heading", { name: mockOrderService.name })).toBeInTheDocument();
   });
 
-  it("renders Media gallery coming soon placeholder", () => {
-    renderProMiniSiteLayout();
+  it("renders Media gallery coming soon placeholder when gallery section is enabled", () => {
+    renderProMiniSiteLayout({ config: createSavedMiniSiteConfig() });
 
     expect(screen.getByTestId("pro-mini-site-gallery-placeholder")).toHaveTextContent(
       "Media gallery coming soon",
     );
   });
 
+  it("does not render gallery placeholder when gallery section is disabled", () => {
+    renderProMiniSiteLayout();
+
+    expect(screen.queryByTestId("pro-mini-site-gallery-placeholder")).not.toBeInTheDocument();
+  });
+
   it("does not require media fields", () => {
     renderProMiniSiteLayout({
       business: { ...mockPublicBusiness, logo_url: null },
+      config: createSavedMiniSiteConfig(),
     });
 
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/upload/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /upload/i })).not.toBeInTheDocument();
     expect(screen.getByTestId("pro-mini-site-gallery-placeholder")).toBeInTheDocument();
   });
 
