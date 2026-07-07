@@ -1,0 +1,459 @@
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getMiniSiteConfig, updateMiniSiteConfig } from "@/api/miniSiteApi";
+import { ErrorState } from "@/components/ErrorState";
+import { LoadingState } from "@/components/LoadingState";
+import { normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
+  MiniSiteBackgroundStyle,
+  MiniSiteButtonStyle,
+  MiniSiteConfig,
+  MiniSiteSectionType,
+  MiniSiteTemplate,
+} from "@/types/miniSite";
+import {
+  MINI_SITE_BACKGROUND_STYLES,
+  MINI_SITE_BUTTON_STYLES,
+  MINI_SITE_TEMPLATES,
+} from "@/types/miniSite";
+import { getAdminSettingsErrorMessage } from "@/utils/errors";
+
+type MiniSiteEditorCardProps = {
+  businessId: string;
+};
+
+function getSectionField(
+  config: MiniSiteConfig,
+  type: MiniSiteSectionType,
+  field: "title" | "subtitle" | "body",
+): string {
+  const section = config.sections.find((entry) => entry.type === type);
+  return section?.[field] ?? "";
+}
+
+function updateSectionField(
+  config: MiniSiteConfig,
+  type: MiniSiteSectionType,
+  field: "title" | "subtitle" | "body",
+  value: string,
+): MiniSiteConfig {
+  return {
+    ...config,
+    sections: config.sections.map((section) =>
+      section.type === type ? { ...section, [field]: value || undefined } : section,
+    ),
+  };
+}
+
+function FieldLabel({
+  children,
+  htmlFor,
+}: {
+  children: string;
+  htmlFor: string;
+}) {
+  return (
+    <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700">
+      {children}
+    </label>
+  );
+}
+
+function TextInput({
+  id,
+  value,
+  onChange,
+  disabled,
+  placeholder,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
+}) {
+  return (
+    <input
+      id={id}
+      type="text"
+      value={value}
+      disabled={disabled}
+      placeholder={placeholder}
+      onChange={(event) => onChange(event.target.value)}
+      className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60"
+      data-testid={id}
+    />
+  );
+}
+
+function DisabledMediaField({
+  id,
+  label,
+  placeholder,
+  hint,
+}: {
+  id: string;
+  label: string;
+  placeholder: string;
+  hint: string;
+}) {
+  return (
+    <div>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <input
+        id={id}
+        type="text"
+        disabled
+        readOnly
+        placeholder={placeholder}
+        className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 disabled:cursor-not-allowed"
+        data-testid={id}
+      />
+      <p className="mt-1 text-xs text-slate-500" data-testid={`${id}-hint`}>
+        {hint}
+      </p>
+    </div>
+  );
+}
+
+export function MiniSiteEditorCard({ businessId }: MiniSiteEditorCardProps) {
+  const queryClient = useQueryClient();
+  const [draft, setDraft] = useState<MiniSiteConfig | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const configQuery = useQuery({
+    queryKey: ["mini-site-config", businessId],
+    queryFn: () => getMiniSiteConfig(businessId),
+    enabled: Boolean(businessId),
+  });
+
+  useEffect(() => {
+    if (configQuery.data) {
+      setDraft(normalizeMiniSiteConfig(configQuery.data));
+    }
+  }, [configQuery.data]);
+
+  const saveMutation = useMutation({
+    mutationFn: (config: MiniSiteConfig) => updateMiniSiteConfig(businessId, config),
+    onSuccess: async (data) => {
+      setDraft(normalizeMiniSiteConfig(data));
+      await queryClient.invalidateQueries({ queryKey: ["mini-site-config", businessId] });
+    },
+  });
+
+  const saving = saveMutation.isPending;
+  const canSave = Boolean(draft) && !configQuery.isLoading && !saving;
+
+  async function handleSave() {
+    if (!draft) {
+      return;
+    }
+    setSaveSuccess(false);
+    setSaveError(null);
+    const normalized = normalizeMiniSiteConfig(draft);
+    try {
+      await saveMutation.mutateAsync(normalized);
+      setSaveSuccess(true);
+    } catch (error) {
+      setSaveError(
+        getAdminSettingsErrorMessage(error, "Could not save mini-site profile."),
+      );
+    }
+  }
+
+  if (configQuery.isLoading) {
+    return (
+      <div data-testid="mini-site-editor-loading">
+        <LoadingState message="Loading mini-site profile…" />
+      </div>
+    );
+  }
+
+  if (configQuery.isError) {
+    return (
+      <ErrorState
+        title="Could not load mini-site profile"
+        message={getAdminSettingsErrorMessage(
+          configQuery.error,
+          "Unable to load mini-site profile.",
+        )}
+      />
+    );
+  }
+
+  if (!draft) {
+    return (
+      <div data-testid="mini-site-editor-loading">
+        <LoadingState message="Preparing editor…" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4" data-testid="mini-site-editor">
+      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Theme</p>
+
+        <label htmlFor="mini-site-template" className="block text-sm">
+          <span className="font-medium text-slate-700">Template</span>
+          <select
+            id="mini-site-template"
+            value={draft.theme.template}
+            disabled={saving}
+            onChange={(event) =>
+              setDraft({
+                ...draft,
+                theme: {
+                  ...draft.theme,
+                  template: event.target.value as MiniSiteTemplate,
+                },
+              })
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+            data-testid="mini-site-template"
+          >
+            {MINI_SITE_TEMPLATES.map((template) => (
+              <option key={template} value={template}>
+                {template}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <FieldLabel htmlFor="mini-site-primary-color">Primary color</FieldLabel>
+            <TextInput
+              id="mini-site-primary-color"
+              value={draft.theme.primaryColor}
+              disabled={saving}
+              placeholder="#2563eb"
+              onChange={(value) =>
+                setDraft({
+                  ...draft,
+                  theme: { ...draft.theme, primaryColor: value },
+                })
+              }
+            />
+          </div>
+          <div>
+            <FieldLabel htmlFor="mini-site-accent-color">Accent color</FieldLabel>
+            <TextInput
+              id="mini-site-accent-color"
+              value={draft.theme.accentColor}
+              disabled={saving}
+              placeholder="#7c3aed"
+              onChange={(value) =>
+                setDraft({
+                  ...draft,
+                  theme: { ...draft.theme, accentColor: value },
+                })
+              }
+            />
+          </div>
+        </div>
+
+        <label htmlFor="mini-site-background-style" className="block text-sm">
+          <span className="font-medium text-slate-700">Background style</span>
+          <select
+            id="mini-site-background-style"
+            value={draft.theme.backgroundStyle}
+            disabled={saving}
+            onChange={(event) =>
+              setDraft({
+                ...draft,
+                theme: {
+                  ...draft.theme,
+                  backgroundStyle: event.target.value as MiniSiteBackgroundStyle,
+                },
+              })
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+            data-testid="mini-site-background-style"
+          >
+            {MINI_SITE_BACKGROUND_STYLES.map((style) => (
+              <option key={style} value={style}>
+                {style}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label htmlFor="mini-site-button-style" className="block text-sm">
+          <span className="font-medium text-slate-700">Button style</span>
+          <select
+            id="mini-site-button-style"
+            value={draft.theme.buttonStyle}
+            disabled={saving}
+            onChange={(event) =>
+              setDraft({
+                ...draft,
+                theme: {
+                  ...draft.theme,
+                  buttonStyle: event.target.value as MiniSiteButtonStyle,
+                },
+              })
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+            data-testid="mini-site-button-style"
+          >
+            {MINI_SITE_BUTTON_STYLES.map((style) => (
+              <option key={style} value={style}>
+                {style}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Hero</p>
+        <div>
+          <FieldLabel htmlFor="mini-site-hero-title">Hero title</FieldLabel>
+          <TextInput
+            id="mini-site-hero-title"
+            value={getSectionField(draft, "hero", "title")}
+            disabled={saving}
+            onChange={(value) =>
+              setDraft(updateSectionField(draft, "hero", "title", value))
+            }
+          />
+        </div>
+        <div>
+          <FieldLabel htmlFor="mini-site-hero-subtitle">Hero subtitle</FieldLabel>
+          <TextInput
+            id="mini-site-hero-subtitle"
+            value={getSectionField(draft, "hero", "subtitle")}
+            disabled={saving}
+            onChange={(value) =>
+              setDraft(updateSectionField(draft, "hero", "subtitle", value))
+            }
+          />
+        </div>
+        <label htmlFor="mini-site-hero-body" className="block text-sm">
+          <span className="font-medium text-slate-700">Hero body</span>
+          <textarea
+            id="mini-site-hero-body"
+            rows={3}
+            value={getSectionField(draft, "hero", "body")}
+            disabled={saving}
+            onChange={(event) =>
+              setDraft(updateSectionField(draft, "hero", "body", event.target.value))
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+            data-testid="mini-site-hero-body"
+          />
+        </label>
+      </div>
+
+      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">About</p>
+        <div>
+          <FieldLabel htmlFor="mini-site-about-title">About title</FieldLabel>
+          <TextInput
+            id="mini-site-about-title"
+            value={getSectionField(draft, "about", "title")}
+            disabled={saving}
+            onChange={(value) =>
+              setDraft(updateSectionField(draft, "about", "title", value))
+            }
+          />
+        </div>
+        <label htmlFor="mini-site-about-body" className="block text-sm">
+          <span className="font-medium text-slate-700">About body</span>
+          <textarea
+            id="mini-site-about-body"
+            rows={3}
+            value={getSectionField(draft, "about", "body")}
+            disabled={saving}
+            onChange={(event) =>
+              setDraft(updateSectionField(draft, "about", "body", event.target.value))
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+            data-testid="mini-site-about-body"
+          />
+        </label>
+      </div>
+
+      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          Social links
+        </p>
+        <div>
+          <FieldLabel htmlFor="mini-site-website">Website</FieldLabel>
+          <TextInput
+            id="mini-site-website"
+            value={draft.socialLinks.website ?? ""}
+            disabled={saving}
+            placeholder="https://example.com"
+            onChange={(value) =>
+              setDraft({
+                ...draft,
+                socialLinks: { ...draft.socialLinks, website: value || undefined },
+              })
+            }
+          />
+        </div>
+        <div>
+          <FieldLabel htmlFor="mini-site-instagram">Instagram</FieldLabel>
+          <TextInput
+            id="mini-site-instagram"
+            value={draft.socialLinks.instagram ?? ""}
+            disabled={saving}
+            placeholder="https://instagram.com/your-handle"
+            onChange={(value) =>
+              setDraft({
+                ...draft,
+                socialLinks: { ...draft.socialLinks, instagram: value || undefined },
+              })
+            }
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Media</p>
+        <DisabledMediaField
+          id="mini-site-logo-upload"
+          label="Logo"
+          placeholder="Logo upload coming soon"
+          hint="Logo upload coming soon."
+        />
+        <DisabledMediaField
+          id="mini-site-cover-upload"
+          label="Cover image"
+          placeholder="Cover image upload coming soon"
+          hint="Cover image upload coming soon."
+        />
+        <p className="text-sm text-slate-500" data-testid="public-profile-media-placeholder">
+          Gallery and media uploads are coming soon.
+        </p>
+      </div>
+
+      {saveSuccess ? (
+        <p
+          className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
+          data-testid="mini-site-editor-save-success"
+        >
+          Mini-site profile saved.
+        </p>
+      ) : null}
+
+      {saveError ? (
+        <div data-testid="mini-site-editor-save-error">
+          <ErrorState title="Could not save mini-site profile" message={saveError} />
+        </div>
+      ) : null}
+
+      <button
+        type="button"
+        disabled={!canSave}
+        onClick={handleSave}
+        className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+        data-testid="public-profile-save-button"
+      >
+        {saving ? "Saving…" : "Save mini-site profile"}
+      </button>
+    </div>
+  );
+}

@@ -613,7 +613,10 @@ export function AdminSettingsPage() {
             ) : null}
           </div>
 
-          <PublicProfileSettingsCard currentPlan={data.subscription?.plan} />
+          <PublicProfileSettingsCard
+            businessId={businessId!}
+            currentPlan={data.subscription?.plan}
+          />
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-sm">
             <h3 className="font-medium text-slate-700">Read-only</h3>

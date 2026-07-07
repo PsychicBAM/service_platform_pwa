@@ -5,9 +5,11 @@ import userEvent from "@testing-library/user-event";
 import { ApiClientError } from "@/api/client";
 import * as adminApi from "@/api/adminApi";
 import * as billingApi from "@/api/billingApi";
+import * as miniSiteApi from "@/api/miniSiteApi";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
 import { AdminBusinessProvider } from "@/hooks/useAdminBusiness";
 import { useAuth } from "@/hooks/useAuth";
+import { DEFAULT_MINI_SITE_CONFIG } from "@/lib/miniSiteConfig";
 import { mockAdminBusiness, mockOwnerUser } from "@/test/mock-fixtures";
 import { mockAuthenticatedAuth, renderRoute } from "@/test/test-utils";
 
@@ -18,6 +20,10 @@ vi.mock("@/api/adminApi", () => ({
 }));
 vi.mock("@/api/billingApi", () => ({
   createBillingCheckoutSession: vi.fn(),
+}));
+vi.mock("@/api/miniSiteApi", () => ({
+  getMiniSiteConfig: vi.fn(),
+  updateMiniSiteConfig: vi.fn(),
 }));
 
 function renderSettingsPage(page: ReactElement = <AdminSettingsPage />) {
@@ -42,6 +48,7 @@ describe("admin billing checkout", () => {
         selected_plan_intent: "business",
       },
     });
+    vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue(DEFAULT_MINI_SITE_CONFIG);
   });
 
   afterEach(() => {
@@ -66,7 +73,7 @@ describe("admin billing checkout", () => {
     expect(screen.getByText(/Pro tools are being prepared/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Public profile" })).toBeInTheDocument();
     expect(screen.getByTestId("public-profile-settings-card")).toBeInTheDocument();
-    expect(screen.getByTestId("public-profile-save-button")).toBeDisabled();
+    expect(await screen.findByTestId("public-profile-save-button")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Start Starter checkout" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start Business checkout" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start Pro checkout" })).toBeInTheDocument();
