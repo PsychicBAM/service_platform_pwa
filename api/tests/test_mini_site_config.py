@@ -1,0 +1,181 @@
+"""Unit tests for mini-site config schemas and normalization helpers."""
+
+from __future__ import annotations
+
+from app.schemas.mini_site import MiniSiteConfig
+from app.utils.mini_site_config import (
+    default_mini_site_config,
+    get_enabled_mini_site_sections,
+    normalize_mini_site_config,
+)
+
+
+def _section_types(config: MiniSiteConfig) -> list[str]:
+    return [section.type for section in config.sections]
+
+
+def test_default_config_version_is_one() -> None:
+    config = default_mini_site_config()
+    assert config.version == 1
+
+
+def test_default_config_includes_required_sections() -> None:
+    types = _section_types(default_mini_site_config())
+    assert "hero" in types
+    assert "services" in types
+    assert "contact" in types
+    assert "booking_cta" in types
+
+
+def test_normalize_handles_none_and_bad_input_safely() -> None:
+    for value in (None, "not-json", 42, []):
+        config = normalize_mini_site_config(value)
+        assert config.version == 1
+        assert config.theme.template == "clean"
+        assert len(config.sections) > 0
+        assert config.social_links.model_dump() == {
+            "website": None,
+            "instagram": None,
+            "facebook": None,
+            "whatsapp": None,
+            "tiktok": None,
+            "telegram": None,
+        }
+
+
+def test_unknown_section_types_are_ignored() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [
+                {"id": "hero", "type": "hero", "enabled": True, "order": 0, "title": "Hi"},
+                {"id": "bad", "type": "webflow_canvas", "enabled": True, "order": 1},
+                {"id": "contact", "type": "contact", "enabled": True, "order": 2},
+            ],
+            "social_links": {},
+        },
+    )
+
+    assert "webflow_canvas" not in _section_types(config)
+    assert "hero" in _section_types(config)
+    assert "contact" in _section_types(config)
+
+
+def test_sections_are_sorted_by_order() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [
+                {"id": "contact", "type": "contact", "enabled": True, "order": 20},
+                {"id": "hero", "type": "hero", "enabled": True, "order": 0},
+                {"id": "services", "type": "services", "enabled": True, "order": 10},
+            ],
+            "social_links": {},
+        },
+    )
+
+    orders = [section.order for section in config.sections]
+    assert orders == sorted(orders)
+
+
+def test_missing_required_sections_are_added() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [
+                {"id": "hero", "type": "hero", "enabled": True, "order": 0, "title": "Only hero"},
+            ],
+            "social_links": {},
+        },
+    )
+
+    types = _section_types(config)
+    assert "about" in types
+    assert "services" in types
+    assert "contact" in types
+    assert "booking_cta" in types
+
+
+def test_get_enabled_sections_returns_enabled_only_in_order() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [
+                {"id": "hero", "type": "hero", "enabled": True, "order": 0},
+                {"id": "about", "type": "about", "enabled": False, "order": 1},
+                {"id": "services", "type": "services", "enabled": False, "order": 2},
+                {"id": "gallery", "type": "gallery", "enabled": False, "order": 3},
+                {"id": "contact", "type": "contact", "enabled": True, "order": 4},
+                {"id": "booking_cta", "type": "booking_cta", "enabled": False, "order": 5},
+            ],
+            "social_links": {},
+        },
+    )
+
+    enabled = get_enabled_mini_site_sections(config)
+    assert all(section.enabled for section in enabled)
+    assert [section.type for section in enabled] == ["hero", "contact"]
+
+
+def test_obvious_html_tags_are_stripped_from_text_fields() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [
+                {
+                    "id": "hero",
+                    "type": "hero",
+                    "enabled": True,
+                    "order": 0,
+                    "title": "<script>alert(1)</script>Safe title",
+                    "body": "<b>Hello</b> world",
+                },
+            ],
+            "social_links": {},
+        },
+    )
+
+    hero = next(section for section in config.sections if section.type == "hero")
+    assert hero.title == "alert(1)Safe title"
+    assert hero.body == "Hello world"
+
+
+def test_malformed_items_do_not_crash_normalization() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [
+                {
+                    "id": "hero",
+                    "type": "hero",
+                    "enabled": True,
+                    "order": 0,
+                    "items": [
+                        "not-a-dict",
+                        None,
+                        42,
+                        {"label": "<b>Valid</b>"},
+                        {"unexpected": "ignored"},
+                    ],
+                },
+            ],
+            "social_links": {},
+        },
+    )
+
+    hero = next(section for section in config.sections if section.type == "hero")
+    assert hero.items is not None
+    assert len(hero.items) == 1
+    assert hero.items[0].label == "Valid"
