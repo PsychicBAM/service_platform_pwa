@@ -24,7 +24,7 @@ export interface PublicBusiness {
   contact_phone: string | null;
   address: string | null;
   public_page_variant: PublicPageVariant;
-  mini_site_config: MiniSiteConfig | null;
+  miniSiteConfig: MiniSiteConfig | null;
 }
 
 export interface PublicService {

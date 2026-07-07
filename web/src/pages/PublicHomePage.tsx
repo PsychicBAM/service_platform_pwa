@@ -156,7 +156,7 @@ function BusinessHomeContent({ slug }: { slug: string }) {
         business={data}
         publicSlug={slug}
         services={servicesQuery.data ?? []}
-        config={data.mini_site_config}
+        config={data.miniSiteConfig}
       />
     );
   }

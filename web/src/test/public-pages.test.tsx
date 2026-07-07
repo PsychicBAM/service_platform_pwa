@@ -7,6 +7,7 @@ import { ServiceDetailPage } from "@/pages/ServiceDetailPage";
 import { OrderRequestPage } from "@/pages/OrderRequestPage";
 import { BookingPage } from "@/pages/BookingPage";
 import * as publicApi from "@/api/publicApi";
+import { mapPublicBusinessFromWire } from "@/api/publicApi";
 import {
   BOOKING_SERVICE_ID,
   DEMO_SLUG,
@@ -47,7 +48,7 @@ describe("public pages smoke", () => {
     vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
       ...mockPublicBusiness,
       public_page_variant: "mini_site",
-      mini_site_config: null,
+      miniSiteConfig: null,
     });
     vi.mocked(publicApi.listPublicServices).mockResolvedValue([
       mockBookingService,
@@ -109,7 +110,7 @@ describe("public pages smoke", () => {
     vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
       ...mockPublicBusiness,
       public_page_variant: "mini_site",
-      mini_site_config: savedConfig,
+      miniSiteConfig: savedConfig,
     });
     vi.mocked(publicApi.listPublicServices).mockResolvedValue([mockBookingService]);
 
@@ -123,6 +124,73 @@ describe("public pages smoke", () => {
     );
     expect(screen.getByTestId("pro-mini-site-hero-body")).toHaveTextContent("Public saved hero body");
     expect(screen.getByTestId("pro-mini-site-about-body")).toHaveTextContent("Public saved about body");
+  });
+
+  it("A4. maps wire snake_case mini_site_config and applies saved theme on public page", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockImplementation(async () =>
+      mapPublicBusinessFromWire({
+        ...mockPublicBusiness,
+        public_page_variant: "mini_site",
+        mini_site_config: {
+          version: 1,
+          theme: {
+            template: "portfolio",
+            primary_color: "#eb2525",
+            accent_color: "#7d0707",
+            background_style: "dark",
+            button_style: "pill",
+            logo_url: null,
+            cover_image_url: null,
+          },
+          sections: [
+            {
+              id: "hero",
+              type: "hero",
+              enabled: true,
+              order: 0,
+              title: "Wire hero title",
+              body: "Wire hero body text",
+            },
+            {
+              id: "about",
+              type: "about",
+              enabled: true,
+              order: 1,
+              title: "About",
+              body: "Wire about body",
+            },
+            { id: "services", type: "services", enabled: true, order: 2 },
+            { id: "contact", type: "contact", enabled: true, order: 3 },
+            { id: "booking_cta", type: "booking_cta", enabled: false, order: 4 },
+          ],
+          social_links: {
+            website: "https://portfolio.example.com",
+            instagram: "@portfolio",
+          },
+        },
+      }),
+    );
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([mockBookingService]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    const layout = await screen.findByTestId("pro-mini-site-layout");
+    expect(layout).toHaveAttribute("data-template", "portfolio");
+    expect(layout).toHaveAttribute("data-background-style", "dark");
+    expect(layout).toHaveAttribute("data-button-style", "pill");
+
+    const bookCta = screen.getByTestId("pro-mini-site-book-cta");
+    expect(bookCta).toHaveStyle({ backgroundColor: "rgb(235, 37, 37)" });
+    expect(bookCta.className).toContain("rounded-full");
+
+    expect(screen.getByTestId("pro-mini-site-hero-body")).toHaveTextContent("Wire hero body text");
+    expect(screen.getByTestId("pro-mini-site-about-body")).toHaveTextContent("Wire about body");
+    expect(screen.getByTestId("pro-mini-site-social-links")).toHaveTextContent(
+      "https://portfolio.example.com",
+    );
   });
 
   it("B. renders booking and order service cards", async () => {
