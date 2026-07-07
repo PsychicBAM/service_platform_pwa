@@ -114,7 +114,7 @@ describe("mini-site config helpers", () => {
     expect(isMiniSiteSectionType(undefined)).toBe(false);
   });
 
-  it("strips HTML from text fields during normalization", () => {
+  it("removes HTML delimiter characters from text fields during normalization", () => {
     const config = normalizeMiniSiteConfig({
       version: 1,
       theme: DEFAULT_MINI_SITE_CONFIG.theme,
@@ -132,7 +132,33 @@ describe("mini-site config helpers", () => {
     });
 
     const hero = config.sections.find((section) => section.type === "hero");
-    expect(hero?.title).toBe("alert(1)Safe title");
-    expect(hero?.body).toBe("Hello world");
+    expect(hero?.title).toBe("scriptalert(1)/scriptSafe title");
+    expect(hero?.body).toBe("bHellob world");
+    expect(hero?.title).not.toMatch(/[<>]/);
+    expect(hero?.body).not.toMatch(/[<>]/);
+  });
+
+  it("sanitizes malformed HTML delimiter input", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: [
+        {
+          id: "hero",
+          type: "hero",
+          enabled: true,
+          order: 0,
+          title: "<script",
+          body: "Hello <b",
+        },
+      ],
+      socialLinks: {},
+    });
+
+    const hero = config.sections.find((section) => section.type === "hero");
+    expect(hero?.title).toBe("script");
+    expect(hero?.body).toBe("Hello b");
+    expect(hero?.title).not.toMatch(/[<>]/);
+    expect(hero?.body).not.toMatch(/[<>]/);
   });
 });

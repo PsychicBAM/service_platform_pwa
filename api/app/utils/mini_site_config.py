@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from app.schemas.mini_site import (
@@ -19,8 +18,6 @@ from app.schemas.mini_site import (
     MiniSiteTemplate,
     MiniSiteTheme,
 )
-
-_HTML_TAG_RE = re.compile(r"<[^>]*>")
 
 # Persisted at Business.settings["mini_site"] as nullable JSON (key absent = no saved config).
 MINI_SITE_SETTINGS_KEY = "mini_site"
@@ -48,6 +45,10 @@ _DEFAULT_SECTION_ORDERS: dict[MiniSiteSectionType, int] = {
 _DEFAULT_THEME = MiniSiteTheme()
 
 
+def _sanitize_plain_text(value: str) -> str:
+    return value.replace("<", "").replace(">", "").strip()
+
+
 def _is_mini_site_template(value: object) -> value is MiniSiteTemplate:
     return isinstance(value, str) and value in MINI_SITE_TEMPLATES
 
@@ -67,7 +68,7 @@ def _is_mini_site_button_style(value: object) -> value is MiniSiteButtonStyle:
 def _sanitize_text(value: object) -> str | None:
     if not isinstance(value, str):
         return None
-    stripped = _HTML_TAG_RE.sub("", value).strip()
+    stripped = _sanitize_plain_text(value)
     return stripped if stripped else None
 
 

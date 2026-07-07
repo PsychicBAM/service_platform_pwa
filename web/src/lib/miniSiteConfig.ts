@@ -15,7 +15,9 @@ import {
   type MiniSiteTheme,
 } from "@/types/miniSite";
 
-const HTML_TAG_RE = /<[^>]*>/g;
+function sanitizePlainText(value: string): string {
+  return value.replace(/[<>]/g, "").trim();
+}
 
 export const REQUIRED_MINI_SITE_SECTION_TYPES: MiniSiteSectionType[] = [
   "hero",
@@ -144,7 +146,7 @@ function sanitizeText(value: unknown): string | undefined {
     return undefined;
   }
 
-  const stripped = value.replace(HTML_TAG_RE, "").trim();
+  const stripped = sanitizePlainText(value);
   return stripped.length > 0 ? stripped : undefined;
 }
 

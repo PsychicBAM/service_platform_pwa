@@ -135,8 +135,10 @@ async def test_save_mini_site_config_normalizes_and_sanitizes_payload(
 
     assert response.status_code == 200
     hero = next(section for section in response.json()["sections"] if section["type"] == "hero")
-    assert hero["title"] == "alert(1)Safe title"
-    assert hero["body"] == "Hello world"
+    assert hero["title"] == "scriptalert(1)/scriptSafe title"
+    assert hero["body"] == "bHellob world"
+    assert "<" not in hero["title"]
+    assert ">" not in hero["title"]
 
 
 @pytest.mark.asyncio

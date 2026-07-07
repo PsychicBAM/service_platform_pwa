@@ -125,7 +125,7 @@ def test_get_enabled_sections_returns_enabled_only_in_order() -> None:
     assert [section.type for section in enabled] == ["hero", "contact"]
 
 
-def test_obvious_html_tags_are_stripped_from_text_fields() -> None:
+def test_html_delimiter_characters_are_removed_from_text_fields() -> None:
     base = default_mini_site_config()
     config = normalize_mini_site_config(
         {
@@ -146,8 +146,41 @@ def test_obvious_html_tags_are_stripped_from_text_fields() -> None:
     )
 
     hero = next(section for section in config.sections if section.type == "hero")
-    assert hero.title == "alert(1)Safe title"
-    assert hero.body == "Hello world"
+    assert hero.title == "scriptalert(1)/scriptSafe title"
+    assert hero.body == "bHellob world"
+    assert "<" not in hero.title
+    assert ">" not in hero.title
+    assert "<" not in hero.body
+    assert ">" not in hero.body
+
+
+def test_malformed_html_delimiter_input_is_sanitized() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [
+                {
+                    "id": "hero",
+                    "type": "hero",
+                    "enabled": True,
+                    "order": 0,
+                    "title": "<script",
+                    "body": "Hello <b",
+                },
+            ],
+            "social_links": {},
+        },
+    )
+
+    hero = next(section for section in config.sections if section.type == "hero")
+    assert hero.title == "script"
+    assert hero.body == "Hello b"
+    assert "<" not in hero.title
+    assert ">" not in hero.title
+    assert "<" not in hero.body
+    assert ">" not in hero.body
 
 
 def test_malformed_items_do_not_crash_normalization() -> None:
@@ -178,4 +211,4 @@ def test_malformed_items_do_not_crash_normalization() -> None:
     hero = next(section for section in config.sections if section.type == "hero")
     assert hero.items is not None
     assert len(hero.items) == 1
-    assert hero.items[0].label == "Valid"
+    assert hero.items[0].label == "bValid/b"
