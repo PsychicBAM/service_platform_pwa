@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApiClientError } from "@/api/client";
 import * as miniSiteApi from "@/api/miniSiteApi";
@@ -200,14 +200,12 @@ describe("PublicProfileSettingsCard", () => {
   });
 
   it("updates live preview when background color changes", async () => {
-    const user = userEvent.setup();
     renderPublicProfileCard("pro");
 
-    await screen.findByTestId("mini-site-background-color");
-    await user.clear(screen.getByTestId("mini-site-background-color"));
-    await user.type(screen.getByTestId("mini-site-background-color"), "#ddeeff");
+    const hexInput = await screen.findByTestId("mini-site-background-color");
+    fireEvent.change(hexInput, { target: { value: "#ddeeff" } });
 
-    expect(screen.getByTestId("mini-site-background-color")).toHaveValue("#ddeeff");
+    expect(hexInput).toHaveValue("#ddeeff");
     expect(screen.getByTestId("mini-site-live-preview")).toHaveAttribute(
       "data-background-color",
       "#ddeeff",

@@ -148,7 +148,6 @@ function SectionHeading({
 function TrustStatsRow({
   stats,
   primaryColor,
-  accentColor,
   isDark,
   surfaceClass,
 }: {
