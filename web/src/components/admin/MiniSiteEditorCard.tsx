@@ -4,16 +4,15 @@ import { getMiniSiteConfig, updateMiniSiteConfig } from "@/api/miniSiteApi";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
-  MiniSiteBackgroundStyle,
-  MiniSiteButtonStyle,
-  MiniSiteConfig,
-  MiniSiteSectionType,
-  MiniSiteTemplate,
-} from "@/types/miniSite";
 import {
   MINI_SITE_BACKGROUND_STYLES,
   MINI_SITE_BUTTON_STYLES,
   MINI_SITE_TEMPLATES,
+  type MiniSiteBackgroundStyle,
+  type MiniSiteButtonStyle,
+  type MiniSiteConfig,
+  type MiniSiteSectionType,
+  type MiniSiteTemplate,
 } from "@/types/miniSite";
 import { getAdminSettingsErrorMessage } from "@/utils/errors";
 
