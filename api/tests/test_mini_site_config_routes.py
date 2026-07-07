@@ -136,7 +136,7 @@ async def test_save_mini_site_config_normalizes_and_sanitizes_payload(
     assert response.status_code == 200
     hero = next(section for section in response.json()["sections"] if section["type"] == "hero")
     assert hero["title"] == "scriptalert(1)/scriptSafe title"
-    assert hero["body"] == "bHellob world"
+    assert hero["body"] == "bHello/b world"
     assert "<" not in hero["title"]
     assert ">" not in hero["title"]
 
