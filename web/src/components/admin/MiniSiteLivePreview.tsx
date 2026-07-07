@@ -32,10 +32,6 @@ function previewMutedTextClass(backgroundStyle: MiniSiteBackgroundStyle): string
   return backgroundStyle === "dark" ? "text-slate-300" : "text-slate-600";
 }
 
-function previewBorderClass(backgroundStyle: MiniSiteBackgroundStyle): string {
-  return backgroundStyle === "dark" ? "border-slate-700/80" : "border-slate-200";
-}
-
 function buttonRadiusClass(buttonStyle: MiniSiteButtonStyle): string {
   switch (buttonStyle) {
     case "pill":
@@ -66,7 +62,6 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const contactTitle = getSectionField(config, "contact", "title") || "Contact";
   const bookingTitle = getSectionField(config, "booking_cta", "title") || "Book now";
   const mutedText = previewMutedTextClass(theme.backgroundStyle);
-  const borderClass = previewBorderClass(theme.backgroundStyle);
   const presentation = getMiniSiteTemplatePresentation(theme.template, theme.backgroundStyle);
   const pageShell = getMiniSitePageShellClass(theme.backgroundStyle);
 
