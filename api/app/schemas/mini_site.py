@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -96,3 +96,14 @@ class MiniSiteConfig(BaseModel):
     theme: MiniSiteTheme
     sections: list[MiniSiteSection]
     social_links: MiniSiteSocialLinks = Field(default_factory=MiniSiteSocialLinks)
+
+
+class MiniSiteConfigWrite(BaseModel):
+    """Permissive admin write payload; normalized and sanitized before persistence."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    version: int | None = None
+    theme: dict[str, Any] | None = None
+    sections: list[Any] | None = None
+    social_links: dict[str, Any] | None = None

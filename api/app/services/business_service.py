@@ -8,6 +8,12 @@ from app.exceptions.business import BusinessNotFoundError, InvalidTimezoneError
 from app.models.business import Business
 from app.models.subscription import Subscription
 from app.repositories.business_repository import BusinessRepository
+from app.utils.mini_site_config import (
+    MINI_SITE_SETTINGS_KEY,
+    normalize_mini_site_config,
+    read_mini_site_config_from_settings,
+    serialize_mini_site_config_for_storage,
+)
 from app.utils.public_page_variant import resolve_public_page_variant
 from app.schemas.business import (
     BusinessAdminRead,
@@ -16,6 +22,7 @@ from app.schemas.business import (
     BusinessUpdate,
     PublicBusinessRead,
 )
+from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite
 
 
 class BusinessService:
@@ -47,6 +54,22 @@ class BusinessService:
         await self.session.refresh(business)
         subscription = await self.repo.get_subscription(business.id)
         return self._to_admin_read(business, subscription)
+
+    async def get_mini_site_config(self, business: Business) -> MiniSiteConfig:
+        return read_mini_site_config_from_settings(business.settings)
+
+    async def save_mini_site_config(
+        self,
+        business: Business,
+        payload: MiniSiteConfigWrite,
+    ) -> MiniSiteConfig:
+        normalized = normalize_mini_site_config(payload.model_dump(exclude_unset=True))
+        await self.repo.update_settings(
+            business,
+            {MINI_SITE_SETTINGS_KEY: serialize_mini_site_config_for_storage(normalized)},
+        )
+        await self.session.refresh(business)
+        return normalized
 
     async def get_public_business(self, slug: str) -> PublicBusinessRead:
         business = await self.repo.get_public_by_slug(slug)

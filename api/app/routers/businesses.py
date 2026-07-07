@@ -9,6 +9,7 @@ from app.models.business import Business
 from app.models.enums import ConsentEntityType, ConsentSource
 from app.schemas.business import BusinessAdminRead, BusinessUpdate
 from app.schemas.legal_consent_records import LegalConsentRecordListResponse
+from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite
 from app.services.business_service import BusinessService
 from app.services.legal_consent_service import LegalConsentService
 
@@ -36,6 +37,29 @@ async def update_business_profile(
     if business.id != business_id:
         raise ValueError("business mismatch")  # pragma: no cover
     return await BusinessService(db).update_admin_business(business, payload)
+
+
+@router.get("/{business_id}/mini-site-config", response_model=MiniSiteConfig)
+async def get_mini_site_config(
+    business_id: uuid.UUID,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> MiniSiteConfig:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    return await BusinessService(db).get_mini_site_config(business)
+
+
+@router.put("/{business_id}/mini-site-config", response_model=MiniSiteConfig)
+async def save_mini_site_config(
+    business_id: uuid.UUID,
+    payload: MiniSiteConfigWrite,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> MiniSiteConfig:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    return await BusinessService(db).save_mini_site_config(business, payload)
 
 
 @router.get("/{business_id}/legal-consents", response_model=LegalConsentRecordListResponse)
