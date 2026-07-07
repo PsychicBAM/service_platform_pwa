@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMiniSiteConfig, updateMiniSiteConfig } from "@/api/miniSiteApi";
+import { MiniSiteLivePreview } from "@/components/admin/MiniSiteLivePreview";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
@@ -18,6 +19,7 @@ import { getAdminSettingsErrorMessage } from "@/utils/errors";
 
 type MiniSiteEditorCardProps = {
   businessId: string;
+  businessName?: string;
 };
 
 function getSectionField(
@@ -114,7 +116,7 @@ function DisabledMediaField({
   );
 }
 
-export function MiniSiteEditorCard({ businessId }: MiniSiteEditorCardProps) {
+export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorCardProps) {
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState<MiniSiteConfig | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -190,6 +192,8 @@ export function MiniSiteEditorCard({ businessId }: MiniSiteEditorCardProps) {
 
   return (
     <div className="space-y-4" data-testid="mini-site-editor">
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        <div className="space-y-4">
       <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Theme</p>
 
@@ -427,6 +431,10 @@ export function MiniSiteEditorCard({ businessId }: MiniSiteEditorCardProps) {
         <p className="text-sm text-slate-500" data-testid="public-profile-media-placeholder">
           Gallery and media uploads are coming soon.
         </p>
+      </div>
+        </div>
+
+        <MiniSiteLivePreview config={draft} businessName={businessName} />
       </div>
 
       {saveSuccess ? (

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApiClientError } from "@/api/client";
 import * as miniSiteApi from "@/api/miniSiteApi";
@@ -162,5 +162,67 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("public-profile-media-placeholder")).toHaveTextContent(
       /gallery and media uploads are coming soon/i,
     );
+  });
+
+  it("renders live preview after config load", async () => {
+    renderPublicProfileCard("pro");
+
+    expect(await screen.findByTestId("mini-site-live-preview")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-preview-hero-title")).toHaveTextContent("Welcome");
+  });
+
+  it("updates live preview when hero title changes", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-hero-title");
+    await user.clear(screen.getByTestId("mini-site-hero-title"));
+    await user.type(screen.getByTestId("mini-site-hero-title"), "Studio preview");
+
+    expect(screen.getByTestId("mini-site-preview-hero-title")).toHaveTextContent("Studio preview");
+  });
+
+  it("updates live preview when about body changes", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-about-body");
+    await user.clear(screen.getByTestId("mini-site-about-body"));
+    await user.type(screen.getByTestId("mini-site-about-body"), "Preview about copy");
+
+    expect(screen.getByTestId("mini-site-preview-about-body")).toHaveTextContent(
+      "Preview about copy",
+    );
+  });
+
+  it("applies theme colors and styles in live preview", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-primary-color");
+    await user.clear(screen.getByTestId("mini-site-primary-color"));
+    await user.type(screen.getByTestId("mini-site-primary-color"), "#112233");
+    await user.selectOptions(screen.getByTestId("mini-site-background-style"), "dark");
+    await user.selectOptions(screen.getByTestId("mini-site-button-style"), "pill");
+
+    const preview = screen.getByTestId("mini-site-live-preview");
+    expect(preview).toHaveAttribute("data-background-style", "dark");
+    expect(preview).toHaveAttribute("data-button-style", "pill");
+    expect(screen.getByTestId("mini-site-preview-primary-button")).toHaveStyle({
+      backgroundColor: "#112233",
+    });
+    expect(screen.getByTestId("mini-site-preview-primary-button")).toHaveClass("rounded-full");
+  });
+
+  it("does not render media upload fields in live preview", async () => {
+    renderPublicProfileCard("pro");
+
+    const preview = await screen.findByTestId("mini-site-live-preview");
+    expect(within(preview).queryByTestId("mini-site-logo-upload")).not.toBeInTheDocument();
+    expect(within(preview).getByTestId("mini-site-preview-logo-placeholder")).toBeInTheDocument();
+    expect(within(preview).getByTestId("mini-site-preview-gallery-placeholder")).toHaveTextContent(
+      /gallery coming soon/i,
+    );
+    expect(within(preview).queryByRole("button", { name: /upload/i })).not.toBeInTheDocument();
   });
 });

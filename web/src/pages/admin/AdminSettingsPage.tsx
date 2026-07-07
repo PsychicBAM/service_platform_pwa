@@ -615,6 +615,7 @@ export function AdminSettingsPage() {
 
           <PublicProfileSettingsCard
             businessId={businessId!}
+            businessName={data.name}
             currentPlan={data.subscription?.plan}
           />
 

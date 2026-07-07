@@ -13,11 +13,13 @@ export const PUBLIC_PROFILE_MEDIA_PLACEHOLDER =
 
 type PublicProfileSettingsCardProps = {
   businessId: string;
+  businessName?: string;
   currentPlan?: string;
 };
 
 export function PublicProfileSettingsCard({
   businessId,
+  businessName,
   currentPlan,
 }: PublicProfileSettingsCardProps) {
   const onPro = isProPlan(currentPlan);
@@ -42,7 +44,7 @@ export function PublicProfileSettingsCard({
         </p>
       </div>
 
-      <MiniSiteEditorCard businessId={businessId} />
+      <MiniSiteEditorCard businessId={businessId} businessName={businessName} />
     </div>
   );
 }
