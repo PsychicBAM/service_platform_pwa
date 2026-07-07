@@ -7,7 +7,6 @@ import { ServiceDetailPage } from "@/pages/ServiceDetailPage";
 import { OrderRequestPage } from "@/pages/OrderRequestPage";
 import { BookingPage } from "@/pages/BookingPage";
 import * as publicApi from "@/api/publicApi";
-import { mapPublicBusinessFromWire } from "@/api/publicApi";
 import {
   BOOKING_SERVICE_ID,
   DEMO_SLUG,
@@ -126,50 +125,48 @@ describe("public pages smoke", () => {
     expect(screen.getByTestId("pro-mini-site-about-body")).toHaveTextContent("Public saved about body");
   });
 
-  it("A4. maps wire snake_case mini_site_config and applies saved theme on public page", async () => {
-    vi.mocked(publicApi.getPublicBusiness).mockImplementation(async () =>
-      mapPublicBusinessFromWire({
-        ...mockPublicBusiness,
-        public_page_variant: "mini_site",
-        mini_site_config: {
-          version: 1,
-          theme: {
-            template: "portfolio",
-            primary_color: "#eb2525",
-            accent_color: "#7d0707",
-            background_style: "dark",
-            button_style: "pill",
-            logo_url: null,
-            cover_image_url: null,
-          },
-          sections: [
-            {
-              id: "hero",
-              type: "hero",
-              enabled: true,
-              order: 0,
-              title: "Wire hero title",
-              body: "Wire hero body text",
-            },
-            {
-              id: "about",
-              type: "about",
-              enabled: true,
-              order: 1,
-              title: "About",
-              body: "Wire about body",
-            },
-            { id: "services", type: "services", enabled: true, order: 2 },
-            { id: "contact", type: "contact", enabled: true, order: 3 },
-            { id: "booking_cta", type: "booking_cta", enabled: false, order: 4 },
-          ],
-          social_links: {
-            website: "https://portfolio.example.com",
-            instagram: "@portfolio",
-          },
+  it("A4. applies saved portfolio theme and content on public mini-site page", async () => {
+    const savedConfig = normalizeMiniSiteConfig({
+      version: 1,
+      theme: {
+        template: "portfolio",
+        primaryColor: "#eb2525",
+        accentColor: "#7d0707",
+        backgroundStyle: "dark",
+        buttonStyle: "pill",
+      },
+      sections: [
+        {
+          id: "hero",
+          type: "hero",
+          enabled: true,
+          order: 0,
+          title: "Wire hero title",
+          body: "Wire hero body text",
         },
-      }),
-    );
+        {
+          id: "about",
+          type: "about",
+          enabled: true,
+          order: 1,
+          title: "About",
+          body: "Wire about body",
+        },
+        { id: "services", type: "services", enabled: true, order: 2 },
+        { id: "contact", type: "contact", enabled: true, order: 3 },
+        { id: "booking_cta", type: "booking_cta", enabled: false, order: 4 },
+      ],
+      socialLinks: {
+        website: "https://portfolio.example.com",
+        instagram: "@portfolio",
+      },
+    });
+
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
+      ...mockPublicBusiness,
+      public_page_variant: "mini_site",
+      miniSiteConfig: savedConfig,
+    });
     vi.mocked(publicApi.listPublicServices).mockResolvedValue([mockBookingService]);
 
     renderRoute(<PublicHomePage />, {
