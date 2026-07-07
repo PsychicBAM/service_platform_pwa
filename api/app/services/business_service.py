@@ -3,6 +3,7 @@ from __future__ import annotations
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.exceptions.business import BusinessNotFoundError, InvalidTimezoneError
 from app.models.business import Business
@@ -10,10 +11,9 @@ from app.models.enums import PublicPageVariant
 from app.models.subscription import Subscription
 from app.repositories.business_repository import BusinessRepository
 from app.utils.mini_site_config import (
-    MINI_SITE_SETTINGS_KEY,
+    merge_mini_site_config_into_settings,
     normalize_mini_site_config,
     read_mini_site_config_from_settings,
-    serialize_mini_site_config_for_storage,
 )
 from app.utils.public_page_variant import resolve_public_page_variant
 from app.schemas.business import (
@@ -65,12 +65,12 @@ class BusinessService:
         payload: MiniSiteConfigWrite,
     ) -> MiniSiteConfig:
         normalized = normalize_mini_site_config(payload.model_dump(exclude_unset=True))
-        await self.repo.update_settings(
-            business,
-            {MINI_SITE_SETTINGS_KEY: serialize_mini_site_config_for_storage(normalized)},
-        )
+        business.settings = merge_mini_site_config_into_settings(business.settings, normalized)
+        flag_modified(business, "settings")
+        await self.session.flush()
+        await self.session.commit()
         await self.session.refresh(business)
-        return normalized
+        return read_mini_site_config_from_settings(business.settings)
 
     async def get_public_business(self, slug: str) -> PublicBusinessRead:
         business = await self.repo.get_public_by_slug(slug)

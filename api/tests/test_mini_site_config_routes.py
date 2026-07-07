@@ -277,3 +277,85 @@ async def test_admin_cannot_access_another_business_mini_site_config(
         },
     )
     assert put_response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_save_mini_site_config_persists_for_subsequent_get(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx = await register_and_get_context(async_client, "mini-site-persist-get")
+    await activate_business(db_session, ctx["slug"])
+
+    result = await db_session.execute(
+        select(Business).where(Business.slug == ctx["slug"]),
+    )
+    business = result.scalar_one()
+    business.settings = {
+        **DEFAULT_BUSINESS_SETTINGS,
+        "custom_future_key": True,
+        "cancellation_hours": 72,
+    }
+    await db_session.commit()
+    db_session.expire_all()
+
+    save_payload = {
+        "version": 1,
+        "theme": {
+            "template": "expert",
+            "primary_color": "#abcdef",
+            "accent_color": "#fedcba",
+            "background_style": "dark",
+            "button_style": "square",
+        },
+        "sections": [
+            {
+                "id": "hero",
+                "type": "hero",
+                "enabled": True,
+                "order": 0,
+                "title": "Persisted hero title",
+            },
+            {"id": "about", "type": "about", "enabled": False, "order": 1},
+            {"id": "services", "type": "services", "enabled": False, "order": 2},
+            {"id": "contact", "type": "contact", "enabled": False, "order": 3},
+            {"id": "booking_cta", "type": "booking_cta", "enabled": False, "order": 4},
+        ],
+        "social_links": {},
+    }
+
+    put_response = await async_client.put(
+        _mini_site_config_path(ctx["business_id"]),
+        headers=ctx["headers"],
+        json=save_payload,
+    )
+    assert put_response.status_code == 200
+
+    get_response = await async_client.get(
+        _mini_site_config_path(ctx["business_id"]),
+        headers=ctx["headers"],
+    )
+    assert get_response.status_code == 200
+    body = get_response.json()
+    assert body["theme"]["template"] == "expert"
+    assert body["theme"]["primary_color"] == "#abcdef"
+    assert body["theme"]["accent_color"] == "#fedcba"
+    hero = next(section for section in body["sections"] if section["type"] == "hero")
+    assert hero["title"] == "Persisted hero title"
+
+    db_session.expire_all()
+    result = await db_session.execute(
+        select(Business).where(Business.slug == ctx["slug"]),
+    )
+    saved_business = result.scalar_one()
+    assert saved_business.settings["custom_future_key"] is True
+    assert saved_business.settings["cancellation_hours"] == 72
+    assert MINI_SITE_SETTINGS_KEY in saved_business.settings
+    stored = saved_business.settings[MINI_SITE_SETTINGS_KEY]
+    assert isinstance(stored, dict)
+    assert stored["theme"]["template"] == "expert"
+    assert stored["theme"]["primary_color"] == "#abcdef"
+    assert any(
+        section["type"] == "hero" and section["title"] == "Persisted hero title"
+        for section in stored["sections"]
+    )
