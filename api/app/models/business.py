@@ -48,6 +48,7 @@ class Business(Base, TimestampMixin):
         nullable=False,
         server_default=text("'{}'::jsonb"),
     )
+    # Pro mini-site builder config: nullable JSON at settings["mini_site"] (see app.utils.mini_site_config).
     stripe_account_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     members: Mapped[list["BusinessMember"]] = relationship(

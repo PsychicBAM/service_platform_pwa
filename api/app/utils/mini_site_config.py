@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+from typing import Any
+
 from app.schemas.mini_site import (
     MINI_SITE_CONFIG_VERSION,
     MINI_SITE_SECTION_TYPES,
@@ -19,6 +21,9 @@ from app.schemas.mini_site import (
 )
 
 _HTML_TAG_RE = re.compile(r"<[^>]*>")
+
+# Persisted at Business.settings["mini_site"] as nullable JSON (key absent = no saved config).
+MINI_SITE_SETTINGS_KEY = "mini_site"
 
 REQUIRED_MINI_SITE_SECTION_TYPES: tuple[MiniSiteSectionType, ...] = (
     "hero",
@@ -268,3 +273,47 @@ def get_enabled_mini_site_sections(config: MiniSiteConfig) -> list[MiniSiteSecti
         (section for section in config.sections if section.enabled),
         key=lambda section: section.order,
     )
+
+
+def get_raw_mini_site_config_from_settings(
+    settings: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Return stored mini-site JSON from business.settings, or None when unset."""
+    if not settings:
+        return None
+    raw = settings.get(MINI_SITE_SETTINGS_KEY)
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        return raw
+    return None
+
+
+def read_mini_site_config_from_settings(settings: dict[str, Any] | None) -> MiniSiteConfig:
+    """Load and normalize mini-site config from business.settings (defaults when unset)."""
+    raw = get_raw_mini_site_config_from_settings(settings)
+    if raw is None:
+        return default_mini_site_config()
+    return normalize_mini_site_config(raw)
+
+
+def serialize_mini_site_config_for_storage(config: MiniSiteConfig) -> dict[str, Any]:
+    """Serialize a normalized config for JSONB storage."""
+    return config.model_dump(mode="json")
+
+
+def merge_mini_site_config_into_settings(
+    settings: dict[str, Any] | None,
+    config: MiniSiteConfig | dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Merge normalized mini-site config into business.settings without touching other keys."""
+    merged = dict(settings or {})
+    if config is None:
+        merged.pop(MINI_SITE_SETTINGS_KEY, None)
+        return merged
+
+    normalized = (
+        config if isinstance(config, MiniSiteConfig) else normalize_mini_site_config(config)
+    )
+    merged[MINI_SITE_SETTINGS_KEY] = serialize_mini_site_config_for_storage(normalized)
+    return merged
