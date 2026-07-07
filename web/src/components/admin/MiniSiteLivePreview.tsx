@@ -1,4 +1,5 @@
 import { getEnabledMiniSiteSections } from "@/lib/miniSiteConfig";
+import { getMiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -67,12 +68,14 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     getSectionField(config, "booking_cta", "title") || "Book now";
   const mutedText = previewMutedTextClass(theme.backgroundStyle);
   const borderClass = previewBorderClass(theme.backgroundStyle);
+  const presentation = getMiniSiteTemplatePresentation(theme.template, theme.backgroundStyle);
 
   return (
     <div
       className="space-y-3"
       data-testid="mini-site-live-preview"
       data-template={theme.template}
+      data-template-presentation={theme.template}
       data-background-style={theme.backgroundStyle}
       data-button-style={theme.buttonStyle}
     >
@@ -84,28 +87,30 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
       </div>
 
       <div
-        className={`overflow-hidden rounded-2xl border shadow-sm ${borderClass} ${previewSurfaceClass(theme.backgroundStyle)}`}
+        className={`overflow-hidden rounded-2xl border shadow-sm ${borderClass} ${previewSurfaceClass(theme.backgroundStyle)} ${presentation.heroClass}`}
         data-testid="mini-site-preview-frame"
         style={{
-          borderColor: theme.accentColor,
+          borderColor: theme.template === "service" ? theme.primaryColor : theme.accentColor,
         }}
       >
         <div className="space-y-4 p-4">
           {isSectionEnabled(config, "hero") ? (
             <header
-              className={`space-y-2 rounded-xl border p-4 ${borderClass}`}
+              className={`space-y-2 rounded-xl border p-4 ${borderClass} ${presentation.heroLayoutClass}`}
               data-testid="mini-site-preview-hero"
               style={{ borderColor: theme.primaryColor }}
             >
               <div
-                className={`flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold ${mutedText}`}
+                className={`flex h-12 w-12 items-center justify-center text-lg font-bold ${mutedText} ${
+                  theme.template === "expert" ? "rounded-full" : "rounded-xl"
+                }`}
                 style={{ backgroundColor: `${theme.primaryColor}22`, color: theme.primaryColor }}
                 data-testid="mini-site-preview-logo-placeholder"
               >
                 {businessName.charAt(0).toUpperCase()}
               </div>
               <p className="text-xs uppercase tracking-wide" style={{ color: theme.accentColor }}>
-                Cover image coming soon
+                {presentation.heroBadge}
               </p>
               <h4 className="text-lg font-semibold" data-testid="mini-site-preview-hero-title">
                 {heroTitle}
@@ -140,8 +145,13 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
 
           {isSectionEnabled(config, "services") ? (
             <section
-              className={`rounded-xl border p-3 ${borderClass}`}
+              className={`rounded-xl border p-3 ${borderClass} ${presentation.servicesClass}`}
               data-testid="mini-site-preview-services"
+              style={
+                theme.template === "service"
+                  ? { borderColor: theme.primaryColor, backgroundColor: `${theme.primaryColor}12` }
+                  : undefined
+              }
             >
               <p className="text-sm font-medium">Services preview</p>
               <p className={`mt-1 text-xs ${mutedText}`}>
@@ -182,8 +192,13 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
           ) : null}
 
           <section
-            className={`rounded-xl border border-dashed p-3 text-center text-xs ${borderClass} ${mutedText}`}
+            className={`rounded-xl border border-dashed p-3 text-center text-xs ${borderClass} ${mutedText} ${presentation.galleryClass}`}
             data-testid="mini-site-preview-gallery-placeholder"
+            style={
+              theme.template === "portfolio"
+                ? { borderColor: theme.accentColor, backgroundColor: `${theme.accentColor}14` }
+                : undefined
+            }
           >
             Gallery coming soon
           </section>

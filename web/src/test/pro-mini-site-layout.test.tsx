@@ -22,11 +22,12 @@ function createSavedMiniSiteConfig(overrides: {
   accentColor?: string;
   backgroundStyle?: "light" | "soft" | "dark";
   buttonStyle?: "rounded" | "pill" | "square";
+  template?: MiniSiteConfig["theme"]["template"];
 } = {}): MiniSiteConfig {
   return normalizeMiniSiteConfig({
     version: 1,
     theme: {
-      template: "clean",
+      template: overrides.template ?? "clean",
       primaryColor: overrides.primaryColor ?? "#ff5500",
       accentColor: overrides.accentColor ?? "#2255aa",
       backgroundStyle: overrides.backgroundStyle ?? "soft",
@@ -137,6 +138,27 @@ describe("ProMiniSiteLayout", () => {
     const bookCta = screen.getByTestId("pro-mini-site-book-cta");
     expect(bookCta).toHaveStyle({ backgroundColor: "rgb(255, 85, 0)" });
     expect(bookCta.className).toContain("rounded-full");
+  });
+
+  it("applies distinct template presentation classes", () => {
+    renderProMiniSiteLayout({
+      config: createSavedMiniSiteConfig({ template: "service" }),
+    });
+    const serviceLayout = screen.getByTestId("pro-mini-site-layout");
+    expect(serviceLayout).toHaveAttribute("data-template", "service");
+    expect(serviceLayout).toHaveClass("template-service");
+    expect(screen.getByText("Service business")).toBeInTheDocument();
+  });
+
+  it("applies expert template centered hero presentation", () => {
+    renderProMiniSiteLayout({
+      config: createSavedMiniSiteConfig({ template: "expert" }),
+    });
+    const expertLayout = screen.getByTestId("pro-mini-site-layout");
+    expect(expertLayout).toHaveAttribute("data-template", "expert");
+    expect(expertLayout).toHaveClass("template-expert");
+    expect(screen.getByText("Expert profile")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-hero").firstElementChild).toHaveClass("text-center");
   });
 
   it("renders hero CTAs for both operating mode", () => {

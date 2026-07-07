@@ -6,6 +6,9 @@ import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
 import {
+  hexColorForPicker,
+} from "@/lib/miniSiteTemplatePresentation";
+import {
   MINI_SITE_BACKGROUND_STYLES,
   MINI_SITE_BUTTON_STYLES,
   MINI_SITE_TEMPLATES,
@@ -80,9 +83,51 @@ function TextInput({
       disabled={disabled}
       placeholder={placeholder}
       onChange={(event) => onChange(event.target.value)}
-      className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60"
+      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60"
       data-testid={id}
     />
+  );
+}
+
+function ColorField({
+  id,
+  label,
+  value,
+  fallback,
+  disabled,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  fallback: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}) {
+  const pickerValue = hexColorForPicker(value, fallback);
+
+  return (
+    <div>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <div className="mt-1 flex items-center gap-2">
+        <input
+          type="color"
+          value={pickerValue}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+          className="h-10 w-12 shrink-0 cursor-pointer rounded border border-slate-300 bg-white p-1 disabled:cursor-not-allowed disabled:opacity-60"
+          data-testid={`${id}-picker`}
+          aria-label={`${label} color picker`}
+        />
+        <TextInput
+          id={id}
+          value={value}
+          disabled={disabled}
+          placeholder={fallback}
+          onChange={(nextValue) => onChange(nextValue)}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -224,36 +269,32 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
         </label>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <FieldLabel htmlFor="mini-site-primary-color">Primary color</FieldLabel>
-            <TextInput
-              id="mini-site-primary-color"
-              value={draft.theme.primaryColor}
-              disabled={saving}
-              placeholder="#2563eb"
-              onChange={(value) =>
-                setDraft({
-                  ...draft,
-                  theme: { ...draft.theme, primaryColor: value },
-                })
-              }
-            />
-          </div>
-          <div>
-            <FieldLabel htmlFor="mini-site-accent-color">Accent color</FieldLabel>
-            <TextInput
-              id="mini-site-accent-color"
-              value={draft.theme.accentColor}
-              disabled={saving}
-              placeholder="#7c3aed"
-              onChange={(value) =>
-                setDraft({
-                  ...draft,
-                  theme: { ...draft.theme, accentColor: value },
-                })
-              }
-            />
-          </div>
+          <ColorField
+            id="mini-site-primary-color"
+            label="Primary color"
+            value={draft.theme.primaryColor}
+            fallback="#2563eb"
+            disabled={saving}
+            onChange={(value) =>
+              setDraft({
+                ...draft,
+                theme: { ...draft.theme, primaryColor: value },
+              })
+            }
+          />
+          <ColorField
+            id="mini-site-accent-color"
+            label="Accent color"
+            value={draft.theme.accentColor}
+            fallback="#7c3aed"
+            disabled={saving}
+            onChange={(value) =>
+              setDraft({
+                ...draft,
+                theme: { ...draft.theme, accentColor: value },
+              })
+            }
+          />
         </div>
 
         <label htmlFor="mini-site-background-style" className="block text-sm">

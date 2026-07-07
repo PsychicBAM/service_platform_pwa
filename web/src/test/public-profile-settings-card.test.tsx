@@ -79,7 +79,9 @@ describe("PublicProfileSettingsCard", () => {
 
     expect(await screen.findByTestId("mini-site-template")).toBeEnabled();
     expect(screen.getByTestId("mini-site-primary-color")).toBeEnabled();
+    expect(screen.getByTestId("mini-site-primary-color-picker")).toBeEnabled();
     expect(screen.getByTestId("mini-site-accent-color")).toBeEnabled();
+    expect(screen.getByTestId("mini-site-accent-color-picker")).toBeEnabled();
     expect(screen.getByTestId("mini-site-background-style")).toBeEnabled();
     expect(screen.getByTestId("mini-site-button-style")).toBeEnabled();
     expect(screen.getByTestId("mini-site-hero-title")).toBeEnabled();
@@ -195,6 +197,20 @@ describe("PublicProfileSettingsCard", () => {
     );
   });
 
+  it("updates live preview when primary color picker changes", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-primary-color-picker");
+    await user.clear(screen.getByTestId("mini-site-primary-color"));
+    await user.type(screen.getByTestId("mini-site-primary-color"), "#eb2525");
+
+    expect(screen.getByTestId("mini-site-primary-color")).toHaveValue("#eb2525");
+    expect(screen.getByTestId("mini-site-preview-primary-button")).toHaveStyle({
+      backgroundColor: "#eb2525",
+    });
+  });
+
   it("applies theme colors and styles in live preview", async () => {
     const user = userEvent.setup();
     renderPublicProfileCard("pro");
@@ -212,6 +228,19 @@ describe("PublicProfileSettingsCard", () => {
       backgroundColor: "#112233",
     });
     expect(screen.getByTestId("mini-site-preview-primary-button")).toHaveClass("rounded-full");
+  });
+
+  it("reflects selected template in live preview", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "expert");
+
+    const preview = screen.getByTestId("mini-site-live-preview");
+    expect(preview).toHaveAttribute("data-template", "expert");
+    expect(preview).toHaveAttribute("data-template-presentation", "expert");
+    expect(screen.getByTestId("mini-site-preview-hero")).toHaveClass("text-center");
   });
 
   it("does not render media upload fields in live preview", async () => {

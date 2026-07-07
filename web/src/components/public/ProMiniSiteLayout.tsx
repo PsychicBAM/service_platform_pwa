@@ -5,6 +5,7 @@ import {
   getEnabledMiniSiteSections,
   normalizeMiniSiteConfig,
 } from "@/lib/miniSiteConfig";
+import { getMiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import type {
   MiniSiteBackgroundStyle,
@@ -169,23 +170,31 @@ export function ProMiniSiteLayout({
   const sectionBorder = borderClass(theme.backgroundStyle);
   const buttonRadius = buttonRadiusClass(theme.buttonStyle);
   const pageSurface = surfaceClass(theme.backgroundStyle);
+  const presentation = getMiniSiteTemplatePresentation(theme.template, theme.backgroundStyle);
 
   const renderHero = () => (
     <header
-      className={`overflow-hidden rounded-2xl border p-5 shadow-sm md:p-8 ${sectionBorder} ${pageSurface}`}
+      className={`overflow-hidden rounded-2xl border p-5 md:p-8 ${sectionBorder} ${pageSurface} ${presentation.heroClass}`}
       data-testid="pro-mini-site-hero"
-      style={{ borderColor: theme.accentColor }}
+      style={{
+        borderColor: theme.template === "service" ? theme.primaryColor : theme.accentColor,
+        borderLeftColor: theme.template === "service" ? theme.primaryColor : undefined,
+      }}
     >
-      <div className="flex flex-col gap-4 md:flex-row md:items-start">
+      <div className={presentation.heroLayoutClass}>
         {business.logo_url ? (
           <img
             src={business.logo_url}
             alt=""
-            className="h-16 w-16 rounded-2xl object-cover md:h-20 md:w-20"
+            className={`h-16 w-16 object-cover md:h-20 md:w-20 ${
+              theme.template === "expert" ? "rounded-full" : "rounded-2xl"
+            }`}
           />
         ) : (
           <div
-            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-2xl font-bold md:h-20 md:w-20 md:text-3xl"
+            className={`flex h-16 w-16 shrink-0 items-center justify-center text-2xl font-bold md:h-20 md:w-20 md:text-3xl ${
+              theme.template === "expert" ? "rounded-full" : "rounded-2xl"
+            }`}
             style={{ backgroundColor: `${theme.primaryColor}22`, color: theme.primaryColor }}
             aria-hidden
             data-testid="pro-mini-site-logo-placeholder"
@@ -195,7 +204,7 @@ export function ProMiniSiteLayout({
         )}
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium uppercase tracking-wide" style={{ color: theme.accentColor }}>
-            Pro profile
+            {presentation.heroBadge}
           </p>
           <h1
             className="mt-1 text-2xl font-bold md:text-4xl"
@@ -245,7 +254,7 @@ export function ProMiniSiteLayout({
 
   const renderAbout = () => (
     <section
-      className={`rounded-2xl border p-5 shadow-sm ${sectionBorder} ${pageSurface}`}
+      className={`rounded-2xl border p-5 ${sectionBorder} ${pageSurface} ${presentation.sectionClass}`}
       data-testid="pro-mini-site-about"
     >
       <h2 className="text-lg font-semibold">{aboutTitle}</h2>
@@ -263,11 +272,20 @@ export function ProMiniSiteLayout({
 
   const renderServices = () => (
     <section
-      className={`rounded-2xl border p-5 shadow-sm ${sectionBorder} ${pageSurface}`}
+      className={`rounded-2xl border p-5 ${sectionBorder} ${pageSurface} ${presentation.sectionClass} ${presentation.servicesClass}`}
       aria-labelledby="pro-mini-site-services-heading"
       data-testid="pro-mini-site-services"
+      style={
+        theme.template === "service"
+          ? { borderColor: theme.primaryColor, backgroundColor: `${theme.primaryColor}12` }
+          : undefined
+      }
     >
-      <h2 id="pro-mini-site-services-heading" className="text-lg font-semibold">
+      <h2
+        id="pro-mini-site-services-heading"
+        className="text-lg font-semibold"
+        style={theme.template === "service" ? { color: theme.primaryColor } : undefined}
+      >
         {servicesTitle}
       </h2>
       {services && services.length > 0 ? (
@@ -293,7 +311,7 @@ export function ProMiniSiteLayout({
 
   const renderContact = () => (
     <section
-      className={`rounded-2xl border p-5 shadow-sm ${sectionBorder} ${pageSurface}`}
+      className={`rounded-2xl border p-5 ${sectionBorder} ${pageSurface} ${presentation.sectionClass}`}
       aria-labelledby="pro-mini-site-contact-heading"
       data-testid="pro-mini-site-contact"
     >
@@ -327,7 +345,7 @@ export function ProMiniSiteLayout({
 
   const renderBookingCta = () => (
     <section
-      className={`rounded-2xl border p-5 text-center shadow-sm ${sectionBorder} ${pageSurface}`}
+      className={`rounded-2xl border p-5 text-center ${sectionBorder} ${pageSurface} ${presentation.sectionClass}`}
       data-testid="pro-mini-site-booking-cta-section"
     >
       {ctas.showBookingCta ? (
@@ -345,9 +363,14 @@ export function ProMiniSiteLayout({
 
   const renderGallery = () => (
     <section
-      className={`rounded-2xl border border-dashed p-5 text-center ${sectionBorder} ${pageSurface}`}
+      className={`rounded-2xl border p-5 text-center ${sectionBorder} ${pageSurface} ${presentation.galleryClass}`}
       aria-labelledby="pro-mini-site-gallery-heading"
       data-testid="pro-mini-site-gallery-placeholder"
+      style={
+        theme.template === "portfolio"
+          ? { borderColor: theme.accentColor, backgroundColor: `${theme.accentColor}14` }
+          : undefined
+      }
     >
       <h2 id="pro-mini-site-gallery-heading" className="text-lg font-semibold">
         Gallery
@@ -363,7 +386,7 @@ export function ProMiniSiteLayout({
     return (
       <section
         key={type}
-        className={`rounded-2xl border p-5 shadow-sm ${sectionBorder} ${pageSurface}`}
+        className={`rounded-2xl border p-5 ${sectionBorder} ${pageSurface} ${presentation.sectionClass}`}
         data-testid={`pro-mini-site-${type}`}
       >
         <h2 className="text-lg font-semibold">{sectionTitle}</h2>
@@ -399,9 +422,10 @@ export function ProMiniSiteLayout({
 
   return (
     <section
-      className="space-y-6"
+      className={`space-y-6 ${presentation.layoutClass}`}
       data-testid="pro-mini-site-layout"
       data-template={theme.template}
+      data-template-presentation={theme.template}
       data-background-style={theme.backgroundStyle}
       data-button-style={theme.buttonStyle}
     >
