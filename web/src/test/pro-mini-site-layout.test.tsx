@@ -158,7 +158,26 @@ describe("ProMiniSiteLayout", () => {
     expect(expertLayout).toHaveAttribute("data-template", "expert");
     expect(expertLayout).toHaveClass("template-expert");
     expect(screen.getByText("Expert profile")).toBeInTheDocument();
-    expect(screen.getByTestId("pro-mini-site-hero").firstElementChild).toHaveClass("text-center");
+    expect(screen.getByTestId("pro-mini-site-hero-content")).toHaveClass("text-center");
+  });
+
+  it("applies portfolio template presentation", () => {
+    renderProMiniSiteLayout({
+      config: createSavedMiniSiteConfig({ template: "portfolio", backgroundStyle: "dark" }),
+    });
+    const layout = screen.getByTestId("pro-mini-site-layout");
+    expect(layout).toHaveAttribute("data-template", "portfolio");
+    expect(layout).toHaveClass("template-portfolio");
+    expect(screen.getByTestId("pro-mini-site-page-shell")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-hero-title")).toBeInTheDocument();
+  });
+
+  it("keeps dark background readable", () => {
+    renderProMiniSiteLayout({
+      config: createSavedMiniSiteConfig({ backgroundStyle: "dark" }),
+    });
+    expect(screen.getByTestId("pro-mini-site-layout")).toHaveAttribute("data-background-style", "dark");
+    expect(screen.getByTestId("pro-mini-site-hero-body")).toBeInTheDocument();
   });
 
   it("renders hero CTAs for both operating mode", () => {
@@ -186,7 +205,7 @@ describe("ProMiniSiteLayout", () => {
     renderProMiniSiteLayout({ config: createSavedMiniSiteConfig() });
 
     expect(screen.getByTestId("pro-mini-site-gallery-placeholder")).toHaveTextContent(
-      "Media gallery coming soon",
+      /gallery coming soon/i,
     );
   });
 

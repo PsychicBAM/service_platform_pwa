@@ -5,7 +5,10 @@ import {
   getEnabledMiniSiteSections,
   normalizeMiniSiteConfig,
 } from "@/lib/miniSiteConfig";
-import { getMiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
+import {
+  getMiniSitePageShellClass,
+  getMiniSiteTemplatePresentation,
+} from "@/lib/miniSiteTemplatePresentation";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import type {
   MiniSiteBackgroundStyle,
@@ -13,6 +16,7 @@ import type {
   MiniSiteConfig,
   MiniSiteSectionType,
   MiniSiteSocialLinks,
+  MiniSiteTemplate,
 } from "@/types/miniSite";
 
 export type ProMiniSiteLayoutProps = {
@@ -68,23 +72,16 @@ function getSectionField(
   return section?.[field] ?? "";
 }
 
-function surfaceClass(backgroundStyle: MiniSiteBackgroundStyle): string {
-  switch (backgroundStyle) {
-    case "dark":
-      return "bg-slate-900 text-slate-100";
-    case "soft":
-      return "bg-slate-50 text-slate-900";
-    default:
-      return "bg-white text-slate-900";
-  }
-}
-
 function mutedTextClass(backgroundStyle: MiniSiteBackgroundStyle): string {
   return backgroundStyle === "dark" ? "text-slate-300" : "text-slate-600";
 }
 
 function borderClass(backgroundStyle: MiniSiteBackgroundStyle): string {
-  return backgroundStyle === "dark" ? "border-slate-700" : "border-slate-200";
+  return backgroundStyle === "dark" ? "border-slate-700/80" : "border-slate-200";
+}
+
+function labelTextClass(backgroundStyle: MiniSiteBackgroundStyle): string {
+  return backgroundStyle === "dark" ? "text-slate-200" : "text-slate-700";
 }
 
 function buttonRadiusClass(buttonStyle: MiniSiteButtonStyle): string {
@@ -98,6 +95,17 @@ function buttonRadiusClass(buttonStyle: MiniSiteButtonStyle): string {
   }
 }
 
+function sectionCardClass(
+  backgroundStyle: MiniSiteBackgroundStyle,
+  presentationClass: string,
+): string {
+  const surface =
+    backgroundStyle === "dark"
+      ? "border-slate-700/80 bg-slate-800/50 text-slate-100"
+      : "border-slate-200 bg-white text-slate-900";
+  return `rounded-2xl border p-6 md:p-8 ${surface} ${presentationClass}`;
+}
+
 function hasSocialLinks(links: MiniSiteSocialLinks): boolean {
   return Boolean(
     links.website ||
@@ -109,12 +117,43 @@ function hasSocialLinks(links: MiniSiteSocialLinks): boolean {
   );
 }
 
+function SectionHeading({
+  id,
+  title,
+  accentColor,
+  className,
+  isDark,
+  template,
+}: {
+  id?: string;
+  title: string;
+  accentColor: string;
+  className: string;
+  isDark: boolean;
+  template: MiniSiteTemplate;
+}) {
+  const clinicTint = !isDark && template === "clinic" ? "text-emerald-950" : "";
+
+  return (
+    <div className="mb-4 space-y-2">
+      <div className="h-1 w-10 rounded-full" style={{ backgroundColor: accentColor }} aria-hidden />
+      <h2 id={id} className={`${className} ${clinicTint}`}>
+        {title}
+      </h2>
+    </div>
+  );
+}
+
 function SocialLinksList({
   links,
   mutedText,
+  labelText,
+  isDark,
 }: {
   links: MiniSiteSocialLinks;
   mutedText: string;
+  labelText: string;
+  isDark: boolean;
 }) {
   const entries = [
     { key: "website", label: "Website", value: links.website },
@@ -129,13 +168,17 @@ function SocialLinksList({
     return null;
   }
 
+  const chipClass = isDark
+    ? "border-slate-700 bg-slate-900/40"
+    : "border-slate-200/80 bg-slate-50/80";
+
   return (
-    <div className="mt-3 space-y-1" data-testid="pro-mini-site-social-links">
+    <div className="mt-5 grid gap-2 sm:grid-cols-2" data-testid="pro-mini-site-social-links">
       {entries.map((entry) => (
-        <p key={entry.key} className={mutedText}>
-          <span className="font-medium text-slate-700">{entry.label}: </span>
-          {entry.value}
-        </p>
+        <div key={entry.key} className={`rounded-xl border px-3 py-2 text-sm ${chipClass}`}>
+          <p className={`text-xs font-medium uppercase tracking-wide ${labelText}`}>{entry.label}</p>
+          <p className={`mt-0.5 break-all ${mutedText}`}>{entry.value}</p>
+        </div>
       ))}
     </div>
   );
@@ -155,6 +198,7 @@ export function ProMiniSiteLayout({
   const ctas = getProMiniSiteCtas(business, publicSlug, services);
   const primaryBookingHref = bookingHref ?? ctas.bookingHref;
   const secondaryOrderHref = orderHref ?? ctas.orderHref;
+  const isDark = theme.backgroundStyle === "dark";
 
   const heroTitle = getSectionField(siteConfig, "hero", "title") || business.name;
   const heroSubtitle = getSectionField(siteConfig, "hero", "subtitle");
@@ -168,31 +212,44 @@ export function ProMiniSiteLayout({
 
   const mutedText = mutedTextClass(theme.backgroundStyle);
   const sectionBorder = borderClass(theme.backgroundStyle);
+  const labelText = labelTextClass(theme.backgroundStyle);
   const buttonRadius = buttonRadiusClass(theme.buttonStyle);
-  const pageSurface = surfaceClass(theme.backgroundStyle);
   const presentation = getMiniSiteTemplatePresentation(theme.template, theme.backgroundStyle);
+  const pageShell = getMiniSitePageShellClass(theme.backgroundStyle);
+
+  const primaryCtaClass = `inline-flex items-center justify-center px-6 py-3.5 text-sm font-semibold text-white shadow-md transition hover:shadow-lg hover:brightness-105 ${buttonRadius}`;
+  const secondaryCtaClass = `inline-flex items-center justify-center border px-6 py-3.5 text-sm font-semibold shadow-sm transition hover:shadow-md ${buttonRadius} ${
+    isDark ? "bg-slate-800/60 hover:bg-slate-800" : "bg-white hover:bg-slate-50"
+  } ${sectionBorder}`;
 
   const renderHero = () => (
     <header
-      className={`overflow-hidden rounded-2xl border p-5 md:p-8 ${sectionBorder} ${pageSurface} ${presentation.heroClass}`}
+      className={`relative overflow-hidden rounded-2xl border p-6 md:p-10 ${sectionBorder} ${presentation.heroClass}`}
       data-testid="pro-mini-site-hero"
       style={{
         borderColor: theme.template === "service" ? theme.primaryColor : theme.accentColor,
         borderLeftColor: theme.template === "service" ? theme.primaryColor : undefined,
       }}
     >
-      <div className={presentation.heroLayoutClass}>
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-1.5"
+        style={{
+          background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.accentColor})`,
+        }}
+        aria-hidden
+      />
+      <div className={presentation.heroLayoutClass} data-testid="pro-mini-site-hero-content">
         {business.logo_url ? (
           <img
             src={business.logo_url}
             alt=""
-            className={`h-16 w-16 object-cover md:h-20 md:w-20 ${
+            className={`h-20 w-20 shrink-0 object-cover shadow-md ring-4 ring-white/80 md:h-24 md:w-24 ${
               theme.template === "expert" ? "rounded-full" : "rounded-2xl"
             }`}
           />
         ) : (
           <div
-            className={`flex h-16 w-16 shrink-0 items-center justify-center text-2xl font-bold md:h-20 md:w-20 md:text-3xl ${
+            className={`flex h-20 w-20 shrink-0 items-center justify-center text-3xl font-bold shadow-md ring-4 ring-white/70 md:h-24 md:w-24 md:text-4xl ${
               theme.template === "expert" ? "rounded-full" : "rounded-2xl"
             }`}
             style={{ backgroundColor: `${theme.primaryColor}22`, color: theme.primaryColor }}
@@ -202,36 +259,48 @@ export function ProMiniSiteLayout({
             {business.name.charAt(0).toUpperCase()}
           </div>
         )}
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: theme.accentColor }}>
+        <div className="min-w-0 flex-1 space-y-3">
+          <p
+            className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
+            style={{
+              color: theme.accentColor,
+              backgroundColor: `${theme.accentColor}18`,
+            }}
+          >
             {presentation.heroBadge}
           </p>
           <h1
-            className="mt-1 text-2xl font-bold md:text-4xl"
+            className={presentation.heroTitleClass}
             data-testid="pro-mini-site-hero-title"
           >
             {heroTitle}
           </h1>
           {heroSubtitle ? (
-            <p className={`mt-2 text-sm md:text-base ${mutedText}`} data-testid="pro-mini-site-hero-subtitle">
+            <p
+              className={`text-base font-medium md:text-lg ${mutedText}`}
+              data-testid="pro-mini-site-hero-subtitle"
+            >
               {heroSubtitle}
             </p>
           ) : (
-            <p className={`mt-3 text-sm md:text-base ${mutedText}`}>{heroIntro(business.operating_mode)}</p>
+            <p className={`text-base md:text-lg ${mutedText}`}>{heroIntro(business.operating_mode)}</p>
           )}
           {heroBody ? (
-            <p className={`mt-2 text-sm md:text-base ${mutedText}`} data-testid="pro-mini-site-hero-body">
+            <p
+              className={`max-w-2xl text-sm leading-relaxed md:text-base ${mutedText}`}
+              data-testid="pro-mini-site-hero-body"
+            >
               {heroBody}
             </p>
           ) : null}
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         {ctas.showBookingCta ? (
           <Link
             to={primaryBookingHref}
-            className={`px-5 py-3 text-center text-sm font-semibold text-white hover:opacity-90 ${buttonRadius}`}
+            className={primaryCtaClass}
             data-testid="pro-mini-site-book-cta"
             style={{ backgroundColor: theme.primaryColor }}
           >
@@ -241,7 +310,7 @@ export function ProMiniSiteLayout({
         {ctas.showRequestCta ? (
           <Link
             to={secondaryOrderHref}
-            className={`border bg-white px-5 py-3 text-center text-sm font-semibold hover:bg-slate-50 ${buttonRadius} ${sectionBorder}`}
+            className={secondaryCtaClass}
             data-testid="pro-mini-site-request-cta"
             style={{ borderColor: theme.accentColor, color: theme.accentColor }}
           >
@@ -254,52 +323,75 @@ export function ProMiniSiteLayout({
 
   const renderAbout = () => (
     <section
-      className={`rounded-2xl border p-5 ${sectionBorder} ${pageSurface} ${presentation.sectionClass}`}
+      className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
       data-testid="pro-mini-site-about"
     >
-      <h2 className="text-lg font-semibold">{aboutTitle}</h2>
+      <SectionHeading
+        title={aboutTitle}
+        accentColor={theme.accentColor}
+        className={presentation.sectionHeadingClass}
+        isDark={isDark}
+        template={theme.template}
+      />
       {aboutBody ? (
-        <p className={`mt-2 text-sm md:text-base ${mutedText}`} data-testid="pro-mini-site-about-body">
+        <p
+          className={`max-w-3xl text-sm leading-relaxed md:text-base ${mutedText}`}
+          data-testid="pro-mini-site-about-body"
+        >
           {aboutBody}
         </p>
       ) : business.description ? (
-        <p className={`mt-2 text-sm md:text-base ${mutedText}`}>{business.description}</p>
+        <p className={`max-w-3xl text-sm leading-relaxed md:text-base ${mutedText}`}>
+          {business.description}
+        </p>
       ) : (
-        <p className={`mt-2 text-sm italic ${mutedText}`}>About text will appear here.</p>
+        <p className={`text-sm italic ${mutedText}`}>About text will appear here.</p>
       )}
     </section>
   );
 
   const renderServices = () => (
     <section
-      className={`rounded-2xl border p-5 ${sectionBorder} ${pageSurface} ${presentation.sectionClass} ${presentation.servicesClass}`}
+      className={`${sectionCardClass(theme.backgroundStyle, `${presentation.sectionClass} ${presentation.servicesClass}`)}`}
       aria-labelledby="pro-mini-site-services-heading"
       data-testid="pro-mini-site-services"
       style={
         theme.template === "service"
-          ? { borderColor: theme.primaryColor, backgroundColor: `${theme.primaryColor}12` }
+          ? { borderColor: theme.primaryColor, backgroundColor: `${theme.primaryColor}10` }
           : undefined
       }
     >
-      <h2
-        id="pro-mini-site-services-heading"
-        className="text-lg font-semibold"
-        style={theme.template === "service" ? { color: theme.primaryColor } : undefined}
-      >
-        {servicesTitle}
-      </h2>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-2">
+          <div className="h-1 w-10 rounded-full" style={{ backgroundColor: theme.primaryColor }} aria-hidden />
+          <h2 id="pro-mini-site-services-heading" className={presentation.sectionHeadingClass}>
+            {servicesTitle}
+          </h2>
+        </div>
+        {services && services.length > 0 ? (
+          <span
+            className="rounded-full px-3 py-1 text-xs font-semibold"
+            style={{
+              color: theme.primaryColor,
+              backgroundColor: `${theme.primaryColor}15`,
+            }}
+          >
+            {services.length} available
+          </span>
+        ) : null}
+      </div>
       {services && services.length > 0 ? (
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {services.map((service) => (
             <ServiceCard key={service.id} slug={publicSlug} service={service} />
           ))}
         </div>
       ) : (
-        <p className={`mt-2 text-sm ${mutedText}`}>
+        <p className={`text-sm ${mutedText}`}>
           Services will appear here.{" "}
           <Link
             to={`/b/${publicSlug}/services`}
-            className="font-medium hover:underline"
+            className="font-semibold hover:underline"
             style={{ color: theme.primaryColor }}
           >
             View services
@@ -311,47 +403,65 @@ export function ProMiniSiteLayout({
 
   const renderContact = () => (
     <section
-      className={`rounded-2xl border p-5 ${sectionBorder} ${pageSurface} ${presentation.sectionClass}`}
+      className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
       aria-labelledby="pro-mini-site-contact-heading"
       data-testid="pro-mini-site-contact"
     >
-      <h2 id="pro-mini-site-contact-heading" className="text-lg font-semibold">
-        {contactTitle}
-      </h2>
-      <dl className={`mt-3 space-y-2 text-sm ${mutedText}`}>
+      <SectionHeading
+        id="pro-mini-site-contact-heading"
+        title={contactTitle}
+        accentColor={theme.accentColor}
+        className={presentation.sectionHeadingClass}
+        isDark={isDark}
+        template={theme.template}
+      />
+      <dl className={`grid gap-3 sm:grid-cols-2 ${mutedText}`}>
         {business.address ? (
-          <div>
-            <dt className="font-medium text-slate-700">Address</dt>
-            <dd>{business.address}</dd>
+          <div
+            className={`rounded-xl border px-4 py-3 ${
+              isDark ? "border-slate-700 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/70"
+            }`}
+          >
+            <dt className={`text-xs font-semibold uppercase tracking-wide ${labelText}`}>Address</dt>
+            <dd className="mt-1 text-sm">{business.address}</dd>
           </div>
         ) : null}
         {business.contact_phone ? (
-          <div>
-            <dt className="font-medium text-slate-700">Phone</dt>
-            <dd>
-              <a href={`tel:${business.contact_phone}`} className="hover:underline" style={{ color: theme.primaryColor }}>
+          <div
+            className={`rounded-xl border px-4 py-3 ${
+              isDark ? "border-slate-700 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/70"
+            }`}
+          >
+            <dt className={`text-xs font-semibold uppercase tracking-wide ${labelText}`}>Phone</dt>
+            <dd className="mt-1 text-sm">
+              <a
+                href={`tel:${business.contact_phone}`}
+                className="font-medium hover:underline"
+                style={{ color: theme.primaryColor }}
+              >
                 {business.contact_phone}
               </a>
             </dd>
           </div>
         ) : null}
-        {!business.address && !business.contact_phone && !hasSocialLinks(socialLinks) ? (
-          <p className="text-slate-500">Contact details are not available yet.</p>
-        ) : null}
       </dl>
-      <SocialLinksList links={socialLinks} mutedText={mutedText} />
+      {!business.address && !business.contact_phone && !hasSocialLinks(socialLinks) ? (
+        <p className={`mt-2 text-sm ${mutedText}`}>Contact details are not available yet.</p>
+      ) : null}
+      <SocialLinksList links={socialLinks} mutedText={mutedText} labelText={labelText} isDark={isDark} />
     </section>
   );
 
   const renderBookingCta = () => (
     <section
-      className={`rounded-2xl border p-5 text-center ${sectionBorder} ${pageSurface} ${presentation.sectionClass}`}
+      className={`${sectionCardClass(theme.backgroundStyle, presentation.sectionClass)} text-center`}
       data-testid="pro-mini-site-booking-cta-section"
+      style={{ backgroundColor: `${theme.primaryColor}08` }}
     >
       {ctas.showBookingCta ? (
         <Link
           to={primaryBookingHref}
-          className={`inline-block px-5 py-3 text-sm font-semibold text-white hover:opacity-90 ${buttonRadius}`}
+          className={primaryCtaClass}
           data-testid="pro-mini-site-booking-cta-link"
           style={{ backgroundColor: theme.primaryColor }}
         >
@@ -363,19 +473,28 @@ export function ProMiniSiteLayout({
 
   const renderGallery = () => (
     <section
-      className={`rounded-2xl border p-5 text-center ${sectionBorder} ${pageSurface} ${presentation.galleryClass}`}
+      className={`${sectionCardClass(theme.backgroundStyle, presentation.galleryClass)} py-10 text-center md:py-14`}
       aria-labelledby="pro-mini-site-gallery-heading"
       data-testid="pro-mini-site-gallery-placeholder"
       style={
         theme.template === "portfolio"
-          ? { borderColor: theme.accentColor, backgroundColor: `${theme.accentColor}14` }
+          ? { borderColor: theme.accentColor, backgroundColor: `${theme.accentColor}12` }
           : undefined
       }
     >
-      <h2 id="pro-mini-site-gallery-heading" className="text-lg font-semibold">
+      <div
+        className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-semibold"
+        style={{ backgroundColor: `${theme.accentColor}20`, color: theme.accentColor }}
+        aria-hidden
+      >
+        +
+      </div>
+      <h2 id="pro-mini-site-gallery-heading" className={presentation.sectionHeadingClass}>
         Gallery
       </h2>
-      <p className={`mt-2 text-sm ${mutedText}`}>Media gallery coming soon</p>
+      <p className={`mx-auto mt-2 max-w-md text-sm ${mutedText}`}>
+        Photo gallery coming soon. Showcase your work here.
+      </p>
     </section>
   );
 
@@ -386,11 +505,19 @@ export function ProMiniSiteLayout({
     return (
       <section
         key={type}
-        className={`rounded-2xl border p-5 ${sectionBorder} ${pageSurface} ${presentation.sectionClass}`}
+        className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
         data-testid={`pro-mini-site-${type}`}
       >
-        <h2 className="text-lg font-semibold">{sectionTitle}</h2>
-        {sectionBody ? <p className={`mt-2 text-sm ${mutedText}`}>{sectionBody}</p> : null}
+        <SectionHeading
+          title={sectionTitle}
+          accentColor={theme.accentColor}
+          className={presentation.sectionHeadingClass}
+          isDark={isDark}
+          template={theme.template}
+        />
+        {sectionBody ? (
+          <p className={`text-sm leading-relaxed md:text-base ${mutedText}`}>{sectionBody}</p>
+        ) : null}
       </section>
     );
   };
@@ -421,17 +548,19 @@ export function ProMiniSiteLayout({
   };
 
   return (
-    <section
-      className={`space-y-6 ${presentation.layoutClass}`}
-      data-testid="pro-mini-site-layout"
-      data-template={theme.template}
-      data-template-presentation={theme.template}
-      data-background-style={theme.backgroundStyle}
-      data-button-style={theme.buttonStyle}
-    >
-      {enabledSections.map((section) => (
-        <div key={`${section.id}-${section.type}`}>{renderSection(section.type)}</div>
-      ))}
-    </section>
+    <div className={pageShell} data-testid="pro-mini-site-page-shell">
+      <section
+        className={`space-y-8 md:space-y-10 ${presentation.layoutClass}`}
+        data-testid="pro-mini-site-layout"
+        data-template={theme.template}
+        data-template-presentation={theme.template}
+        data-background-style={theme.backgroundStyle}
+        data-button-style={theme.buttonStyle}
+      >
+        {enabledSections.map((section) => (
+          <div key={`${section.id}-${section.type}`}>{renderSection(section.type)}</div>
+        ))}
+      </section>
+    </div>
   );
 }
