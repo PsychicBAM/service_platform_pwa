@@ -177,7 +177,7 @@ async def test_save_mini_site_config_preserves_unrelated_settings_keys(
     assert save_response.status_code == 200
     saved_body = save_response.json()
 
-    await db_session.expire_all()
+    db_session.expire_all()
     result = await db_session.execute(
         select(Business).where(Business.slug == ctx["slug"]),
     )
