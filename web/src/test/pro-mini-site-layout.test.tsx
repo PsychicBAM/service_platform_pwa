@@ -184,6 +184,19 @@ describe("ProMiniSiteLayout", () => {
     expect(screen.getByTestId("pro-mini-site-hero-content")).toHaveClass("text-center");
   });
 
+  it("renders editable copy hero badge text", () => {
+    renderProMiniSiteLayout({
+      config: normalizeMiniSiteConfig({
+        ...createSavedMiniSiteConfig({ template: "service" }),
+        copy: {
+          ...createSavedMiniSiteConfig({ template: "service" }).copy,
+          heroBadgeText: "Custom badge",
+        },
+      }),
+    });
+    expect(screen.getByText("Custom badge")).toBeInTheDocument();
+  });
+
   it("applies portfolio template presentation", () => {
     renderProMiniSiteLayout({
       config: createSavedMiniSiteConfig({ template: "portfolio", backgroundStyle: "dark" }),

@@ -8,6 +8,22 @@ import {
 } from "@/lib/miniSiteConfig";
 
 describe("mini-site config helpers", () => {
+  it("DEFAULT_MINI_SITE_CONFIG includes copy defaults", () => {
+    expect(DEFAULT_MINI_SITE_CONFIG.copy.heroBadgeText).toBe("Welcome");
+    expect(DEFAULT_MINI_SITE_CONFIG.copy.trustCards).toHaveLength(3);
+  });
+
+  it("normalizeMiniSiteConfig adds copy for legacy configs", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
+      socialLinks: {},
+    });
+    expect(config.copy.heroBadgeText).toBe("Welcome");
+    expect(config.copy.trustCards[0]?.title).toBeTruthy();
+  });
+
   it("DEFAULT_MINI_SITE_CONFIG includes backgroundColor default", () => {
     expect(DEFAULT_MINI_SITE_CONFIG.theme.backgroundColor).toBe("#f8fafc");
   });

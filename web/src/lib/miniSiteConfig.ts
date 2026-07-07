@@ -7,12 +7,14 @@ import {
   type MiniSiteBackgroundStyle,
   type MiniSiteButtonStyle,
   type MiniSiteConfig,
+  type MiniSiteCopy,
   type MiniSiteSection,
   type MiniSiteSectionItem,
   type MiniSiteSectionType,
   type MiniSiteSocialLinks,
   type MiniSiteTemplate,
   type MiniSiteTheme,
+  type MiniSiteTrustCard,
 } from "@/types/miniSite";
 import { normalizeHexColorInput } from "./miniSiteTemplatePresentation";
 
@@ -41,6 +43,106 @@ const DEFAULT_SECTION_ORDERS: Record<MiniSiteSectionType, number> = {
 };
 
 export const DEFAULT_MINI_SITE_BACKGROUND_COLOR = "#f8fafc";
+
+export function getDefaultCopyForTemplate(template: MiniSiteTemplate): MiniSiteCopy {
+  switch (template) {
+    case "service":
+      return {
+        heroBadgeText: "Service business",
+        trustCards: [
+          { title: "Same-week", subtitle: "Service availability" },
+          { title: "Free quote", subtitle: "No obligation" },
+          { title: "Local", subtitle: "Trusted nearby" },
+        ],
+        benefitsSectionTitle: "Why choose us",
+        benefitsItems: ["Fast response", "Transparent pricing", "Reliable local service"],
+        servicesSectionTitle: "Our services",
+        servicesSectionBadgeText: "{count} available",
+        contactSectionTitle: "Contact & details",
+        primaryCtaLabel: "Book now",
+        secondaryCtaLabel: "Submit a request",
+      };
+    case "expert":
+      return {
+        heroBadgeText: "Expert profile",
+        trustCards: [
+          { title: "1:1", subtitle: "Personal guidance" },
+          { title: "Proven", subtitle: "Approach" },
+          { title: "Clear", subtitle: "Next steps" },
+        ],
+        benefitsSectionTitle: "Why work with me",
+        benefitsItems: ["Focused expertise", "Clear recommendations", "Practical next steps"],
+        servicesSectionTitle: "Services & sessions",
+        servicesSectionBadgeText: "{count} available",
+        contactSectionTitle: "Get in touch",
+        primaryCtaLabel: "Book a session",
+        secondaryCtaLabel: "Send a request",
+      };
+    case "clinic":
+      return {
+        heroBadgeText: "Care & wellness",
+        trustCards: [
+          { title: "Flexible", subtitle: "Appointments" },
+          { title: "Patient-first", subtitle: "Experience" },
+          { title: "Clear", subtitle: "Contact info" },
+        ],
+        benefitsSectionTitle: "Why patients choose us",
+        benefitsItems: [
+          "Flexible scheduling",
+          "Clear contact details",
+          "Calm, professional experience",
+        ],
+        servicesSectionTitle: "Services & care",
+        servicesSectionBadgeText: "{count} available",
+        contactSectionTitle: "Contact & location",
+        primaryCtaLabel: "Request appointment",
+        secondaryCtaLabel: "Ask a question",
+      };
+    case "portfolio":
+      return {
+        heroBadgeText: "Creative portfolio",
+        trustCards: [
+          { title: "Premium", subtitle: "Quality work" },
+          { title: "Curated", subtitle: "Showcase" },
+          { title: "Bold", subtitle: "Visual style" },
+        ],
+        benefitsSectionTitle: "What to expect",
+        benefitsItems: ["Distinctive work", "Clear process", "Premium presentation"],
+        servicesSectionTitle: "Services",
+        servicesSectionBadgeText: "{count} available",
+        contactSectionTitle: "Contact",
+        primaryCtaLabel: "Start a project",
+        secondaryCtaLabel: "Send inquiry",
+      };
+    case "clean":
+    default:
+      return {
+        heroBadgeText: "Welcome",
+        trustCards: [
+          { title: "Professional", subtitle: "Service quality" },
+          { title: "Easy", subtitle: "Online booking" },
+          { title: "Local", subtitle: "Trusted business" },
+        ],
+        benefitsSectionTitle: "Why choose us",
+        benefitsItems: ["Quality service", "Easy booking", "Trusted locally"],
+        servicesSectionTitle: "Our services",
+        servicesSectionBadgeText: "{count} available",
+        contactSectionTitle: "Contact & details",
+        primaryCtaLabel: "Book now",
+        secondaryCtaLabel: "Submit a request",
+      };
+  }
+}
+
+export function formatServicesSectionBadge(text: string, count: number): string | null {
+  if (!text.trim()) {
+    return count > 0 ? `${count} available` : null;
+  }
+  if (text.includes("{count}")) {
+    return text.replace("{count}", String(count));
+  }
+  return text;
+}
 
 const DEFAULT_THEME: MiniSiteTheme = {
   template: "clean",
@@ -135,6 +237,7 @@ export const DEFAULT_MINI_SITE_CONFIG: MiniSiteConfig = {
   theme: { ...DEFAULT_THEME },
   sections: buildDefaultSections(),
   socialLinks: {},
+  copy: getDefaultCopyForTemplate(DEFAULT_THEME.template),
 };
 
 export function isMiniSiteTemplate(value: unknown): value is MiniSiteTemplate {
@@ -171,6 +274,69 @@ function isMiniSiteBackgroundStyle(value: unknown): value is MiniSiteBackgroundS
 
 function isMiniSiteButtonStyle(value: unknown): value is MiniSiteButtonStyle {
   return typeof value === "string" && (MINI_SITE_BUTTON_STYLES as readonly string[]).includes(value);
+}
+
+function normalizeTrustCard(value: unknown, fallback: MiniSiteTrustCard): MiniSiteTrustCard {
+  if (!value || typeof value !== "object") {
+    return fallback;
+  }
+  const record = value as Record<string, unknown>;
+  return {
+    title: sanitizeText(record.title) ?? fallback.title,
+    subtitle: sanitizeText(record.subtitle) ?? fallback.subtitle,
+  };
+}
+
+function normalizeBenefitsItems(value: unknown, fallback: [string, string, string]): [string, string, string] {
+  if (!Array.isArray(value)) {
+    return fallback;
+  }
+  return [0, 1, 2].map((index) => sanitizeText(value[index]) ?? fallback[index]) as [
+    string,
+    string,
+    string,
+  ];
+}
+
+function normalizeCopy(input: unknown, template: MiniSiteTemplate): MiniSiteCopy {
+  const defaults = getDefaultCopyForTemplate(template);
+  if (!input || typeof input !== "object") {
+    return defaults;
+  }
+
+  const source = input as Record<string, unknown>;
+  const trustSource = (source.trustCards ?? source.trust_cards) as unknown;
+  const trustDefaults = defaults.trustCards;
+  const trustCards = [0, 1, 2].map((index) => {
+    const entry = Array.isArray(trustSource) ? trustSource[index] : undefined;
+    return normalizeTrustCard(entry, trustDefaults[index]);
+  }) as [MiniSiteTrustCard, MiniSiteTrustCard, MiniSiteTrustCard];
+
+  const benefitsSource = source.benefitsItems ?? source.benefits_items;
+
+  return {
+    heroBadgeText:
+      sanitizeText(source.heroBadgeText ?? source.hero_badge_text) ?? defaults.heroBadgeText,
+    trustCards,
+    benefitsSectionTitle:
+      sanitizeText(source.benefitsSectionTitle ?? source.benefits_section_title) ??
+      defaults.benefitsSectionTitle,
+    benefitsItems: normalizeBenefitsItems(benefitsSource, defaults.benefitsItems),
+    servicesSectionTitle:
+      sanitizeText(source.servicesSectionTitle ?? source.services_section_title) ??
+      defaults.servicesSectionTitle,
+    servicesSectionBadgeText:
+      sanitizeText(source.servicesSectionBadgeText ?? source.services_section_badge_text) ??
+      defaults.servicesSectionBadgeText,
+    contactSectionTitle:
+      sanitizeText(source.contactSectionTitle ?? source.contact_section_title) ??
+      defaults.contactSectionTitle,
+    primaryCtaLabel:
+      sanitizeText(source.primaryCtaLabel ?? source.primary_cta_label) ?? defaults.primaryCtaLabel,
+    secondaryCtaLabel:
+      sanitizeText(source.secondaryCtaLabel ?? source.secondary_cta_label) ??
+      defaults.secondaryCtaLabel,
+  };
 }
 
 function normalizeTheme(input: unknown): MiniSiteTheme {
@@ -323,6 +489,7 @@ export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
       theme: { ...DEFAULT_THEME },
       sections: buildDefaultSections(),
       socialLinks: {},
+      copy: getDefaultCopyForTemplate(DEFAULT_THEME.template),
     };
   }
 
@@ -332,12 +499,14 @@ export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
 
   const source = input as Record<string, unknown>;
   const version = source.version === MINI_SITE_CONFIG_VERSION ? MINI_SITE_CONFIG_VERSION : MINI_SITE_CONFIG_VERSION;
+  const theme = normalizeTheme(source.theme);
 
   return {
     version,
-    theme: normalizeTheme(source.theme),
+    theme,
     sections: normalizeSections(source.sections),
-    socialLinks: normalizeSocialLinks(source.socialLinks),
+    socialLinks: normalizeSocialLinks(source.socialLinks ?? source.social_links),
+    copy: normalizeCopy(source.copy, theme.template),
   };
 }
 

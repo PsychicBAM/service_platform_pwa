@@ -11,7 +11,7 @@ from app.repositories.business_repository import DEFAULT_BUSINESS_SETTINGS
 from app.utils.mini_site_config import MINI_SITE_SETTINGS_KEY
 from tests.conftest import activate_business, register_and_get_context
 
-ALLOWED_TOP_LEVEL_KEYS = {"version", "theme", "sections", "social_links"}
+ALLOWED_TOP_LEVEL_KEYS = {"version", "theme", "sections", "social_links", "copy"}
 
 
 def _mini_site_config_path(business_id: str) -> str:
@@ -37,6 +37,7 @@ async def test_admin_can_get_default_mini_site_config_when_none_saved(
     assert body["version"] == 1
     assert body["theme"]["template"] == "clean"
     assert body["theme"]["background_color"] == "#f8fafc"
+    assert body["copy"]["hero_badge_text"] == "Welcome"
     section_types = [section["type"] for section in body["sections"]]
     assert "hero" in section_types
     assert "contact" in section_types

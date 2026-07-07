@@ -11,12 +11,14 @@ from app.schemas.mini_site import (
     MiniSiteBackgroundStyle,
     MiniSiteButtonStyle,
     MiniSiteConfig,
+    MiniSiteCopy,
     MiniSiteSection,
     MiniSiteSectionItem,
     MiniSiteSectionType,
     MiniSiteSocialLinks,
     MiniSiteTemplate,
     MiniSiteTheme,
+    MiniSiteTrustCard,
 )
 
 # Persisted at Business.settings["mini_site"] as nullable JSON (key absent = no saved config).
@@ -43,6 +45,92 @@ _DEFAULT_SECTION_ORDERS: dict[MiniSiteSectionType, int] = {
 }
 
 _DEFAULT_THEME = MiniSiteTheme()
+
+
+def _default_copy_for_template(template: MiniSiteTemplate) -> MiniSiteCopy:
+    if template == "service":
+        return MiniSiteCopy(
+            hero_badge_text="Service business",
+            trust_cards=[
+                MiniSiteTrustCard(title="Same-week", subtitle="Service availability"),
+                MiniSiteTrustCard(title="Free quote", subtitle="No obligation"),
+                MiniSiteTrustCard(title="Local", subtitle="Trusted nearby"),
+            ],
+            benefits_section_title="Why choose us",
+            benefits_items=["Fast response", "Transparent pricing", "Reliable local service"],
+            services_section_title="Our services",
+            services_section_badge_text="{count} available",
+            contact_section_title="Contact & details",
+            primary_cta_label="Book now",
+            secondary_cta_label="Submit a request",
+        )
+    if template == "expert":
+        return MiniSiteCopy(
+            hero_badge_text="Expert profile",
+            trust_cards=[
+                MiniSiteTrustCard(title="1:1", subtitle="Personal guidance"),
+                MiniSiteTrustCard(title="Proven", subtitle="Approach"),
+                MiniSiteTrustCard(title="Clear", subtitle="Next steps"),
+            ],
+            benefits_section_title="Why work with me",
+            benefits_items=["Focused expertise", "Clear recommendations", "Practical next steps"],
+            services_section_title="Services & sessions",
+            services_section_badge_text="{count} available",
+            contact_section_title="Get in touch",
+            primary_cta_label="Book a session",
+            secondary_cta_label="Send a request",
+        )
+    if template == "clinic":
+        return MiniSiteCopy(
+            hero_badge_text="Care & wellness",
+            trust_cards=[
+                MiniSiteTrustCard(title="Flexible", subtitle="Appointments"),
+                MiniSiteTrustCard(title="Patient-first", subtitle="Experience"),
+                MiniSiteTrustCard(title="Clear", subtitle="Contact info"),
+            ],
+            benefits_section_title="Why patients choose us",
+            benefits_items=[
+                "Flexible scheduling",
+                "Clear contact details",
+                "Calm, professional experience",
+            ],
+            services_section_title="Services & care",
+            services_section_badge_text="{count} available",
+            contact_section_title="Contact & location",
+            primary_cta_label="Request appointment",
+            secondary_cta_label="Ask a question",
+        )
+    if template == "portfolio":
+        return MiniSiteCopy(
+            hero_badge_text="Creative portfolio",
+            trust_cards=[
+                MiniSiteTrustCard(title="Premium", subtitle="Quality work"),
+                MiniSiteTrustCard(title="Curated", subtitle="Showcase"),
+                MiniSiteTrustCard(title="Bold", subtitle="Visual style"),
+            ],
+            benefits_section_title="What to expect",
+            benefits_items=["Distinctive work", "Clear process", "Premium presentation"],
+            services_section_title="Services",
+            services_section_badge_text="{count} available",
+            contact_section_title="Contact",
+            primary_cta_label="Start a project",
+            secondary_cta_label="Send inquiry",
+        )
+    return MiniSiteCopy(
+        hero_badge_text="Welcome",
+        trust_cards=[
+            MiniSiteTrustCard(title="Professional", subtitle="Service quality"),
+            MiniSiteTrustCard(title="Easy", subtitle="Online booking"),
+            MiniSiteTrustCard(title="Local", subtitle="Trusted business"),
+        ],
+        benefits_section_title="Why choose us",
+        benefits_items=["Quality service", "Easy booking", "Trusted locally"],
+        services_section_title="Our services",
+        services_section_badge_text="{count} available",
+        contact_section_title="Contact & details",
+        primary_cta_label="Book now",
+        secondary_cta_label="Submit a request",
+    )
 
 
 def _sanitize_plain_text(value: str) -> str:
@@ -136,11 +224,83 @@ def _build_default_sections() -> list[MiniSiteSection]:
 
 def default_mini_site_config() -> MiniSiteConfig:
     """Return a safe default mini-site configuration."""
+    theme = _DEFAULT_THEME.model_copy(deep=True)
     return MiniSiteConfig(
         version=MINI_SITE_CONFIG_VERSION,
-        theme=_DEFAULT_THEME.model_copy(deep=True),
+        theme=theme,
         sections=_build_default_sections(),
         social_links=MiniSiteSocialLinks(),
+        copy=_default_copy_for_template(theme.template),
+    )
+
+
+def _normalize_trust_card(value: object, fallback: MiniSiteTrustCard) -> MiniSiteTrustCard:
+    if not isinstance(value, dict):
+        return fallback
+    return MiniSiteTrustCard(
+        title=_sanitize_text(value.get("title")) or fallback.title,
+        subtitle=_sanitize_text(value.get("subtitle")) or fallback.subtitle,
+    )
+
+
+def _normalize_benefits_items(value: object, fallback: list[str]) -> list[str]:
+    if not isinstance(value, list):
+        return fallback[:3]
+    items: list[str] = []
+    for index in range(3):
+        sanitized = _sanitize_text(value[index]) if index < len(value) else None
+        items.append(sanitized or fallback[index])
+    return items
+
+
+def _normalize_copy(input_value: object, template: MiniSiteTemplate) -> MiniSiteCopy:
+    defaults = _default_copy_for_template(template)
+    if not isinstance(input_value, dict):
+        return defaults
+
+    trust_source = input_value.get("trust_cards", input_value.get("trustCards"))
+    trust_cards: list[MiniSiteTrustCard] = []
+    default_cards = defaults.trust_cards
+    for index in range(3):
+        entry = trust_source[index] if isinstance(trust_source, list) and index < len(trust_source) else {}
+        trust_cards.append(_normalize_trust_card(entry, default_cards[index]))
+
+    benefits_source = input_value.get("benefits_items", input_value.get("benefitsItems"))
+
+    return MiniSiteCopy(
+        hero_badge_text=_sanitize_text(
+            input_value.get("hero_badge_text", input_value.get("heroBadgeText")),
+        )
+        or defaults.hero_badge_text,
+        trust_cards=trust_cards,
+        benefits_section_title=_sanitize_text(
+            input_value.get("benefits_section_title", input_value.get("benefitsSectionTitle")),
+        )
+        or defaults.benefits_section_title,
+        benefits_items=_normalize_benefits_items(benefits_source, defaults.benefits_items),
+        services_section_title=_sanitize_text(
+            input_value.get("services_section_title", input_value.get("servicesSectionTitle")),
+        )
+        or defaults.services_section_title,
+        services_section_badge_text=_sanitize_text(
+            input_value.get(
+                "services_section_badge_text",
+                input_value.get("servicesSectionBadgeText"),
+            ),
+        )
+        or defaults.services_section_badge_text,
+        contact_section_title=_sanitize_text(
+            input_value.get("contact_section_title", input_value.get("contactSectionTitle")),
+        )
+        or defaults.contact_section_title,
+        primary_cta_label=_sanitize_text(
+            input_value.get("primary_cta_label", input_value.get("primaryCtaLabel")),
+        )
+        or defaults.primary_cta_label,
+        secondary_cta_label=_sanitize_text(
+            input_value.get("secondary_cta_label", input_value.get("secondaryCtaLabel")),
+        )
+        or defaults.secondary_cta_label,
     )
 
 
@@ -261,11 +421,13 @@ def normalize_mini_site_config(input_value: object) -> MiniSiteConfig:
     if input_value is None or not isinstance(input_value, dict):
         return default_mini_site_config()
 
+    theme = _normalize_theme(input_value.get("theme"))
     return MiniSiteConfig(
         version=MINI_SITE_CONFIG_VERSION,
-        theme=_normalize_theme(input_value.get("theme")),
+        theme=theme,
         sections=_normalize_sections(input_value.get("sections")),
         social_links=_normalize_social_links(input_value.get("social_links")),
+        copy=_normalize_copy(input_value.get("copy"), theme.template),
     )
 
 

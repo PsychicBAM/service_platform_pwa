@@ -16,8 +16,10 @@ import {
   type MiniSiteBackgroundStyle,
   type MiniSiteButtonStyle,
   type MiniSiteConfig,
+  type MiniSiteCopy,
   type MiniSiteSectionType,
   type MiniSiteTemplate,
+  type MiniSiteTrustCard,
 } from "@/types/miniSite";
 import { getAdminSettingsErrorMessage } from "@/utils/errors";
 
@@ -132,6 +134,41 @@ function ColorField({
   );
 }
 
+function updateCopyField<K extends keyof MiniSiteCopy>(
+  config: MiniSiteConfig,
+  field: K,
+  value: MiniSiteCopy[K],
+): MiniSiteConfig {
+  return {
+    ...config,
+    copy: {
+      ...config.copy,
+      [field]: value,
+    },
+  };
+}
+
+function updateTrustCard(
+  config: MiniSiteConfig,
+  index: 0 | 1 | 2,
+  field: keyof MiniSiteTrustCard,
+  value: string,
+): MiniSiteConfig {
+  const trustCards = [...config.copy.trustCards] as MiniSiteCopy["trustCards"];
+  trustCards[index] = { ...trustCards[index], [field]: value };
+  return updateCopyField(config, "trustCards", trustCards);
+}
+
+function updateBenefitItem(
+  config: MiniSiteConfig,
+  index: 0 | 1 | 2,
+  value: string,
+): MiniSiteConfig {
+  const benefitsItems = [...config.copy.benefitsItems] as MiniSiteCopy["benefitsItems"];
+  benefitsItems[index] = value;
+  return updateCopyField(config, "benefitsItems", benefitsItems);
+}
+
 function DisabledMediaField({
   id,
   label,
@@ -238,8 +275,8 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
 
   return (
     <div className="space-y-4" data-testid="mini-site-editor">
-      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-        <div className="space-y-4">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px] xl:items-start">
+        <div className="space-y-4 min-w-0">
       <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Theme</p>
 
@@ -369,6 +406,112 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
       </div>
 
       <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Template labels</p>
+        <div>
+          <FieldLabel htmlFor="mini-site-hero-badge-text">Hero badge</FieldLabel>
+          <TextInput
+            id="mini-site-hero-badge-text"
+            value={draft.copy.heroBadgeText}
+            disabled={saving}
+            onChange={(value) => setDraft(updateCopyField(draft, "heroBadgeText", value))}
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {([0, 1, 2] as const).map((index) => (
+            <div key={index} className="space-y-2 rounded-lg border border-slate-100 bg-slate-50/60 p-3">
+              <p className="text-xs font-semibold text-slate-500">Trust card {index + 1}</p>
+              <TextInput
+                id={`mini-site-trust-card-${index}-title`}
+                value={draft.copy.trustCards[index].title}
+                disabled={saving}
+                placeholder="Title"
+                onChange={(value) => setDraft(updateTrustCard(draft, index, "title", value))}
+              />
+              <TextInput
+                id={`mini-site-trust-card-${index}-subtitle`}
+                value={draft.copy.trustCards[index].subtitle}
+                disabled={saving}
+                placeholder="Subtitle"
+                onChange={(value) => setDraft(updateTrustCard(draft, index, "subtitle", value))}
+              />
+            </div>
+          ))}
+        </div>
+        <div>
+          <FieldLabel htmlFor="mini-site-benefits-section-title">Benefits section title</FieldLabel>
+          <TextInput
+            id="mini-site-benefits-section-title"
+            value={draft.copy.benefitsSectionTitle}
+            disabled={saving}
+            onChange={(value) => setDraft(updateCopyField(draft, "benefitsSectionTitle", value))}
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {([0, 1, 2] as const).map((index) => (
+            <div key={index}>
+              <FieldLabel htmlFor={`mini-site-benefit-item-${index}`}>Benefit {index + 1}</FieldLabel>
+              <TextInput
+                id={`mini-site-benefit-item-${index}`}
+                value={draft.copy.benefitsItems[index]}
+                disabled={saving}
+                onChange={(value) => setDraft(updateBenefitItem(draft, index, value))}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <FieldLabel htmlFor="mini-site-services-section-title">Services section title</FieldLabel>
+            <TextInput
+              id="mini-site-services-section-title"
+              value={draft.copy.servicesSectionTitle}
+              disabled={saving}
+              onChange={(value) => setDraft(updateCopyField(draft, "servicesSectionTitle", value))}
+            />
+          </div>
+          <div>
+            <FieldLabel htmlFor="mini-site-services-section-badge">Services badge</FieldLabel>
+            <TextInput
+              id="mini-site-services-section-badge"
+              value={draft.copy.servicesSectionBadgeText}
+              disabled={saving}
+              placeholder="{count} available"
+              onChange={(value) => setDraft(updateCopyField(draft, "servicesSectionBadgeText", value))}
+            />
+          </div>
+        </div>
+        <div>
+          <FieldLabel htmlFor="mini-site-contact-section-title">Contact section title</FieldLabel>
+          <TextInput
+            id="mini-site-contact-section-title"
+            value={draft.copy.contactSectionTitle}
+            disabled={saving}
+            onChange={(value) => setDraft(updateCopyField(draft, "contactSectionTitle", value))}
+          />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <FieldLabel htmlFor="mini-site-primary-cta-label">Primary CTA label</FieldLabel>
+            <TextInput
+              id="mini-site-primary-cta-label"
+              value={draft.copy.primaryCtaLabel}
+              disabled={saving}
+              onChange={(value) => setDraft(updateCopyField(draft, "primaryCtaLabel", value))}
+            />
+          </div>
+          <div>
+            <FieldLabel htmlFor="mini-site-secondary-cta-label">Secondary CTA label</FieldLabel>
+            <TextInput
+              id="mini-site-secondary-cta-label"
+              value={draft.copy.secondaryCtaLabel}
+              disabled={saving}
+              onChange={(value) => setDraft(updateCopyField(draft, "secondaryCtaLabel", value))}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Hero</p>
         <div>
           <FieldLabel htmlFor="mini-site-hero-title">Hero title</FieldLabel>
@@ -493,7 +636,9 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
       </div>
         </div>
 
-        <MiniSiteLivePreview config={draft} businessName={businessName} />
+        <div className="min-w-0 xl:justify-self-end">
+          <MiniSiteLivePreview config={draft} businessName={businessName} />
+        </div>
       </div>
 
       {saveSuccess ? (

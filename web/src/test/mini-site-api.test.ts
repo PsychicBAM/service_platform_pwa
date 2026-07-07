@@ -58,6 +58,21 @@ const wireConfig: MiniSiteConfigWire = {
     tiktok: null,
     telegram: null,
   },
+  copy: {
+    hero_badge_text: "Service business",
+    trust_cards: [
+      { title: "Same-week", subtitle: "Service availability" },
+      { title: "Free quote", subtitle: "No obligation" },
+      { title: "Local", subtitle: "Trusted nearby" },
+    ],
+    benefits_section_title: "Why choose us",
+    benefits_items: ["Fast response", "Transparent pricing", "Reliable local service"],
+    services_section_title: "Our services",
+    services_section_badge_text: "{count} available",
+    contact_section_title: "Contact & details",
+    primary_cta_label: "Book now",
+    secondary_cta_label: "Submit a request",
+  },
 };
 
 describe("miniSiteApi", () => {

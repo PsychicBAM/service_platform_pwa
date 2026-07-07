@@ -68,6 +68,23 @@ export interface MiniSiteSocialLinks {
   telegram?: string;
 }
 
+export interface MiniSiteTrustCard {
+  title: string;
+  subtitle: string;
+}
+
+export interface MiniSiteCopy {
+  heroBadgeText: string;
+  trustCards: [MiniSiteTrustCard, MiniSiteTrustCard, MiniSiteTrustCard];
+  benefitsSectionTitle: string;
+  benefitsItems: [string, string, string];
+  servicesSectionTitle: string;
+  servicesSectionBadgeText: string;
+  contactSectionTitle: string;
+  primaryCtaLabel: string;
+  secondaryCtaLabel: string;
+}
+
 export const MINI_SITE_CONFIG_VERSION = 1 as const;
 
 export type MiniSiteConfigVersion = typeof MINI_SITE_CONFIG_VERSION;
@@ -77,4 +94,5 @@ export interface MiniSiteConfig {
   theme: MiniSiteTheme;
   sections: MiniSiteSection[];
   socialLinks: MiniSiteSocialLinks;
+  copy: MiniSiteCopy;
 }

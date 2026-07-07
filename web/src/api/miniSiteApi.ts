@@ -1,14 +1,17 @@
 import { apiClient } from "@/api/client";
+import { normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
   MiniSiteConfig,
+  MiniSiteCopy,
   MiniSiteSection,
   MiniSiteSectionItem,
   MiniSiteSectionType,
   MiniSiteSocialLinks,
   MiniSiteTemplate,
   MiniSiteTheme,
+  MiniSiteTrustCard,
 } from "@/types/miniSite";
 
 type MiniSiteSectionItemWire = {
@@ -27,6 +30,23 @@ type MiniSiteSectionWire = {
   body?: string | null;
   items?: MiniSiteSectionItemWire[] | null;
   order: number;
+};
+
+type MiniSiteTrustCardWire = {
+  title: string;
+  subtitle: string;
+};
+
+type MiniSiteCopyWire = {
+  hero_badge_text?: string;
+  trust_cards?: MiniSiteTrustCardWire[];
+  benefits_section_title?: string;
+  benefits_items?: string[];
+  services_section_title?: string;
+  services_section_badge_text?: string;
+  contact_section_title?: string;
+  primary_cta_label?: string;
+  secondary_cta_label?: string;
 };
 
 type MiniSiteThemeWire = {
@@ -54,6 +74,7 @@ export type MiniSiteConfigWire = {
   theme: MiniSiteThemeWire;
   sections: MiniSiteSectionWire[];
   social_links: MiniSiteSocialLinksWire;
+  copy?: MiniSiteCopyWire;
 };
 
 function miniSiteConfigPath(businessId: string | number): string {
@@ -101,6 +122,24 @@ function mapSectionToWire(section: MiniSiteSection): MiniSiteSectionWire {
     subtitle: section.subtitle ?? null,
     body: section.body ?? null,
     items: section.items?.map(mapSectionItemToWire) ?? null,
+  };
+}
+
+function mapTrustCardToWire(card: MiniSiteTrustCard): MiniSiteTrustCardWire {
+  return { title: card.title, subtitle: card.subtitle };
+}
+
+function mapCopyToWire(copy: MiniSiteCopy): MiniSiteCopyWire {
+  return {
+    hero_badge_text: copy.heroBadgeText,
+    trust_cards: copy.trustCards.map(mapTrustCardToWire),
+    benefits_section_title: copy.benefitsSectionTitle,
+    benefits_items: [...copy.benefitsItems],
+    services_section_title: copy.servicesSectionTitle,
+    services_section_badge_text: copy.servicesSectionBadgeText,
+    contact_section_title: copy.contactSectionTitle,
+    primary_cta_label: copy.primaryCtaLabel,
+    secondary_cta_label: copy.secondaryCtaLabel,
   };
 }
 
@@ -153,12 +192,13 @@ function mapSocialLinksToWire(links: MiniSiteSocialLinks): MiniSiteSocialLinksWi
 }
 
 export function mapMiniSiteConfigFromWire(wire: MiniSiteConfigWire): MiniSiteConfig {
-  return {
+  return normalizeMiniSiteConfig({
     version: wire.version,
-    theme: mapThemeFromWire(wire.theme),
-    sections: wire.sections.map(mapSectionFromWire),
-    socialLinks: mapSocialLinksFromWire(wire.social_links),
-  };
+    theme: wire.theme,
+    sections: wire.sections,
+    social_links: wire.social_links,
+    copy: wire.copy,
+  });
 }
 
 export function mapMiniSiteConfigToWire(config: MiniSiteConfig): MiniSiteConfigWire {
@@ -167,6 +207,7 @@ export function mapMiniSiteConfigToWire(config: MiniSiteConfig): MiniSiteConfigW
     theme: mapThemeToWire(config.theme),
     sections: config.sections.map(mapSectionToWire),
     social_links: mapSocialLinksToWire(config.socialLinks),
+    copy: mapCopyToWire(config.copy),
   };
 }
 

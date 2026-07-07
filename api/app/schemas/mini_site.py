@@ -90,6 +90,27 @@ class MiniSiteSocialLinks(BaseModel):
     telegram: str | None = None
 
 
+class MiniSiteTrustCard(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    subtitle: str
+
+
+class MiniSiteCopy(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    hero_badge_text: str = "Welcome"
+    trust_cards: list[MiniSiteTrustCard] = Field(default_factory=list)
+    benefits_section_title: str = "Why choose us"
+    benefits_items: list[str] = Field(default_factory=list)
+    services_section_title: str = "Our services"
+    services_section_badge_text: str = "{count} available"
+    contact_section_title: str = "Contact & details"
+    primary_cta_label: str = "Book now"
+    secondary_cta_label: str = "Submit a request"
+
+
 class MiniSiteConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -97,6 +118,7 @@ class MiniSiteConfig(BaseModel):
     theme: MiniSiteTheme
     sections: list[MiniSiteSection]
     social_links: MiniSiteSocialLinks = Field(default_factory=MiniSiteSocialLinks)
+    copy: MiniSiteCopy = Field(default_factory=MiniSiteCopy)
 
 
 class MiniSiteConfigWrite(BaseModel):
@@ -108,3 +130,4 @@ class MiniSiteConfigWrite(BaseModel):
     theme: dict[str, Any] | None = None
     sections: list[Any] | None = None
     social_links: dict[str, Any] | None = None
+    copy: dict[str, Any] | None = None

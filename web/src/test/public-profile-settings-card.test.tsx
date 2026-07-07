@@ -84,6 +84,8 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("mini-site-accent-color-picker")).toBeEnabled();
     expect(screen.getByTestId("mini-site-background-color")).toBeEnabled();
     expect(screen.getByTestId("mini-site-background-color-picker")).toBeEnabled();
+    expect(screen.getByTestId("mini-site-hero-badge-text")).toBeEnabled();
+    expect(screen.getByTestId("mini-site-primary-cta-label")).toBeEnabled();
     expect(screen.getByTestId("mini-site-background-style")).toBeEnabled();
     expect(screen.getByTestId("mini-site-button-style")).toBeEnabled();
     expect(screen.getByTestId("mini-site-hero-title")).toBeEnabled();
@@ -199,6 +201,17 @@ describe("PublicProfileSettingsCard", () => {
     );
   });
 
+  it("updates live preview when hero badge text changes", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    const badgeInput = await screen.findByTestId("mini-site-hero-badge-text");
+    await user.clear(badgeInput);
+    await user.type(badgeInput, "Studio badge");
+
+    expect(screen.getByTestId("mini-site-preview-hero-badge")).toHaveTextContent("Studio badge");
+  });
+
   it("updates live preview when background color changes", async () => {
     renderPublicProfileCard("pro");
 
@@ -242,6 +255,7 @@ describe("PublicProfileSettingsCard", () => {
     const preview = screen.getByTestId("mini-site-live-preview");
     expect(preview).toHaveAttribute("data-background-style", "dark");
     expect(preview).toHaveAttribute("data-button-style", "pill");
+    expect(screen.getByTestId("mini-site-preview-device-shell")).toBeInTheDocument();
     expect(screen.getByTestId("mini-site-preview-primary-button")).toHaveStyle({
       backgroundColor: "#112233",
     });

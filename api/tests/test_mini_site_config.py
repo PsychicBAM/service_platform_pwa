@@ -14,6 +14,26 @@ def _section_types(config: MiniSiteConfig) -> list[str]:
     return [section.type for section in config.sections]
 
 
+def test_default_config_includes_copy_defaults() -> None:
+    config = default_mini_site_config()
+    assert config.copy.hero_badge_text == "Welcome"
+    assert len(config.copy.trust_cards) == 3
+
+
+def test_normalize_adds_copy_for_legacy_config_without_copy() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+        },
+    )
+    assert config.copy.hero_badge_text == "Welcome"
+    assert len(config.copy.trust_cards) == 3
+
+
 def test_default_config_includes_background_color() -> None:
     config = default_mini_site_config()
     assert config.theme.background_color == "#f8fafc"
