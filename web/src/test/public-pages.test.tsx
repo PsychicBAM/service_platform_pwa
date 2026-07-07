@@ -15,6 +15,7 @@ import {
   mockOrderService,
   mockPublicBusiness,
 } from "@/test/mock-fixtures";
+import { normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
 import { renderRoute } from "@/test/test-utils";
 
 vi.mock("@/api/publicApi");
@@ -34,6 +35,8 @@ describe("public pages smoke", () => {
 
     expect(await screen.findByRole("heading", { name: mockPublicBusiness.name })).toBeInTheDocument();
     expect(screen.getByTestId("standard-public-business-home")).toBeInTheDocument();
+    expect(screen.queryByTestId("pro-mini-site-layout")).not.toBeInTheDocument();
+    expect(screen.queryByText("Pro profile")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /choose service/i })).toHaveAttribute(
       "href",
       `/b/${DEMO_SLUG}/services`,
@@ -44,6 +47,7 @@ describe("public pages smoke", () => {
     vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
       ...mockPublicBusiness,
       public_page_variant: "mini_site",
+      mini_site_config: null,
     });
     vi.mocked(publicApi.listPublicServices).mockResolvedValue([
       mockBookingService,
@@ -56,6 +60,7 @@ describe("public pages smoke", () => {
     });
 
     expect(await screen.findByTestId("pro-mini-site-layout")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-hero-title")).toHaveTextContent("Welcome");
     expect(screen.getByTestId("pro-mini-site-book-cta")).toHaveAttribute(
       "href",
       `/b/${DEMO_SLUG}/services`,
@@ -65,6 +70,59 @@ describe("public pages smoke", () => {
       `/b/${DEMO_SLUG}/services/${ORDER_SERVICE_ID}/request`,
     );
     expect(screen.queryByTestId("standard-public-business-home")).not.toBeInTheDocument();
+  });
+
+  it("A3. renders saved mini-site config on public page for mini_site businesses", async () => {
+    const savedConfig = normalizeMiniSiteConfig({
+      version: 1,
+      theme: {
+        template: "clean",
+        primaryColor: "#123456",
+        accentColor: "#654321",
+        backgroundStyle: "light",
+        buttonStyle: "rounded",
+      },
+      sections: [
+        {
+          id: "hero",
+          type: "hero",
+          enabled: true,
+          order: 0,
+          title: "Public saved hero",
+          body: "Public saved hero body",
+        },
+        {
+          id: "about",
+          type: "about",
+          enabled: true,
+          order: 1,
+          title: "About",
+          body: "Public saved about body",
+        },
+        { id: "services", type: "services", enabled: true, order: 2 },
+        { id: "contact", type: "contact", enabled: true, order: 3 },
+        { id: "booking_cta", type: "booking_cta", enabled: false, order: 4 },
+      ],
+      socialLinks: {},
+    });
+
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
+      ...mockPublicBusiness,
+      public_page_variant: "mini_site",
+      mini_site_config: savedConfig,
+    });
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([mockBookingService]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("pro-mini-site-hero-title")).toHaveTextContent(
+      "Public saved hero",
+    );
+    expect(screen.getByTestId("pro-mini-site-hero-body")).toHaveTextContent("Public saved hero body");
+    expect(screen.getByTestId("pro-mini-site-about-body")).toHaveTextContent("Public saved about body");
   });
 
   it("B. renders booking and order service cards", async () => {

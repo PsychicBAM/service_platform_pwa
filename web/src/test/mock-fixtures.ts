@@ -29,6 +29,7 @@ export const mockPublicBusiness: PublicBusiness = {
   contact_phone: "+10000000001",
   address: "123 Demo Street",
   public_page_variant: "standard",
+  mini_site_config: null,
 };
 
 export const mockBookingService: PublicService = {

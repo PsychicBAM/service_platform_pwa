@@ -1,4 +1,5 @@
 import { apiClient } from "@/api/client";
+import { mapMiniSiteConfigFromWire, type MiniSiteConfigWire } from "@/api/miniSiteApi";
 import type {
   AvailabilityResponse,
   PublicBookingCreate,
@@ -14,8 +15,23 @@ function encodeSlug(slug: string): string {
   return encodeURIComponent(slug.trim().toLowerCase());
 }
 
+type PublicBusinessWire = Omit<PublicBusiness, "mini_site_config"> & {
+  mini_site_config: MiniSiteConfigWire | null;
+};
+
+function mapPublicBusinessFromWire(wire: PublicBusinessWire): PublicBusiness {
+  return {
+    ...wire,
+    mini_site_config: wire.mini_site_config
+      ? mapMiniSiteConfigFromWire(wire.mini_site_config)
+      : null,
+  };
+}
+
 export function getPublicBusiness(slug: string) {
-  return apiClient.get<PublicBusiness>(`/public/b/${encodeSlug(slug)}`, { auth: false });
+  return apiClient
+    .get<PublicBusinessWire>(`/public/b/${encodeSlug(slug)}`, { auth: false })
+    .then(mapPublicBusinessFromWire);
 }
 
 export function listPublicServices(slug: string, type?: ServiceType) {

@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 import type React from "react";
 import { screen, within } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { ProMiniSiteLayout, getProMiniSiteCtas } from "@/components/public/ProMiniSiteLayout";
+import { DEFAULT_MINI_SITE_CONFIG, normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
+import type { MiniSiteConfig } from "@/types/miniSite";
 import {
   DEMO_SLUG,
   mockBookingService,
@@ -9,6 +13,79 @@ import {
   mockPublicBusiness,
 } from "@/test/mock-fixtures";
 import { renderRoute } from "@/test/test-utils";
+
+function createSavedMiniSiteConfig(overrides: {
+  heroTitle?: string;
+  heroBody?: string;
+  aboutBody?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  backgroundStyle?: "light" | "soft" | "dark";
+  buttonStyle?: "rounded" | "pill" | "square";
+} = {}): MiniSiteConfig {
+  return normalizeMiniSiteConfig({
+    version: 1,
+    theme: {
+      template: "clean",
+      primaryColor: overrides.primaryColor ?? "#ff5500",
+      accentColor: overrides.accentColor ?? "#2255aa",
+      backgroundStyle: overrides.backgroundStyle ?? "soft",
+      buttonStyle: overrides.buttonStyle ?? "pill",
+      logoUrl: null,
+      coverImageUrl: null,
+    },
+    sections: [
+      {
+        id: "hero",
+        type: "hero",
+        enabled: true,
+        order: 0,
+        title: overrides.heroTitle ?? "Saved hero title",
+        subtitle: "Saved hero subtitle",
+        body: overrides.heroBody ?? "Saved hero body text",
+      },
+      {
+        id: "about",
+        type: "about",
+        enabled: true,
+        order: 1,
+        title: "About our team",
+        body: overrides.aboutBody ?? "Saved about body text",
+      },
+      {
+        id: "services",
+        type: "services",
+        enabled: true,
+        order: 2,
+        title: "Services",
+      },
+      {
+        id: "contact",
+        type: "contact",
+        enabled: true,
+        order: 3,
+        title: "Contact",
+      },
+      {
+        id: "booking_cta",
+        type: "booking_cta",
+        enabled: false,
+        order: 4,
+      },
+      {
+        id: "gallery",
+        type: "gallery",
+        enabled: true,
+        order: 5,
+        title: "Gallery",
+      },
+    ],
+    socialLinks: {
+      website: "https://example.com",
+      instagram: "@savedbiz",
+    },
+  });
+}
 
 function renderProMiniSiteLayout(
   props: Partial<React.ComponentProps<typeof ProMiniSiteLayout>> = {},
@@ -24,11 +101,42 @@ function renderProMiniSiteLayout(
 }
 
 describe("ProMiniSiteLayout", () => {
-  it("renders business name", () => {
+  it("renders default hero content when config is not provided", () => {
     renderProMiniSiteLayout();
 
     expect(screen.getByTestId("pro-mini-site-layout")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: mockPublicBusiness.name })).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-hero-title")).toHaveTextContent("Welcome");
+  });
+
+  it("renders saved hero title and body from miniSiteConfig", () => {
+    renderProMiniSiteLayout({ config: createSavedMiniSiteConfig() });
+
+    expect(screen.getByTestId("pro-mini-site-hero-title")).toHaveTextContent("Saved hero title");
+    expect(screen.getByTestId("pro-mini-site-hero-body")).toHaveTextContent("Saved hero body text");
+  });
+
+  it("renders saved about body from miniSiteConfig", () => {
+    renderProMiniSiteLayout({ config: createSavedMiniSiteConfig() });
+
+    expect(screen.getByTestId("pro-mini-site-about-body")).toHaveTextContent("Saved about body text");
+  });
+
+  it("applies theme color and style attributes from config", () => {
+    renderProMiniSiteLayout({
+      config: createSavedMiniSiteConfig({
+        primaryColor: "#ff5500",
+        backgroundStyle: "soft",
+        buttonStyle: "pill",
+      }),
+    });
+
+    const layout = screen.getByTestId("pro-mini-site-layout");
+    expect(layout).toHaveAttribute("data-background-style", "soft");
+    expect(layout).toHaveAttribute("data-button-style", "pill");
+
+    const bookCta = screen.getByTestId("pro-mini-site-book-cta");
+    expect(bookCta).toHaveStyle({ backgroundColor: "rgb(255, 85, 0)" });
+    expect(bookCta.className).toContain("rounded-full");
   });
 
   it("renders hero CTAs for both operating mode", () => {
@@ -69,18 +177,28 @@ describe("ProMiniSiteLayout", () => {
     expect(screen.getByTestId("pro-mini-site-gallery-placeholder")).toBeInTheDocument();
   });
 
-  it("does not crash when optional description and contact fields are missing", () => {
-    renderProMiniSiteLayout({
-      business: {
-        ...mockPublicBusiness,
-        description: null,
-        address: null,
-        contact_phone: null,
-      },
-    });
+  it("falls back to default config when config is null", () => {
+    renderProMiniSiteLayout({ config: null });
 
-    expect(screen.queryByTestId("pro-mini-site-about")).not.toBeInTheDocument();
-    expect(screen.getByText("Contact details are not available yet.")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-hero-title")).toHaveTextContent(
+      DEFAULT_MINI_SITE_CONFIG.sections.find((section) => section.type === "hero")?.title ?? "Welcome",
+    );
+  });
+
+  it("renders social links as plain text", () => {
+    renderProMiniSiteLayout({ config: createSavedMiniSiteConfig() });
+
+    const social = screen.getByTestId("pro-mini-site-social-links");
+    expect(social).toHaveTextContent("https://example.com");
+    expect(social).toHaveTextContent("@savedbiz");
+  });
+
+  it("does not use dangerouslySetInnerHTML", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/components/public/ProMiniSiteLayout.tsx"),
+      "utf8",
+    );
+    expect(source).not.toContain("dangerouslySetInnerHTML");
   });
 });
 

@@ -1,3 +1,5 @@
+import type { MiniSiteConfig } from "@/types/miniSite";
+
 export type OperatingMode = "booking_only" | "orders_only" | "both";
 export type ServiceType = "booking" | "order";
 export type PriceType = "fixed" | "free" | "quote";
@@ -22,6 +24,7 @@ export interface PublicBusiness {
   contact_phone: string | null;
   address: string | null;
   public_page_variant: PublicPageVariant;
+  mini_site_config: MiniSiteConfig | null;
 }
 
 export interface PublicService {
