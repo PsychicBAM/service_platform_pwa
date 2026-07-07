@@ -449,7 +449,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
         <div className="grid gap-3 sm:grid-cols-3">
           {([0, 1, 2] as const).map((index) => (
             <div key={index}>
-              <FieldLabel htmlFor={`mini-site-benefit-item-${index}`}>Benefit {index + 1}</FieldLabel>
+              <FieldLabel htmlFor={`mini-site-benefit-item-${index}`}>{`Benefit ${index + 1}`}</FieldLabel>
               <TextInput
                 id={`mini-site-benefit-item-${index}`}
                 value={draft.copy.benefitsItems[index]}

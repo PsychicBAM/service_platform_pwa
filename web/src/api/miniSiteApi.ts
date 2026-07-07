@@ -81,34 +81,12 @@ function miniSiteConfigPath(businessId: string | number): string {
   return `/businesses/${encodeURIComponent(String(businessId))}/mini-site-config`;
 }
 
-function mapSectionItemFromWire(item: MiniSiteSectionItemWire): MiniSiteSectionItem {
-  const mapped: MiniSiteSectionItem = {};
-  if (item.label) mapped.label = item.label;
-  if (item.title) mapped.title = item.title;
-  if (item.body) mapped.body = item.body;
-  if (item.value) mapped.value = item.value;
-  return mapped;
-}
-
 function mapSectionItemToWire(item: MiniSiteSectionItem): MiniSiteSectionItemWire {
   return {
     label: item.label ?? null,
     title: item.title ?? null,
     body: item.body ?? null,
     value: item.value ?? null,
-  };
-}
-
-function mapSectionFromWire(section: MiniSiteSectionWire): MiniSiteSection {
-  return {
-    id: section.id,
-    type: section.type,
-    enabled: section.enabled,
-    order: section.order,
-    title: section.title ?? undefined,
-    subtitle: section.subtitle ?? undefined,
-    body: section.body ?? undefined,
-    items: section.items?.map(mapSectionItemFromWire),
   };
 }
 
@@ -143,19 +121,6 @@ function mapCopyToWire(copy: MiniSiteCopy): MiniSiteCopyWire {
   };
 }
 
-function mapThemeFromWire(theme: MiniSiteThemeWire): MiniSiteTheme {
-  return {
-    template: theme.template,
-    primaryColor: theme.primary_color,
-    accentColor: theme.accent_color,
-    backgroundColor: theme.background_color,
-    backgroundStyle: theme.background_style,
-    buttonStyle: theme.button_style,
-    logoUrl: theme.logo_url ?? null,
-    coverImageUrl: theme.cover_image_url ?? null,
-  };
-}
-
 function mapThemeToWire(theme: MiniSiteTheme): MiniSiteThemeWire {
   return {
     template: theme.template,
@@ -167,17 +132,6 @@ function mapThemeToWire(theme: MiniSiteTheme): MiniSiteThemeWire {
     logo_url: theme.logoUrl ?? null,
     cover_image_url: theme.coverImageUrl ?? null,
   };
-}
-
-function mapSocialLinksFromWire(links: MiniSiteSocialLinksWire): MiniSiteSocialLinks {
-  const mapped: MiniSiteSocialLinks = {};
-  if (links.website) mapped.website = links.website;
-  if (links.instagram) mapped.instagram = links.instagram;
-  if (links.facebook) mapped.facebook = links.facebook;
-  if (links.whatsapp) mapped.whatsapp = links.whatsapp;
-  if (links.tiktok) mapped.tiktok = links.tiktok;
-  if (links.telegram) mapped.telegram = links.telegram;
-  return mapped;
 }
 
 function mapSocialLinksToWire(links: MiniSiteSocialLinks): MiniSiteSocialLinksWire {

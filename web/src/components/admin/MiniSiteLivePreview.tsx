@@ -10,7 +10,6 @@ import {
 } from "@/lib/miniSiteTemplatePresentation";
 import type {
   MiniSiteBackgroundStyle,
-  MiniSiteButtonStyle,
   MiniSiteConfig,
   MiniSiteSectionType,
 } from "@/types/miniSite";
