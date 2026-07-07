@@ -147,7 +147,7 @@ def test_html_delimiter_characters_are_removed_from_text_fields() -> None:
 
     hero = next(section for section in config.sections if section.type == "hero")
     assert hero.title == "scriptalert(1)/scriptSafe title"
-    assert hero.body == "bHellob world"
+    assert hero.body == "bHello/b world"
     assert "<" not in hero.title
     assert ">" not in hero.title
     assert "<" not in hero.body
