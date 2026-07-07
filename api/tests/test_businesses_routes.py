@@ -240,7 +240,9 @@ async def test_public_business_returns_safe_fields_only(
         "contact_phone",
         "address",
         "public_page_variant",
+        "mini_site_config",
     }
+    assert body["mini_site_config"] is None
     assert body["name"] == "Joe's Salon"
 
 
