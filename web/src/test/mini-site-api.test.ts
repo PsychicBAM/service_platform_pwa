@@ -1,0 +1,131 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiClientError } from "@/api/client";
+import {
+  getMiniSiteConfig,
+  mapMiniSiteConfigFromWire,
+  mapMiniSiteConfigToWire,
+  updateMiniSiteConfig,
+  type MiniSiteConfigWire,
+} from "@/api/miniSiteApi";
+import { DEFAULT_MINI_SITE_CONFIG } from "@/lib/miniSiteConfig";
+import { apiClient } from "@/api/client";
+
+vi.mock("@/api/client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/api/client")>();
+  return {
+    ...actual,
+    apiClient: {
+      get: vi.fn(),
+      put: vi.fn(),
+      post: vi.fn(),
+      patch: vi.fn(),
+      delete: vi.fn(),
+    },
+  };
+});
+
+const BUSINESS_ID = "11111111-1111-1111-1111-111111111111";
+
+const wireConfig: MiniSiteConfigWire = {
+  version: 1,
+  theme: {
+    template: "service",
+    primary_color: "#111111",
+    accent_color: "#222222",
+    background_style: "soft",
+    button_style: "pill",
+    logo_url: null,
+    cover_image_url: null,
+  },
+  sections: [
+    {
+      id: "hero",
+      type: "hero",
+      enabled: true,
+      order: 0,
+      title: "Welcome",
+      subtitle: null,
+      body: null,
+      items: null,
+    },
+  ],
+  social_links: {
+    website: "https://example.com",
+    instagram: null,
+    facebook: null,
+    whatsapp: null,
+    tiktok: null,
+    telegram: null,
+  },
+};
+
+describe("miniSiteApi", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("getMiniSiteConfig calls the correct endpoint", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue(wireConfig);
+
+    await getMiniSiteConfig(BUSINESS_ID);
+
+    expect(apiClient.get).toHaveBeenCalledWith(
+      `/businesses/${BUSINESS_ID}/mini-site-config`,
+    );
+  });
+
+  it("getMiniSiteConfig returns MiniSiteConfig shape", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue(wireConfig);
+
+    const config = await getMiniSiteConfig(BUSINESS_ID);
+
+    expect(config.version).toBe(1);
+    expect(config.theme.primaryColor).toBe("#111111");
+    expect(config.theme.backgroundStyle).toBe("soft");
+    expect(config.socialLinks.website).toBe("https://example.com");
+    expect(config.sections[0]?.type).toBe("hero");
+  });
+
+  it("updateMiniSiteConfig calls the correct endpoint with wire payload", async () => {
+    vi.mocked(apiClient.put).mockResolvedValue(wireConfig);
+    const config = mapMiniSiteConfigFromWire(wireConfig);
+
+    await updateMiniSiteConfig(BUSINESS_ID, config);
+
+    expect(apiClient.put).toHaveBeenCalledWith(
+      `/businesses/${BUSINESS_ID}/mini-site-config`,
+      mapMiniSiteConfigToWire(config),
+    );
+  });
+
+  it("updateMiniSiteConfig returns MiniSiteConfig shape", async () => {
+    vi.mocked(apiClient.put).mockResolvedValue(wireConfig);
+    const config = DEFAULT_MINI_SITE_CONFIG;
+
+    const saved = await updateMiniSiteConfig(BUSINESS_ID, config);
+
+    expect(saved.version).toBe(1);
+    expect(saved.theme.template).toBe("service");
+    expect(saved.sections[0]?.title).toBe("Welcome");
+  });
+
+  it("propagates ApiClientError from getMiniSiteConfig", async () => {
+    vi.mocked(apiClient.get).mockRejectedValue(new ApiClientError(403, "FORBIDDEN", "Forbidden"));
+
+    await expect(getMiniSiteConfig(BUSINESS_ID)).rejects.toMatchObject({
+      status: 403,
+      code: "FORBIDDEN",
+    });
+  });
+
+  it("propagates ApiClientError from updateMiniSiteConfig", async () => {
+    vi.mocked(apiClient.put).mockRejectedValue(new ApiClientError(401, "UNAUTHORIZED", "Unauthorized"));
+
+    await expect(
+      updateMiniSiteConfig(BUSINESS_ID, DEFAULT_MINI_SITE_CONFIG),
+    ).rejects.toMatchObject({
+      status: 401,
+      code: "UNAUTHORIZED",
+    });
+  });
+});
