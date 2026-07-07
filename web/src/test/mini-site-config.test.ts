@@ -8,6 +8,56 @@ import {
 } from "@/lib/miniSiteConfig";
 
 describe("mini-site config helpers", () => {
+  it("DEFAULT_MINI_SITE_CONFIG includes backgroundColor default", () => {
+    expect(DEFAULT_MINI_SITE_CONFIG.theme.backgroundColor).toBe("#f8fafc");
+  });
+
+  it("normalizeMiniSiteConfig keeps valid backgroundColor", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: {
+        ...DEFAULT_MINI_SITE_CONFIG.theme,
+        backgroundColor: "#e2e8f0",
+      },
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
+      socialLinks: {},
+    });
+
+    expect(config.theme.backgroundColor).toBe("#e2e8f0");
+  });
+
+  it("normalizeMiniSiteConfig keeps valid background_color from wire shape", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: {
+        template: "clean",
+        primary_color: "#111111",
+        accent_color: "#222222",
+        background_color: "#ddeeff",
+        background_style: "light",
+        button_style: "rounded",
+      },
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
+      social_links: {},
+    });
+
+    expect(config.theme.backgroundColor).toBe("#ddeeff");
+  });
+
+  it("normalizeMiniSiteConfig falls back for malformed backgroundColor", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: {
+        ...DEFAULT_MINI_SITE_CONFIG.theme,
+        backgroundColor: "not-a-color",
+      },
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
+      socialLinks: {},
+    });
+
+    expect(config.theme.backgroundColor).toBe("#f8fafc");
+  });
+
   it("DEFAULT_MINI_SITE_CONFIG has version 1", () => {
     expect(DEFAULT_MINI_SITE_CONFIG.version).toBe(1);
   });

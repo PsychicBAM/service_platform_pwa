@@ -14,6 +14,43 @@ def _section_types(config: MiniSiteConfig) -> list[str]:
     return [section.type for section in config.sections]
 
 
+def test_default_config_includes_background_color() -> None:
+    config = default_mini_site_config()
+    assert config.theme.background_color == "#f8fafc"
+
+
+def test_normalize_keeps_valid_background_color() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": {
+                **base.theme.model_dump(),
+                "background_color": "#e2e8f0",
+            },
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+        },
+    )
+    assert config.theme.background_color == "#e2e8f0"
+
+
+def test_malformed_background_color_does_not_crash_normalization() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": {
+                **base.theme.model_dump(),
+                "background_color": "not-a-color",
+            },
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+        },
+    )
+    assert config.theme.background_color == "not-a-color"
+
+
 def test_default_config_version_is_one() -> None:
     config = default_mini_site_config()
     assert config.version == 1

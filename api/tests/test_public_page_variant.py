@@ -197,7 +197,7 @@ async def test_public_business_pro_with_saved_config_returns_normalized_config(
     settings = dict(business.settings or DEFAULT_BUSINESS_SETTINGS)
     settings[MINI_SITE_SETTINGS_KEY] = {
         "version": 1,
-        "theme": {"template": "service", "background_style": "soft"},
+        "theme": {"template": "service", "background_style": "soft", "background_color": "#f1f5f9"},
         "sections": [
             {
                 "id": "hero",
@@ -226,6 +226,7 @@ async def test_public_business_pro_with_saved_config_returns_normalized_config(
     assert hero["title"] == "Public hero"
     assert body["mini_site_config"]["theme"]["template"] == "service"
     assert body["mini_site_config"]["theme"]["background_style"] == "soft"
+    assert body["mini_site_config"]["theme"]["background_color"] == "#f1f5f9"
 
 
 @pytest.mark.asyncio

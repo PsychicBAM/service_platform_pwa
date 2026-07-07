@@ -4,9 +4,10 @@ import { getMiniSiteConfig, updateMiniSiteConfig } from "@/api/miniSiteApi";
 import { MiniSiteLivePreview } from "@/components/admin/MiniSiteLivePreview";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
-import { normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
+import { DEFAULT_MINI_SITE_BACKGROUND_COLOR, normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
 import {
   hexColorForPicker,
+  normalizeHexColorInput,
 } from "@/lib/miniSiteTemplatePresentation";
 import {
   MINI_SITE_BACKGROUND_STYLES,
@@ -322,6 +323,23 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
             ))}
           </select>
         </label>
+
+        <ColorField
+          id="mini-site-background-color"
+          label="Background color"
+          value={draft.theme.backgroundColor}
+          fallback={DEFAULT_MINI_SITE_BACKGROUND_COLOR}
+          disabled={saving}
+          onChange={(value) =>
+            setDraft({
+              ...draft,
+              theme: {
+                ...draft.theme,
+                backgroundColor: normalizeHexColorInput(value, draft.theme.backgroundColor),
+              },
+            })
+          }
+        />
 
         <label htmlFor="mini-site-button-style" className="block text-sm">
           <span className="font-medium text-slate-700">Button style</span>

@@ -33,6 +33,7 @@ type MiniSiteThemeWire = {
   template: MiniSiteTemplate;
   primary_color: string;
   accent_color: string;
+  background_color: string;
   background_style: MiniSiteBackgroundStyle;
   button_style: MiniSiteButtonStyle;
   logo_url?: string | null;
@@ -108,6 +109,7 @@ function mapThemeFromWire(theme: MiniSiteThemeWire): MiniSiteTheme {
     template: theme.template,
     primaryColor: theme.primary_color,
     accentColor: theme.accent_color,
+    backgroundColor: theme.background_color,
     backgroundStyle: theme.background_style,
     buttonStyle: theme.button_style,
     logoUrl: theme.logo_url ?? null,
@@ -120,6 +122,7 @@ function mapThemeToWire(theme: MiniSiteTheme): MiniSiteThemeWire {
     template: theme.template,
     primary_color: theme.primaryColor,
     accent_color: theme.accentColor,
+    background_color: theme.backgroundColor,
     background_style: theme.backgroundStyle,
     button_style: theme.buttonStyle,
     logo_url: theme.logoUrl ?? null,

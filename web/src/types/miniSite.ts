@@ -20,6 +20,7 @@ export interface MiniSiteTheme {
   template: MiniSiteTemplate;
   primaryColor: string;
   accentColor: string;
+  backgroundColor: string;
   backgroundStyle: MiniSiteBackgroundStyle;
   buttonStyle: MiniSiteButtonStyle;
   logoUrl?: string | null;

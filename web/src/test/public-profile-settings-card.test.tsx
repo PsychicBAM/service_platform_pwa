@@ -82,6 +82,8 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("mini-site-primary-color-picker")).toBeEnabled();
     expect(screen.getByTestId("mini-site-accent-color")).toBeEnabled();
     expect(screen.getByTestId("mini-site-accent-color-picker")).toBeEnabled();
+    expect(screen.getByTestId("mini-site-background-color")).toBeEnabled();
+    expect(screen.getByTestId("mini-site-background-color-picker")).toBeEnabled();
     expect(screen.getByTestId("mini-site-background-style")).toBeEnabled();
     expect(screen.getByTestId("mini-site-button-style")).toBeEnabled();
     expect(screen.getByTestId("mini-site-hero-title")).toBeEnabled();
@@ -195,6 +197,24 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("mini-site-preview-about-body")).toHaveTextContent(
       "Preview about copy",
     );
+  });
+
+  it("updates live preview when background color changes", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-background-color");
+    await user.clear(screen.getByTestId("mini-site-background-color"));
+    await user.type(screen.getByTestId("mini-site-background-color"), "#ddeeff");
+
+    expect(screen.getByTestId("mini-site-background-color")).toHaveValue("#ddeeff");
+    expect(screen.getByTestId("mini-site-live-preview")).toHaveAttribute(
+      "data-background-color",
+      "#ddeeff",
+    );
+    expect(screen.getByTestId("mini-site-preview-frame")).toHaveStyle({
+      backgroundColor: "#ddeeff",
+    });
   });
 
   it("updates live preview when primary color picker changes", async () => {

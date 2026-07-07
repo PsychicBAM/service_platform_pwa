@@ -132,6 +132,7 @@ describe("public pages smoke", () => {
         template: "portfolio",
         primaryColor: "#eb2525",
         accentColor: "#7d0707",
+        backgroundColor: "#1e293b",
         backgroundStyle: "dark",
         buttonStyle: "pill",
       },
@@ -178,6 +179,10 @@ describe("public pages smoke", () => {
     expect(layout).toHaveAttribute("data-template", "portfolio");
     expect(layout).toHaveAttribute("data-background-style", "dark");
     expect(layout).toHaveAttribute("data-button-style", "pill");
+
+    const pageShell = screen.getByTestId("pro-mini-site-page-shell");
+    expect(pageShell).toHaveAttribute("data-background-color", "#1e293b");
+    expect(pageShell).toHaveStyle({ backgroundColor: "#1e293b" });
 
     const bookCta = screen.getByTestId("pro-mini-site-book-cta");
     expect(bookCta).toHaveStyle({ backgroundColor: "rgb(235, 37, 37)" });

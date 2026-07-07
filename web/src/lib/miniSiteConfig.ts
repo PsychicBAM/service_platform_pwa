@@ -14,6 +14,7 @@ import {
   type MiniSiteTemplate,
   type MiniSiteTheme,
 } from "@/types/miniSite";
+import { normalizeHexColorInput } from "./miniSiteTemplatePresentation";
 
 function sanitizePlainText(value: string): string {
   return value.replace(/[<>]/g, "").trim();
@@ -39,10 +40,13 @@ const DEFAULT_SECTION_ORDERS: Record<MiniSiteSectionType, number> = {
   booking_cta: 8,
 };
 
+export const DEFAULT_MINI_SITE_BACKGROUND_COLOR = "#f8fafc";
+
 const DEFAULT_THEME: MiniSiteTheme = {
   template: "clean",
   primaryColor: "#2563eb",
   accentColor: "#7c3aed",
+  backgroundColor: DEFAULT_MINI_SITE_BACKGROUND_COLOR,
   backgroundStyle: "light",
   buttonStyle: "rounded",
   logoUrl: null,
@@ -174,13 +178,20 @@ function normalizeTheme(input: unknown): MiniSiteTheme {
 
   return {
     template: isMiniSiteTemplate(source.template) ? source.template : DEFAULT_THEME.template,
-    primaryColor: sanitizeText(source.primaryColor) ?? DEFAULT_THEME.primaryColor,
-    accentColor: sanitizeText(source.accentColor) ?? DEFAULT_THEME.accentColor,
-    backgroundStyle: isMiniSiteBackgroundStyle(source.backgroundStyle)
-      ? source.backgroundStyle
+    primaryColor: sanitizeText(source.primaryColor ?? source.primary_color) ?? DEFAULT_THEME.primaryColor,
+    accentColor: sanitizeText(source.accentColor ?? source.accent_color) ?? DEFAULT_THEME.accentColor,
+    backgroundColor: (() => {
+      const raw = sanitizeText(source.backgroundColor ?? source.background_color);
+      if (!raw) {
+        return DEFAULT_THEME.backgroundColor;
+      }
+      return normalizeHexColorInput(raw, DEFAULT_THEME.backgroundColor);
+    })(),
+    backgroundStyle: isMiniSiteBackgroundStyle(source.backgroundStyle ?? source.background_style)
+      ? ((source.backgroundStyle ?? source.background_style) as MiniSiteBackgroundStyle)
       : DEFAULT_THEME.backgroundStyle,
-    buttonStyle: isMiniSiteButtonStyle(source.buttonStyle)
-      ? source.buttonStyle
+    buttonStyle: isMiniSiteButtonStyle(source.buttonStyle ?? source.button_style)
+      ? ((source.buttonStyle ?? source.button_style) as MiniSiteButtonStyle)
       : DEFAULT_THEME.buttonStyle,
     logoUrl:
       source.logoUrl === null

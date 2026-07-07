@@ -32,6 +32,7 @@ const wireConfig: MiniSiteConfigWire = {
     template: "service",
     primary_color: "#111111",
     accent_color: "#222222",
+    background_color: "#f1f5f9",
     background_style: "soft",
     button_style: "pill",
     logo_url: null,
@@ -64,6 +65,30 @@ describe("miniSiteApi", () => {
     vi.clearAllMocks();
   });
 
+  it("mapMiniSiteConfigToWire converts backgroundColor to background_color", () => {
+    const wire = mapMiniSiteConfigToWire({
+      ...DEFAULT_MINI_SITE_CONFIG,
+      theme: {
+        ...DEFAULT_MINI_SITE_CONFIG.theme,
+        backgroundColor: "#abc123",
+      },
+    });
+
+    expect(wire.theme.background_color).toBe("#abc123");
+  });
+
+  it("mapMiniSiteConfigFromWire converts background_color to backgroundColor", () => {
+    const config = mapMiniSiteConfigFromWire({
+      ...wireConfig,
+      theme: {
+        ...wireConfig.theme,
+        background_color: "#334455",
+      },
+    });
+
+    expect(config.theme.backgroundColor).toBe("#334455");
+  });
+
   it("getMiniSiteConfig calls the correct endpoint", async () => {
     vi.mocked(apiClient.get).mockResolvedValue(wireConfig);
 
@@ -81,6 +106,7 @@ describe("miniSiteApi", () => {
 
     expect(config.version).toBe(1);
     expect(config.theme.primaryColor).toBe("#111111");
+    expect(config.theme.backgroundColor).toBe("#f1f5f9");
     expect(config.theme.backgroundStyle).toBe("soft");
     expect(config.socialLinks.website).toBe("https://example.com");
     expect(config.sections[0]?.type).toBe("hero");

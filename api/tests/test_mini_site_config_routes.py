@@ -36,6 +36,7 @@ async def test_admin_can_get_default_mini_site_config_when_none_saved(
     assert set(body.keys()) == ALLOWED_TOP_LEVEL_KEYS
     assert body["version"] == 1
     assert body["theme"]["template"] == "clean"
+    assert body["theme"]["background_color"] == "#f8fafc"
     section_types = [section["type"] for section in body["sections"]]
     assert "hero" in section_types
     assert "contact" in section_types
@@ -78,6 +79,7 @@ async def test_admin_can_save_mini_site_config(
                 "template": "service",
                 "primary_color": "#111111",
                 "accent_color": "#222222",
+                "background_color": "#eef2ff",
                 "background_style": "soft",
                 "button_style": "pill",
             },
@@ -96,6 +98,7 @@ async def test_admin_can_save_mini_site_config(
     body = response.json()
     assert body["theme"]["template"] == "service"
     assert body["theme"]["primary_color"] == "#111111"
+    assert body["theme"]["background_color"] == "#eef2ff"
     assert body["social_links"]["website"] == "https://example.com"
     enabled_types = [section["type"] for section in body["sections"] if section["enabled"]]
     assert enabled_types == ["hero", "contact"]
@@ -305,6 +308,7 @@ async def test_save_mini_site_config_persists_for_subsequent_get(
             "template": "expert",
             "primary_color": "#abcdef",
             "accent_color": "#fedcba",
+            "background_color": "#0f172a",
             "background_style": "dark",
             "button_style": "square",
         },
@@ -340,6 +344,7 @@ async def test_save_mini_site_config_persists_for_subsequent_get(
     assert body["theme"]["template"] == "expert"
     assert body["theme"]["primary_color"] == "#abcdef"
     assert body["theme"]["accent_color"] == "#fedcba"
+    assert body["theme"]["background_color"] == "#0f172a"
     hero = next(section for section in body["sections"] if section["type"] == "hero")
     assert hero["title"] == "Persisted hero title"
 
@@ -355,6 +360,7 @@ async def test_save_mini_site_config_persists_for_subsequent_get(
     assert isinstance(stored, dict)
     assert stored["theme"]["template"] == "expert"
     assert stored["theme"]["primary_color"] == "#abcdef"
+    assert stored["theme"]["background_color"] == "#0f172a"
     assert any(
         section["type"] == "hero" and section["title"] == "Persisted hero title"
         for section in stored["sections"]

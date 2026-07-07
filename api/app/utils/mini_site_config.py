@@ -156,6 +156,7 @@ def _normalize_theme(input_value: object) -> MiniSiteTheme:
         else _DEFAULT_THEME.template,
         primary_color=_sanitize_text(source.get("primary_color")) or _DEFAULT_THEME.primary_color,
         accent_color=_sanitize_text(source.get("accent_color")) or _DEFAULT_THEME.accent_color,
+        background_color=_sanitize_text(source.get("background_color")) or _DEFAULT_THEME.background_color,
         background_style=source["background_style"]
         if _is_mini_site_background_style(source.get("background_style"))
         else _DEFAULT_THEME.background_style,

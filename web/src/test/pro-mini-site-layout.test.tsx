@@ -20,6 +20,7 @@ function createSavedMiniSiteConfig(overrides: {
   aboutBody?: string;
   primaryColor?: string;
   accentColor?: string;
+  backgroundColor?: string;
   backgroundStyle?: "light" | "soft" | "dark";
   buttonStyle?: "rounded" | "pill" | "square";
   template?: MiniSiteConfig["theme"]["template"];
@@ -30,6 +31,7 @@ function createSavedMiniSiteConfig(overrides: {
       template: overrides.template ?? "clean",
       primaryColor: overrides.primaryColor ?? "#ff5500",
       accentColor: overrides.accentColor ?? "#2255aa",
+      backgroundColor: overrides.backgroundColor ?? "#f8fafc",
       backgroundStyle: overrides.backgroundStyle ?? "soft",
       buttonStyle: overrides.buttonStyle ?? "pill",
       logoUrl: null,
@@ -138,6 +140,27 @@ describe("ProMiniSiteLayout", () => {
     const bookCta = screen.getByTestId("pro-mini-site-book-cta");
     expect(bookCta).toHaveStyle({ backgroundColor: "rgb(255, 85, 0)" });
     expect(bookCta.className).toContain("rounded-full");
+  });
+
+  it("applies backgroundColor to the page shell", () => {
+    renderProMiniSiteLayout({
+      config: createSavedMiniSiteConfig({ backgroundColor: "#e2e8f0" }),
+    });
+
+    const shell = screen.getByTestId("pro-mini-site-page-shell");
+    expect(shell).toHaveAttribute("data-background-color", "#e2e8f0");
+    expect(shell).toHaveStyle({ backgroundColor: "#e2e8f0" });
+  });
+
+  it("applies clinic template presentation", () => {
+    renderProMiniSiteLayout({
+      config: createSavedMiniSiteConfig({ template: "clinic" }),
+    });
+    const layout = screen.getByTestId("pro-mini-site-layout");
+    expect(layout).toHaveAttribute("data-template", "clinic");
+    expect(layout).toHaveClass("template-clinic");
+    expect(screen.getByText("Care & wellness")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-trust-stats")).toBeInTheDocument();
   });
 
   it("applies distinct template presentation classes", () => {

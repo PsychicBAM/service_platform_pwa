@@ -7,6 +7,7 @@ import {
 } from "@/lib/miniSiteConfig";
 import {
   getMiniSitePageShellClass,
+  getMiniSitePageShellStyle,
   getMiniSiteTemplatePresentation,
 } from "@/lib/miniSiteTemplatePresentation";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
@@ -101,9 +102,9 @@ function sectionCardClass(
 ): string {
   const surface =
     backgroundStyle === "dark"
-      ? "border-slate-700/80 bg-slate-800/50 text-slate-100"
-      : "border-slate-200 bg-white text-slate-900";
-  return `rounded-2xl border p-6 md:p-8 ${surface} ${presentationClass}`;
+      ? "border-slate-700/80 bg-slate-900/60 text-slate-100 shadow-lg shadow-black/20"
+      : "border-slate-200/90 bg-white text-slate-900 shadow-md shadow-slate-200/40";
+  return `rounded-2xl border p-6 md:p-9 ${surface} ${presentationClass}`;
 }
 
 function hasSocialLinks(links: MiniSiteSocialLinks): boolean {
@@ -135,11 +136,89 @@ function SectionHeading({
   const clinicTint = !isDark && template === "clinic" ? "text-emerald-950" : "";
 
   return (
-    <div className="mb-4 space-y-2">
-      <div className="h-1 w-10 rounded-full" style={{ backgroundColor: accentColor }} aria-hidden />
+    <div className="mb-5 space-y-2">
+      <div className="h-1 w-12 rounded-full" style={{ backgroundColor: accentColor }} aria-hidden />
       <h2 id={id} className={`${className} ${clinicTint}`}>
         {title}
       </h2>
+    </div>
+  );
+}
+
+function TrustStatsRow({
+  stats,
+  primaryColor,
+  accentColor,
+  isDark,
+  surfaceClass,
+}: {
+  stats: { value: string; label: string }[];
+  primaryColor: string;
+  isDark: boolean;
+  surfaceClass: string;
+}) {
+  return (
+    <div
+      className={`mt-6 grid gap-3 sm:grid-cols-3 ${surfaceClass}`}
+      data-testid="pro-mini-site-trust-stats"
+    >
+      {stats.map((stat) => (
+        <div
+          key={stat.label}
+          className={`rounded-xl border px-4 py-3 text-center ${
+            isDark ? "border-slate-700/80 bg-slate-900/50" : "border-slate-200/80 bg-white/80"
+          }`}
+        >
+          <p className="text-lg font-bold" style={{ color: primaryColor }}>
+            {stat.value}
+          </p>
+          <p className={`mt-0.5 text-xs font-medium uppercase tracking-wide ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+            {stat.label}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BenefitsStrip({
+  primaryColor,
+  isDark,
+  template,
+}: {
+  primaryColor: string;
+  isDark: boolean;
+  template: MiniSiteTemplate;
+}) {
+  const benefits =
+    template === "clinic"
+      ? ["Flexible scheduling", "Clear contact details", "Calm, professional experience"]
+      : ["Fast response", "Transparent pricing", "Reliable local service"];
+
+  return (
+    <div
+      className={`mt-6 rounded-2xl border px-5 py-4 ${
+        isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/80"
+      }`}
+      data-testid="pro-mini-site-benefits-strip"
+    >
+      <p className={`mb-3 text-xs font-semibold uppercase tracking-wider ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+        Why choose us
+      </p>
+      <ul className="grid gap-2 sm:grid-cols-3">
+        {benefits.map((benefit) => (
+          <li key={benefit} className={`flex items-start gap-2 text-sm ${isDark ? "text-slate-200" : "text-slate-700"}`}>
+            <span
+              className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+              style={{ backgroundColor: primaryColor }}
+              aria-hidden
+            >
+              ✓
+            </span>
+            {benefit}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -215,16 +294,20 @@ export function ProMiniSiteLayout({
   const labelText = labelTextClass(theme.backgroundStyle);
   const buttonRadius = buttonRadiusClass(theme.buttonStyle);
   const presentation = getMiniSiteTemplatePresentation(theme.template, theme.backgroundStyle);
-  const pageShell = getMiniSitePageShellClass(theme.backgroundStyle);
+  const pageShellClass = getMiniSitePageShellClass();
+  const pageShellStyle = getMiniSitePageShellStyle(theme.backgroundColor, theme.backgroundStyle);
+  const benefitsSectionEnabled = siteConfig.sections.some(
+    (section) => section.type === "benefits" && section.enabled,
+  );
 
-  const primaryCtaClass = `inline-flex items-center justify-center px-6 py-3.5 text-sm font-semibold text-white shadow-md transition hover:shadow-lg hover:brightness-105 ${buttonRadius}`;
-  const secondaryCtaClass = `inline-flex items-center justify-center border px-6 py-3.5 text-sm font-semibold shadow-sm transition hover:shadow-md ${buttonRadius} ${
+  const primaryCtaClass = `inline-flex w-full items-center justify-center px-7 py-4 text-sm font-semibold text-white shadow-lg transition hover:shadow-xl hover:brightness-105 sm:w-auto ${buttonRadius}`;
+  const secondaryCtaClass = `inline-flex w-full items-center justify-center border-2 px-7 py-4 text-sm font-semibold shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
     isDark ? "bg-slate-800/60 hover:bg-slate-800" : "bg-white hover:bg-slate-50"
   } ${sectionBorder}`;
 
   const renderHero = () => (
     <header
-      className={`relative overflow-hidden rounded-2xl border p-6 md:p-10 ${sectionBorder} ${presentation.heroClass}`}
+      className={`relative overflow-hidden rounded-2xl border p-6 md:p-10 lg:p-12 ${sectionBorder} ${presentation.heroClass}`}
       data-testid="pro-mini-site-hero"
       style={{
         borderColor: theme.template === "service" ? theme.primaryColor : theme.accentColor,
@@ -295,6 +378,19 @@ export function ProMiniSiteLayout({
           ) : null}
         </div>
       </div>
+
+      {presentation.showTrustStats ? (
+        <TrustStatsRow
+          stats={presentation.trustStats}
+          primaryColor={theme.primaryColor}
+          isDark={isDark}
+          surfaceClass={presentation.heroAccentClass}
+        />
+      ) : null}
+
+      {presentation.showBenefitsStrip && !benefitsSectionEnabled ? (
+        <BenefitsStrip primaryColor={theme.primaryColor} isDark={isDark} template={theme.template} />
+      ) : null}
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         {ctas.showBookingCta ? (
@@ -454,7 +550,7 @@ export function ProMiniSiteLayout({
 
   const renderBookingCta = () => (
     <section
-      className={`${sectionCardClass(theme.backgroundStyle, presentation.sectionClass)} text-center`}
+      className={`${sectionCardClass(theme.backgroundStyle, `${presentation.sectionClass} ${presentation.bookingCtaClass}`)} py-10 text-center md:py-12`}
       data-testid="pro-mini-site-booking-cta-section"
       style={{ backgroundColor: `${theme.primaryColor}08` }}
     >
@@ -548,9 +644,14 @@ export function ProMiniSiteLayout({
   };
 
   return (
-    <div className={pageShell} data-testid="pro-mini-site-page-shell">
+    <div
+      className={pageShellClass}
+      style={pageShellStyle}
+      data-testid="pro-mini-site-page-shell"
+      data-background-color={theme.backgroundColor}
+    >
       <section
-        className={`space-y-8 md:space-y-10 ${presentation.layoutClass}`}
+        className={`space-y-10 md:space-y-12 ${presentation.layoutClass}`}
         data-testid="pro-mini-site-layout"
         data-template={theme.template}
         data-template-presentation={theme.template}

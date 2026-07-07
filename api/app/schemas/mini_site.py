@@ -59,6 +59,7 @@ class MiniSiteTheme(BaseModel):
     template: MiniSiteTemplate = "clean"
     primary_color: str = "#2563eb"
     accent_color: str = "#7c3aed"
+    background_color: str = "#f8fafc"
     background_style: MiniSiteBackgroundStyle = "light"
     button_style: MiniSiteButtonStyle = "rounded"
     logo_url: str | None = None
