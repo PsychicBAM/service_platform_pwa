@@ -175,20 +175,22 @@ async def test_save_mini_site_config_preserves_unrelated_settings_keys(
         },
     )
     assert save_response.status_code == 200
+    saved_body = save_response.json()
 
-    profile_response = await async_client.get(
-        f"/api/v1/businesses/{ctx['business_id']}",
-        headers=ctx["headers"],
+    await db_session.expire_all()
+    result = await db_session.execute(
+        select(Business).where(Business.slug == ctx["slug"]),
     )
-    assert profile_response.status_code == 200
-    settings = profile_response.json()["settings"]
-    assert settings["custom_future_key"] is True
-    assert settings["cancellation_hours"] == 72
+    saved_business = result.scalar_one()
 
-    await db_session.refresh(business)
-    assert business.settings["custom_future_key"] is True
-    assert business.settings["cancellation_hours"] == 72
-    assert MINI_SITE_SETTINGS_KEY in business.settings
+    assert saved_business.settings["custom_future_key"] is True
+    assert saved_business.settings["cancellation_hours"] == 72
+    assert MINI_SITE_SETTINGS_KEY in saved_business.settings
+    stored = saved_business.settings[MINI_SITE_SETTINGS_KEY]
+    assert isinstance(stored, dict)
+    assert stored["version"] == saved_body["version"]
+    assert stored["theme"]["template"] == saved_body["theme"]["template"]
+    assert any(section["type"] == "hero" for section in stored["sections"])
 
 
 @pytest.mark.asyncio
