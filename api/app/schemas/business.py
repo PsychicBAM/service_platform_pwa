@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.models.enums import BusinessStatus, OperatingMode, PublicPageVariant, SubscriptionPlan, SubscriptionStatus
 from app.repositories.business_repository import DEFAULT_BUSINESS_SETTINGS
+from app.schemas.mini_site import MiniSiteConfig
 
 
 class BusinessRead(BaseModel):
@@ -163,3 +164,4 @@ class PublicBusinessRead(BaseModel):
     contact_phone: str | None
     address: str | None
     public_page_variant: PublicPageVariant
+    mini_site_config: MiniSiteConfig | None = None

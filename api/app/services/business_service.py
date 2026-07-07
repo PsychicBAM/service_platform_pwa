@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions.business import BusinessNotFoundError, InvalidTimezoneError
 from app.models.business import Business
+from app.models.enums import PublicPageVariant
 from app.models.subscription import Subscription
 from app.repositories.business_repository import BusinessRepository
 from app.utils.mini_site_config import (
@@ -76,6 +77,12 @@ class BusinessService:
         if business is None:
             raise BusinessNotFoundError()
         subscription = await self.repo.get_subscription(business.id)
+        public_page_variant = resolve_public_page_variant(subscription)
+        mini_site_config = (
+            read_mini_site_config_from_settings(business.settings)
+            if public_page_variant == PublicPageVariant.mini_site
+            else None
+        )
         return PublicBusinessRead(
             id=business.id,
             name=business.name,
@@ -85,7 +92,8 @@ class BusinessService:
             operating_mode=business.operating_mode,
             contact_phone=business.contact_phone,
             address=business.address,
-            public_page_variant=resolve_public_page_variant(subscription),
+            public_page_variant=public_page_variant,
+            mini_site_config=mini_site_config,
         )
 
     @staticmethod
