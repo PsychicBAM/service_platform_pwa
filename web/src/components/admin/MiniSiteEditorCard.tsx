@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMiniSiteConfig, updateMiniSiteConfig } from "@/api/miniSiteApi";
 import { MiniSiteLivePreview } from "@/components/admin/MiniSiteLivePreview";
@@ -169,6 +169,26 @@ function updateBenefitItem(
   return updateCopyField(config, "benefitsItems", benefitsItems);
 }
 
+function EditorSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4">
+      <div className="mb-3 space-y-1">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h4>
+        {description ? <p className="text-xs text-slate-500">{description}</p> : null}
+      </div>
+      <div className="space-y-3">{children}</div>
+    </section>
+  );
+}
+
 function DisabledMediaField({
   id,
   label,
@@ -275,370 +295,373 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
 
   return (
     <div className="space-y-4" data-testid="mini-site-editor">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px] xl:items-start">
-        <div className="space-y-4 min-w-0">
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Theme</p>
-
-        <label htmlFor="mini-site-template" className="block text-sm">
-          <span className="font-medium text-slate-700">Template</span>
-          <select
-            id="mini-site-template"
-            value={draft.theme.template}
-            disabled={saving}
-            onChange={(event) =>
-              setDraft({
-                ...draft,
-                theme: {
-                  ...draft.theme,
-                  template: event.target.value as MiniSiteTemplate,
-                },
-              })
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
-            data-testid="mini-site-template"
-          >
-            {MINI_SITE_TEMPLATES.map((template) => (
-              <option key={template} value={template}>
-                {template}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <ColorField
-            id="mini-site-primary-color"
-            label="Primary color"
-            value={draft.theme.primaryColor}
-            fallback="#2563eb"
-            disabled={saving}
-            onChange={(value) =>
-              setDraft({
-                ...draft,
-                theme: { ...draft.theme, primaryColor: value },
-              })
-            }
-          />
-          <ColorField
-            id="mini-site-accent-color"
-            label="Accent color"
-            value={draft.theme.accentColor}
-            fallback="#7c3aed"
-            disabled={saving}
-            onChange={(value) =>
-              setDraft({
-                ...draft,
-                theme: { ...draft.theme, accentColor: value },
-              })
-            }
-          />
-        </div>
-
-        <label htmlFor="mini-site-background-style" className="block text-sm">
-          <span className="font-medium text-slate-700">Background style</span>
-          <select
-            id="mini-site-background-style"
-            value={draft.theme.backgroundStyle}
-            disabled={saving}
-            onChange={(event) =>
-              setDraft({
-                ...draft,
-                theme: {
-                  ...draft.theme,
-                  backgroundStyle: event.target.value as MiniSiteBackgroundStyle,
-                },
-              })
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
-            data-testid="mini-site-background-style"
-          >
-            {MINI_SITE_BACKGROUND_STYLES.map((style) => (
-              <option key={style} value={style}>
-                {style}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <ColorField
-          id="mini-site-background-color"
-          label="Background color"
-          value={draft.theme.backgroundColor}
-          fallback={DEFAULT_MINI_SITE_BACKGROUND_COLOR}
-          disabled={saving}
-          onChange={(value) =>
-            setDraft({
-              ...draft,
-              theme: {
-                ...draft.theme,
-                backgroundColor: normalizeHexColorInput(value, draft.theme.backgroundColor),
-              },
-            })
-          }
-        />
-
-        <label htmlFor="mini-site-button-style" className="block text-sm">
-          <span className="font-medium text-slate-700">Button style</span>
-          <select
-            id="mini-site-button-style"
-            value={draft.theme.buttonStyle}
-            disabled={saving}
-            onChange={(event) =>
-              setDraft({
-                ...draft,
-                theme: {
-                  ...draft.theme,
-                  buttonStyle: event.target.value as MiniSiteButtonStyle,
-                },
-              })
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
-            data-testid="mini-site-button-style"
-          >
-            {MINI_SITE_BUTTON_STYLES.map((style) => (
-              <option key={style} value={style}>
-                {style}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Template labels</p>
-        <div>
-          <FieldLabel htmlFor="mini-site-hero-badge-text">Hero badge</FieldLabel>
-          <TextInput
-            id="mini-site-hero-badge-text"
-            value={draft.copy.heroBadgeText}
-            disabled={saving}
-            onChange={(value) => setDraft(updateCopyField(draft, "heroBadgeText", value))}
-          />
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {([0, 1, 2] as const).map((index) => (
-            <div key={index} className="space-y-2 rounded-lg border border-slate-100 bg-slate-50/60 p-3">
-              <p className="text-xs font-semibold text-slate-500">Trust card {index + 1}</p>
-              <TextInput
-                id={`mini-site-trust-card-${index}-title`}
-                value={draft.copy.trustCards[index].title}
+      <div className="grid gap-5 lg:grid-cols-[minmax(380px,460px)_minmax(320px,1fr)] xl:gap-8 lg:items-start">
+        <div
+          className="mini-site-editor-form space-y-3 min-w-0 lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]"
+          data-testid="mini-site-editor-form"
+        >
+          <EditorSection title="Appearance" description="Template, colors, and styling">
+            <label htmlFor="mini-site-template" className="block text-sm">
+              <span className="font-medium text-slate-700">Template</span>
+              <select
+                id="mini-site-template"
+                value={draft.theme.template}
                 disabled={saving}
-                placeholder="Title"
-                onChange={(value) => setDraft(updateTrustCard(draft, index, "title", value))}
+                onChange={(event) =>
+                  setDraft({
+                    ...draft,
+                    theme: {
+                      ...draft.theme,
+                      template: event.target.value as MiniSiteTemplate,
+                    },
+                  })
+                }
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+                data-testid="mini-site-template"
+              >
+                {MINI_SITE_TEMPLATES.map((template) => (
+                  <option key={template} value={template}>
+                    {template}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <ColorField
+                id="mini-site-primary-color"
+                label="Primary color"
+                value={draft.theme.primaryColor}
+                fallback="#2563eb"
+                disabled={saving}
+                onChange={(value) =>
+                  setDraft({
+                    ...draft,
+                    theme: { ...draft.theme, primaryColor: value },
+                  })
+                }
               />
-              <TextInput
-                id={`mini-site-trust-card-${index}-subtitle`}
-                value={draft.copy.trustCards[index].subtitle}
+              <ColorField
+                id="mini-site-accent-color"
+                label="Accent color"
+                value={draft.theme.accentColor}
+                fallback="#7c3aed"
                 disabled={saving}
-                placeholder="Subtitle"
-                onChange={(value) => setDraft(updateTrustCard(draft, index, "subtitle", value))}
+                onChange={(value) =>
+                  setDraft({
+                    ...draft,
+                    theme: { ...draft.theme, accentColor: value },
+                  })
+                }
               />
             </div>
-          ))}
-        </div>
-        <div>
-          <FieldLabel htmlFor="mini-site-benefits-section-title">Benefits section title</FieldLabel>
-          <TextInput
-            id="mini-site-benefits-section-title"
-            value={draft.copy.benefitsSectionTitle}
-            disabled={saving}
-            onChange={(value) => setDraft(updateCopyField(draft, "benefitsSectionTitle", value))}
-          />
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {([0, 1, 2] as const).map((index) => (
-            <div key={index}>
-              <FieldLabel htmlFor={`mini-site-benefit-item-${index}`}>{`Benefit ${index + 1}`}</FieldLabel>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label htmlFor="mini-site-background-style" className="block text-sm">
+                <span className="font-medium text-slate-700">Background style</span>
+                <select
+                  id="mini-site-background-style"
+                  value={draft.theme.backgroundStyle}
+                  disabled={saving}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      theme: {
+                        ...draft.theme,
+                        backgroundStyle: event.target.value as MiniSiteBackgroundStyle,
+                      },
+                    })
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+                  data-testid="mini-site-background-style"
+                >
+                  {MINI_SITE_BACKGROUND_STYLES.map((style) => (
+                    <option key={style} value={style}>
+                      {style}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label htmlFor="mini-site-button-style" className="block text-sm">
+                <span className="font-medium text-slate-700">Button style</span>
+                <select
+                  id="mini-site-button-style"
+                  value={draft.theme.buttonStyle}
+                  disabled={saving}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      theme: {
+                        ...draft.theme,
+                        buttonStyle: event.target.value as MiniSiteButtonStyle,
+                      },
+                    })
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+                  data-testid="mini-site-button-style"
+                >
+                  {MINI_SITE_BUTTON_STYLES.map((style) => (
+                    <option key={style} value={style}>
+                      {style}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <ColorField
+              id="mini-site-background-color"
+              label="Background color"
+              value={draft.theme.backgroundColor}
+              fallback={DEFAULT_MINI_SITE_BACKGROUND_COLOR}
+              disabled={saving}
+              onChange={(value) =>
+                setDraft({
+                  ...draft,
+                  theme: {
+                    ...draft.theme,
+                    backgroundColor: normalizeHexColorInput(value, draft.theme.backgroundColor),
+                  },
+                })
+              }
+            />
+          </EditorSection>
+
+          <EditorSection title="Labels & CTAs" description="Marketing labels shown on the public mini-site">
+            <div>
+              <FieldLabel htmlFor="mini-site-hero-badge-text">Hero badge</FieldLabel>
               <TextInput
-                id={`mini-site-benefit-item-${index}`}
-                value={draft.copy.benefitsItems[index]}
+                id="mini-site-hero-badge-text"
+                value={draft.copy.heroBadgeText}
                 disabled={saving}
-                onChange={(value) => setDraft(updateBenefitItem(draft, index, value))}
+                onChange={(value) => setDraft(updateCopyField(draft, "heroBadgeText", value))}
               />
             </div>
-          ))}
+            <div className="grid gap-2 sm:grid-cols-3">
+              {([0, 1, 2] as const).map((index) => (
+                <div key={index} className="space-y-2 rounded-lg border border-slate-100 bg-slate-50/60 p-2.5">
+                  <p className="text-xs font-semibold text-slate-500">Trust {index + 1}</p>
+                  <TextInput
+                    id={`mini-site-trust-card-${index}-title`}
+                    value={draft.copy.trustCards[index].title}
+                    disabled={saving}
+                    placeholder="Title"
+                    onChange={(value) => setDraft(updateTrustCard(draft, index, "title", value))}
+                  />
+                  <TextInput
+                    id={`mini-site-trust-card-${index}-subtitle`}
+                    value={draft.copy.trustCards[index].subtitle}
+                    disabled={saving}
+                    placeholder="Subtitle"
+                    onChange={(value) => setDraft(updateTrustCard(draft, index, "subtitle", value))}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <FieldLabel htmlFor="mini-site-benefits-section-title">Benefits title</FieldLabel>
+                <TextInput
+                  id="mini-site-benefits-section-title"
+                  value={draft.copy.benefitsSectionTitle}
+                  disabled={saving}
+                  onChange={(value) => setDraft(updateCopyField(draft, "benefitsSectionTitle", value))}
+                />
+              </div>
+              <div>
+                <FieldLabel htmlFor="mini-site-contact-section-title">Contact title</FieldLabel>
+                <TextInput
+                  id="mini-site-contact-section-title"
+                  value={draft.copy.contactSectionTitle}
+                  disabled={saving}
+                  onChange={(value) => setDraft(updateCopyField(draft, "contactSectionTitle", value))}
+                />
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {([0, 1, 2] as const).map((index) => (
+                <div key={index}>
+                  <FieldLabel htmlFor={`mini-site-benefit-item-${index}`}>{`Benefit ${index + 1}`}</FieldLabel>
+                  <TextInput
+                    id={`mini-site-benefit-item-${index}`}
+                    value={draft.copy.benefitsItems[index]}
+                    disabled={saving}
+                    onChange={(value) => setDraft(updateBenefitItem(draft, index, value))}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <FieldLabel htmlFor="mini-site-services-section-title">Services title</FieldLabel>
+                <TextInput
+                  id="mini-site-services-section-title"
+                  value={draft.copy.servicesSectionTitle}
+                  disabled={saving}
+                  onChange={(value) => setDraft(updateCopyField(draft, "servicesSectionTitle", value))}
+                />
+              </div>
+              <div>
+                <FieldLabel htmlFor="mini-site-services-section-badge">Services badge</FieldLabel>
+                <TextInput
+                  id="mini-site-services-section-badge"
+                  value={draft.copy.servicesSectionBadgeText}
+                  disabled={saving}
+                  placeholder="{count} available"
+                  onChange={(value) => setDraft(updateCopyField(draft, "servicesSectionBadgeText", value))}
+                />
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <FieldLabel htmlFor="mini-site-primary-cta-label">Primary CTA</FieldLabel>
+                <TextInput
+                  id="mini-site-primary-cta-label"
+                  value={draft.copy.primaryCtaLabel}
+                  disabled={saving}
+                  onChange={(value) => setDraft(updateCopyField(draft, "primaryCtaLabel", value))}
+                />
+              </div>
+              <div>
+                <FieldLabel htmlFor="mini-site-secondary-cta-label">Secondary CTA</FieldLabel>
+                <TextInput
+                  id="mini-site-secondary-cta-label"
+                  value={draft.copy.secondaryCtaLabel}
+                  disabled={saving}
+                  onChange={(value) => setDraft(updateCopyField(draft, "secondaryCtaLabel", value))}
+                />
+              </div>
+            </div>
+          </EditorSection>
+
+          <EditorSection title="Page content" description="Hero and about section copy">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <FieldLabel htmlFor="mini-site-hero-title">Hero title</FieldLabel>
+                <TextInput
+                  id="mini-site-hero-title"
+                  value={getSectionField(draft, "hero", "title")}
+                  disabled={saving}
+                  onChange={(value) =>
+                    setDraft(updateSectionField(draft, "hero", "title", value))
+                  }
+                />
+              </div>
+              <div>
+                <FieldLabel htmlFor="mini-site-hero-subtitle">Hero subtitle</FieldLabel>
+                <TextInput
+                  id="mini-site-hero-subtitle"
+                  value={getSectionField(draft, "hero", "subtitle")}
+                  disabled={saving}
+                  onChange={(value) =>
+                    setDraft(updateSectionField(draft, "hero", "subtitle", value))
+                  }
+                />
+              </div>
+            </div>
+            <label htmlFor="mini-site-hero-body" className="block text-sm">
+              <span className="font-medium text-slate-700">Hero body</span>
+              <textarea
+                id="mini-site-hero-body"
+                rows={2}
+                value={getSectionField(draft, "hero", "body")}
+                disabled={saving}
+                onChange={(event) =>
+                  setDraft(updateSectionField(draft, "hero", "body", event.target.value))
+                }
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+                data-testid="mini-site-hero-body"
+              />
+            </label>
+            <div>
+              <FieldLabel htmlFor="mini-site-about-title">About title</FieldLabel>
+              <TextInput
+                id="mini-site-about-title"
+                value={getSectionField(draft, "about", "title")}
+                disabled={saving}
+                onChange={(value) =>
+                  setDraft(updateSectionField(draft, "about", "title", value))
+                }
+              />
+            </div>
+            <label htmlFor="mini-site-about-body" className="block text-sm">
+              <span className="font-medium text-slate-700">About body</span>
+              <textarea
+                id="mini-site-about-body"
+                rows={2}
+                value={getSectionField(draft, "about", "body")}
+                disabled={saving}
+                onChange={(event) =>
+                  setDraft(updateSectionField(draft, "about", "body", event.target.value))
+                }
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+                data-testid="mini-site-about-body"
+              />
+            </label>
+          </EditorSection>
+
+          <EditorSection title="Social & media">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <FieldLabel htmlFor="mini-site-website">Website</FieldLabel>
+                <TextInput
+                  id="mini-site-website"
+                  value={draft.socialLinks.website ?? ""}
+                  disabled={saving}
+                  placeholder="https://example.com"
+                  onChange={(value) =>
+                    setDraft({
+                      ...draft,
+                      socialLinks: { ...draft.socialLinks, website: value || undefined },
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <FieldLabel htmlFor="mini-site-instagram">Instagram</FieldLabel>
+                <TextInput
+                  id="mini-site-instagram"
+                  value={draft.socialLinks.instagram ?? ""}
+                  disabled={saving}
+                  placeholder="https://instagram.com/your-handle"
+                  onChange={(value) =>
+                    setDraft({
+                      ...draft,
+                      socialLinks: { ...draft.socialLinks, instagram: value || undefined },
+                    })
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <DisabledMediaField
+                id="mini-site-logo-upload"
+                label="Logo"
+                placeholder="Coming soon"
+                hint="Logo upload coming soon."
+              />
+              <DisabledMediaField
+                id="mini-site-cover-upload"
+                label="Cover image"
+                placeholder="Coming soon"
+                hint="Cover upload coming soon."
+              />
+            </div>
+            <p className="text-xs text-slate-500" data-testid="public-profile-media-placeholder">
+              Gallery and media uploads are coming soon.
+            </p>
+          </EditorSection>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <FieldLabel htmlFor="mini-site-services-section-title">Services section title</FieldLabel>
-            <TextInput
-              id="mini-site-services-section-title"
-              value={draft.copy.servicesSectionTitle}
-              disabled={saving}
-              onChange={(value) => setDraft(updateCopyField(draft, "servicesSectionTitle", value))}
-            />
+
+        <aside
+          className="min-w-0 lg:sticky lg:top-4 lg:self-start"
+          data-testid="mini-site-editor-preview-panel"
+        >
+          <div className="flex min-h-[420px] flex-col rounded-xl border border-slate-200 bg-gradient-to-b from-slate-50 via-white to-slate-100/90 p-3 shadow-sm sm:p-4 lg:min-h-[calc(100vh-9rem)]">
+            <MiniSiteLivePreview config={draft} businessName={businessName} />
           </div>
-          <div>
-            <FieldLabel htmlFor="mini-site-services-section-badge">Services badge</FieldLabel>
-            <TextInput
-              id="mini-site-services-section-badge"
-              value={draft.copy.servicesSectionBadgeText}
-              disabled={saving}
-              placeholder="{count} available"
-              onChange={(value) => setDraft(updateCopyField(draft, "servicesSectionBadgeText", value))}
-            />
-          </div>
-        </div>
-        <div>
-          <FieldLabel htmlFor="mini-site-contact-section-title">Contact section title</FieldLabel>
-          <TextInput
-            id="mini-site-contact-section-title"
-            value={draft.copy.contactSectionTitle}
-            disabled={saving}
-            onChange={(value) => setDraft(updateCopyField(draft, "contactSectionTitle", value))}
-          />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <FieldLabel htmlFor="mini-site-primary-cta-label">Primary CTA label</FieldLabel>
-            <TextInput
-              id="mini-site-primary-cta-label"
-              value={draft.copy.primaryCtaLabel}
-              disabled={saving}
-              onChange={(value) => setDraft(updateCopyField(draft, "primaryCtaLabel", value))}
-            />
-          </div>
-          <div>
-            <FieldLabel htmlFor="mini-site-secondary-cta-label">Secondary CTA label</FieldLabel>
-            <TextInput
-              id="mini-site-secondary-cta-label"
-              value={draft.copy.secondaryCtaLabel}
-              disabled={saving}
-              onChange={(value) => setDraft(updateCopyField(draft, "secondaryCtaLabel", value))}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Hero</p>
-        <div>
-          <FieldLabel htmlFor="mini-site-hero-title">Hero title</FieldLabel>
-          <TextInput
-            id="mini-site-hero-title"
-            value={getSectionField(draft, "hero", "title")}
-            disabled={saving}
-            onChange={(value) =>
-              setDraft(updateSectionField(draft, "hero", "title", value))
-            }
-          />
-        </div>
-        <div>
-          <FieldLabel htmlFor="mini-site-hero-subtitle">Hero subtitle</FieldLabel>
-          <TextInput
-            id="mini-site-hero-subtitle"
-            value={getSectionField(draft, "hero", "subtitle")}
-            disabled={saving}
-            onChange={(value) =>
-              setDraft(updateSectionField(draft, "hero", "subtitle", value))
-            }
-          />
-        </div>
-        <label htmlFor="mini-site-hero-body" className="block text-sm">
-          <span className="font-medium text-slate-700">Hero body</span>
-          <textarea
-            id="mini-site-hero-body"
-            rows={3}
-            value={getSectionField(draft, "hero", "body")}
-            disabled={saving}
-            onChange={(event) =>
-              setDraft(updateSectionField(draft, "hero", "body", event.target.value))
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
-            data-testid="mini-site-hero-body"
-          />
-        </label>
-      </div>
-
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">About</p>
-        <div>
-          <FieldLabel htmlFor="mini-site-about-title">About title</FieldLabel>
-          <TextInput
-            id="mini-site-about-title"
-            value={getSectionField(draft, "about", "title")}
-            disabled={saving}
-            onChange={(value) =>
-              setDraft(updateSectionField(draft, "about", "title", value))
-            }
-          />
-        </div>
-        <label htmlFor="mini-site-about-body" className="block text-sm">
-          <span className="font-medium text-slate-700">About body</span>
-          <textarea
-            id="mini-site-about-body"
-            rows={3}
-            value={getSectionField(draft, "about", "body")}
-            disabled={saving}
-            onChange={(event) =>
-              setDraft(updateSectionField(draft, "about", "body", event.target.value))
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
-            data-testid="mini-site-about-body"
-          />
-        </label>
-      </div>
-
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-          Social links
-        </p>
-        <div>
-          <FieldLabel htmlFor="mini-site-website">Website</FieldLabel>
-          <TextInput
-            id="mini-site-website"
-            value={draft.socialLinks.website ?? ""}
-            disabled={saving}
-            placeholder="https://example.com"
-            onChange={(value) =>
-              setDraft({
-                ...draft,
-                socialLinks: { ...draft.socialLinks, website: value || undefined },
-              })
-            }
-          />
-        </div>
-        <div>
-          <FieldLabel htmlFor="mini-site-instagram">Instagram</FieldLabel>
-          <TextInput
-            id="mini-site-instagram"
-            value={draft.socialLinks.instagram ?? ""}
-            disabled={saving}
-            placeholder="https://instagram.com/your-handle"
-            onChange={(value) =>
-              setDraft({
-                ...draft,
-                socialLinks: { ...draft.socialLinks, instagram: value || undefined },
-              })
-            }
-          />
-        </div>
-      </div>
-
-      <div className="space-y-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Media</p>
-        <DisabledMediaField
-          id="mini-site-logo-upload"
-          label="Logo"
-          placeholder="Logo upload coming soon"
-          hint="Logo upload coming soon."
-        />
-        <DisabledMediaField
-          id="mini-site-cover-upload"
-          label="Cover image"
-          placeholder="Cover image upload coming soon"
-          hint="Cover image upload coming soon."
-        />
-        <p className="text-sm text-slate-500" data-testid="public-profile-media-placeholder">
-          Gallery and media uploads are coming soon.
-        </p>
-      </div>
-        </div>
-
-        <div className="min-w-0 xl:justify-self-end">
-          <MiniSiteLivePreview config={draft} businessName={businessName} />
-        </div>
+        </aside>
       </div>
 
       {saveSuccess ? (

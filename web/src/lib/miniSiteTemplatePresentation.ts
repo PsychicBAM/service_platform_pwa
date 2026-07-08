@@ -32,7 +32,7 @@ export const MINI_SITE_PREVIEW_VIEWPORT_PX = 410;
 export const MINI_SITE_PREVIEW_SCALE = 0.9;
 
 export function getMiniSitePreviewOuterShellClass(): string {
-  return "mx-auto overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-slate-100 shadow-sm [scrollbar-width:thin]";
+  return "overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border border-slate-200/80 bg-slate-100/90 shadow-inner [scrollbar-width:thin]";
 }
 
 export function getMiniSitePreviewScaledViewportStyle(): {

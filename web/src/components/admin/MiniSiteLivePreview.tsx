@@ -338,7 +338,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
 
   return (
     <div
-      className="space-y-3 lg:sticky lg:top-4"
+      className="flex h-full min-h-0 flex-col"
       data-testid="mini-site-live-preview"
       data-template={theme.template}
       data-template-presentation={theme.template}
@@ -346,8 +346,8 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
       data-background-color={theme.backgroundColor}
       data-button-style={theme.buttonStyle}
     >
-      <div className="flex items-center justify-between gap-2 px-1">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Page preview</p>
+      <div className="mb-3 flex shrink-0 items-center justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Live preview</p>
         <span
           className="rounded-full px-2.5 py-1 text-xs font-medium capitalize"
           style={{
@@ -359,22 +359,22 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
         </span>
       </div>
 
-      <div
-        className={getMiniSitePreviewOuterShellClass()}
-        data-testid="mini-site-preview-device-shell"
-        style={{
-          width: viewport.outerWidth,
-          maxHeight: viewport.maxHeight,
-        }}
-      >
+      <div className="flex min-h-0 flex-1 items-start justify-center">
         <div
+          className={`${getMiniSitePreviewOuterShellClass()} w-full max-w-[410px] xl:max-w-[430px]`}
+          data-testid="mini-site-preview-device-shell"
           style={{
-            width: viewport.innerWidth,
-            transform: `scale(${viewport.scale})`,
-            transformOrigin: "top left",
+            maxHeight: "min(75vh, 720px)",
           }}
         >
-          {previewContent}
+          <div
+            className="origin-top mx-auto scale-[0.92] xl:scale-100"
+            style={{
+              width: viewport.innerWidth,
+            }}
+          >
+            {previewContent}
+          </div>
         </div>
       </div>
     </div>
