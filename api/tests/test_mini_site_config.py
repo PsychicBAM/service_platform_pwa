@@ -313,3 +313,23 @@ def test_normalize_uses_default_faq_items_for_legacy_copy_without_faq_items() ->
     )
 
     assert config.copy.faq_items[0].question == "How do I book?"
+
+
+def test_normalize_preserves_explicitly_empty_cta_labels() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+            "copy": {
+                **base.copy.model_dump(),
+                "primary_cta_label": "",
+                "secondary_cta_label": " ",
+            },
+        },
+    )
+
+    assert config.copy.primary_cta_label == ""
+    assert config.copy.secondary_cta_label == ""

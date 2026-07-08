@@ -371,6 +371,32 @@ function normalizeFaqItems(
   ) as [MiniSiteFaqItem, MiniSiteFaqItem, MiniSiteFaqItem];
 }
 
+const SOCIAL_LINK_KEYS = [
+  "website",
+  "instagram",
+  "facebook",
+  "whatsapp",
+  "tiktok",
+  "telegram",
+] as const;
+
+function normalizeOptionalCopyField(
+  source: Record<string, unknown>,
+  camelKey: string,
+  snakeKey: string,
+  fallback: string,
+): string {
+  if (camelKey in source) {
+    const value = source[camelKey];
+    return typeof value === "string" ? sanitizePlainText(value) : fallback;
+  }
+  if (snakeKey in source) {
+    const value = source[snakeKey];
+    return typeof value === "string" ? sanitizePlainText(value) : fallback;
+  }
+  return fallback;
+}
+
 function normalizeCopy(input: unknown, template: MiniSiteTemplate): MiniSiteCopy {
   const defaults = getDefaultCopyForTemplate(template);
   if (!input || typeof input !== "object") {
@@ -405,11 +431,18 @@ function normalizeCopy(input: unknown, template: MiniSiteTemplate): MiniSiteCopy
     contactSectionTitle:
       sanitizeText(source.contactSectionTitle ?? source.contact_section_title) ??
       defaults.contactSectionTitle,
-    primaryCtaLabel:
-      sanitizeText(source.primaryCtaLabel ?? source.primary_cta_label) ?? defaults.primaryCtaLabel,
-    secondaryCtaLabel:
-      sanitizeText(source.secondaryCtaLabel ?? source.secondary_cta_label) ??
+    primaryCtaLabel: normalizeOptionalCopyField(
+      source,
+      "primaryCtaLabel",
+      "primary_cta_label",
+      defaults.primaryCtaLabel,
+    ),
+    secondaryCtaLabel: normalizeOptionalCopyField(
+      source,
+      "secondaryCtaLabel",
+      "secondary_cta_label",
       defaults.secondaryCtaLabel,
+    ),
     faqSectionTitle:
       sanitizeText(source.faqSectionTitle ?? source.faq_section_title) ?? defaults.faqSectionTitle,
     faqItems: normalizeFaqItems(faqSource, defaults.faqItems),
@@ -507,6 +540,18 @@ function normalizeSection(value: unknown, fallbackOrder: number): MiniSiteSectio
   };
 }
 
+function normalizeSocialLinkField(value: unknown): string | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = sanitizePlainText(value);
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 function normalizeSocialLinks(input: unknown): MiniSiteSocialLinks {
   if (!input || typeof input !== "object") {
     return {};
@@ -515,8 +560,11 @@ function normalizeSocialLinks(input: unknown): MiniSiteSocialLinks {
   const source = input as Record<string, unknown>;
   const links: MiniSiteSocialLinks = {};
 
-  for (const key of ["website", "instagram", "facebook", "whatsapp", "tiktok", "telegram"] as const) {
-    const value = sanitizeOptionalUrl(source[key]);
+  for (const key of SOCIAL_LINK_KEYS) {
+    if (!(key in source)) {
+      continue;
+    }
+    const value = normalizeSocialLinkField(source[key]);
     if (value) {
       links[key] = value;
     }
@@ -605,6 +653,35 @@ export function getEnabledMiniSiteSections(config: MiniSiteConfig): MiniSiteSect
       if (right.type === "hero" && left.type !== "hero") return 1;
       return left.order - right.order;
     });
+}
+
+export function hasMeaningfulText(value: string | undefined | null): boolean {
+  return Boolean(value?.trim());
+}
+
+export function getVisibleSocialLinks(
+  links: MiniSiteSocialLinks,
+): Array<{ key: (typeof SOCIAL_LINK_KEYS)[number]; label: string; value: string }> {
+  const labels: Record<(typeof SOCIAL_LINK_KEYS)[number], string> = {
+    website: "Website",
+    instagram: "Instagram",
+    facebook: "Facebook",
+    whatsapp: "WhatsApp",
+    tiktok: "TikTok",
+    telegram: "Telegram",
+  };
+
+  return SOCIAL_LINK_KEYS.flatMap((key) => {
+    const value = links[key];
+    if (!hasMeaningfulText(value)) {
+      return [];
+    }
+    return [{ key, label: labels[key], value: value!.trim() }];
+  });
+}
+
+export function hasVisibleSocialLinks(links: MiniSiteSocialLinks): boolean {
+  return getVisibleSocialLinks(links).length > 0;
 }
 
 export function isFaqItemFilled(item: MiniSiteFaqItem | undefined | null): boolean {

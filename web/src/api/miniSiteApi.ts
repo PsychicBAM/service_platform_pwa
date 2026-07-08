@@ -135,8 +135,8 @@ function mapCopyToWire(copy: MiniSiteCopy): MiniSiteCopyWire {
     services_section_title: copy.servicesSectionTitle,
     services_section_badge_text: copy.servicesSectionBadgeText,
     contact_section_title: copy.contactSectionTitle,
-    primary_cta_label: copy.primaryCtaLabel,
-    secondary_cta_label: copy.secondaryCtaLabel,
+    primary_cta_label: sanitizeFaqField(copy.primaryCtaLabel),
+    secondary_cta_label: sanitizeFaqField(copy.secondaryCtaLabel),
     faq_section_title: copy.faqSectionTitle,
     faq_items: copy.faqItems.map(mapFaqItemToWire),
   };
@@ -155,14 +155,22 @@ function mapThemeToWire(theme: MiniSiteTheme): MiniSiteThemeWire {
   };
 }
 
+function mapSocialLinkToWire(value: string | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function mapSocialLinksToWire(links: MiniSiteSocialLinks): MiniSiteSocialLinksWire {
   return {
-    website: links.website ?? null,
-    instagram: links.instagram ?? null,
-    facebook: links.facebook ?? null,
-    whatsapp: links.whatsapp ?? null,
-    tiktok: links.tiktok ?? null,
-    telegram: links.telegram ?? null,
+    website: mapSocialLinkToWire(links.website),
+    instagram: mapSocialLinkToWire(links.instagram),
+    facebook: mapSocialLinkToWire(links.facebook),
+    whatsapp: mapSocialLinkToWire(links.whatsapp),
+    tiktok: mapSocialLinkToWire(links.tiktok),
+    telegram: mapSocialLinkToWire(links.telegram),
   };
 }
 

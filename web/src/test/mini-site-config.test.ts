@@ -3,6 +3,8 @@ import {
   DEFAULT_MINI_SITE_CONFIG,
   getEnabledMiniSiteSections,
   getVisibleFaqItems,
+  getVisibleSocialLinks,
+  hasMeaningfulText,
   isFaqItemFilled,
   isMiniSiteSectionType,
   isMiniSiteTemplate,
@@ -333,5 +335,49 @@ describe("mini-site config helpers", () => {
     expect(config.copy.faqItems[1]?.answer).toBe("");
     expect(config.copy.faqItems[2]?.question).toBe("");
     expect(config.copy.faqItems[2]?.answer).toBe("");
+  });
+
+  it("normalizeMiniSiteConfig preserves explicitly empty CTA labels", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
+      socialLinks: {},
+      copy: {
+        ...DEFAULT_MINI_SITE_CONFIG.copy,
+        primaryCtaLabel: "",
+        secondaryCtaLabel: " ",
+      },
+    });
+
+    expect(config.copy.primaryCtaLabel).toBe("");
+    expect(config.copy.secondaryCtaLabel).toBe("");
+  });
+
+  it("normalizeMiniSiteConfig uses default CTA labels for legacy copy without explicit fields", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
+      socialLinks: {},
+      copy: {
+        heroBadgeText: "Welcome",
+      },
+    });
+
+    expect(config.copy.primaryCtaLabel).toBe("Book now");
+    expect(config.copy.secondaryCtaLabel).toBe("Submit a request");
+  });
+
+  it("getVisibleSocialLinks skips empty and whitespace-only values", () => {
+    expect(
+      getVisibleSocialLinks({
+        website: "https://example.com",
+        instagram: " ",
+        facebook: "",
+      }),
+    ).toEqual([{ key: "website", label: "Website", value: "https://example.com" }]);
+    expect(hasMeaningfulText("  ")).toBe(false);
+    expect(hasMeaningfulText("Book now")).toBe(true);
   });
 });

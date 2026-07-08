@@ -459,6 +459,40 @@ describe("ProMiniSiteLayout", () => {
     expect(social).toHaveTextContent("@savedbiz");
   });
 
+  it("does not render blank hero CTA buttons when labels are cleared", () => {
+    const config = normalizeMiniSiteConfig({
+      ...createSavedMiniSiteConfig(),
+      copy: {
+        ...createSavedMiniSiteConfig().copy,
+        primaryCtaLabel: "",
+        secondaryCtaLabel: " ",
+      },
+    });
+
+    renderProMiniSiteLayout({
+      config,
+      services: [mockBookingService, mockOrderService],
+    });
+
+    expect(screen.queryByTestId("pro-mini-site-book-cta")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pro-mini-site-request-cta")).not.toBeInTheDocument();
+  });
+
+  it("does not render empty social link chips", () => {
+    const config = normalizeMiniSiteConfig({
+      ...createSavedMiniSiteConfig(),
+      socialLinks: {
+        website: " ",
+        instagram: "",
+      },
+    });
+
+    renderProMiniSiteLayout({ config });
+
+    expect(screen.queryByTestId("pro-mini-site-social-links")).not.toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-contact")).toBeInTheDocument();
+  });
+
   it("does not use dangerouslySetInnerHTML", () => {
     const source = readFileSync(
       resolve(process.cwd(), "src/components/public/ProMiniSiteLayout.tsx"),

@@ -5,6 +5,8 @@ import {
   formatServicesSectionBadge,
   getEnabledMiniSiteSections,
   getVisibleFaqItems,
+  getVisibleSocialLinks,
+  hasMeaningfulText,
   isFaqItemFilled,
   normalizeMiniSiteConfig,
 } from "@/lib/miniSiteConfig";
@@ -96,17 +98,6 @@ function sectionCardClass(
       ? "border-slate-700/80 bg-slate-900/60 text-slate-100 shadow-lg shadow-black/20"
       : "border-slate-200/90 bg-white text-slate-900 shadow-md shadow-slate-200/40";
   return `rounded-2xl border p-6 md:p-9 ${surface} ${presentationClass}`;
-}
-
-function hasSocialLinks(links: MiniSiteSocialLinks): boolean {
-  return Boolean(
-    links.website ||
-      links.instagram ||
-      links.facebook ||
-      links.whatsapp ||
-      links.tiktok ||
-      links.telegram,
-  );
 }
 
 function SectionHeading({
@@ -223,14 +214,7 @@ function SocialLinksList({
   labelText: string;
   isDark: boolean;
 }) {
-  const entries = [
-    { key: "website", label: "Website", value: links.website },
-    { key: "instagram", label: "Instagram", value: links.instagram },
-    { key: "facebook", label: "Facebook", value: links.facebook },
-    { key: "whatsapp", label: "WhatsApp", value: links.whatsapp },
-    { key: "tiktok", label: "TikTok", value: links.tiktok },
-    { key: "telegram", label: "Telegram", value: links.telegram },
-  ].filter((entry) => entry.value);
+  const entries = getVisibleSocialLinks(links);
 
   if (entries.length === 0) {
     return null;
@@ -277,9 +261,8 @@ export function ProMiniSiteLayout({
     copy.servicesSectionTitle || getSectionField(siteConfig, "services", "title") || "Services";
   const contactTitle =
     copy.contactSectionTitle || getSectionField(siteConfig, "contact", "title") || "Contact & details";
-  const primaryCtaLabel =
-    copy.primaryCtaLabel || getSectionField(siteConfig, "booking_cta", "title") || "Browse services to book";
-  const secondaryCtaLabel = copy.secondaryCtaLabel || "Submit a request";
+  const primaryCtaLabel = copy.primaryCtaLabel.trim();
+  const secondaryCtaLabel = copy.secondaryCtaLabel.trim();
 
   const mutedText = mutedTextClass(theme.backgroundStyle);
   const sectionBorder = borderClass(theme.backgroundStyle);
@@ -386,7 +369,7 @@ export function ProMiniSiteLayout({
       </div>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        {ctas.showBookingCta ? (
+        {ctas.showBookingCta && hasMeaningfulText(primaryCtaLabel) ? (
           <Link
             to={primaryBookingHref}
             className={primaryCtaClass}
@@ -396,7 +379,7 @@ export function ProMiniSiteLayout({
             {primaryCtaLabel}
           </Link>
         ) : null}
-        {ctas.showRequestCta ? (
+        {ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel) ? (
           <Link
             to={secondaryOrderHref}
             className={secondaryCtaClass}
@@ -609,20 +592,21 @@ export function ProMiniSiteLayout({
           </div>
         ) : null}
       </dl>
-      {!business.address && !business.contact_phone && !hasSocialLinks(socialLinks) ? (
-        <p className={`mt-2 text-sm ${mutedText}`}>Contact details are not available yet.</p>
-      ) : null}
       <SocialLinksList links={socialLinks} mutedText={mutedText} labelText={labelText} isDark={isDark} />
     </section>
   );
 
-  const renderBookingCta = () => (
-    <section
-      className={`${sectionCardClass(theme.backgroundStyle, `${presentation.sectionClass} ${presentation.bookingCtaClass}`)} py-10 text-center md:py-12`}
-      data-testid="pro-mini-site-booking-cta-section"
-      style={{ backgroundColor: `${theme.primaryColor}08` }}
-    >
-      {ctas.showBookingCta ? (
+  const renderBookingCta = () => {
+    if (!ctas.showBookingCta || !hasMeaningfulText(primaryCtaLabel)) {
+      return null;
+    }
+
+    return (
+      <section
+        className={`${sectionCardClass(theme.backgroundStyle, `${presentation.sectionClass} ${presentation.bookingCtaClass}`)} py-10 text-center md:py-12`}
+        data-testid="pro-mini-site-booking-cta-section"
+        style={{ backgroundColor: `${theme.primaryColor}08` }}
+      >
         <Link
           to={primaryBookingHref}
           className={primaryCtaClass}
@@ -631,9 +615,9 @@ export function ProMiniSiteLayout({
         >
           {primaryCtaLabel}
         </Link>
-      ) : null}
-    </section>
-  );
+      </section>
+    );
+  };
 
   const renderGallery = () => (
     <section

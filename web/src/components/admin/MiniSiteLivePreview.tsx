@@ -2,6 +2,8 @@ import {
   formatServicesSectionBadge,
   getEnabledMiniSiteSections,
   getVisibleFaqItems,
+  getVisibleSocialLinks,
+  hasMeaningfulText,
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
 import {
@@ -59,7 +61,9 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const aboutBody = getSectionField(config, "about", "body");
   const servicesTitle = copy.servicesSectionTitle || getSectionField(config, "services", "title") || "Services";
   const contactTitle = copy.contactSectionTitle || getSectionField(config, "contact", "title") || "Contact";
-  const primaryCtaLabel = copy.primaryCtaLabel || getSectionField(config, "booking_cta", "title") || "Book now";
+  const primaryCtaLabel = copy.primaryCtaLabel.trim();
+  const secondaryCtaLabel = copy.secondaryCtaLabel.trim();
+  const visibleSocialLinks = getVisibleSocialLinks(socialLinks);
   const isDark = theme.backgroundStyle === "dark";
   const mutedText = previewMutedTextClass(theme.backgroundStyle);
   const presentation = getMiniSiteTemplatePresentation(
@@ -217,24 +221,28 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             </div>
 
             <div className="mt-3 flex w-full flex-col gap-1.5">
-              <button
-                type="button"
-                disabled
-                className={primaryButtonClass}
-                data-testid="mini-site-preview-primary-button"
-                style={{ backgroundColor: theme.primaryColor }}
-              >
-                {primaryCtaLabel}
-              </button>
-              <button
-                type="button"
-                disabled
-                className={secondaryButtonClass}
-                data-testid="mini-site-preview-secondary-button"
-                style={{ borderColor: theme.accentColor, color: theme.accentColor }}
-              >
-                {copy.secondaryCtaLabel}
-              </button>
+              {hasMeaningfulText(primaryCtaLabel) ? (
+                <button
+                  type="button"
+                  disabled
+                  className={primaryButtonClass}
+                  data-testid="mini-site-preview-primary-button"
+                  style={{ backgroundColor: theme.primaryColor }}
+                >
+                  {primaryCtaLabel}
+                </button>
+              ) : null}
+              {hasMeaningfulText(secondaryCtaLabel) ? (
+                <button
+                  type="button"
+                  disabled
+                  className={secondaryButtonClass}
+                  data-testid="mini-site-preview-secondary-button"
+                  style={{ borderColor: theme.accentColor, color: theme.accentColor }}
+                >
+                  {secondaryCtaLabel}
+                </button>
+              ) : null}
             </div>
           </header>
         );
@@ -378,7 +386,10 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
           </section>
         );
       }
-      case "contact":
+      case "contact": {
+        const website = visibleSocialLinks.find((entry) => entry.key === "website");
+        const instagram = visibleSocialLinks.find((entry) => entry.key === "instagram");
+
         return (
           <section
             className={previewCardClass(theme.backgroundStyle, presentation.sectionClass)}
@@ -390,23 +401,23 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             >
               {contactTitle}
             </h4>
-            <div className={`mt-1.5 space-y-1 text-xs whitespace-normal ${mutedText}`}>
-              {socialLinks.website ? (
-                <p className="break-words" data-testid="mini-site-preview-website">
-                  {socialLinks.website}
-                </p>
-              ) : null}
-              {socialLinks.instagram ? (
-                <p className="break-words" data-testid="mini-site-preview-instagram">
-                  {socialLinks.instagram}
-                </p>
-              ) : null}
-              {!socialLinks.website && !socialLinks.instagram ? (
-                <p className="italic">Social links will appear here.</p>
-              ) : null}
-            </div>
+            {visibleSocialLinks.length > 0 ? (
+              <div className={`mt-1.5 space-y-1 text-xs whitespace-normal ${mutedText}`}>
+                {website ? (
+                  <p className="break-words" data-testid="mini-site-preview-website">
+                    {website.value}
+                  </p>
+                ) : null}
+                {instagram ? (
+                  <p className="break-words" data-testid="mini-site-preview-instagram">
+                    {instagram.value}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </section>
         );
+      }
       default:
         return null;
     }

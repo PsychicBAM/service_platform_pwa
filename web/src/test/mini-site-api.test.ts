@@ -146,6 +146,33 @@ describe("miniSiteApi", () => {
     expect(reloaded.copy.faqItems[1]?.answer).toBe("");
   });
 
+  it("mapMiniSiteConfig round-trip preserves explicitly empty CTA labels", () => {
+    const clearedConfig: MiniSiteConfig = {
+      ...DEFAULT_MINI_SITE_CONFIG,
+      copy: {
+        ...DEFAULT_MINI_SITE_CONFIG.copy,
+        primaryCtaLabel: "",
+        secondaryCtaLabel: " ",
+      },
+    };
+
+    const wire = mapMiniSiteConfigToWire(clearedConfig);
+    expect(wire.copy?.primary_cta_label).toBe("");
+    expect(wire.copy?.secondary_cta_label).toBe("");
+
+    const reloaded = mapMiniSiteConfigFromWire({
+      ...wireConfig,
+      copy: {
+        ...wireConfig.copy,
+        primary_cta_label: wire.copy?.primary_cta_label,
+        secondary_cta_label: wire.copy?.secondary_cta_label,
+      },
+    });
+
+    expect(reloaded.copy.primaryCtaLabel).toBe("");
+    expect(reloaded.copy.secondaryCtaLabel).toBe("");
+  });
+
   it("getMiniSiteConfig calls the correct endpoint", async () => {
     vi.mocked(apiClient.get).mockResolvedValue(wireConfig);
 

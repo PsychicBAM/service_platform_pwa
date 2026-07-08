@@ -255,6 +255,30 @@ def _normalize_benefits_items(value: object, fallback: list[str]) -> list[str]:
     return items
 
 
+def _normalize_optional_copy_field(
+    input_value: dict[str, object],
+    camel_key: str,
+    snake_key: str,
+    fallback: str,
+) -> str:
+    if camel_key in input_value:
+        value = input_value[camel_key]
+        return _sanitize_plain_text(value) if isinstance(value, str) else fallback
+    if snake_key in input_value:
+        value = input_value[snake_key]
+        return _sanitize_plain_text(value) if isinstance(value, str) else fallback
+    return fallback
+
+
+def _normalize_social_link_field(value: object) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return None
+    stripped = _sanitize_plain_text(value)
+    return stripped if stripped else None
+
+
 def _normalize_faq_field(value: object) -> str:
     if not isinstance(value, str):
         return ""
@@ -330,14 +354,18 @@ def _normalize_copy(input_value: object, template: MiniSiteTemplate) -> MiniSite
             input_value.get("contact_section_title", input_value.get("contactSectionTitle")),
         )
         or defaults.contact_section_title,
-        primary_cta_label=_sanitize_text(
-            input_value.get("primary_cta_label", input_value.get("primaryCtaLabel")),
-        )
-        or defaults.primary_cta_label,
-        secondary_cta_label=_sanitize_text(
-            input_value.get("secondary_cta_label", input_value.get("secondaryCtaLabel")),
-        )
-        or defaults.secondary_cta_label,
+        primary_cta_label=_normalize_optional_copy_field(
+            input_value,
+            "primaryCtaLabel",
+            "primary_cta_label",
+            defaults.primary_cta_label,
+        ),
+        secondary_cta_label=_normalize_optional_copy_field(
+            input_value,
+            "secondaryCtaLabel",
+            "secondary_cta_label",
+            defaults.secondary_cta_label,
+        ),
         faq_section_title=_sanitize_text(
             input_value.get("faq_section_title", input_value.get("faqSectionTitle")),
         )
@@ -422,7 +450,9 @@ def _normalize_social_links(input_value: object) -> MiniSiteSocialLinks:
 
     fields: dict[str, str] = {}
     for key in ("website", "instagram", "facebook", "whatsapp", "tiktok", "telegram"):
-        sanitized = _sanitize_optional_url(input_value.get(key))
+        if key not in input_value:
+            continue
+        sanitized = _normalize_social_link_field(input_value.get(key))
         if sanitized is not None:
             fields[key] = sanitized
     return MiniSiteSocialLinks(**fields)
