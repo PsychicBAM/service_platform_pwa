@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_MINI_SITE_CONFIG,
   getEnabledMiniSiteSections,
+  getVisibleFaqItems,
+  isFaqItemFilled,
   isMiniSiteSectionType,
   isMiniSiteTemplate,
   normalizeMiniSiteConfig,
@@ -295,5 +297,18 @@ describe("mini-site config helpers", () => {
     expect(hero?.body).toBe("Hello b");
     expect(hero?.title).not.toMatch(/[<>]/);
     expect(hero?.body).not.toMatch(/[<>]/);
+  });
+
+  it("getVisibleFaqItems skips rows where question and answer are both empty", () => {
+    expect(
+      getVisibleFaqItems([
+        { question: "Book online?", answer: "Yes." },
+        { question: "", answer: "" },
+        { question: "", answer: "Only an answer" },
+      ]),
+    ).toHaveLength(2);
+    expect(isFaqItemFilled({ question: " ", answer: " " })).toBe(false);
+    expect(isFaqItemFilled({ question: "Hi", answer: "" })).toBe(true);
+    expect(getVisibleFaqItems(null)).toEqual([]);
   });
 });

@@ -314,6 +314,65 @@ describe("ProMiniSiteLayout", () => {
     );
   });
 
+  it("skips empty FAQ items in public layout", () => {
+    const partialConfig = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: [
+        { id: "hero", type: "hero", enabled: true, order: 0, title: "Saved hero title" },
+        { id: "faq", type: "faq", enabled: true, order: 3 },
+        { id: "contact", type: "contact", enabled: true, order: 4 },
+        { id: "booking_cta", type: "booking_cta", enabled: false, order: 5 },
+      ],
+      socialLinks: {},
+      copy: {
+        ...DEFAULT_MINI_SITE_CONFIG.copy,
+        faqSectionTitle: "Common questions",
+        faqItems: [
+          { question: "Visible question?", answer: "" },
+          { question: "", answer: "" },
+          { question: "", answer: "" },
+        ],
+      },
+    });
+
+    renderProMiniSiteLayout({ config: partialConfig });
+
+    expect(screen.getByTestId("pro-mini-site-faq")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-faq-item-0-question")).toHaveTextContent(
+      "Visible question?",
+    );
+    expect(screen.queryByTestId("pro-mini-site-faq-item-1-question")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pro-mini-site-faq-item-2-question")).not.toBeInTheDocument();
+  });
+
+  it("does not render FAQ section when enabled but all FAQ rows are empty", () => {
+    const emptyConfig = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: [
+        { id: "hero", type: "hero", enabled: true, order: 0, title: "Saved hero title" },
+        { id: "faq", type: "faq", enabled: true, order: 3 },
+        { id: "contact", type: "contact", enabled: true, order: 4 },
+        { id: "booking_cta", type: "booking_cta", enabled: false, order: 5 },
+      ],
+      socialLinks: {},
+      copy: {
+        ...DEFAULT_MINI_SITE_CONFIG.copy,
+        faqItems: [
+          { question: "", answer: "" },
+          { question: " ", answer: " " },
+          { question: "", answer: "" },
+        ],
+      },
+    });
+
+    renderProMiniSiteLayout({ config: emptyConfig });
+
+    expect(screen.queryByTestId("pro-mini-site-faq")).not.toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-contact")).toBeInTheDocument();
+  });
+
   it("hides FAQ section when disabled in config", () => {
     const config = normalizeMiniSiteConfig({
       version: 1,

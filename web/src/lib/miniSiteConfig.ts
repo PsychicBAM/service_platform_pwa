@@ -593,3 +593,21 @@ export function getEnabledMiniSiteSections(config: MiniSiteConfig): MiniSiteSect
       return left.order - right.order;
     });
 }
+
+export function isFaqItemFilled(item: MiniSiteFaqItem | undefined | null): boolean {
+  if (!item) {
+    return false;
+  }
+
+  return Boolean(item.question.trim() || item.answer.trim());
+}
+
+export function getVisibleFaqItems(
+  faqItems: readonly MiniSiteFaqItem[] | undefined | null,
+): MiniSiteFaqItem[] {
+  if (!Array.isArray(faqItems)) {
+    return [];
+  }
+
+  return faqItems.filter(isFaqItemFilled);
+}

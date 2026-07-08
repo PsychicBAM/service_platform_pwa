@@ -877,7 +877,10 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
             </label>
           </EditorSection>
 
-          <EditorSection title="FAQ content" description="Questions and answers for the FAQ section">
+          <EditorSection
+            title="FAQ content"
+            description="Questions and answers for the FAQ section. Empty rows are hidden on the live page."
+          >
             <div>
               <FieldLabel htmlFor="mini-site-faq-section-title">FAQ section title</FieldLabel>
               <TextInput

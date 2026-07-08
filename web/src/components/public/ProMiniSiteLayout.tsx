@@ -4,6 +4,8 @@ import {
   DEFAULT_MINI_SITE_CONFIG,
   formatServicesSectionBadge,
   getEnabledMiniSiteSections,
+  getVisibleFaqItems,
+  isFaqItemFilled,
   normalizeMiniSiteConfig,
 } from "@/lib/miniSiteConfig";
 import {
@@ -292,6 +294,8 @@ export function ProMiniSiteLayout({
   const benefitsSectionEnabled = siteConfig.sections.some(
     (section) => section.type === "benefits" && section.enabled,
   );
+  const visibleFaqItems = getVisibleFaqItems(copy.faqItems);
+  const faqItems = copy.faqItems ?? [];
   const serviceCardTheme = {
     template: theme.template,
     primaryColor: theme.primaryColor,
@@ -455,46 +459,58 @@ export function ProMiniSiteLayout({
     </section>
   );
 
-  const renderFaq = () => (
-    <section
-      className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
-      aria-labelledby="pro-mini-site-faq-heading"
-      data-testid="pro-mini-site-faq"
-    >
-      <SectionHeading
-        id="pro-mini-site-faq-heading"
-        title={copy.faqSectionTitle}
-        accentColor={theme.accentColor}
-        className={presentation.sectionHeadingClass}
-        isDark={isDark}
-        template={theme.template}
-      />
-      <div className="space-y-3">
-        {copy.faqItems.map((item, index) => (
-          <div
-            key={`${index}-${item.question}`}
-            className={`min-w-0 rounded-xl border px-4 py-3 ${
-              isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/80"
-            }`}
-            data-testid={`pro-mini-site-faq-item-${index}`}
-          >
-            <p
-              className="text-sm font-semibold whitespace-normal"
-              data-testid={`pro-mini-site-faq-item-${index}-question`}
-            >
-              {item.question}
-            </p>
-            <p
-              className={`mt-1 text-sm leading-relaxed whitespace-normal ${mutedText}`}
-              data-testid={`pro-mini-site-faq-item-${index}-answer`}
-            >
-              {item.answer}
-            </p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+  const renderFaq = () => {
+    if (visibleFaqItems.length === 0) {
+      return null;
+    }
+
+    return (
+      <section
+        className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
+        aria-labelledby="pro-mini-site-faq-heading"
+        data-testid="pro-mini-site-faq"
+      >
+        <SectionHeading
+          id="pro-mini-site-faq-heading"
+          title={copy.faqSectionTitle}
+          accentColor={theme.accentColor}
+          className={presentation.sectionHeadingClass}
+          isDark={isDark}
+          template={theme.template}
+        />
+        <div className="space-y-3">
+          {faqItems.map((item, index) => {
+            if (!isFaqItemFilled(item)) {
+              return null;
+            }
+
+            return (
+              <div
+                key={`${index}-${item.question}`}
+                className={`min-w-0 rounded-xl border px-4 py-3 ${
+                  isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/80"
+                }`}
+                data-testid={`pro-mini-site-faq-item-${index}`}
+              >
+                <p
+                  className="text-sm font-semibold whitespace-normal"
+                  data-testid={`pro-mini-site-faq-item-${index}-question`}
+                >
+                  {item.question}
+                </p>
+                <p
+                  className={`mt-1 text-sm leading-relaxed whitespace-normal ${mutedText}`}
+                  data-testid={`pro-mini-site-faq-item-${index}-answer`}
+                >
+                  {item.answer}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
+  };
 
   const renderServices = () => (
     <section
@@ -712,9 +728,10 @@ export function ProMiniSiteLayout({
         data-background-style={theme.backgroundStyle}
         data-button-style={theme.buttonStyle}
       >
-        {enabledSections.map((section) => (
-          <div key={`${section.id}-${section.type}`}>{renderSection(section.type)}</div>
-        ))}
+        {enabledSections.map((section) => {
+          const content = renderSection(section.type);
+          return content ? <div key={`${section.id}-${section.type}`}>{content}</div> : null;
+        })}
       </section>
     </div>
   );

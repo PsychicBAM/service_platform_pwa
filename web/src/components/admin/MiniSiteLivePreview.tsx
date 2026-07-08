@@ -1,4 +1,9 @@
-import { formatServicesSectionBadge, getEnabledMiniSiteSections } from "@/lib/miniSiteConfig";
+import {
+  formatServicesSectionBadge,
+  getEnabledMiniSiteSections,
+  getVisibleFaqItems,
+  isFaqItemFilled,
+} from "@/lib/miniSiteConfig";
 import {
   getMiniSitePageShellStyle,
   getMiniSitePreviewHeroContentClass,
@@ -82,6 +87,8 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     theme.buttonStyle,
   );
   const servicesBadge = formatServicesSectionBadge(copy.servicesSectionBadgeText, 2);
+  const faqItems = copy.faqItems ?? [];
+  const visibleFaqItems = getVisibleFaqItems(faqItems);
 
   const orderedSectionTypes = enabledSections
     .filter((section) =>
@@ -317,7 +324,11 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
         );
       case "trust":
         return renderTrust();
-      case "faq":
+      case "faq": {
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+
         return (
           <section
             className={previewCardClass(theme.backgroundStyle, presentation.sectionClass)}
@@ -335,31 +346,38 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
               {copy.faqSectionTitle}
             </h4>
             <div className="mt-2 space-y-2">
-              {copy.faqItems.map((item, index) => (
-                <div
-                  key={`${index}-${item.question}`}
-                  className={`min-w-0 rounded-md border px-2.5 py-2 ${
-                    isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/80"
-                  }`}
-                  data-testid={`mini-site-preview-faq-item-${index}`}
-                >
-                  <p
-                    className="text-xs font-semibold whitespace-normal"
-                    data-testid={`mini-site-preview-faq-item-${index}-question`}
+              {faqItems.map((item, index) => {
+                if (!isFaqItemFilled(item)) {
+                  return null;
+                }
+
+                return (
+                  <div
+                    key={`${index}-${item.question}`}
+                    className={`min-w-0 rounded-md border px-2.5 py-2 ${
+                      isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/80"
+                    }`}
+                    data-testid={`mini-site-preview-faq-item-${index}`}
                   >
-                    {item.question}
-                  </p>
-                  <p
-                    className={`mt-1 text-xs leading-snug whitespace-normal ${mutedText}`}
-                    data-testid={`mini-site-preview-faq-item-${index}-answer`}
-                  >
-                    {item.answer}
-                  </p>
-                </div>
-              ))}
+                    <p
+                      className="text-xs font-semibold whitespace-normal"
+                      data-testid={`mini-site-preview-faq-item-${index}-question`}
+                    >
+                      {item.question}
+                    </p>
+                    <p
+                      className={`mt-1 text-xs leading-snug whitespace-normal ${mutedText}`}
+                      data-testid={`mini-site-preview-faq-item-${index}-answer`}
+                    >
+                      {item.answer}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </section>
         );
+      }
       case "contact":
         return (
           <section
@@ -401,9 +419,10 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
       data-testid="mini-site-preview-frame"
     >
       <div className="space-y-3">
-        {orderedSectionTypes.map((type) => (
-          <div key={type}>{renderSection(type)}</div>
-        ))}
+        {orderedSectionTypes.map((type) => {
+          const section = renderSection(type);
+          return section ? <div key={type}>{section}</div> : null;
+        })}
 
         <section
           className={`${previewCardClass(theme.backgroundStyle, `border-dashed text-center ${presentation.galleryClass}`)} py-6`}
