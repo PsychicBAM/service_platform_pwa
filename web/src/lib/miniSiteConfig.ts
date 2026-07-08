@@ -333,14 +333,28 @@ function normalizeBenefitsItems(value: unknown, fallback: [string, string, strin
   ];
 }
 
-function normalizeFaqItem(value: unknown, fallback: MiniSiteFaqItem): MiniSiteFaqItem {
-  if (!value || typeof value !== "object") {
-    return fallback;
+function normalizeFaqField(value: unknown): string {
+  if (typeof value !== "string") {
+    return "";
   }
+
+  return sanitizePlainText(value);
+}
+
+function normalizeFaqItem(
+  value: unknown,
+  fallback: MiniSiteFaqItem,
+  applyDefaultsForMissingEntry: boolean,
+): MiniSiteFaqItem {
+  if (!value || typeof value !== "object") {
+    return applyDefaultsForMissingEntry ? fallback : { question: "", answer: "" };
+  }
+
   const record = value as Record<string, unknown>;
+
   return {
-    question: sanitizeText(record.question) ?? fallback.question,
-    answer: sanitizeText(record.answer) ?? fallback.answer,
+    question: "question" in record ? normalizeFaqField(record.question) : fallback.question,
+    answer: "answer" in record ? normalizeFaqField(record.answer) : fallback.answer,
   };
 }
 
@@ -351,11 +365,10 @@ function normalizeFaqItems(
   if (!Array.isArray(value)) {
     return fallback;
   }
-  return [0, 1, 2].map((index) => normalizeFaqItem(value[index], fallback[index])) as [
-    MiniSiteFaqItem,
-    MiniSiteFaqItem,
-    MiniSiteFaqItem,
-  ];
+
+  return [0, 1, 2].map((index) =>
+    normalizeFaqItem(value[index], fallback[index], false),
+  ) as [MiniSiteFaqItem, MiniSiteFaqItem, MiniSiteFaqItem];
 }
 
 function normalizeCopy(input: unknown, template: MiniSiteTemplate): MiniSiteCopy {

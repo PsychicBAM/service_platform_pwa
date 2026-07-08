@@ -311,4 +311,27 @@ describe("mini-site config helpers", () => {
     expect(isFaqItemFilled({ question: "Hi", answer: "" })).toBe(true);
     expect(getVisibleFaqItems(null)).toEqual([]);
   });
+
+  it("normalizeMiniSiteConfig preserves explicitly empty FAQ rows", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
+      socialLinks: {},
+      copy: {
+        ...DEFAULT_MINI_SITE_CONFIG.copy,
+        faqItems: [
+          { question: "Visible question?", answer: "" },
+          { question: "", answer: "" },
+          { question: " ", answer: " " },
+        ],
+      },
+    });
+
+    expect(config.copy.faqItems[0]?.question).toBe("Visible question?");
+    expect(config.copy.faqItems[1]?.question).toBe("");
+    expect(config.copy.faqItems[1]?.answer).toBe("");
+    expect(config.copy.faqItems[2]?.question).toBe("");
+    expect(config.copy.faqItems[2]?.answer).toBe("");
+  });
 });
