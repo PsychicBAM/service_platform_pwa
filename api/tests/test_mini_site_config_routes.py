@@ -366,3 +366,58 @@ async def test_save_mini_site_config_persists_for_subsequent_get(
         section["type"] == "hero" and section["title"] == "Persisted hero title"
         for section in stored["sections"]
     )
+
+
+@pytest.mark.asyncio
+async def test_save_mini_site_config_preserves_explicitly_empty_faq_items(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx = await register_and_get_context(async_client, "mini-site-empty-faq")
+    await activate_business(db_session, ctx["slug"])
+
+    empty_faq_items = [
+        {"question": "", "answer": ""},
+        {"question": " ", "answer": " "},
+        {"question": "", "answer": ""},
+    ]
+    save_payload = {
+        "version": 1,
+        "theme": {"template": "clean"},
+        "sections": [
+            {"id": "hero", "type": "hero", "enabled": True, "order": 0},
+            {"id": "about", "type": "about", "enabled": False, "order": 1},
+            {"id": "services", "type": "services", "enabled": False, "order": 2},
+            {"id": "faq", "type": "faq", "enabled": True, "order": 3},
+            {"id": "contact", "type": "contact", "enabled": False, "order": 4},
+            {"id": "booking_cta", "type": "booking_cta", "enabled": False, "order": 5},
+        ],
+        "social_links": {},
+        "copy": {
+            "faq_section_title": "Common questions",
+            "faq_items": empty_faq_items,
+        },
+    }
+
+    put_response = await async_client.put(
+        _mini_site_config_path(ctx["business_id"]),
+        headers=ctx["headers"],
+        json=save_payload,
+    )
+    assert put_response.status_code == 200
+    saved_faq_items = put_response.json()["copy"]["faq_items"]
+    assert saved_faq_items[0]["question"] == ""
+    assert saved_faq_items[0]["answer"] == ""
+    assert saved_faq_items[1]["question"] == ""
+    assert saved_faq_items[1]["answer"] == ""
+
+    get_response = await async_client.get(
+        _mini_site_config_path(ctx["business_id"]),
+        headers=ctx["headers"],
+    )
+    assert get_response.status_code == 200
+    reloaded_faq_items = get_response.json()["copy"]["faq_items"]
+    assert reloaded_faq_items[0]["question"] == ""
+    assert reloaded_faq_items[0]["answer"] == ""
+    assert reloaded_faq_items[1]["question"] == ""
+    assert reloaded_faq_items[1]["answer"] == ""

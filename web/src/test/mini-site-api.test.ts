@@ -7,7 +7,7 @@ import {
   updateMiniSiteConfig,
   type MiniSiteConfigWire,
 } from "@/api/miniSiteApi";
-import { DEFAULT_MINI_SITE_CONFIG } from "@/lib/miniSiteConfig";
+import { DEFAULT_MINI_SITE_CONFIG, normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
 import { apiClient } from "@/api/client";
 
 vi.mock("@/api/client", async (importOriginal) => {
@@ -110,6 +110,38 @@ describe("miniSiteApi", () => {
     expect(wire.copy?.faq_section_title).toBe("Frequently asked questions");
     expect(wire.copy?.faq_items).toHaveLength(3);
     expect(wire.copy?.faq_items?.[0]?.question).toBe("How do I book?");
+  });
+
+  it("mapMiniSiteConfig round-trip preserves explicitly empty FAQ rows", () => {
+    const clearedConfig = {
+      ...DEFAULT_MINI_SITE_CONFIG,
+      copy: {
+        ...DEFAULT_MINI_SITE_CONFIG.copy,
+        faqItems: [
+          { question: "", answer: "" },
+          { question: " ", answer: " " },
+          { question: "", answer: "" },
+        ],
+      },
+    };
+
+    const wire = mapMiniSiteConfigToWire(clearedConfig);
+    expect(wire.copy?.faq_items?.[0]?.question).toBe("");
+    expect(wire.copy?.faq_items?.[1]?.answer).toBe("");
+
+    const reloaded = mapMiniSiteConfigFromWire({
+      ...wireConfig,
+      copy: {
+        ...wireConfig.copy,
+        faq_section_title: "Common questions",
+        faq_items: wire.copy?.faq_items ?? [],
+      },
+    });
+
+    expect(reloaded.copy.faqItems[0]?.question).toBe("");
+    expect(reloaded.copy.faqItems[0]?.answer).toBe("");
+    expect(reloaded.copy.faqItems[1]?.question).toBe("");
+    expect(reloaded.copy.faqItems[1]?.answer).toBe("");
   });
 
   it("getMiniSiteConfig calls the correct endpoint", async () => {

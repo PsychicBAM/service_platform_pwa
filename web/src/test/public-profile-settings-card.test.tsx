@@ -113,6 +113,36 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("mini-site-website")).toHaveValue("https://studio.example");
   });
 
+  it("save sends cleared FAQ fields without restoring defaults", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-toggle-faq");
+    await user.click(screen.getByTestId("mini-site-toggle-faq"));
+
+    for (const index of [0, 1, 2] as const) {
+      await user.clear(screen.getByTestId(`mini-site-faq-item-${index}-question`));
+      await user.clear(screen.getByTestId(`mini-site-faq-item-${index}-answer`));
+    }
+
+    await user.click(screen.getByTestId("public-profile-save-button"));
+
+    await waitFor(() => {
+      expect(miniSiteApi.updateMiniSiteConfig).toHaveBeenCalledWith(
+        BUSINESS_ID,
+        expect.objectContaining({
+          copy: expect.objectContaining({
+            faqItems: [
+              { question: "", answer: "" },
+              { question: "", answer: "" },
+              { question: "", answer: "" },
+            ],
+          }),
+        }),
+      );
+    });
+  });
+
   it("save calls updateMiniSiteConfig with updated config", async () => {
     const user = userEvent.setup();
     renderPublicProfileCard("pro");

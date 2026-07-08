@@ -269,3 +269,47 @@ def test_malformed_items_do_not_crash_normalization() -> None:
     assert hero.items is not None
     assert len(hero.items) == 1
     assert hero.items[0].label == "bValid/b"
+
+
+def test_normalize_preserves_explicitly_empty_faq_items() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+            "copy": {
+                **base.copy.model_dump(),
+                "faq_items": [
+                    {"question": "Visible question?", "answer": ""},
+                    {"question": "", "answer": ""},
+                    {"question": " ", "answer": " "},
+                ],
+            },
+        },
+    )
+
+    assert config.copy.faq_items[0].question == "Visible question?"
+    assert config.copy.faq_items[0].answer == ""
+    assert config.copy.faq_items[1].question == ""
+    assert config.copy.faq_items[1].answer == ""
+    assert config.copy.faq_items[2].question == ""
+    assert config.copy.faq_items[2].answer == ""
+
+
+def test_normalize_uses_default_faq_items_for_legacy_copy_without_faq_items() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+            "copy": {
+                "hero_badge_text": "Welcome",
+            },
+        },
+    )
+
+    assert config.copy.faq_items[0].question == "How do I book?"

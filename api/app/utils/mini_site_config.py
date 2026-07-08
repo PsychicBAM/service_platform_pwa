@@ -255,12 +255,27 @@ def _normalize_benefits_items(value: object, fallback: list[str]) -> list[str]:
     return items
 
 
-def _normalize_faq_item(value: object, fallback: MiniSiteFaqItem) -> MiniSiteFaqItem:
+def _normalize_faq_field(value: object) -> str:
+    if not isinstance(value, str):
+        return ""
+    return _sanitize_plain_text(value)
+
+
+def _normalize_faq_item(
+    value: object,
+    fallback: MiniSiteFaqItem,
+    apply_defaults_for_missing_entry: bool,
+) -> MiniSiteFaqItem:
     if not isinstance(value, dict):
-        return fallback
+        return (
+            fallback
+            if apply_defaults_for_missing_entry
+            else MiniSiteFaqItem(question="", answer="")
+        )
+
     return MiniSiteFaqItem(
-        question=_sanitize_text(value.get("question")) or fallback.question,
-        answer=_sanitize_text(value.get("answer")) or fallback.answer,
+        question=_normalize_faq_field(value["question"]) if "question" in value else fallback.question,
+        answer=_normalize_faq_field(value["answer"]) if "answer" in value else fallback.answer,
     )
 
 
@@ -269,8 +284,8 @@ def _normalize_faq_items(value: object, fallback: list[MiniSiteFaqItem]) -> list
         return fallback[:3]
     items: list[MiniSiteFaqItem] = []
     for index in range(3):
-        entry = value[index] if index < len(value) else {}
-        items.append(_normalize_faq_item(entry, fallback[index]))
+        entry = value[index] if index < len(value) else None
+        items.append(_normalize_faq_item(entry, fallback[index], False))
     return items
 
 
