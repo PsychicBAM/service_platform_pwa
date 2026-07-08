@@ -450,26 +450,33 @@ export function getMiniSiteTemplatePresentation(
       });
     case "expert":
       return withTemplateDefaults(isDark, {
-        layoutClass: "template-expert mx-auto w-full max-w-3xl",
-        heroClass: isDark
-          ? `rounded-3xl shadow-2xl ${sectionBase} bg-slate-900/75`
-          : `rounded-3xl bg-white shadow-lg ${sectionBase}`,
-        heroLayoutClass: "flex flex-col items-center gap-6 text-center",
-        sectionClass: isDark
-          ? `${sectionBase} rounded-3xl bg-slate-900/55`
-          : `${sectionBase} rounded-3xl bg-white/95`,
-        servicesClass: isDark ? "rounded-3xl" : "rounded-3xl border border-slate-200/80",
-        galleryClass: "rounded-3xl border-dashed",
-        heroTitleClass: "break-words text-3xl font-bold tracking-tight sm:text-4xl md:text-[2.85rem] md:leading-tight",
-        sectionHeadingClass: "break-words text-lg font-semibold sm:text-xl",
+        layoutClass: "template-expert mx-auto w-full max-w-4xl",
+        layoutSpacingClass: "space-y-0",
+        heroClass: "border-0 bg-transparent shadow-none ring-0",
+        heroLayoutClass: "flex flex-col items-center text-center",
+        heroPaddingClass: "",
+        sectionClass: "border-0 bg-transparent shadow-none ring-0",
+        sectionPaddingClass: "",
+        sectionRadiusClass: "rounded-none",
+        servicesClass: "",
+        galleryClass: "border-dashed",
+        heroTitleClass:
+          "break-words text-3xl font-bold tracking-tight sm:text-4xl md:text-[2.85rem] md:leading-[1.08] lg:text-[3.25rem]",
+        sectionHeadingClass: "break-words text-xl font-semibold tracking-tight md:text-2xl",
+        sectionHeadingAccentClass: "hidden",
         showBenefitsStrip: false,
         showTrustStats: true,
-        heroAccentClass: isDark ? "bg-slate-900/40" : "bg-white/80",
-        bookingCtaClass: "rounded-3xl",
-        contactChipClass: isDark ? "border-slate-700 bg-slate-900/40" : "border-slate-200/80 bg-white/90",
-        primaryButtonClass: `inline-flex w-full items-center justify-center px-8 py-4 text-sm font-semibold text-white shadow-xl transition hover:brightness-105 sm:w-auto ${buttonRadius}`,
-        secondaryButtonClass: `inline-flex w-full items-center justify-center border px-8 py-4 text-sm font-semibold shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
-          isDark ? "bg-slate-900/40 hover:bg-slate-900/60" : "bg-white/90 hover:bg-white"
+        heroAccentClass: "",
+        bookingCtaClass: "",
+        contactChipClass: "",
+        trustStatClass: "",
+        faqItemClass: "",
+        heroBadgeClass:
+          "inline-flex rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em]",
+        heroTopBarClass: "hidden",
+        primaryButtonClass: `inline-flex w-full items-center justify-center px-8 py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-105 sm:w-auto ${buttonRadius}`,
+        secondaryButtonClass: `inline-flex w-full items-center justify-center border px-8 py-3.5 text-sm font-semibold shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
+          isDark ? "border-slate-600/70 bg-transparent hover:bg-slate-800/30" : "border-slate-300/80 bg-white/50 hover:bg-white"
         }`,
       });
     case "clinic":

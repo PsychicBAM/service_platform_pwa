@@ -1,4 +1,12 @@
 import {
+  ExpertAboutSection,
+  ExpertContactSection,
+  ExpertFaqSection,
+  ExpertHeroSection,
+  ExpertServicesSection,
+  ExpertTrustSection,
+} from "@/components/public/ExpertProMiniSiteSections";
+import {
   ServiceAboutSection,
   ServiceContactSection,
   ServiceFaqSection,
@@ -113,6 +121,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
 
   const isCleanTemplate = theme.template === "clean";
   const isServiceTemplate = theme.template === "service";
+  const isExpertTemplate = theme.template === "expert";
   const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
   const cleanTheme = {
     primaryColor: theme.primaryColor,
@@ -120,6 +129,12 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     backgroundStyle: theme.backgroundStyle,
   };
   const serviceTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+    buttonStyle: theme.buttonStyle,
+  };
+  const expertTheme = {
     primaryColor: theme.primaryColor,
     accentColor: theme.accentColor,
     backgroundStyle: theme.backgroundStyle,
@@ -141,6 +156,11 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
   const serviceBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
+  const showExpertHeroCredibility =
+    isExpertTemplate &&
+    presentation.showTrustStats &&
+    !trustSectionEnabled &&
+    copy.trustCards.length > 0;
 
   const orderedSectionTypes = enabledSections
     .filter((section) =>
@@ -307,6 +327,103 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     }
   }
 
+  function renderExpertPreviewSection(type: MiniSiteSectionType): JSX.Element | null {
+    const shell = {
+      variant: "preview" as const,
+      testIdPrefix: "mini-site-preview",
+      previewButtons: true,
+    };
+
+    switch (type) {
+      case "hero":
+        return (
+          <ExpertHeroSection
+            {...shell}
+            business={previewBusiness}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            copy={copy}
+            theme={expertTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref="#"
+            secondaryOrderHref="#"
+            showBookingCta={hasMeaningfulText(primaryCtaLabel)}
+            showRequestCta={hasMeaningfulText(secondaryCtaLabel)}
+            operatingMode="both"
+            showHeroCredibility={showExpertHeroCredibility}
+          />
+        );
+      case "about":
+        return (
+          <ExpertAboutSection
+            {...shell}
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={null}
+            theme={expertTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <ExpertServicesSection
+            {...shell}
+            title={servicesTitle}
+            badgeText={servicesBadge}
+            services={undefined}
+            publicSlug=""
+            theme={expertTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust":
+        return (
+          <ExpertTrustSection
+            {...shell}
+            copy={copy}
+            theme={expertTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            showBenefitsStrip={presentation.showBenefitsStrip}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <ExpertFaqSection
+            {...shell}
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        if (visibleSocialLinks.length === 0) {
+          return null;
+        }
+        return (
+          <ExpertContactSection
+            {...shell}
+            title={contactTitle}
+            contactAddress=""
+            contactPhone=""
+            socialLinks={socialLinks}
+            theme={expertTheme}
+            isDark={isDark}
+          />
+        );
+      default:
+        return null;
+    }
+  }
+
   function renderServicePreviewSection(type: MiniSiteSectionType): JSX.Element | null {
     const shell = {
       variant: "preview" as const,
@@ -413,6 +530,9 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     }
     if (isServiceTemplate) {
       return renderServicePreviewSection(type);
+    }
+    if (isExpertTemplate) {
+      return renderExpertPreviewSection(type);
     }
 
     switch (type) {
