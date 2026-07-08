@@ -264,8 +264,10 @@ export function ProMiniSiteLayout({
   const primaryCtaLabel = copy.primaryCtaLabel.trim();
   const secondaryCtaLabel = copy.secondaryCtaLabel.trim();
   const hasCenteredHeroLayout = theme.template === "expert";
-  const contactAddress = hasMeaningfulText(business.address) ? business.address.trim() : "";
-  const contactPhone = hasMeaningfulText(business.contact_phone) ? business.contact_phone.trim() : "";
+  const rawAddress = business.address ?? "";
+  const rawPhone = business.contact_phone ?? "";
+  const contactAddress = hasMeaningfulText(rawAddress) ? rawAddress.trim() : "";
+  const contactPhone = hasMeaningfulText(rawPhone) ? rawPhone.trim() : "";
   const visibleSocialLinks = getVisibleSocialLinks(socialLinks);
   const hasVisibleContactContent =
     hasMeaningfulText(contactAddress) || hasMeaningfulText(contactPhone) || visibleSocialLinks.length > 0;
