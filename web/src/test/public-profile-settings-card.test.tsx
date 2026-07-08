@@ -394,16 +394,16 @@ describe("PublicProfileSettingsCard", () => {
     await screen.findByTestId("mini-site-live-preview");
     await user.click(screen.getByTestId("mini-site-toggle-faq"));
 
-    const contactInitial = screen.getByTestId("mini-site-preview-contact");
+    const trustInitial = screen.getByTestId("mini-site-preview-trust");
     const faqInitial = screen.getByTestId("mini-site-preview-faq");
-    expect(faqInitial.compareDocumentPosition(contactInitial) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(trustInitial.compareDocumentPosition(faqInitial) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     await user.click(screen.getByTestId("mini-site-move-up-faq"));
 
     await waitFor(() => {
-      const contactAfter = screen.getByTestId("mini-site-preview-contact");
+      const trustAfter = screen.getByTestId("mini-site-preview-trust");
       const faqAfter = screen.getByTestId("mini-site-preview-faq");
-      expect(contactAfter.compareDocumentPosition(faqAfter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(faqAfter.compareDocumentPosition(trustAfter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
   });
 });
