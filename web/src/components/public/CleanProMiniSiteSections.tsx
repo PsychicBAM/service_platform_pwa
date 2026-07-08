@@ -554,7 +554,6 @@ export function CleanTrustSection({
 export type CleanFaqSectionProps = CleanSectionShell & {
   title: string;
   faqItems: MiniSiteCopy["faqItems"];
-  theme: CleanTheme;
   isDark: boolean;
 };
 
@@ -563,7 +562,6 @@ export function CleanFaqSection({
   testIdPrefix = "pro-mini-site",
   title,
   faqItems,
-  theme,
   isDark,
 }: CleanFaqSectionProps) {
   const muted = cleanMutedText(isDark);

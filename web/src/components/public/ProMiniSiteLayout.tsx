@@ -387,7 +387,6 @@ export function ProMiniSiteLayout({
           <CleanFaqSection
             title={copy.faqSectionTitle}
             faqItems={faqItems}
-            theme={cleanTheme}
             isDark={isDark}
           />
         );

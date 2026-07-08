@@ -2,7 +2,6 @@ import {
   CleanAboutSection,
   CleanContactSection,
   CleanFaqSection,
-  CleanGallerySection,
   CleanHeroSection,
   CleanServicesSection,
   CleanTrustSection,
@@ -264,7 +263,6 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             {...shell}
             title={copy.faqSectionTitle}
             faqItems={faqItems}
-            theme={cleanTheme}
             isDark={isDark}
           />
         );
