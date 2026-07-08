@@ -182,6 +182,7 @@ describe("ProMiniSiteLayout", () => {
     expect(expertLayout).toHaveClass("template-expert");
     expect(screen.getByText("Expert profile")).toBeInTheDocument();
     expect(screen.getByTestId("pro-mini-site-hero-content")).toHaveClass("text-center");
+    expect(screen.getByTestId("pro-mini-site-hero-cta-group")).toHaveClass("sm:justify-center");
   });
 
   it("renders editable copy hero badge text", () => {
@@ -491,6 +492,27 @@ describe("ProMiniSiteLayout", () => {
 
     expect(screen.queryByTestId("pro-mini-site-social-links")).not.toBeInTheDocument();
     expect(screen.getByTestId("pro-mini-site-contact")).toBeInTheDocument();
+  });
+
+  it("does not render contact section when all contact and social values are empty", () => {
+    const config = normalizeMiniSiteConfig({
+      ...createSavedMiniSiteConfig(),
+      socialLinks: {
+        website: " ",
+        instagram: "",
+      },
+    });
+
+    renderProMiniSiteLayout({
+      config,
+      business: {
+        ...mockPublicBusiness,
+        address: " ",
+        contact_phone: " ",
+      },
+    });
+
+    expect(screen.queryByTestId("pro-mini-site-contact")).not.toBeInTheDocument();
   });
 
   it("does not use dangerouslySetInnerHTML", () => {

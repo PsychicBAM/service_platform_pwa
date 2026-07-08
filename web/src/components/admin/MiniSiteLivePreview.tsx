@@ -387,6 +387,10 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
         );
       }
       case "contact": {
+        if (visibleSocialLinks.length === 0) {
+          return null;
+        }
+
         const website = visibleSocialLinks.find((entry) => entry.key === "website");
         const instagram = visibleSocialLinks.find((entry) => entry.key === "instagram");
 
@@ -401,20 +405,18 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             >
               {contactTitle}
             </h4>
-            {visibleSocialLinks.length > 0 ? (
-              <div className={`mt-1.5 space-y-1 text-xs whitespace-normal ${mutedText}`}>
-                {website ? (
-                  <p className="break-words" data-testid="mini-site-preview-website">
-                    {website.value}
-                  </p>
-                ) : null}
-                {instagram ? (
-                  <p className="break-words" data-testid="mini-site-preview-instagram">
-                    {instagram.value}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
+            <div className={`mt-1.5 space-y-1 text-xs whitespace-normal ${mutedText}`}>
+              {website ? (
+                <p className="break-words" data-testid="mini-site-preview-website">
+                  {website.value}
+                </p>
+              ) : null}
+              {instagram ? (
+                <p className="break-words" data-testid="mini-site-preview-instagram">
+                  {instagram.value}
+                </p>
+              ) : null}
+            </div>
           </section>
         );
       }

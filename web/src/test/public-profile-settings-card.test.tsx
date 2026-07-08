@@ -216,7 +216,6 @@ describe("PublicProfileSettingsCard", () => {
     // Initial state: core sections visible
     expect(screen.getByTestId("mini-site-preview-about")).toBeInTheDocument();
     expect(screen.getByTestId("mini-site-preview-services")).toBeInTheDocument();
-    expect(screen.getByTestId("mini-site-preview-contact")).toBeInTheDocument();
     expect(screen.getByTestId("mini-site-preview-trust-stats")).toBeInTheDocument();
 
     // Hide About
@@ -237,6 +236,12 @@ describe("PublicProfileSettingsCard", () => {
       expect(screen.queryByTestId("mini-site-preview-trust-stats")).not.toBeInTheDocument();
       // In templates where the strip exists, it should also be hidden.
       expect(screen.queryByTestId("mini-site-preview-benefits-strip")).not.toBeInTheDocument();
+    });
+
+    // Add social content so contact section can render.
+    await user.type(screen.getByTestId("mini-site-website"), "https://example.com");
+    await waitFor(() => {
+      expect(screen.getByTestId("mini-site-preview-contact")).toBeInTheDocument();
     });
 
     // Hide Contact

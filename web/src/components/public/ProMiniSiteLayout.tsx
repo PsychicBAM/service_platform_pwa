@@ -263,6 +263,12 @@ export function ProMiniSiteLayout({
     copy.contactSectionTitle || getSectionField(siteConfig, "contact", "title") || "Contact & details";
   const primaryCtaLabel = copy.primaryCtaLabel.trim();
   const secondaryCtaLabel = copy.secondaryCtaLabel.trim();
+  const hasCenteredHeroLayout = theme.template === "expert";
+  const contactAddress = hasMeaningfulText(business.address) ? business.address.trim() : "";
+  const contactPhone = hasMeaningfulText(business.contact_phone) ? business.contact_phone.trim() : "";
+  const visibleSocialLinks = getVisibleSocialLinks(socialLinks);
+  const hasVisibleContactContent =
+    hasMeaningfulText(contactAddress) || hasMeaningfulText(contactPhone) || visibleSocialLinks.length > 0;
 
   const mutedText = mutedTextClass(theme.backgroundStyle);
   const sectionBorder = borderClass(theme.backgroundStyle);
@@ -368,7 +374,10 @@ export function ProMiniSiteLayout({
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <div
+        className={`mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap ${hasCenteredHeroLayout ? "sm:justify-center" : ""}`}
+        data-testid="pro-mini-site-hero-cta-group"
+      >
         {ctas.showBookingCta && hasMeaningfulText(primaryCtaLabel) ? (
           <Link
             to={primaryBookingHref}
@@ -552,49 +561,55 @@ export function ProMiniSiteLayout({
     </section>
   );
 
-  const renderContact = () => (
-    <section
-      className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
-      aria-labelledby="pro-mini-site-contact-heading"
-      data-testid="pro-mini-site-contact"
-    >
-      <SectionHeading
-        id="pro-mini-site-contact-heading"
-        title={contactTitle}
-        accentColor={theme.accentColor}
-        className={presentation.sectionHeadingClass}
-        isDark={isDark}
-        template={theme.template}
-      />
-      <dl className={`grid gap-3 sm:grid-cols-2 ${mutedText}`}>
-        {business.address ? (
-          <div
-            className={`rounded-xl border px-4 py-3 ${presentation.contactChipClass}`}
-          >
-            <dt className={`text-xs font-semibold uppercase tracking-wide ${labelText}`}>Address</dt>
-            <dd className="mt-1 text-sm">{business.address}</dd>
-          </div>
-        ) : null}
-        {business.contact_phone ? (
-          <div
-            className={`rounded-xl border px-4 py-3 ${presentation.contactChipClass}`}
-          >
-            <dt className={`text-xs font-semibold uppercase tracking-wide ${labelText}`}>Phone</dt>
-            <dd className="mt-1 text-sm">
-              <a
-                href={`tel:${business.contact_phone}`}
-                className="font-medium hover:underline"
-                style={{ color: theme.primaryColor }}
-              >
-                {business.contact_phone}
-              </a>
-            </dd>
-          </div>
-        ) : null}
-      </dl>
-      <SocialLinksList links={socialLinks} mutedText={mutedText} labelText={labelText} isDark={isDark} />
-    </section>
-  );
+  const renderContact = () => {
+    if (!hasVisibleContactContent) {
+      return null;
+    }
+
+    return (
+      <section
+        className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
+        aria-labelledby="pro-mini-site-contact-heading"
+        data-testid="pro-mini-site-contact"
+      >
+        <SectionHeading
+          id="pro-mini-site-contact-heading"
+          title={contactTitle}
+          accentColor={theme.accentColor}
+          className={presentation.sectionHeadingClass}
+          isDark={isDark}
+          template={theme.template}
+        />
+        <dl className={`grid gap-3 sm:grid-cols-2 ${mutedText}`}>
+          {hasMeaningfulText(contactAddress) ? (
+            <div
+              className={`rounded-xl border px-4 py-3 ${presentation.contactChipClass}`}
+            >
+              <dt className={`text-xs font-semibold uppercase tracking-wide ${labelText}`}>Address</dt>
+              <dd className="mt-1 text-sm">{contactAddress}</dd>
+            </div>
+          ) : null}
+          {hasMeaningfulText(contactPhone) ? (
+            <div
+              className={`rounded-xl border px-4 py-3 ${presentation.contactChipClass}`}
+            >
+              <dt className={`text-xs font-semibold uppercase tracking-wide ${labelText}`}>Phone</dt>
+              <dd className="mt-1 text-sm">
+                <a
+                  href={`tel:${contactPhone}`}
+                  className="font-medium hover:underline"
+                  style={{ color: theme.primaryColor }}
+                >
+                  {contactPhone}
+                </a>
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+        <SocialLinksList links={socialLinks} mutedText={mutedText} labelText={labelText} isDark={isDark} />
+      </section>
+    );
+  };
 
   const renderBookingCta = () => {
     if (!ctas.showBookingCta || !hasMeaningfulText(primaryCtaLabel)) {
