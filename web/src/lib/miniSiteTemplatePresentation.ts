@@ -422,7 +422,7 @@ export function getMiniSiteTemplatePresentation(
     case "service":
       return withTemplateDefaults(isDark, {
         layoutClass: "template-service mx-auto w-full max-w-5xl",
-        layoutSpacingClass: "space-y-5 md:space-y-7",
+        layoutSpacingClass: "space-y-0",
         heroClass: isDark ? "bg-slate-900/70" : "bg-white",
         heroLayoutClass: "flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between",
         sectionClass: "ring-0",

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import type { CSSProperties } from "react";
 import { PriceLabel } from "@/components/PriceLabel";
 import { TypeBadge } from "@/components/TypeBadge";
 import {
@@ -49,11 +50,11 @@ function buttonRadiusClass(buttonStyle: MiniSiteButtonStyle): string {
 function heroIntro(mode: OperatingMode): string {
   switch (mode) {
     case "booking_only":
-      return "Book your service online — fast scheduling, clear pricing, reliable results.";
+      return "Professional service you can book online — fast scheduling, clear pricing, reliable results.";
     case "orders_only":
-      return "Request a quote or service online — tell us what you need and we will take it from there.";
+      return "Tell us what you need and get a clear quote — local professionals ready to help.";
     default:
-      return "Book appointments or request service online — professional help when you need it.";
+      return "Book service appointments or request a quote online — trusted local help when you need it.";
   }
 }
 
@@ -72,8 +73,8 @@ function ServiceOfferingCard({
 }) {
   const duration = service.type === "booking" ? formatDuration(service.duration_minutes) : null;
   const descriptionPreview = service.description
-    ? service.description.length > (variant === "preview" ? 70 : 110)
-      ? `${service.description.slice(0, variant === "preview" ? 70 : 110).trim()}…`
+    ? service.description.length > (variant === "preview" ? 70 : 120)
+      ? `${service.description.slice(0, variant === "preview" ? 70 : 120).trim()}…`
       : service.description
     : null;
   const muted = serviceMutedText(isDark);
@@ -82,53 +83,101 @@ function ServiceOfferingCard({
 
   return (
     <article
-      className={`flex h-full flex-col border-2 shadow-md ${
-        isPreview ? "rounded-lg p-3" : "rounded-2xl p-4 md:p-5"
-      } ${isDark ? "border-slate-700/80 bg-slate-900/55" : "bg-white"}`}
-      style={{ borderColor: theme.primaryColor }}
+      className={`flex h-full flex-col overflow-hidden shadow-lg ${
+        isPreview ? "rounded-xl" : "rounded-2xl"
+      } ${isDark ? "bg-slate-900/80 ring-1 ring-slate-700/80" : "bg-white ring-1 ring-slate-200/80"}`}
       data-testid="service-card"
     >
-      <div className="flex items-start gap-3">
-        <span
-          className={`flex shrink-0 items-center justify-center ${
-            isPreview ? "h-8 w-8 rounded-lg text-base" : "h-11 w-11 rounded-xl text-xl"
-          } ${isDark ? "bg-slate-800" : "bg-slate-50"}`}
-          aria-hidden
-        >
-          {serviceTypeIcon(service.type)}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3
-              className={`whitespace-normal font-bold tracking-tight ${
-                isPreview ? "text-xs" : "text-base md:text-lg"
-              } ${isDark ? "text-slate-100" : "text-slate-900"}`}
-            >
-              {service.name}
-            </h3>
-            {!isPreview ? <TypeBadge type={service.type} /> : null}
+      <div className="h-1.5 w-full shrink-0" style={{ backgroundColor: theme.primaryColor }} aria-hidden />
+      <div className={isPreview ? "flex flex-1 flex-col p-3" : "flex flex-1 flex-col p-5 md:p-6"}>
+        <div className="flex items-start gap-3 md:gap-4">
+          <div
+            className={`flex shrink-0 items-center justify-center ${
+              isPreview ? "h-10 w-10 rounded-lg text-lg" : "h-14 w-14 rounded-2xl text-2xl"
+            }`}
+            style={{
+              background: `linear-gradient(145deg, ${theme.primaryColor}22, ${theme.accentColor}18)`,
+            }}
+            aria-hidden
+          >
+            {serviceTypeIcon(service.type)}
           </div>
-          {descriptionPreview ? (
-            <p className={`mt-1 whitespace-normal leading-snug ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}>
-              {descriptionPreview}
-            </p>
-          ) : null}
-          <div className={`mt-2 flex flex-wrap items-center gap-2 ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>
-            <PriceLabel service={service} />
-            {duration ? <span>{duration}</span> : null}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3
+                className={`whitespace-normal font-extrabold tracking-tight ${
+                  isPreview ? "text-xs" : "text-lg md:text-xl"
+                } ${isDark ? "text-slate-100" : "text-slate-900"}`}
+              >
+                {service.name}
+              </h3>
+              {!isPreview ? <TypeBadge type={service.type} /> : null}
+            </div>
+            {descriptionPreview ? (
+              <p className={`mt-1.5 whitespace-normal leading-snug ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}>
+                {descriptionPreview}
+              </p>
+            ) : null}
           </div>
         </div>
+
+        <div
+          className={`mt-4 flex flex-wrap items-center justify-between gap-2 ${
+            isPreview ? "rounded-md px-2 py-1.5 text-[10px]" : "rounded-xl px-3 py-2.5 text-sm"
+          } ${isDark ? "bg-slate-800/80" : "bg-slate-50"}`}
+        >
+          <PriceLabel service={service} />
+          {duration ? <span className={muted}>{duration}</span> : null}
+          <span
+            className={`font-semibold uppercase tracking-wide ${isPreview ? "text-[9px]" : "text-xs"}`}
+            style={{ color: theme.accentColor }}
+          >
+            {service.type === "booking" ? "Book now" : "Request quote"}
+          </span>
+        </div>
+
+        <Link
+          to={`/b/${slug}/services/${service.id}`}
+          className={`mt-4 block w-full px-4 py-3 text-center font-bold text-white shadow-md transition hover:brightness-105 ${radius} ${
+            isPreview ? "py-2 text-[11px]" : "text-sm md:text-base"
+          }`}
+          style={{ backgroundColor: theme.primaryColor }}
+        >
+          {serviceActionLabel(service.type)}
+        </Link>
       </div>
-      <Link
-        to={`/b/${slug}/services/${service.id}`}
-        className={`mt-4 block w-full px-4 py-2.5 text-center font-bold text-white shadow-md transition hover:brightness-105 ${radius} ${
-          isPreview ? "text-[11px]" : "text-sm"
-        }`}
-        style={{ backgroundColor: theme.primaryColor }}
-      >
-        {serviceActionLabel(service.type)}
-      </Link>
     </article>
+  );
+}
+
+function renderCtaButton({
+  previewButtons,
+  testIdPrefix,
+  label,
+  href,
+  className,
+  style,
+  testId,
+}: {
+  previewButtons: boolean;
+  testIdPrefix: string;
+  label: string;
+  href: string;
+  className: string;
+  style: CSSProperties;
+  testId: string;
+}) {
+  if (previewButtons) {
+    return (
+      <button type="button" disabled className={className} data-testid={testId} style={style}>
+        {label}
+      </button>
+    );
+  }
+  return (
+    <Link to={href} className={className} data-testid={testId} style={style}>
+      {label}
+    </Link>
   );
 }
 
@@ -147,8 +196,10 @@ export type ServiceHeroSectionProps = ServiceSectionShell & {
   secondaryOrderHref: string;
   showBookingCta: boolean;
   showRequestCta: boolean;
-  showHeroTrustRow: boolean;
   operatingMode: OperatingMode;
+  serviceCount: number | null;
+  benefitHighlights: string[];
+  showHeroTrustPills: boolean;
 };
 
 export function ServiceHeroSection({
@@ -169,49 +220,44 @@ export function ServiceHeroSection({
   secondaryOrderHref,
   showBookingCta,
   showRequestCta,
-  showHeroTrustRow,
   operatingMode,
+  serviceCount,
+  benefitHighlights,
+  showHeroTrustPills,
 }: ServiceHeroSectionProps) {
   const isDark = theme.backgroundStyle === "dark";
   const muted = serviceMutedText(isDark);
   const isPreview = variant === "preview";
+  const panelSurface = isDark ? "bg-slate-950/85 text-slate-100" : "bg-slate-900 text-white";
 
   return (
     <header
-      className={`relative overflow-hidden border-2 shadow-lg ${
-        isPreview ? "rounded-lg p-3" : "rounded-2xl p-6 md:p-8 lg:p-10"
-      } ${isDark ? "border-slate-700/80 bg-slate-900/70" : "bg-white"}`}
-      style={{ borderLeftColor: theme.primaryColor, borderLeftWidth: isPreview ? 6 : 8 }}
+      className={`relative overflow-hidden ${isPreview ? "rounded-xl" : "rounded-2xl md:rounded-3xl"}`}
       data-testid={`${testIdPrefix}-hero`}
+      style={{
+        background: isDark
+          ? `linear-gradient(135deg, ${theme.primaryColor}28 0%, rgba(15,23,42,0.95) 45%, ${theme.accentColor}18 100%)`
+          : `linear-gradient(135deg, ${theme.primaryColor}14 0%, #ffffff 42%, ${theme.accentColor}10 100%)`,
+      }}
     >
       <div
-        className="pointer-events-none absolute inset-0 -z-10 opacity-90"
-        style={{
-          background: isDark
-            ? `linear-gradient(135deg, ${theme.primaryColor}22 0%, transparent 55%)`
-            : `linear-gradient(135deg, ${theme.primaryColor}12 0%, ${theme.accentColor}08 100%)`,
-        }}
-        aria-hidden
-      />
-
-      <div
-        className={`${isPreview ? "flex flex-col gap-2" : "flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-10"}`}
+        className={`grid ${isPreview ? "gap-3 p-3" : "gap-6 p-6 md:grid-cols-[1.15fr_0.85fr] md:gap-8 md:p-8 lg:p-10"}`}
         data-testid={`${testIdPrefix}-hero-content`}
       >
-        <div className={`min-w-0 flex-1 ${isPreview ? "space-y-1.5" : "space-y-3 md:space-y-4"}`}>
-          <div className="flex items-center gap-2">
+        <div className={`min-w-0 ${isPreview ? "space-y-1.5" : "space-y-4 md:space-y-5"}`}>
+          <div className="flex flex-wrap items-center gap-2">
             {business.logo_url ? (
               <img
                 src={business.logo_url}
                 alt=""
-                className={`shrink-0 object-cover ${isPreview ? "h-9 w-9 rounded-lg" : "h-14 w-14 rounded-xl shadow-sm"}`}
+                className={`shrink-0 object-cover ${isPreview ? "h-9 w-9 rounded-lg" : "h-12 w-12 rounded-xl shadow-sm"}`}
               />
             ) : (
               <div
                 className={`flex shrink-0 items-center justify-center font-bold ${
-                  isPreview ? "h-9 w-9 rounded-lg text-sm" : "h-14 w-14 rounded-xl text-xl"
+                  isPreview ? "h-9 w-9 rounded-lg text-sm" : "h-12 w-12 rounded-xl text-lg"
                 }`}
-                style={{ backgroundColor: `${theme.primaryColor}20`, color: theme.primaryColor }}
+                style={{ backgroundColor: `${theme.primaryColor}25`, color: theme.primaryColor }}
                 data-testid={`${testIdPrefix}-logo-placeholder`}
               >
                 {business.name.charAt(0).toUpperCase()}
@@ -221,7 +267,7 @@ export function ServiceHeroSection({
               className={`inline-flex rounded-full px-2.5 py-0.5 font-bold uppercase tracking-wide ${
                 isPreview ? "text-[10px]" : "text-xs"
               }`}
-              style={{ color: theme.primaryColor, backgroundColor: `${theme.primaryColor}15` }}
+              style={{ color: theme.primaryColor, backgroundColor: `${theme.primaryColor}18` }}
               data-testid={`${testIdPrefix}-hero-badge`}
             >
               {heroBadgeText}
@@ -229,7 +275,7 @@ export function ServiceHeroSection({
           </div>
 
           <h1
-            className={`${presentation.heroTitleClass} whitespace-normal`}
+            className={`${presentation.heroTitleClass} whitespace-normal ${isDark ? "text-slate-50" : "text-slate-900"}`}
             data-testid={`${testIdPrefix}-hero-title`}
           >
             {heroTitle}
@@ -250,87 +296,121 @@ export function ServiceHeroSection({
 
           {heroBody ? (
             <p
-              className={`max-w-2xl whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-sm md:text-base"} ${muted}`}
+              className={`max-w-xl whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-sm md:text-base"} ${muted}`}
               data-testid={`${testIdPrefix}-hero-body`}
             >
               {heroBody}
             </p>
           ) : null}
+
+          {benefitHighlights.length > 0 ? (
+            <ul className={`grid ${isPreview ? "gap-1" : "gap-2 sm:grid-cols-2"}`}>
+              {benefitHighlights.map((item) => (
+                <li
+                  key={item}
+                  className={`flex items-start gap-2 whitespace-normal ${isPreview ? "text-[11px]" : "text-sm"} ${
+                    isDark ? "text-slate-200" : "text-slate-700"
+                  }`}
+                >
+                  <span
+                    className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                    style={{ backgroundColor: theme.primaryColor }}
+                    aria-hidden
+                  >
+                    ✓
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {showHeroTrustPills ? (
+            <div
+              className={`flex flex-wrap gap-2 ${isPreview ? "pt-1" : "pt-2"}`}
+              data-testid={`${testIdPrefix}-hero-trust-row`}
+            >
+              {copy.trustCards.map((stat) => (
+                <span
+                  key={stat.subtitle}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold ${
+                    isPreview ? "text-[10px]" : "text-xs"
+                  } ${isDark ? "bg-slate-800/80 text-slate-200" : "bg-white/90 text-slate-800 shadow-sm"}`}
+                >
+                  <span style={{ color: theme.primaryColor }}>{stat.title}</span>
+                  <span className={muted}>{stat.subtitle}</span>
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
 
-        <div
-          className={`flex w-full flex-col ${isPreview ? "gap-1.5" : "gap-3 sm:min-w-[220px] lg:max-w-xs"}`}
+        <aside
+          className={`${panelSurface} ${isPreview ? "rounded-lg p-3 shadow-lg" : "rounded-2xl p-5 shadow-2xl md:p-6"}`}
           data-testid={`${testIdPrefix}-hero-cta-group`}
         >
-          {showBookingCta && hasMeaningfulText(primaryCtaLabel) ? (
-            previewButtons ? (
-              <button
-                type="button"
-                disabled
-                className={presentation.primaryButtonClass}
-                data-testid={`${testIdPrefix}-primary-button`}
-                style={{ backgroundColor: theme.primaryColor }}
-              >
-                {primaryCtaLabel}
-              </button>
-            ) : (
-              <Link
-                to={primaryBookingHref}
-                className={presentation.primaryButtonClass}
-                data-testid={`${testIdPrefix}-book-cta`}
-                style={{ backgroundColor: theme.primaryColor }}
-              >
-                {primaryCtaLabel}
-              </Link>
-            )
-          ) : null}
-          {showRequestCta && hasMeaningfulText(secondaryCtaLabel) ? (
-            previewButtons ? (
-              <button
-                type="button"
-                disabled
-                className={presentation.secondaryButtonClass}
-                data-testid={`${testIdPrefix}-secondary-button`}
-                style={{ borderColor: theme.accentColor, color: theme.accentColor }}
-              >
-                {secondaryCtaLabel}
-              </button>
-            ) : (
-              <Link
-                to={secondaryOrderHref}
-                className={presentation.secondaryButtonClass}
-                data-testid={`${testIdPrefix}-request-cta`}
-                style={{ borderColor: theme.accentColor, color: theme.accentColor }}
-              >
-                {secondaryCtaLabel}
-              </Link>
-            )
-          ) : null}
-        </div>
-      </div>
+          <p className={`font-bold uppercase tracking-wider ${isPreview ? "text-[10px]" : "text-xs"} text-slate-300`}>
+            Get started today
+          </p>
+          <p className={`mt-1 font-extrabold ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}>
+            {serviceCount != null && serviceCount > 0
+              ? `${serviceCount} service${serviceCount === 1 ? "" : "s"} available`
+              : "Book or request service"}
+          </p>
 
-      {showHeroTrustRow ? (
-        <div
-          className={`grid grid-cols-3 gap-2 border-t ${
-            isDark ? "border-slate-700/70" : "border-slate-200/80"
-          } ${isPreview ? "mt-3 pt-3" : "mt-6 pt-5 md:mt-8 md:pt-6"}`}
-          data-testid={`${testIdPrefix}-hero-trust-row`}
-        >
-          {copy.trustCards.map((stat) => (
-            <div key={stat.subtitle} className="min-w-0 text-center">
-              <p
-                className={`whitespace-normal font-bold ${isPreview ? "text-xs" : "text-lg"}`}
-                style={{ color: theme.primaryColor }}
-              >
-                {stat.title}
-              </p>
-              <p className={`mt-0.5 whitespace-normal ${isPreview ? "text-[10px]" : "text-xs"} ${muted}`}>
-                {stat.subtitle}
-              </p>
-            </div>
-          ))}
-        </div>
-      ) : null}
+          <ul className={`mt-3 space-y-2 ${isPreview ? "text-[11px]" : "text-sm"}`}>
+            {showBookingCta && hasMeaningfulText(primaryCtaLabel) ? (
+              <li className="flex items-center gap-2 whitespace-normal text-slate-200">
+                <span className="text-base" aria-hidden>
+                  ⚡
+                </span>
+                <span>{primaryCtaLabel}</span>
+              </li>
+            ) : null}
+            {showRequestCta && hasMeaningfulText(secondaryCtaLabel) ? (
+              <li className="flex items-center gap-2 whitespace-normal text-slate-200">
+                <span className="text-base" aria-hidden>
+                  📋
+                </span>
+                <span>{secondaryCtaLabel}</span>
+              </li>
+            ) : null}
+            {benefitHighlights.slice(0, 2).map((item) => (
+              <li key={`panel-${item}`} className="flex items-center gap-2 whitespace-normal text-slate-300">
+                <span className="font-bold text-emerald-400" aria-hidden>
+                  ✓
+                </span>
+                {item}
+              </li>
+            ))}
+          </ul>
+
+          <div className={`mt-4 flex flex-col ${isPreview ? "gap-1.5" : "gap-3"}`}>
+            {showBookingCta && hasMeaningfulText(primaryCtaLabel)
+              ? renderCtaButton({
+                  previewButtons,
+                  testIdPrefix,
+                  label: primaryCtaLabel,
+                  href: primaryBookingHref,
+                  className: `${presentation.primaryButtonClass} w-full`,
+                  style: { backgroundColor: theme.primaryColor },
+                  testId: previewButtons ? `${testIdPrefix}-primary-button` : `${testIdPrefix}-book-cta`,
+                })
+              : null}
+            {showRequestCta && hasMeaningfulText(secondaryCtaLabel)
+              ? renderCtaButton({
+                  previewButtons,
+                  testIdPrefix,
+                  label: secondaryCtaLabel,
+                  href: secondaryOrderHref,
+                  className: `${presentation.secondaryButtonClass} w-full border-white/30 bg-white/10 text-white hover:bg-white/20`,
+                  style: { borderColor: "rgba(255,255,255,0.35)", color: "#fff" },
+                  testId: previewButtons ? `${testIdPrefix}-secondary-button` : `${testIdPrefix}-request-cta`,
+                })
+              : null}
+          </div>
+        </aside>
+      </div>
     </header>
   );
 }
@@ -358,30 +438,32 @@ export function ServiceAboutSection({
 
   return (
     <section
-      className={`border-2 ${isPreview ? "rounded-lg p-3" : "rounded-2xl p-5 md:p-7"} ${
-        isDark ? "border-slate-700/80 bg-slate-900/55" : "border-slate-200/90 bg-white shadow-sm"
-      }`}
-      style={{ borderLeftColor: theme.primaryColor, borderLeftWidth: 4 }}
+      className={`${isPreview ? "px-1 py-3" : "py-6 md:py-8"}`}
       data-testid={`${testIdPrefix}-about`}
     >
-      <h2
-        className={`whitespace-normal font-bold tracking-tight ${isPreview ? "text-sm" : "text-xl md:text-2xl"} ${
-          isDark ? "text-slate-100" : "text-slate-900"
+      <div
+        className={`${isPreview ? "rounded-lg p-3" : "rounded-2xl p-5 md:p-7"} ${
+          isDark ? "bg-slate-900/50" : "bg-white/80 shadow-sm ring-1 ring-slate-200/70"
         }`}
-        data-testid={`${testIdPrefix}-about-title`}
       >
-        {title}
-      </h2>
-      {content ? (
         <p
-          className={`mt-2 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-sm md:text-base"} ${muted}`}
-          data-testid={`${testIdPrefix}-about-body`}
+          className={`font-bold uppercase tracking-wide ${isPreview ? "text-[10px]" : "text-xs"}`}
+          style={{ color: theme.primaryColor }}
+          data-testid={`${testIdPrefix}-about-title`}
         >
-          {content}
+          {title}
         </p>
-      ) : (
-        <p className={`mt-2 text-sm italic ${muted}`}>About text will appear here.</p>
-      )}
+        {content ? (
+          <p
+            className={`mt-2 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-sm md:text-base lg:text-lg"} ${muted}`}
+            data-testid={`${testIdPrefix}-about-body`}
+          >
+            {content}
+          </p>
+        ) : (
+          <p className={`mt-2 text-sm italic ${muted}`}>About text will appear here.</p>
+        )}
+      </div>
     </section>
   );
 }
@@ -410,87 +492,92 @@ export function ServiceServicesSection({
 
   return (
     <section
-      className={isPreview ? "" : "py-2 md:py-4"}
+      className={`relative ${isPreview ? "py-2" : "py-8 md:py-12"}`}
       aria-labelledby={`${testIdPrefix}-services-heading`}
       data-testid={`${testIdPrefix}-services`}
-      style={isDark ? undefined : { backgroundColor: `${theme.primaryColor}06` }}
     >
       <div
-        className={`${isPreview ? "rounded-lg border-2 p-3" : "rounded-2xl border-2 p-5 md:p-7 lg:p-8"} ${
-          isDark ? "border-slate-700/80 bg-slate-900/60" : "border-slate-200/90 bg-white shadow-lg"
-        }`}
-        style={{ borderColor: theme.primaryColor }}
-      >
-        <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 ${isPreview ? "mb-2" : "md:mb-6"}`}>
-          <div>
-            <p
-              className={`font-bold uppercase tracking-wide ${isPreview ? "text-[10px]" : "text-xs"}`}
-              style={{ color: theme.primaryColor }}
-            >
-              Our services
-            </p>
-            <h2
-              id={`${testIdPrefix}-services-heading`}
-              className={`whitespace-normal font-extrabold tracking-tight ${
-                isPreview ? "text-sm" : "text-2xl md:text-3xl"
-              } ${isDark ? "text-slate-100" : "text-slate-900"}`}
-              data-testid={`${testIdPrefix}-services-title`}
-            >
-              {title}
-            </h2>
-          </div>
+        className={`absolute inset-0 -z-10 ${isPreview ? "rounded-lg" : "rounded-3xl"}`}
+        style={{
+          background: isDark
+            ? `linear-gradient(180deg, ${theme.primaryColor}18 0%, transparent 100%)`
+            : `linear-gradient(180deg, ${theme.primaryColor}10 0%, ${theme.accentColor}06 100%)`,
+        }}
+        aria-hidden
+      />
+
+      <div className={`${isPreview ? "space-y-2" : "mb-6 space-y-2 md:mb-8"}`}>
+        <p
+          className={`font-bold uppercase tracking-wider ${isPreview ? "text-[10px]" : "text-xs"}`}
+          style={{ color: theme.primaryColor }}
+        >
+          Service offers
+        </p>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <h2
+            id={`${testIdPrefix}-services-heading`}
+            className={`whitespace-normal font-black tracking-tight ${
+              isPreview ? "text-sm" : "text-2xl md:text-4xl"
+            } ${isDark ? "text-slate-100" : "text-slate-900"}`}
+            data-testid={`${testIdPrefix}-services-title`}
+          >
+            {title}
+          </h2>
           {badgeText ? (
             <span
               className={`rounded-full px-3 py-1 font-bold ${isPreview ? "text-[10px]" : "text-xs"}`}
-              style={{ color: theme.primaryColor, backgroundColor: `${theme.primaryColor}18` }}
+              style={{ color: theme.primaryColor, backgroundColor: `${theme.primaryColor}20` }}
               data-testid={`${testIdPrefix}-services-badge`}
             >
               {badgeText}
             </span>
           ) : null}
         </div>
-
-        {services && services.length > 0 ? (
-          <div className={`grid gap-3 ${isPreview ? "" : "sm:grid-cols-2 sm:gap-4 lg:gap-5"}`}>
-            {services.map((service) => (
-              <ServiceOfferingCard
-                key={service.id}
-                slug={publicSlug}
-                service={service}
-                theme={theme}
-                isDark={isDark}
-                variant={variant}
-              />
-            ))}
-          </div>
-        ) : isPreview ? (
-          <ServiceOfferingCard
-            slug=""
-            service={{
-              id: "preview-sample",
-              name: "Sample service",
-              description: "Your services will appear here on the live page.",
-              type: "booking",
-              price_cents: 5000,
-              duration_minutes: 60,
-              currency: "USD",
-              price_type: "fixed",
-              require_payment: false,
-              sort_order: 0,
-            }}
-            theme={theme}
-            isDark={isDark}
-            variant={variant}
-          />
-        ) : (
-          <p className={`text-sm ${muted}`}>
-            Services will appear here.{" "}
-            <Link to={`/b/${publicSlug}/services`} className="font-bold hover:underline" style={{ color: theme.primaryColor }}>
-              View services
-            </Link>
-          </p>
-        )}
+        <p className={`max-w-2xl whitespace-normal ${isPreview ? "text-[11px]" : "text-sm md:text-base"} ${muted}`}>
+          Choose a service below and book online or request a quote in minutes.
+        </p>
       </div>
+
+      {services && services.length > 0 ? (
+        <div className={`grid gap-4 ${isPreview ? "" : "sm:grid-cols-2 lg:gap-6"}`}>
+          {services.map((service) => (
+            <ServiceOfferingCard
+              key={service.id}
+              slug={publicSlug}
+              service={service}
+              theme={theme}
+              isDark={isDark}
+              variant={variant}
+            />
+          ))}
+        </div>
+      ) : isPreview ? (
+        <ServiceOfferingCard
+          slug=""
+          service={{
+            id: "preview-sample",
+            name: "Sample service",
+            description: "Your services will appear here on the live page.",
+            type: "booking",
+            price_cents: 5000,
+            duration_minutes: 60,
+            currency: "USD",
+            price_type: "fixed",
+            require_payment: false,
+            sort_order: 0,
+          }}
+          theme={theme}
+          isDark={isDark}
+          variant={variant}
+        />
+      ) : (
+        <p className={`text-sm ${muted}`}>
+          Services will appear here.{" "}
+          <Link to={`/b/${publicSlug}/services`} className="font-bold hover:underline" style={{ color: theme.primaryColor }}>
+            View services
+          </Link>
+        </p>
+      )}
     </section>
   );
 }
@@ -524,72 +611,80 @@ export function ServiceTrustSection({
 
   return (
     <section
-      className={`${isPreview ? "space-y-2" : "space-y-5 md:space-y-6"}`}
+      className={`overflow-hidden ${isPreview ? "rounded-xl" : "rounded-2xl md:rounded-3xl"}`}
       data-testid={`${testIdPrefix}-trust`}
+      style={{
+        background: isDark
+          ? `linear-gradient(90deg, ${theme.primaryColor}20 0%, rgba(15,23,42,0.9) 100%)`
+          : `linear-gradient(90deg, ${theme.primaryColor}08 0%, #ffffff 55%, ${theme.accentColor}08 100%)`,
+      }}
     >
-      {hasBenefits ? (
-        <div
-          className={`border-2 ${isPreview ? "rounded-lg p-3" : "rounded-2xl p-5 md:p-6"} ${
-            isDark ? "border-slate-700/80 bg-slate-900/50" : "border-slate-200/90 bg-white shadow-sm"
-          }`}
-          style={{ borderTopColor: theme.primaryColor, borderTopWidth: 3 }}
-          data-testid={`${testIdPrefix}-benefits-strip`}
-        >
-          <p
-            className={`mb-3 font-bold uppercase tracking-wide ${isPreview ? "text-[10px]" : "text-xs"} ${muted}`}
-          >
-            {copy.benefitsSectionTitle}
-          </p>
-          <ul className={`grid ${isPreview ? "gap-1.5" : "gap-3 sm:grid-cols-3"}`}>
-            {copy.benefitsItems.filter(Boolean).map((item) => (
-              <li
-                key={item}
-                className={`flex items-start gap-2 whitespace-normal ${isPreview ? "text-xs" : "text-sm"} ${
-                  isDark ? "text-slate-200" : "text-slate-800"
-                }`}
-              >
-                <span
-                  className={`mt-0.5 inline-flex shrink-0 items-center justify-center rounded-md font-bold text-white ${
-                    isPreview ? "h-4 w-4 text-[10px]" : "h-5 w-5 text-xs"
-                  }`}
-                  style={{ backgroundColor: theme.primaryColor }}
-                  aria-hidden
-                >
-                  ✓
-                </span>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      {showTrustStats ? (
-        <div
-          className={`grid grid-cols-3 gap-2 ${isPreview ? "" : "gap-4 md:gap-5"}`}
-          data-testid={`${testIdPrefix}-trust-stats`}
-        >
-          {copy.trustCards.map((stat) => (
-            <div
-              key={stat.subtitle}
-              className={`min-w-0 border-2 text-center ${
-                isPreview ? "rounded-md px-2 py-2" : "rounded-xl px-3 py-4 md:px-4 md:py-5"
-              } ${isDark ? "border-slate-700/80 bg-slate-900/55" : "border-slate-200/90 bg-white shadow-sm"}`}
-              style={{ borderColor: `${theme.primaryColor}55` }}
+      <div className={`grid ${isPreview ? "" : "md:grid-cols-[1.2fr_0.8fr]"}`}>
+        {hasBenefits ? (
+          <div className={isPreview ? "p-3" : "p-6 md:p-8"} data-testid={`${testIdPrefix}-benefits-strip`}>
+            <p
+              className={`font-black uppercase tracking-wider ${isPreview ? "text-[10px]" : "text-xs"}`}
+              style={{ color: theme.primaryColor }}
             >
-              <p
-                className={`whitespace-normal font-extrabold ${isPreview ? "text-xs" : "text-xl md:text-2xl"}`}
-                style={{ color: theme.primaryColor }}
-              >
-                {stat.title}
-              </p>
-              <p className={`mt-1 whitespace-normal font-semibold uppercase tracking-wide ${isPreview ? "text-[10px]" : "text-xs"} ${muted}`}>
-                {stat.subtitle}
-              </p>
+              Why choose us
+            </p>
+            <p className={`mt-1 font-bold ${isPreview ? "text-sm" : "text-xl md:text-2xl"} ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+              {copy.benefitsSectionTitle}
+            </p>
+            <ul className={`mt-3 grid ${isPreview ? "gap-1.5" : "mt-5 gap-3 sm:grid-cols-2"}`}>
+              {copy.benefitsItems.filter(Boolean).map((item) => (
+                <li
+                  key={item}
+                  className={`flex items-start gap-2.5 whitespace-normal ${isPreview ? "text-xs" : "text-sm md:text-base"} ${
+                    isDark ? "text-slate-200" : "text-slate-800"
+                  }`}
+                >
+                  <span
+                    className={`mt-0.5 inline-flex shrink-0 items-center justify-center rounded-lg font-bold text-white ${
+                      isPreview ? "h-5 w-5 text-[10px]" : "h-7 w-7 text-sm"
+                    }`}
+                    style={{ backgroundColor: theme.primaryColor }}
+                    aria-hidden
+                  >
+                    ✓
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {showTrustStats ? (
+          <div
+            className={`${hasBenefits ? (isDark ? "border-t border-slate-700/70 md:border-l md:border-t-0" : "border-t border-slate-200/80 md:border-l md:border-t-0") : ""} ${
+              isPreview ? "p-3" : "p-6 md:p-8"
+            } ${isDark ? "bg-slate-950/40" : "bg-slate-900/[0.03]"}`}
+          >
+            <p className={`font-bold uppercase tracking-wider ${isPreview ? "text-[10px]" : "text-xs"} ${muted}`}>
+              Trusted locally
+            </p>
+            <div
+              className={`mt-3 grid grid-cols-3 gap-2 ${isPreview ? "" : "mt-5 gap-4"}`}
+              data-testid={`${testIdPrefix}-trust-stats`}
+            >
+              {copy.trustCards.map((stat) => (
+                <div key={stat.subtitle} className="min-w-0 text-center">
+                  <p
+                    className={`whitespace-normal font-black ${isPreview ? "text-sm" : "text-2xl md:text-3xl"}`}
+                    style={{ color: theme.primaryColor }}
+                  >
+                    {stat.title}
+                  </p>
+                  <p className={`mt-1 whitespace-normal font-semibold uppercase tracking-wide ${isPreview ? "text-[9px]" : "text-xs"} ${muted}`}>
+                    {stat.subtitle}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      ) : null}
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -597,6 +692,7 @@ export function ServiceTrustSection({
 export type ServiceFaqSectionProps = ServiceSectionShell & {
   title: string;
   faqItems: MiniSiteCopy["faqItems"];
+  theme: ServiceTheme;
   isDark: boolean;
 };
 
@@ -605,6 +701,7 @@ export function ServiceFaqSection({
   testIdPrefix = "pro-mini-site",
   title,
   faqItems,
+  theme,
   isDark,
 }: ServiceFaqSectionProps) {
   const muted = serviceMutedText(isDark);
@@ -613,22 +710,20 @@ export function ServiceFaqSection({
 
   return (
     <section
-      className={`border-2 ${isPreview ? "rounded-lg p-3" : "rounded-2xl p-5 md:p-7"} ${
-        isDark ? "border-slate-700/80 bg-slate-900/55" : "border-slate-200/90 bg-white shadow-sm"
-      }`}
+      className={`${isPreview ? "py-3" : "py-8 md:py-10"}`}
       aria-labelledby={`${testIdPrefix}-faq-heading`}
       data-testid={`${testIdPrefix}-faq`}
     >
       <h2
         id={`${testIdPrefix}-faq-heading`}
-        className={`whitespace-normal font-bold tracking-tight ${isPreview ? "text-sm" : "text-xl md:text-2xl"} ${
+        className={`whitespace-normal font-black tracking-tight ${isPreview ? "text-sm" : "text-xl md:text-2xl"} ${
           isDark ? "text-slate-100" : "text-slate-900"
         }`}
         data-testid={`${testIdPrefix}-faq-title`}
       >
         {title}
       </h2>
-      <div className={`mt-3 space-y-2 ${isPreview ? "" : "md:mt-5 md:space-y-3"}`}>
+      <dl className={`mt-3 divide-y ${isDark ? "divide-slate-700/70" : "divide-slate-200/80"} ${isPreview ? "" : "md:mt-5"}`}>
         {items.map((item, index) => {
           if (!isFaqItemFilled(item)) {
             return null;
@@ -637,29 +732,28 @@ export function ServiceFaqSection({
           return (
             <div
               key={`${index}-${item.question}`}
-              className={`min-w-0 rounded-lg border px-3 py-2 ${
-                isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/90"
-              } ${isPreview ? "" : "px-4 py-3"}`}
+              className={`min-w-0 border-l-4 py-3 pl-3 ${isPreview ? "py-2 pl-2" : "md:py-4 md:pl-4"}`}
+              style={{ borderLeftColor: theme.primaryColor }}
               data-testid={`${testIdPrefix}-faq-item-${index}`}
             >
-              <p
-                className={`whitespace-normal font-semibold ${isPreview ? "text-xs" : "text-sm"} ${
+              <dt
+                className={`whitespace-normal font-bold ${isPreview ? "text-xs" : "text-sm md:text-base"} ${
                   isDark ? "text-slate-100" : "text-slate-900"
                 }`}
                 data-testid={`${testIdPrefix}-faq-item-${index}-question`}
               >
                 {item.question}
-              </p>
-              <p
+              </dt>
+              <dd
                 className={`mt-1 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-sm"} ${muted}`}
                 data-testid={`${testIdPrefix}-faq-item-${index}-answer`}
               >
                 {item.answer}
-              </p>
+              </dd>
             </div>
           );
         })}
-      </div>
+      </dl>
     </section>
   );
 }
@@ -683,7 +777,6 @@ export function ServiceContactSection({
   theme,
   isDark,
 }: ServiceContactSectionProps) {
-  const muted = serviceMutedText(isDark);
   const entries = getVisibleSocialLinks(socialLinks);
   const hasAddress = hasMeaningfulText(contactAddress);
   const hasPhone = hasMeaningfulText(contactPhone);
@@ -695,76 +788,54 @@ export function ServiceContactSection({
 
   return (
     <section
-      className={`border-2 ${isPreview ? "rounded-lg p-3" : "rounded-2xl p-5 md:p-7"} ${
-        isDark ? "border-slate-700/80 bg-slate-900/55" : "border-slate-200/90 bg-white shadow-sm"
+      className={`overflow-hidden ${isPreview ? "rounded-xl" : "rounded-2xl md:rounded-3xl"} ${
+        isDark ? "bg-slate-900/80 text-slate-100" : "bg-slate-900 text-white"
       }`}
-      style={{ borderColor: `${theme.accentColor}66` }}
       aria-labelledby={`${testIdPrefix}-contact-heading`}
       data-testid={`${testIdPrefix}-contact`}
     >
-      <h2
-        id={`${testIdPrefix}-contact-heading`}
-        className={`whitespace-normal font-bold tracking-tight ${isPreview ? "text-sm" : "text-xl md:text-2xl"} ${
-          isDark ? "text-slate-100" : "text-slate-900"
-        }`}
-        data-testid={`${testIdPrefix}-contact-title`}
-      >
-        {title}
-      </h2>
-
-      <dl className={`mt-3 grid gap-3 ${isPreview ? "text-xs" : "text-sm sm:grid-cols-2 md:gap-4"}`}>
-        {hasAddress ? (
-          <div
-            className={`rounded-lg border px-3 py-2 ${
-              isDark ? "border-slate-700 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/90"
-            }`}
+      <div className={`grid ${isPreview ? "gap-3 p-3" : "gap-6 p-6 md:grid-cols-2 md:p-8"}`}>
+        <div>
+          <h2
+            id={`${testIdPrefix}-contact-heading`}
+            className={`whitespace-normal font-black tracking-tight ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}
+            data-testid={`${testIdPrefix}-contact-title`}
           >
-            <dt className={`text-xs font-bold uppercase tracking-wide ${muted}`}>Address</dt>
-            <dd className={`mt-1 whitespace-normal ${isDark ? "text-slate-200" : "text-slate-800"}`}>{contactAddress}</dd>
-          </div>
-        ) : null}
-        {hasPhone ? (
-          <div
-            className={`rounded-lg border px-3 py-2 ${
-              isDark ? "border-slate-700 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/90"
-            }`}
-          >
-            <dt className={`text-xs font-bold uppercase tracking-wide ${muted}`}>Phone</dt>
-            <dd className="mt-1">
-              <a href={`tel:${contactPhone}`} className="font-bold hover:underline" style={{ color: theme.primaryColor }}>
+            {title}
+          </h2>
+          {hasPhone ? (
+            <p className={`mt-3 ${isPreview ? "text-lg" : "text-2xl md:text-3xl"}`}>
+              <a href={`tel:${contactPhone}`} className="font-black hover:underline" style={{ color: theme.accentColor }}>
                 {contactPhone}
               </a>
-            </dd>
+            </p>
+          ) : null}
+          {hasAddress ? (
+            <p className={`mt-2 whitespace-normal ${isPreview ? "text-xs" : "text-sm"} text-slate-300`}>{contactAddress}</p>
+          ) : null}
+        </div>
+
+        {entries.length > 0 ? (
+          <div className={`space-y-2 ${isPreview ? "text-xs" : "text-sm"}`} data-testid={`${testIdPrefix}-social-links`}>
+            {entries.map((entry) => (
+              <div key={entry.key} className="min-w-0" data-testid={`${testIdPrefix}-${entry.key}`}>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{entry.label}</p>
+                <p className="mt-0.5 whitespace-normal text-slate-200">{entry.value}</p>
+              </div>
+            ))}
           </div>
         ) : null}
-      </dl>
-
-      {entries.length > 0 ? (
-        <div
-          className={`mt-3 grid gap-2 ${isPreview ? "text-xs" : "text-sm sm:grid-cols-2"}`}
-          data-testid={`${testIdPrefix}-social-links`}
-        >
-          {entries.map((entry) => (
-            <div
-              key={entry.key}
-              className={`rounded-lg border px-3 py-2 ${
-                isDark ? "border-slate-700 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/90"
-              }`}
-              data-testid={`${testIdPrefix}-${entry.key}`}
-            >
-              <p className={`text-xs font-bold uppercase tracking-wide ${muted}`}>{entry.label}</p>
-              <p className={`mt-0.5 whitespace-normal ${muted}`}>{entry.value}</p>
-            </div>
-          ))}
-        </div>
-      ) : null}
+      </div>
     </section>
   );
 }
 
 export type ServiceBookingCtaSectionProps = ServiceSectionShell & {
-  label: string;
-  href: string;
+  primaryLabel: string;
+  primaryHref: string;
+  secondaryLabel?: string;
+  secondaryHref?: string;
+  showSecondary?: boolean;
   theme: ServiceTheme;
   presentation: MiniSiteTemplatePresentation;
 };
@@ -772,30 +843,57 @@ export type ServiceBookingCtaSectionProps = ServiceSectionShell & {
 export function ServiceBookingCtaSection({
   variant = "full",
   testIdPrefix = "pro-mini-site",
-  label,
-  href,
+  previewButtons = false,
+  primaryLabel,
+  primaryHref,
+  secondaryLabel,
+  secondaryHref,
+  showSecondary = false,
   theme,
   presentation,
 }: ServiceBookingCtaSectionProps) {
   const isPreview = variant === "preview";
+  const showSecondaryCta = showSecondary && hasMeaningfulText(secondaryLabel ?? "") && secondaryHref;
 
   return (
     <section
-      className={`border-2 text-center shadow-lg ${isPreview ? "rounded-lg py-4" : "rounded-2xl py-10 md:py-12"}`}
+      className={`relative overflow-hidden text-center ${isPreview ? "rounded-xl py-4 px-3" : "rounded-2xl py-10 px-6 md:py-14 md:px-10"}`}
       style={{
-        borderColor: theme.primaryColor,
-        backgroundColor: `${theme.primaryColor}10`,
+        background: `linear-gradient(135deg, ${theme.primaryColor} 0%, ${theme.accentColor} 100%)`,
       }}
       data-testid={`${testIdPrefix}-booking-cta-section`}
     >
-      <Link
-        to={href}
-        className={presentation.primaryButtonClass}
-        data-testid={`${testIdPrefix}-booking-cta-link`}
-        style={{ backgroundColor: theme.primaryColor }}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_55%)]" aria-hidden />
+      <p className={`relative font-black text-white ${isPreview ? "text-sm" : "text-2xl md:text-3xl"}`}>
+        Ready to get started?
+      </p>
+      <p className={`relative mt-1 text-white/85 ${isPreview ? "text-[11px]" : "text-sm md:text-base"}`}>
+        Book online or request service in a few clicks.
+      </p>
+      <div
+        className={`relative mt-4 flex flex-col items-center justify-center ${isPreview ? "gap-1.5" : "gap-3 sm:flex-row sm:gap-4"}`}
       >
-        {label}
-      </Link>
+        {renderCtaButton({
+          previewButtons,
+          testIdPrefix,
+          label: primaryLabel,
+          href: primaryHref,
+          className: `${presentation.primaryButtonClass} ${isPreview ? "" : "min-w-[200px]"}`,
+          style: { backgroundColor: "#fff", color: theme.primaryColor },
+          testId: previewButtons ? `${testIdPrefix}-primary-button` : `${testIdPrefix}-booking-cta-link`,
+        })}
+        {showSecondaryCta
+          ? renderCtaButton({
+              previewButtons,
+              testIdPrefix,
+              label: secondaryLabel!,
+              href: secondaryHref!,
+              className: `${presentation.secondaryButtonClass} ${isPreview ? "" : "min-w-[200px]"} border-white/40 bg-white/10 text-white hover:bg-white/20`,
+              style: { borderColor: "rgba(255,255,255,0.45)", color: "#fff" },
+              testId: previewButtons ? `${testIdPrefix}-secondary-button` : `${testIdPrefix}-request-cta`,
+            })
+          : null}
+      </div>
     </section>
   );
 }
@@ -816,12 +914,12 @@ export function ServiceGallerySection({
 
   return (
     <section
-      className={`border-2 border-dashed text-center ${isPreview ? "rounded-lg py-4" : "rounded-2xl py-10 md:py-14"} ${
-        isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-300/80 bg-white/80"
+      className={`border-2 border-dashed text-center ${isPreview ? "rounded-xl py-4" : "rounded-2xl py-10 md:py-12"} ${
+        isDark ? "border-slate-700/80 bg-slate-900/30" : "border-slate-300/70 bg-slate-50/80"
       }`}
       aria-labelledby={`${testIdPrefix}-gallery-heading`}
       data-testid={`${testIdPrefix}-gallery-placeholder`}
-      style={{ borderColor: `${theme.accentColor}55` }}
+      style={{ borderColor: `${theme.accentColor}44` }}
     >
       <div
         className={`mx-auto mb-2 flex items-center justify-center rounded-xl font-bold ${

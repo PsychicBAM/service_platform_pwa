@@ -135,11 +135,12 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     presentation.showTrustStats &&
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
-  const showServiceHeroTrustRow =
+  const showServiceHeroTrustPills =
     isServiceTemplate &&
     presentation.showTrustStats &&
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
+  const serviceBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
 
   const orderedSectionTypes = enabledSections
     .filter((section) =>
@@ -332,8 +333,10 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             secondaryOrderHref="#"
             showBookingCta={hasMeaningfulText(primaryCtaLabel)}
             showRequestCta={hasMeaningfulText(secondaryCtaLabel)}
-            showHeroTrustRow={showServiceHeroTrustRow}
             operatingMode="both"
+            serviceCount={2}
+            benefitHighlights={serviceBenefitHighlights}
+            showHeroTrustPills={showServiceHeroTrustPills}
           />
         );
       case "about":
@@ -380,6 +383,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             {...shell}
             title={copy.faqSectionTitle}
             faqItems={faqItems}
+            theme={serviceTheme}
             isDark={isDark}
           />
         );

@@ -338,11 +338,12 @@ export function ProMiniSiteLayout({
     presentation.showTrustStats &&
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
-  const showServiceHeroTrustRow =
+  const showServiceHeroTrustPills =
     isServiceTemplate &&
     presentation.showTrustStats &&
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
+  const serviceBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
 
   const renderServiceSection = (type: MiniSiteSectionType) => {
     switch (type) {
@@ -363,8 +364,10 @@ export function ProMiniSiteLayout({
             secondaryOrderHref={secondaryOrderHref}
             showBookingCta={ctas.showBookingCta}
             showRequestCta={ctas.showRequestCta}
-            showHeroTrustRow={showServiceHeroTrustRow}
             operatingMode={business.operating_mode}
+            serviceCount={services?.length ?? null}
+            benefitHighlights={serviceBenefitHighlights}
+            showHeroTrustPills={showServiceHeroTrustPills}
           />
         );
       case "about":
@@ -407,6 +410,7 @@ export function ProMiniSiteLayout({
           <ServiceFaqSection
             title={copy.faqSectionTitle}
             faqItems={faqItems}
+            theme={serviceTheme}
             isDark={isDark}
           />
         );
@@ -427,8 +431,11 @@ export function ProMiniSiteLayout({
         }
         return (
           <ServiceBookingCtaSection
-            label={primaryCtaLabel}
-            href={primaryBookingHref}
+            primaryLabel={primaryCtaLabel}
+            primaryHref={primaryBookingHref}
+            secondaryLabel={secondaryCtaLabel}
+            secondaryHref={secondaryOrderHref}
+            showSecondary={ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel)}
             theme={serviceTheme}
             presentation={presentation}
           />
