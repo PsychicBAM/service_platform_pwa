@@ -105,6 +105,35 @@ describe("mini-site config helpers", () => {
     expect(config.sections.find((section) => section.type === "trust")?.enabled).toBe(true);
   });
 
+  it("DEFAULT_MINI_SITE_CONFIG includes faq copy defaults with section disabled", () => {
+    expect(DEFAULT_MINI_SITE_CONFIG.copy.faqSectionTitle).toBe("Frequently asked questions");
+    expect(DEFAULT_MINI_SITE_CONFIG.copy.faqItems).toHaveLength(3);
+    expect(DEFAULT_MINI_SITE_CONFIG.sections.find((section) => section.type === "faq")?.enabled).toBe(
+      false,
+    );
+  });
+
+  it("normalizeMiniSiteConfig adds faq section disabled by default for legacy configs", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: [
+        { id: "hero", type: "hero", enabled: true, order: 0 },
+        { id: "about", type: "about", enabled: true, order: 1 },
+        { id: "services", type: "services", enabled: true, order: 2 },
+        { id: "contact", type: "contact", enabled: true, order: 7 },
+        { id: "booking_cta", type: "booking_cta", enabled: true, order: 8 },
+      ],
+      socialLinks: {},
+    });
+
+    expect(config.sections.some((section) => section.type === "faq")).toBe(true);
+    expect(config.sections.find((section) => section.type === "faq")?.enabled).toBe(false);
+    expect(config.copy.faqSectionTitle).toBe("Frequently asked questions");
+    expect(config.copy.faqItems).toHaveLength(3);
+    expect(config.copy.faqItems[0]?.question).toBe("How do I book?");
+  });
+
   it("normalizeMiniSiteConfig handles null, undefined, and bad input safely", () => {
     const fromNull = normalizeMiniSiteConfig(null);
     const fromUndefined = normalizeMiniSiteConfig(undefined);

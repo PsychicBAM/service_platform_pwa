@@ -12,6 +12,7 @@ from app.schemas.mini_site import (
     MiniSiteButtonStyle,
     MiniSiteConfig,
     MiniSiteCopy,
+    MiniSiteFaqItem,
     MiniSiteSection,
     MiniSiteSectionItem,
     MiniSiteSectionType,
@@ -219,7 +220,8 @@ def _build_default_sections() -> list[MiniSiteSection]:
         for section_type in REQUIRED_MINI_SITE_SECTION_TYPES
     ]
     gallery = _create_default_section("gallery", _DEFAULT_SECTION_ORDERS["gallery"])
-    return sorted([*required, gallery], key=lambda section: section.order)
+    faq = _create_default_section("faq", _DEFAULT_SECTION_ORDERS["faq"])
+    return sorted([*required, gallery, faq], key=lambda section: section.order)
 
 
 def default_mini_site_config() -> MiniSiteConfig:
@@ -253,6 +255,25 @@ def _normalize_benefits_items(value: object, fallback: list[str]) -> list[str]:
     return items
 
 
+def _normalize_faq_item(value: object, fallback: MiniSiteFaqItem) -> MiniSiteFaqItem:
+    if not isinstance(value, dict):
+        return fallback
+    return MiniSiteFaqItem(
+        question=_sanitize_text(value.get("question")) or fallback.question,
+        answer=_sanitize_text(value.get("answer")) or fallback.answer,
+    )
+
+
+def _normalize_faq_items(value: object, fallback: list[MiniSiteFaqItem]) -> list[MiniSiteFaqItem]:
+    if not isinstance(value, list):
+        return fallback[:3]
+    items: list[MiniSiteFaqItem] = []
+    for index in range(3):
+        entry = value[index] if index < len(value) else {}
+        items.append(_normalize_faq_item(entry, fallback[index]))
+    return items
+
+
 def _normalize_copy(input_value: object, template: MiniSiteTemplate) -> MiniSiteCopy:
     defaults = _default_copy_for_template(template)
     if not isinstance(input_value, dict):
@@ -266,6 +287,7 @@ def _normalize_copy(input_value: object, template: MiniSiteTemplate) -> MiniSite
         trust_cards.append(_normalize_trust_card(entry, default_cards[index]))
 
     benefits_source = input_value.get("benefits_items", input_value.get("benefitsItems"))
+    faq_source = input_value.get("faq_items", input_value.get("faqItems"))
 
     return MiniSiteCopy(
         hero_badge_text=_sanitize_text(
@@ -301,6 +323,11 @@ def _normalize_copy(input_value: object, template: MiniSiteTemplate) -> MiniSite
             input_value.get("secondary_cta_label", input_value.get("secondaryCtaLabel")),
         )
         or defaults.secondary_cta_label,
+        faq_section_title=_sanitize_text(
+            input_value.get("faq_section_title", input_value.get("faqSectionTitle")),
+        )
+        or defaults.faq_section_title,
+        faq_items=_normalize_faq_items(faq_source, defaults.faq_items),
     )
 
 
@@ -398,6 +425,9 @@ def _ensure_required_sections(sections: list[MiniSiteSection]) -> list[MiniSiteS
                 section_type,
                 _DEFAULT_SECTION_ORDERS[section_type],
             )
+
+    if "faq" not in by_type:
+        by_type["faq"] = _create_default_section("faq", _DEFAULT_SECTION_ORDERS["faq"])
 
     return sorted(by_type.values(), key=lambda section: section.order)
 

@@ -5,6 +5,7 @@ import type {
   MiniSiteButtonStyle,
   MiniSiteConfig,
   MiniSiteCopy,
+  MiniSiteFaqItem,
   MiniSiteSection,
   MiniSiteSectionItem,
   MiniSiteSectionType,
@@ -37,6 +38,11 @@ type MiniSiteTrustCardWire = {
   subtitle: string;
 };
 
+type MiniSiteFaqItemWire = {
+  question: string;
+  answer: string;
+};
+
 type MiniSiteCopyWire = {
   hero_badge_text?: string;
   trust_cards?: MiniSiteTrustCardWire[];
@@ -47,6 +53,8 @@ type MiniSiteCopyWire = {
   contact_section_title?: string;
   primary_cta_label?: string;
   secondary_cta_label?: string;
+  faq_section_title?: string;
+  faq_items?: MiniSiteFaqItemWire[];
 };
 
 type MiniSiteThemeWire = {
@@ -107,6 +115,10 @@ function mapTrustCardToWire(card: MiniSiteTrustCard): MiniSiteTrustCardWire {
   return { title: card.title, subtitle: card.subtitle };
 }
 
+function mapFaqItemToWire(item: MiniSiteFaqItem): MiniSiteFaqItemWire {
+  return { question: item.question, answer: item.answer };
+}
+
 function mapCopyToWire(copy: MiniSiteCopy): MiniSiteCopyWire {
   return {
     hero_badge_text: copy.heroBadgeText,
@@ -118,6 +130,8 @@ function mapCopyToWire(copy: MiniSiteCopy): MiniSiteCopyWire {
     contact_section_title: copy.contactSectionTitle,
     primary_cta_label: copy.primaryCtaLabel,
     secondary_cta_label: copy.secondaryCtaLabel,
+    faq_section_title: copy.faqSectionTitle,
+    faq_items: copy.faqItems.map(mapFaqItemToWire),
   };
 }
 

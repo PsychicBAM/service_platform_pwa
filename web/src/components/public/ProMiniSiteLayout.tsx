@@ -455,6 +455,47 @@ export function ProMiniSiteLayout({
     </section>
   );
 
+  const renderFaq = () => (
+    <section
+      className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
+      aria-labelledby="pro-mini-site-faq-heading"
+      data-testid="pro-mini-site-faq"
+    >
+      <SectionHeading
+        id="pro-mini-site-faq-heading"
+        title={copy.faqSectionTitle}
+        accentColor={theme.accentColor}
+        className={presentation.sectionHeadingClass}
+        isDark={isDark}
+        template={theme.template}
+      />
+      <div className="space-y-3">
+        {copy.faqItems.map((item, index) => (
+          <div
+            key={`${index}-${item.question}`}
+            className={`min-w-0 rounded-xl border px-4 py-3 ${
+              isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/80"
+            }`}
+            data-testid={`pro-mini-site-faq-item-${index}`}
+          >
+            <p
+              className="text-sm font-semibold whitespace-normal"
+              data-testid={`pro-mini-site-faq-item-${index}-question`}
+            >
+              {item.question}
+            </p>
+            <p
+              className={`mt-1 text-sm leading-relaxed whitespace-normal ${mutedText}`}
+              data-testid={`pro-mini-site-faq-item-${index}-answer`}
+            >
+              {item.answer}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+
   const renderServices = () => (
     <section
       className={`${sectionCardClass(theme.backgroundStyle, `${presentation.sectionClass} ${presentation.servicesClass}`)}`}
@@ -639,6 +680,8 @@ export function ProMiniSiteLayout({
         return renderServices();
       case "trust":
         return renderTrust();
+      case "faq":
+        return renderFaq();
       case "contact":
         return renderContact();
       case "booking_cta":
@@ -649,8 +692,6 @@ export function ProMiniSiteLayout({
         return renderGenericSection(type, "Benefits");
       case "pricing":
         return renderGenericSection(type, "Pricing");
-      case "faq":
-        return renderGenericSection(type, "FAQ");
       default:
         return null;
     }

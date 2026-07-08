@@ -17,6 +17,7 @@ import {
   type MiniSiteButtonStyle,
   type MiniSiteConfig,
   type MiniSiteCopy,
+  type MiniSiteFaqItem,
   type MiniSiteSectionType,
   type MiniSiteTemplate,
   type MiniSiteTrustCard,
@@ -182,6 +183,17 @@ function updateBenefitItem(
   return updateCopyField(config, "benefitsItems", benefitsItems);
 }
 
+function updateFaqItem(
+  config: MiniSiteConfig,
+  index: 0 | 1 | 2,
+  field: keyof MiniSiteFaqItem,
+  value: string,
+): MiniSiteConfig {
+  const faqItems = [...config.copy.faqItems] as MiniSiteCopy["faqItems"];
+  faqItems[index] = { ...faqItems[index], [field]: value };
+  return updateCopyField(config, "faqItems", faqItems);
+}
+
 function EditorSection({
   title,
   description,
@@ -306,7 +318,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
     );
   }
 
-  const reorderableSectionTypes = ["about", "services", "trust", "contact"] as const;
+  const reorderableSectionTypes = ["about", "services", "trust", "faq", "contact"] as const;
   type ReorderableSectionType = (typeof reorderableSectionTypes)[number];
 
   function getSectionOrder(config: MiniSiteConfig, type: ReorderableSectionType): number {
@@ -348,6 +360,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
   const aboutIndex = sortedReorderableSections.indexOf("about");
   const servicesIndex = sortedReorderableSections.indexOf("services");
   const trustIndex = sortedReorderableSections.indexOf("trust");
+  const faqIndex = sortedReorderableSections.indexOf("faq");
   const contactIndex = sortedReorderableSections.indexOf("contact");
 
   return (
@@ -722,6 +735,45 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
               <div className="flex items-center justify-between gap-3">
                 <label className="flex items-center gap-2 text-sm text-slate-700">
                   <input
+                    id="mini-site-section-toggle-faq"
+                    data-testid="mini-site-toggle-faq"
+                    type="checkbox"
+                    checked={draft.sections.some((section) => section.type === "faq" && section.enabled)}
+                    disabled={saving}
+                    onChange={(event) =>
+                      setDraft(updateSectionEnabled(draft, "faq", event.target.checked))
+                    }
+                    className="rounded border-slate-300"
+                  />
+                  FAQ
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={faqIndex === 0}
+                    onClick={() => moveSection("faq", -1)}
+                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    data-testid="mini-site-move-up-faq"
+                    aria-label="Move FAQ up"
+                  >
+                    Up
+                  </button>
+                  <button
+                    type="button"
+                    disabled={faqIndex === sortedReorderableSections.length - 1}
+                    onClick={() => moveSection("faq", 1)}
+                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    data-testid="mini-site-move-down-faq"
+                    aria-label="Move FAQ down"
+                  >
+                    Down
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <label className="flex items-center gap-2 text-sm text-slate-700">
+                  <input
                     id="mini-site-section-toggle-contact"
                     data-testid="mini-site-toggle-contact"
                     type="checkbox"
@@ -824,6 +876,47 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
                 data-testid="mini-site-about-body"
               />
             </label>
+          </EditorSection>
+
+          <EditorSection title="FAQ content" description="Questions and answers for the FAQ section">
+            <div>
+              <FieldLabel htmlFor="mini-site-faq-section-title">FAQ section title</FieldLabel>
+              <TextInput
+                id="mini-site-faq-section-title"
+                value={draft.copy.faqSectionTitle}
+                disabled={saving}
+                onChange={(value) => setDraft(updateCopyField(draft, "faqSectionTitle", value))}
+              />
+            </div>
+            <div className="space-y-2">
+              {([0, 1, 2] as const).map((index) => (
+                <div key={index} className="space-y-2 rounded-lg border border-slate-100 bg-slate-50/60 p-2.5">
+                  <p className="text-xs font-semibold text-slate-500">FAQ {index + 1}</p>
+                  <TextInput
+                    id={`mini-site-faq-item-${index}-question`}
+                    value={draft.copy.faqItems[index].question}
+                    disabled={saving}
+                    placeholder="Question"
+                    onChange={(value) => setDraft(updateFaqItem(draft, index, "question", value))}
+                  />
+                  <label htmlFor={`mini-site-faq-item-${index}-answer`} className="block text-sm">
+                    <span className="sr-only">FAQ {index + 1} answer</span>
+                    <textarea
+                      id={`mini-site-faq-item-${index}-answer`}
+                      rows={2}
+                      value={draft.copy.faqItems[index].answer}
+                      disabled={saving}
+                      placeholder="Answer"
+                      onChange={(event) =>
+                        setDraft(updateFaqItem(draft, index, "answer", event.target.value))
+                      }
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+                      data-testid={`mini-site-faq-item-${index}-answer`}
+                    />
+                  </label>
+                </div>
+              ))}
+            </div>
           </EditorSection>
 
           <EditorSection title="Social & media">

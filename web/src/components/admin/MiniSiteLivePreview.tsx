@@ -84,7 +84,9 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const servicesBadge = formatServicesSectionBadge(copy.servicesSectionBadgeText, 2);
 
   const orderedSectionTypes = enabledSections
-    .filter((section) => ["hero", "about", "services", "trust", "contact"].includes(section.type))
+    .filter((section) =>
+      ["hero", "about", "services", "trust", "faq", "contact"].includes(section.type),
+    )
     .map((section) => section.type);
 
   function renderTrust() {
@@ -315,6 +317,49 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
         );
       case "trust":
         return renderTrust();
+      case "faq":
+        return (
+          <section
+            className={previewCardClass(theme.backgroundStyle, presentation.sectionClass)}
+            data-testid="mini-site-preview-faq"
+          >
+            <div
+              className="mb-2 h-1 w-8 rounded-full"
+              style={{ backgroundColor: theme.accentColor }}
+              aria-hidden
+            />
+            <h4
+              className={`${sectionHeadingClass} min-w-0 whitespace-normal`}
+              data-testid="mini-site-preview-faq-title"
+            >
+              {copy.faqSectionTitle}
+            </h4>
+            <div className="mt-2 space-y-2">
+              {copy.faqItems.map((item, index) => (
+                <div
+                  key={`${index}-${item.question}`}
+                  className={`min-w-0 rounded-md border px-2.5 py-2 ${
+                    isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/80"
+                  }`}
+                  data-testid={`mini-site-preview-faq-item-${index}`}
+                >
+                  <p
+                    className="text-xs font-semibold whitespace-normal"
+                    data-testid={`mini-site-preview-faq-item-${index}-question`}
+                  >
+                    {item.question}
+                  </p>
+                  <p
+                    className={`mt-1 text-xs leading-snug whitespace-normal ${mutedText}`}
+                    data-testid={`mini-site-preview-faq-item-${index}-answer`}
+                  >
+                    {item.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
       case "contact":
         return (
           <section

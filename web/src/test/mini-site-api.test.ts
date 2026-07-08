@@ -104,6 +104,14 @@ describe("miniSiteApi", () => {
     expect(config.theme.backgroundColor).toBe("#334455");
   });
 
+  it("mapMiniSiteConfigToWire includes FAQ copy fields", () => {
+    const wire = mapMiniSiteConfigToWire(DEFAULT_MINI_SITE_CONFIG);
+
+    expect(wire.copy?.faq_section_title).toBe("Frequently asked questions");
+    expect(wire.copy?.faq_items).toHaveLength(3);
+    expect(wire.copy?.faq_items?.[0]?.question).toBe("How do I book?");
+  });
+
   it("getMiniSiteConfig calls the correct endpoint", async () => {
     vi.mocked(apiClient.get).mockResolvedValue(wireConfig);
 

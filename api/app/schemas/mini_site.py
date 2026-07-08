@@ -99,6 +99,30 @@ class MiniSiteTrustCard(BaseModel):
     subtitle: str
 
 
+class MiniSiteFaqItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    question: str
+    answer: str
+
+
+def _default_faq_items() -> list[MiniSiteFaqItem]:
+    return [
+        MiniSiteFaqItem(
+            question="How do I book?",
+            answer="Browse our services and choose a time that works for you.",
+        ),
+        MiniSiteFaqItem(
+            question="What areas do you serve?",
+            answer="We serve customers locally. Contact us if you are unsure about coverage.",
+        ),
+        MiniSiteFaqItem(
+            question="What is your cancellation policy?",
+            answer="Please cancel at least 24 hours before your appointment when possible.",
+        ),
+    ]
+
+
 class MiniSiteCopy(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -111,6 +135,8 @@ class MiniSiteCopy(BaseModel):
     contact_section_title: str = "Contact & details"
     primary_cta_label: str = "Book now"
     secondary_cta_label: str = "Submit a request"
+    faq_section_title: str = "Frequently asked questions"
+    faq_items: list[MiniSiteFaqItem] = Field(default_factory=_default_faq_items)
 
 
 class MiniSiteConfig(BaseModel):

@@ -277,6 +277,61 @@ describe("ProMiniSiteLayout", () => {
     expect(screen.queryByTestId("pro-mini-site-benefits-strip")).not.toBeInTheDocument();
   });
 
+  it("renders FAQ section when enabled with saved copy", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: [
+        { id: "hero", type: "hero", enabled: true, order: 0, title: "Saved hero title" },
+        { id: "about", type: "about", enabled: false, order: 1 },
+        { id: "services", type: "services", enabled: false, order: 2 },
+        { id: "faq", type: "faq", enabled: true, order: 3 },
+        { id: "contact", type: "contact", enabled: false, order: 4 },
+        { id: "booking_cta", type: "booking_cta", enabled: false, order: 5 },
+        { id: "gallery", type: "gallery", enabled: false, order: 6 },
+      ],
+      socialLinks: {},
+      copy: {
+        ...DEFAULT_MINI_SITE_CONFIG.copy,
+        faqSectionTitle: "Common questions",
+        faqItems: [
+          { question: "Do you offer same-day service?", answer: "Yes, when availability allows." },
+          { question: "What areas do you serve?", answer: "We serve customers locally." },
+          { question: "What is your cancellation policy?", answer: "Please cancel 24 hours ahead." },
+        ],
+      },
+    });
+
+    renderProMiniSiteLayout({ config });
+
+    expect(screen.getByTestId("pro-mini-site-faq")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-faq")).toHaveTextContent("Common questions");
+    expect(screen.getByTestId("pro-mini-site-faq-item-0-question")).toHaveTextContent(
+      "Do you offer same-day service?",
+    );
+    expect(screen.getByTestId("pro-mini-site-faq-item-0-answer")).toHaveTextContent(
+      "Yes, when availability allows.",
+    );
+  });
+
+  it("hides FAQ section when disabled in config", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: [
+        { id: "hero", type: "hero", enabled: true, order: 0, title: "Saved hero title" },
+        { id: "faq", type: "faq", enabled: false, order: 3 },
+        { id: "contact", type: "contact", enabled: true, order: 4 },
+        { id: "booking_cta", type: "booking_cta", enabled: false, order: 5 },
+      ],
+      socialLinks: {},
+    });
+
+    renderProMiniSiteLayout({ config });
+
+    expect(screen.queryByTestId("pro-mini-site-faq")).not.toBeInTheDocument();
+  });
+
   it("respects configured ordering for enabled sections (hero pinned first)", () => {
     const config = normalizeMiniSiteConfig({
       version: 1,

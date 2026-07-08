@@ -11,6 +11,7 @@ import {
   type MiniSiteSection,
   type MiniSiteSectionItem,
   type MiniSiteSectionType,
+  type MiniSiteFaqItem,
   type MiniSiteSocialLinks,
   type MiniSiteTemplate,
   type MiniSiteTheme,
@@ -45,6 +46,26 @@ const DEFAULT_SECTION_ORDERS: Record<MiniSiteSectionType, number> = {
 
 export const DEFAULT_MINI_SITE_BACKGROUND_COLOR = "#f8fafc";
 
+const DEFAULT_FAQ_ITEMS: [MiniSiteFaqItem, MiniSiteFaqItem, MiniSiteFaqItem] = [
+  {
+    question: "How do I book?",
+    answer: "Browse our services and choose a time that works for you.",
+  },
+  {
+    question: "What areas do you serve?",
+    answer: "We serve customers locally. Contact us if you are unsure about coverage.",
+  },
+  {
+    question: "What is your cancellation policy?",
+    answer: "Please cancel at least 24 hours before your appointment when possible.",
+  },
+];
+
+const DEFAULT_FAQ_COPY = {
+  faqSectionTitle: "Frequently asked questions",
+  faqItems: DEFAULT_FAQ_ITEMS,
+} as const;
+
 export function getDefaultCopyForTemplate(template: MiniSiteTemplate): MiniSiteCopy {
   switch (template) {
     case "service":
@@ -62,6 +83,7 @@ export function getDefaultCopyForTemplate(template: MiniSiteTemplate): MiniSiteC
         contactSectionTitle: "Contact & details",
         primaryCtaLabel: "Book now",
         secondaryCtaLabel: "Submit a request",
+        ...DEFAULT_FAQ_COPY,
       };
     case "expert":
       return {
@@ -78,6 +100,7 @@ export function getDefaultCopyForTemplate(template: MiniSiteTemplate): MiniSiteC
         contactSectionTitle: "Get in touch",
         primaryCtaLabel: "Book a session",
         secondaryCtaLabel: "Send a request",
+        ...DEFAULT_FAQ_COPY,
       };
     case "clinic":
       return {
@@ -98,6 +121,7 @@ export function getDefaultCopyForTemplate(template: MiniSiteTemplate): MiniSiteC
         contactSectionTitle: "Contact & location",
         primaryCtaLabel: "Request appointment",
         secondaryCtaLabel: "Ask a question",
+        ...DEFAULT_FAQ_COPY,
       };
     case "portfolio":
       return {
@@ -114,6 +138,7 @@ export function getDefaultCopyForTemplate(template: MiniSiteTemplate): MiniSiteC
         contactSectionTitle: "Contact",
         primaryCtaLabel: "Start a project",
         secondaryCtaLabel: "Send inquiry",
+        ...DEFAULT_FAQ_COPY,
       };
     case "clean":
     default:
@@ -131,6 +156,7 @@ export function getDefaultCopyForTemplate(template: MiniSiteTemplate): MiniSiteC
         contactSectionTitle: "Contact & details",
         primaryCtaLabel: "Book now",
         secondaryCtaLabel: "Submit a request",
+        ...DEFAULT_FAQ_COPY,
       };
   }
 }
@@ -237,7 +263,8 @@ function buildDefaultSections(): MiniSiteSection[] {
   );
   const trust = createDefaultSection("trust", DEFAULT_SECTION_ORDERS.trust);
   const gallery = createDefaultSection("gallery", DEFAULT_SECTION_ORDERS.gallery);
-  return [...required, trust, gallery].sort((left, right) => left.order - right.order);
+  const faq = createDefaultSection("faq", DEFAULT_SECTION_ORDERS.faq);
+  return [...required, trust, gallery, faq].sort((left, right) => left.order - right.order);
 }
 
 export const DEFAULT_MINI_SITE_CONFIG: MiniSiteConfig = {
@@ -306,6 +333,31 @@ function normalizeBenefitsItems(value: unknown, fallback: [string, string, strin
   ];
 }
 
+function normalizeFaqItem(value: unknown, fallback: MiniSiteFaqItem): MiniSiteFaqItem {
+  if (!value || typeof value !== "object") {
+    return fallback;
+  }
+  const record = value as Record<string, unknown>;
+  return {
+    question: sanitizeText(record.question) ?? fallback.question,
+    answer: sanitizeText(record.answer) ?? fallback.answer,
+  };
+}
+
+function normalizeFaqItems(
+  value: unknown,
+  fallback: [MiniSiteFaqItem, MiniSiteFaqItem, MiniSiteFaqItem],
+): [MiniSiteFaqItem, MiniSiteFaqItem, MiniSiteFaqItem] {
+  if (!Array.isArray(value)) {
+    return fallback;
+  }
+  return [0, 1, 2].map((index) => normalizeFaqItem(value[index], fallback[index])) as [
+    MiniSiteFaqItem,
+    MiniSiteFaqItem,
+    MiniSiteFaqItem,
+  ];
+}
+
 function normalizeCopy(input: unknown, template: MiniSiteTemplate): MiniSiteCopy {
   const defaults = getDefaultCopyForTemplate(template);
   if (!input || typeof input !== "object") {
@@ -321,6 +373,7 @@ function normalizeCopy(input: unknown, template: MiniSiteTemplate): MiniSiteCopy
   }) as [MiniSiteTrustCard, MiniSiteTrustCard, MiniSiteTrustCard];
 
   const benefitsSource = source.benefitsItems ?? source.benefits_items;
+  const faqSource = source.faqItems ?? source.faq_items;
 
   return {
     heroBadgeText:
@@ -344,6 +397,9 @@ function normalizeCopy(input: unknown, template: MiniSiteTemplate): MiniSiteCopy
     secondaryCtaLabel:
       sanitizeText(source.secondaryCtaLabel ?? source.secondary_cta_label) ??
       defaults.secondaryCtaLabel,
+    faqSectionTitle:
+      sanitizeText(source.faqSectionTitle ?? source.faq_section_title) ?? defaults.faqSectionTitle,
+    faqItems: normalizeFaqItems(faqSource, defaults.faqItems),
   };
 }
 
@@ -474,6 +530,10 @@ function ensureRequiredSections(sections: MiniSiteSection[]): MiniSiteSection[] 
   // Backward-compatible: older configs may not have the `trust` section yet.
   if (!byType.has("trust")) {
     byType.set("trust", createDefaultSection("trust", DEFAULT_SECTION_ORDERS.trust));
+  }
+
+  if (!byType.has("faq")) {
+    byType.set("faq", createDefaultSection("faq", DEFAULT_SECTION_ORDERS.faq));
   }
 
   return Array.from(byType.values()).sort((left, right) => left.order - right.order);

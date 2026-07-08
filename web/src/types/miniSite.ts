@@ -74,6 +74,11 @@ export interface MiniSiteTrustCard {
   subtitle: string;
 }
 
+export interface MiniSiteFaqItem {
+  question: string;
+  answer: string;
+}
+
 export interface MiniSiteCopy {
   heroBadgeText: string;
   trustCards: [MiniSiteTrustCard, MiniSiteTrustCard, MiniSiteTrustCard];
@@ -84,6 +89,8 @@ export interface MiniSiteCopy {
   contactSectionTitle: string;
   primaryCtaLabel: string;
   secondaryCtaLabel: string;
+  faqSectionTitle: string;
+  faqItems: [MiniSiteFaqItem, MiniSiteFaqItem, MiniSiteFaqItem];
 }
 
 export const MINI_SITE_CONFIG_VERSION = 1 as const;

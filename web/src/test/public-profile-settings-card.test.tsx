@@ -344,4 +344,66 @@ describe("PublicProfileSettingsCard", () => {
     );
     expect(within(preview).queryByRole("button", { name: /upload/i })).not.toBeInTheDocument();
   });
+
+  it("updates live preview when FAQ content changes", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-live-preview");
+    await user.click(screen.getByTestId("mini-site-toggle-faq"));
+
+    const titleInput = await screen.findByTestId("mini-site-faq-section-title");
+    await user.clear(titleInput);
+    await user.type(titleInput, "Common questions");
+
+    const questionInput = screen.getByTestId("mini-site-faq-item-0-question");
+    await user.clear(questionInput);
+    await user.type(questionInput, "Do you offer same-day service?");
+
+    const answerInput = screen.getByTestId("mini-site-faq-item-0-answer");
+    await user.clear(answerInput);
+    await user.type(answerInput, "Yes, when availability allows.");
+
+    expect(screen.getByTestId("mini-site-preview-faq-title")).toHaveTextContent("Common questions");
+    expect(screen.getByTestId("mini-site-preview-faq-item-0-question")).toHaveTextContent(
+      "Do you offer same-day service?",
+    );
+    expect(screen.getByTestId("mini-site-preview-faq-item-0-answer")).toHaveTextContent(
+      "Yes, when availability allows.",
+    );
+  });
+
+  it("hides FAQ in live preview when section visibility is disabled", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-live-preview");
+    await user.click(screen.getByTestId("mini-site-toggle-faq"));
+    expect(screen.getByTestId("mini-site-preview-faq")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("mini-site-toggle-faq"));
+    await waitFor(() => {
+      expect(screen.queryByTestId("mini-site-preview-faq")).not.toBeInTheDocument();
+    });
+  });
+
+  it("updates live preview FAQ order with Move up/down controls", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-live-preview");
+    await user.click(screen.getByTestId("mini-site-toggle-faq"));
+
+    const contactInitial = screen.getByTestId("mini-site-preview-contact");
+    const faqInitial = screen.getByTestId("mini-site-preview-faq");
+    expect(faqInitial.compareDocumentPosition(contactInitial) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    await user.click(screen.getByTestId("mini-site-move-up-faq"));
+
+    await waitFor(() => {
+      const contactAfter = screen.getByTestId("mini-site-preview-contact");
+      const faqAfter = screen.getByTestId("mini-site-preview-faq");
+      expect(contactAfter.compareDocumentPosition(faqAfter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+  });
 });
