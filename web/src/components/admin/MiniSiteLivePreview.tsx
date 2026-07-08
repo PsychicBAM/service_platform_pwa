@@ -94,6 +94,8 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const faqItems = copy.faqItems ?? [];
   const visibleFaqItems = getVisibleFaqItems(faqItems);
 
+  const isCleanTemplate = theme.template === "clean";
+
   const orderedSectionTypes = enabledSections
     .filter((section) =>
       ["hero", "about", "services", "trust", "faq", "contact"].includes(section.type),
@@ -111,8 +113,14 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             {copy.trustCards.map((stat) => (
               <div
                 key={stat.subtitle}
-                className={`min-w-0 rounded-md border px-1.5 py-1.5 text-center ${
-                  isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-white/80"
+                className={`min-w-0 text-center ${
+                  isCleanTemplate
+                    ? `rounded-lg border px-2 py-2 ${
+                        isDark ? "border-slate-700/60 bg-slate-900/30" : "border-slate-200/55 bg-white shadow-sm"
+                      }`
+                    : `rounded-md border px-1.5 py-1.5 ${
+                        isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-white/80"
+                      }`
                 }`}
               >
                 <p
@@ -171,7 +179,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             }}
           >
             <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-1"
+              className={presentation.heroTopBarClass}
               style={{
                 background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.accentColor})`,
               }}
@@ -189,8 +197,15 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
               </div>
               <div className="min-w-0 flex-1 space-y-1.5">
                 <p
-                  className="inline-block max-w-full rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide whitespace-normal"
-                  style={{ color: theme.accentColor, backgroundColor: `${theme.accentColor}18` }}
+                  className={`inline-block max-w-full whitespace-normal ${
+                    isCleanTemplate
+                      ? "rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em]"
+                      : "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                  }`}
+                  style={{
+                    color: theme.accentColor,
+                    backgroundColor: `${theme.accentColor}${isCleanTemplate ? "12" : "18"}`,
+                  }}
                   data-testid="mini-site-preview-hero-badge"
                 >
                   {copy.heroBadgeText}
@@ -253,7 +268,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             data-testid="mini-site-preview-about"
           >
             <div
-              className="mb-2 h-1 w-8 rounded-full"
+              className={isCleanTemplate ? "mb-2 h-px w-8" : "mb-2 h-1 w-8 rounded-full"}
               style={{ backgroundColor: theme.accentColor }}
               aria-hidden
             />
@@ -289,7 +304,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             <div className="mb-2 flex flex-wrap items-start justify-between gap-1.5">
               <div className="min-w-0 flex-1">
                 <div
-                  className="mb-1 h-1 w-8 rounded-full"
+                  className={isCleanTemplate ? "mb-1 h-px w-8" : "mb-1 h-1 w-8 rounded-full"}
                   style={{ backgroundColor: theme.primaryColor }}
                   aria-hidden
                 />
@@ -313,7 +328,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             </div>
             <div
               className={`${serviceCardStyle.cardClass} mt-2 min-w-0`}
-              style={{ borderColor: `${theme.primaryColor}44` }}
+              style={{ borderColor: isCleanTemplate ? `${theme.accentColor}30` : `${theme.primaryColor}44` }}
             >
               <p className={`${serviceCardStyle.titleClass} whitespace-normal`}>Sample service</p>
               <p className={`${serviceCardStyle.descriptionClass} whitespace-normal`}>
@@ -323,7 +338,15 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
                 type="button"
                 disabled
                 className={serviceCardStyle.buttonClass}
-                style={{ backgroundColor: theme.primaryColor }}
+                style={
+                  serviceCardStyle.buttonVariant === "outline"
+                    ? {
+                        borderColor: theme.primaryColor,
+                        color: theme.primaryColor,
+                        backgroundColor: "transparent",
+                      }
+                    : { backgroundColor: theme.primaryColor }
+                }
               >
                 View service
               </button>
@@ -343,7 +366,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             data-testid="mini-site-preview-faq"
           >
             <div
-              className="mb-2 h-1 w-8 rounded-full"
+              className={isCleanTemplate ? "mb-2 h-px w-8" : "mb-2 h-1 w-8 rounded-full"}
               style={{ backgroundColor: theme.accentColor }}
               aria-hidden
             />
@@ -362,8 +385,14 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
                 return (
                   <div
                     key={`${index}-${item.question}`}
-                    className={`min-w-0 rounded-md border px-2.5 py-2 ${
-                      isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/80"
+                    className={`min-w-0 ${
+                      isCleanTemplate
+                        ? `rounded-lg border px-2.5 py-2 ${
+                            isDark ? "border-slate-700/60 bg-slate-900/30" : "border-slate-200/55 bg-white shadow-sm"
+                          }`
+                        : `rounded-md border px-2.5 py-2 ${
+                            isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/80"
+                          }`
                     }`}
                     data-testid={`mini-site-preview-faq-item-${index}`}
                   >
@@ -431,7 +460,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
       style={pageShellStyle}
       data-testid="mini-site-preview-frame"
     >
-      <div className="space-y-3">
+      <div className={isCleanTemplate ? "space-y-3.5" : "space-y-3"}>
         {orderedSectionTypes.map((type) => {
           const section = renderSection(type);
           return section ? <div key={type}>{section}</div> : null;

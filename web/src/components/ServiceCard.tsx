@@ -56,14 +56,22 @@ export function ServiceCard({ slug, service, miniSiteTheme }: ServiceCardProps) 
             ? miniSiteTheme.primaryColor
             : miniSiteTheme.template === "clinic"
               ? `${miniSiteTheme.accentColor}55`
-              : undefined,
+              : miniSiteTheme.template === "clean"
+                ? `${miniSiteTheme.accentColor}30`
+                : undefined,
         backgroundColor:
           miniSiteTheme.template === "service" ? `${miniSiteTheme.primaryColor}08` : undefined,
       }
     : undefined;
 
   const buttonStyle = miniSiteTheme
-    ? { backgroundColor: miniSiteTheme.primaryColor, borderColor: miniSiteTheme.primaryColor }
+    ? themed?.buttonVariant === "outline"
+      ? {
+          borderColor: miniSiteTheme.primaryColor,
+          color: miniSiteTheme.primaryColor,
+          backgroundColor: "transparent",
+        }
+      : { backgroundColor: miniSiteTheme.primaryColor, borderColor: miniSiteTheme.primaryColor }
     : undefined;
 
   return (

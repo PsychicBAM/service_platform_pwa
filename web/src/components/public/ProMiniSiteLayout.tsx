@@ -13,7 +13,9 @@ import {
 import {
   getMiniSitePageShellClass,
   getMiniSitePageShellStyle,
+  getMiniSiteSectionCardSurface,
   getMiniSiteTemplatePresentation,
+  type MiniSiteTemplatePresentation,
 } from "@/lib/miniSiteTemplatePresentation";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import type {
@@ -90,14 +92,12 @@ function labelTextClass(backgroundStyle: MiniSiteBackgroundStyle): string {
 }
 
 function sectionCardClass(
+  template: MiniSiteTemplate,
   backgroundStyle: MiniSiteBackgroundStyle,
-  presentationClass: string,
+  presentation: MiniSiteTemplatePresentation,
 ): string {
-  const surface =
-    backgroundStyle === "dark"
-      ? "border-slate-700/80 bg-slate-900/60 text-slate-100 shadow-lg shadow-black/20"
-      : "border-slate-200/90 bg-white text-slate-900 shadow-md shadow-slate-200/40";
-  return `rounded-2xl border p-6 md:p-9 ${surface} ${presentationClass}`;
+  const surface = getMiniSiteSectionCardSurface(template, backgroundStyle);
+  return `border ${presentation.sectionPaddingClass} ${presentation.sectionRadiusClass} ${surface} ${presentation.sectionClass}`;
 }
 
 function SectionHeading({
@@ -107,6 +107,7 @@ function SectionHeading({
   className,
   isDark,
   template,
+  accentClass,
 }: {
   id?: string;
   title: string;
@@ -114,12 +115,13 @@ function SectionHeading({
   className: string;
   isDark: boolean;
   template: MiniSiteTemplate;
+  accentClass: string;
 }) {
   const clinicTint = !isDark && template === "clinic" ? "text-emerald-950" : "";
 
   return (
-    <div className="mb-5 space-y-2">
-      <div className="h-1 w-12 rounded-full" style={{ backgroundColor: accentColor }} aria-hidden />
+    <div className="space-y-2">
+      <div className={accentClass} style={{ backgroundColor: accentColor }} aria-hidden />
       <h2 id={id} className={`${className} ${clinicTint}`}>
         {title}
       </h2>
@@ -130,26 +132,25 @@ function SectionHeading({
 function TrustStatsRow({
   stats,
   primaryColor,
+  statClass,
   isDark,
 }: {
   stats: { title: string; subtitle: string }[];
   primaryColor: string;
+  statClass: string;
   isDark: boolean;
 }) {
   return (
     <div className="mt-6 grid gap-3 sm:grid-cols-3" data-testid="pro-mini-site-trust-stats">
       {stats.map((stat) => (
-        <div
-          key={stat.subtitle}
-          className={`rounded-xl border px-4 py-3 text-center ${
-            isDark ? "border-slate-700/80 bg-slate-900/50" : "border-slate-200/80 bg-white/80"
-          }`}
-        >
-          <p className="break-words text-lg font-bold" style={{ color: primaryColor }}>
+        <div key={stat.subtitle} className={statClass}>
+          <p className="break-words text-lg font-semibold" style={{ color: primaryColor }}>
             {stat.title}
           </p>
           <p
-            className={`mt-0.5 break-words text-xs font-medium uppercase tracking-wide ${isDark ? "text-slate-400" : "text-slate-500"}`}
+            className={`mt-1 break-words text-xs font-medium tracking-wide ${
+              isDark ? "text-slate-400" : "text-slate-500"
+            }`}
           >
             {stat.subtitle}
           </p>
@@ -207,22 +208,18 @@ function SocialLinksList({
   links,
   mutedText,
   labelText,
-  isDark,
+  chipClass,
 }: {
   links: MiniSiteSocialLinks;
   mutedText: string;
   labelText: string;
-  isDark: boolean;
+  chipClass: string;
 }) {
   const entries = getVisibleSocialLinks(links);
 
   if (entries.length === 0) {
     return null;
   }
-
-  const chipClass = isDark
-    ? "border-slate-700 bg-slate-900/40"
-    : "border-slate-200/80 bg-slate-50/80";
 
   return (
     <div className="mt-5 grid gap-2 sm:grid-cols-2" data-testid="pro-mini-site-social-links">
@@ -301,10 +298,12 @@ export function ProMiniSiteLayout({
 
   const primaryCtaClass = `${presentation.primaryButtonClass} ${sectionBorder}`;
   const secondaryCtaClass = `${presentation.secondaryButtonClass} ${sectionBorder}`;
+  const heroPadding = presentation.heroPaddingClass || "p-6 md:p-10 lg:p-12";
+  const isCleanTemplate = theme.template === "clean";
 
   const renderHero = () => (
     <header
-      className={`relative overflow-hidden rounded-2xl border p-6 md:p-10 lg:p-12 ${sectionBorder} ${presentation.heroClass}`}
+      className={`relative overflow-hidden border ${presentation.sectionRadiusClass} ${heroPadding} ${sectionBorder} ${presentation.heroClass}`}
       data-testid="pro-mini-site-hero"
       style={{
         borderColor: theme.template === "service" ? theme.primaryColor : theme.accentColor,
@@ -312,7 +311,7 @@ export function ProMiniSiteLayout({
       }}
     >
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-1.5"
+        className={presentation.heroTopBarClass}
         style={{
           background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.accentColor})`,
         }}
@@ -339,12 +338,12 @@ export function ProMiniSiteLayout({
             {business.name.charAt(0).toUpperCase()}
           </div>
         )}
-        <div className="min-w-0 flex-1 space-y-3">
+        <div className="min-w-0 flex-1 space-y-3 md:space-y-4">
           <p
-            className="inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
+            className={presentation.heroBadgeClass}
             style={{
               color: theme.accentColor,
-              backgroundColor: `${theme.accentColor}18`,
+              backgroundColor: `${theme.accentColor}${isCleanTemplate ? "12" : "18"}`,
             }}
           >
             {copy.heroBadgeText}
@@ -377,7 +376,7 @@ export function ProMiniSiteLayout({
       </div>
 
       <div
-        className={`mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap ${hasCenteredHeroLayout ? "sm:justify-center" : ""}`}
+        className={`mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap ${hasCenteredHeroLayout ? "sm:justify-center" : ""} ${isCleanTemplate ? "md:mt-10 md:gap-4" : ""}`}
         data-testid="pro-mini-site-hero-cta-group"
       >
         {ctas.showBookingCta && hasMeaningfulText(primaryCtaLabel) ? (
@@ -406,7 +405,7 @@ export function ProMiniSiteLayout({
 
   const renderAbout = () => (
     <section
-      className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
+      className={sectionCardClass(theme.template, theme.backgroundStyle, presentation)}
       data-testid="pro-mini-site-about"
     >
       <SectionHeading
@@ -415,6 +414,7 @@ export function ProMiniSiteLayout({
         className={presentation.sectionHeadingClass}
         isDark={isDark}
         template={theme.template}
+        accentClass={presentation.sectionHeadingAccentClass}
       />
       {aboutBody ? (
         <p
@@ -435,11 +435,16 @@ export function ProMiniSiteLayout({
 
   const renderTrust = () => (
     <section
-      className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
+      className={sectionCardClass(theme.template, theme.backgroundStyle, presentation)}
       data-testid="pro-mini-site-trust"
     >
       {presentation.showTrustStats ? (
-        <TrustStatsRow stats={copy.trustCards} primaryColor={theme.primaryColor} isDark={isDark} />
+        <TrustStatsRow
+          stats={copy.trustCards}
+          primaryColor={theme.primaryColor}
+          statClass={presentation.trustStatClass}
+          isDark={isDark}
+        />
       ) : null}
 
       {presentation.showBenefitsStrip && !benefitsSectionEnabled ? (
@@ -460,7 +465,7 @@ export function ProMiniSiteLayout({
 
     return (
       <section
-        className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
+        className={sectionCardClass(theme.template, theme.backgroundStyle, presentation)}
         aria-labelledby="pro-mini-site-faq-heading"
         data-testid="pro-mini-site-faq"
       >
@@ -471,6 +476,7 @@ export function ProMiniSiteLayout({
           className={presentation.sectionHeadingClass}
           isDark={isDark}
           template={theme.template}
+          accentClass={presentation.sectionHeadingAccentClass}
         />
         <div className="space-y-3">
           {faqItems.map((item, index) => {
@@ -481,13 +487,17 @@ export function ProMiniSiteLayout({
             return (
               <div
                 key={`${index}-${item.question}`}
-                className={`min-w-0 rounded-xl border px-4 py-3 ${
-                  isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-200/80 bg-slate-50/80"
-                }`}
+                className={presentation.faqItemClass}
                 data-testid={`pro-mini-site-faq-item-${index}`}
               >
                 <p
-                  className="text-sm font-semibold whitespace-normal"
+                  className={`text-sm whitespace-normal ${
+                    isCleanTemplate
+                      ? isDark
+                        ? "font-medium"
+                        : "font-medium text-slate-900"
+                      : "font-semibold"
+                  }`}
                   data-testid={`pro-mini-site-faq-item-${index}-question`}
                 >
                   {item.question}
@@ -508,7 +518,10 @@ export function ProMiniSiteLayout({
 
   const renderServices = () => (
     <section
-      className={`${sectionCardClass(theme.backgroundStyle, `${presentation.sectionClass} ${presentation.servicesClass}`)}`}
+      className={sectionCardClass(theme.template, theme.backgroundStyle, {
+        ...presentation,
+        sectionClass: `${presentation.sectionClass} ${presentation.servicesClass}`,
+      })}
       aria-labelledby="pro-mini-site-services-heading"
       data-testid="pro-mini-site-services"
       style={
@@ -519,14 +532,18 @@ export function ProMiniSiteLayout({
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-2">
-          <div className="h-1 w-10 rounded-full" style={{ backgroundColor: theme.primaryColor }} aria-hidden />
+          <div
+            className={isCleanTemplate ? "mb-2 h-px w-10" : "h-1 w-10 rounded-full"}
+            style={{ backgroundColor: theme.primaryColor }}
+            aria-hidden
+          />
           <h2 id="pro-mini-site-services-heading" className={presentation.sectionHeadingClass}>
             {servicesTitle}
           </h2>
         </div>
         {servicesBadgeText ? (
           <span
-            className="rounded-full px-3 py-1 text-xs font-semibold"
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${isCleanTemplate ? "font-medium" : ""}`}
             style={{
               color: theme.primaryColor,
               backgroundColor: `${theme.primaryColor}15`,
@@ -538,7 +555,7 @@ export function ProMiniSiteLayout({
         ) : null}
       </div>
       {services && services.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className={`grid gap-4 ${isCleanTemplate ? "md:grid-cols-2 md:gap-5" : "md:grid-cols-2"}`}>
           {services.map((service) => (
             <ServiceCard
               key={service.id}
@@ -570,7 +587,7 @@ export function ProMiniSiteLayout({
 
     return (
       <section
-        className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
+        className={sectionCardClass(theme.template, theme.backgroundStyle, presentation)}
         aria-labelledby="pro-mini-site-contact-heading"
         data-testid="pro-mini-site-contact"
       >
@@ -581,20 +598,17 @@ export function ProMiniSiteLayout({
           className={presentation.sectionHeadingClass}
           isDark={isDark}
           template={theme.template}
+          accentClass={presentation.sectionHeadingAccentClass}
         />
         <dl className={`grid gap-3 sm:grid-cols-2 ${mutedText}`}>
           {hasMeaningfulText(contactAddress) ? (
-            <div
-              className={`rounded-xl border px-4 py-3 ${presentation.contactChipClass}`}
-            >
+            <div className={`rounded-xl border px-4 py-3 ${presentation.contactChipClass}`}>
               <dt className={`text-xs font-semibold uppercase tracking-wide ${labelText}`}>Address</dt>
               <dd className="mt-1 text-sm">{contactAddress}</dd>
             </div>
           ) : null}
           {hasMeaningfulText(contactPhone) ? (
-            <div
-              className={`rounded-xl border px-4 py-3 ${presentation.contactChipClass}`}
-            >
+            <div className={`rounded-xl border px-4 py-3 ${presentation.contactChipClass}`}>
               <dt className={`text-xs font-semibold uppercase tracking-wide ${labelText}`}>Phone</dt>
               <dd className="mt-1 text-sm">
                 <a
@@ -608,7 +622,12 @@ export function ProMiniSiteLayout({
             </div>
           ) : null}
         </dl>
-        <SocialLinksList links={socialLinks} mutedText={mutedText} labelText={labelText} isDark={isDark} />
+        <SocialLinksList
+          links={socialLinks}
+          mutedText={mutedText}
+          labelText={labelText}
+          chipClass={presentation.contactChipClass}
+        />
       </section>
     );
   };
@@ -620,7 +639,10 @@ export function ProMiniSiteLayout({
 
     return (
       <section
-        className={`${sectionCardClass(theme.backgroundStyle, `${presentation.sectionClass} ${presentation.bookingCtaClass}`)} py-10 text-center md:py-12`}
+        className={`${sectionCardClass(theme.template, theme.backgroundStyle, {
+          ...presentation,
+          sectionClass: `${presentation.sectionClass} ${presentation.bookingCtaClass}`,
+        })} py-10 text-center md:py-12`}
         data-testid="pro-mini-site-booking-cta-section"
         style={{ backgroundColor: `${theme.primaryColor}08` }}
       >
@@ -638,7 +660,10 @@ export function ProMiniSiteLayout({
 
   const renderGallery = () => (
     <section
-      className={`${sectionCardClass(theme.backgroundStyle, presentation.galleryClass)} py-10 text-center md:py-14`}
+      className={`${sectionCardClass(theme.template, theme.backgroundStyle, {
+        ...presentation,
+        sectionClass: presentation.galleryClass,
+      })} py-10 text-center md:py-14`}
       aria-labelledby="pro-mini-site-gallery-heading"
       data-testid="pro-mini-site-gallery-placeholder"
       style={
@@ -670,7 +695,7 @@ export function ProMiniSiteLayout({
     return (
       <section
         key={type}
-        className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
+        className={sectionCardClass(theme.template, theme.backgroundStyle, presentation)}
         data-testid={`pro-mini-site-${type}`}
       >
         <SectionHeading
@@ -679,6 +704,7 @@ export function ProMiniSiteLayout({
           className={presentation.sectionHeadingClass}
           isDark={isDark}
           template={theme.template}
+          accentClass={presentation.sectionHeadingAccentClass}
         />
         {sectionBody ? (
           <p className={`text-sm leading-relaxed md:text-base ${mutedText}`}>{sectionBody}</p>
@@ -722,7 +748,7 @@ export function ProMiniSiteLayout({
       data-background-color={theme.backgroundColor}
     >
       <section
-        className={`space-y-10 md:space-y-12 ${presentation.layoutClass}`}
+        className={`${presentation.layoutSpacingClass} ${presentation.layoutClass}`}
         data-testid="pro-mini-site-layout"
         data-template={theme.template}
         data-template-presentation={theme.template}
