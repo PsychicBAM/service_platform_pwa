@@ -387,7 +387,6 @@ export function ServiceHeroSection({
             {showBookingCta && hasMeaningfulText(primaryCtaLabel)
               ? renderCtaButton({
                   previewButtons,
-                  testIdPrefix,
                   label: primaryCtaLabel,
                   href: primaryBookingHref,
                   className: `${presentation.primaryButtonClass} w-full`,
@@ -398,7 +397,6 @@ export function ServiceHeroSection({
             {showRequestCta && hasMeaningfulText(secondaryCtaLabel)
               ? renderCtaButton({
                   previewButtons,
-                  testIdPrefix,
                   label: secondaryCtaLabel,
                   href: secondaryOrderHref,
                   className: `${presentation.secondaryButtonClass} w-full border-white/30 bg-white/10 text-white hover:bg-white/20`,
@@ -873,7 +871,6 @@ export function ServiceBookingCtaSection({
       >
         {renderCtaButton({
           previewButtons,
-          testIdPrefix,
           label: primaryLabel,
           href: primaryHref,
           className: `${presentation.primaryButtonClass} ${isPreview ? "" : "min-w-[200px]"}`,
@@ -883,7 +880,6 @@ export function ServiceBookingCtaSection({
         {showSecondaryCta
           ? renderCtaButton({
               previewButtons,
-              testIdPrefix,
               label: secondaryLabel!,
               href: secondaryHref!,
               className: `${presentation.secondaryButtonClass} ${isPreview ? "" : "min-w-[200px]"} border-white/40 bg-white/10 text-white hover:bg-white/20`,
