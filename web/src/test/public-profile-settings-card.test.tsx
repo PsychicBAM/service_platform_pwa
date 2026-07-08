@@ -216,6 +216,25 @@ describe("PublicProfileSettingsCard", () => {
     });
   });
 
+  it("updates live preview section order with Move up/down controls", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-live-preview");
+
+    const aboutInitial = screen.getByTestId("mini-site-preview-about");
+    const servicesInitial = screen.getByTestId("mini-site-preview-services");
+    expect(aboutInitial.compareDocumentPosition(servicesInitial) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    await user.click(screen.getByTestId("mini-site-move-down-about"));
+
+    await waitFor(() => {
+      const aboutAfter = screen.getByTestId("mini-site-preview-about");
+      const servicesAfter = screen.getByTestId("mini-site-preview-services");
+      expect(servicesAfter.compareDocumentPosition(aboutAfter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+  });
+
   it("updates live preview when hero title changes", async () => {
     const user = userEvent.setup();
     renderPublicProfileCard("pro");

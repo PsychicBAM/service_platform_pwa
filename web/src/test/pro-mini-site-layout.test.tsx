@@ -277,6 +277,40 @@ describe("ProMiniSiteLayout", () => {
     expect(screen.queryByTestId("pro-mini-site-benefits-strip")).not.toBeInTheDocument();
   });
 
+  it("respects configured ordering for enabled sections (hero pinned first)", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: [
+        { id: "hero", type: "hero", enabled: true, order: 50, title: "Saved hero title" },
+        { id: "about", type: "about", enabled: true, order: 3, title: "About our team" },
+        { id: "services", type: "services", enabled: true, order: 1, title: "Services" },
+        { id: "trust", type: "trust", enabled: true, order: 2, title: "Trust" },
+        { id: "contact", type: "contact", enabled: true, order: 4, title: "Contact" },
+        { id: "booking_cta", type: "booking_cta", enabled: false, order: 5 },
+        { id: "gallery", type: "gallery", enabled: false, order: 6 },
+      ],
+      socialLinks: {},
+    });
+
+    renderProMiniSiteLayout({ config });
+
+    const hero = screen.getByTestId("pro-mini-site-hero");
+    const services = screen.getByTestId("pro-mini-site-services");
+    const trust = screen.getByTestId("pro-mini-site-trust");
+    const about = screen.getByTestId("pro-mini-site-about");
+    const contact = screen.getByTestId("pro-mini-site-contact");
+
+    // Hero stays first regardless of configured order.
+    expect(hero.compareDocumentPosition(services) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(hero.compareDocumentPosition(trust) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // services (1) -> trust (2) -> about (3) -> contact (4)
+    expect(services.compareDocumentPosition(trust) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(trust.compareDocumentPosition(about) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(about.compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("does not render gallery placeholder when gallery section is disabled", () => {
     renderProMiniSiteLayout();
 

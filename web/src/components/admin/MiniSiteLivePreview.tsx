@@ -32,10 +32,6 @@ function getSectionField(
   return section?.[field] ?? "";
 }
 
-function isSectionEnabled(config: MiniSiteConfig, type: MiniSiteSectionType): boolean {
-  return config.sections.some((section) => section.type === type && section.enabled);
-}
-
 function previewMutedTextClass(backgroundStyle: MiniSiteBackgroundStyle): string {
   return backgroundStyle === "dark" ? "text-slate-300" : "text-slate-600";
 }
@@ -80,9 +76,6 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const benefitsSectionEnabled = config.sections.some(
     (section) => section.type === "benefits" && section.enabled,
   );
-  const trustSectionEnabled = config.sections.some(
-    (section) => section.type === "trust" && section.enabled,
-  );
   const serviceCardStyle = getMiniSitePreviewServiceCardPresentation(
     theme.template,
     theme.backgroundStyle,
@@ -90,14 +83,70 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   );
   const servicesBadge = formatServicesSectionBadge(copy.servicesSectionBadgeText, 2);
 
-  const previewContent = (
-    <div
-      className={`${pageShellClass} template-${theme.template} mx-auto w-full max-w-none`}
-      style={pageShellStyle}
-      data-testid="mini-site-preview-frame"
-    >
-      <div className="space-y-3">
-        {isSectionEnabled(config, "hero") ? (
+  const orderedSectionTypes = enabledSections
+    .filter((section) => ["hero", "about", "services", "trust", "contact"].includes(section.type))
+    .map((section) => section.type);
+
+  function renderTrust() {
+    return (
+      <section
+        className={previewCardClass(theme.backgroundStyle, presentation.sectionClass)}
+        data-testid="mini-site-preview-trust"
+      >
+        {presentation.showTrustStats ? (
+          <div className="grid grid-cols-3 gap-1.5" data-testid="mini-site-preview-trust-stats">
+            {copy.trustCards.map((stat) => (
+              <div
+                key={stat.subtitle}
+                className={`min-w-0 rounded-md border px-1.5 py-1.5 text-center ${
+                  isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-white/80"
+                }`}
+              >
+                <p
+                  className="text-xs font-bold leading-snug whitespace-normal"
+                  style={{ color: theme.primaryColor }}
+                >
+                  {stat.title}
+                </p>
+                <p
+                  className={`mt-0.5 text-[10px] font-medium uppercase leading-snug whitespace-normal ${
+                    isDark ? "text-slate-400" : "text-slate-500"
+                  }`}
+                >
+                  {stat.subtitle}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {presentation.showBenefitsStrip && !benefitsSectionEnabled ? (
+          <div
+            className={`mt-3 rounded-md border px-2.5 py-2 ${
+              isDark ? "border-slate-700 bg-slate-900/40" : "border-slate-200 bg-slate-50/80"
+            }`}
+            data-testid="mini-site-preview-benefits-strip"
+          >
+            <p className={`mb-1 text-[10px] font-semibold uppercase whitespace-normal ${mutedText}`}>
+              {copy.benefitsSectionTitle}
+            </p>
+            <ul className="space-y-1">
+              {copy.benefitsItems.filter(Boolean).map((item) => (
+                <li key={item} className={`text-xs leading-snug whitespace-normal ${mutedText}`}>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </section>
+    );
+  }
+
+  function renderSection(type: MiniSiteSectionType): JSX.Element | null {
+    switch (type) {
+      case "hero":
+        return (
           <header
             className={`relative overflow-hidden ${previewCardClass(theme.backgroundStyle, presentation.heroClass)} ${
               theme.template === "expert" ? "text-center" : ""
@@ -133,7 +182,10 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
                 >
                   {copy.heroBadgeText}
                 </p>
-                <h4 className={`${heroTitleClass} min-w-0 whitespace-normal`} data-testid="mini-site-preview-hero-title">
+                <h4
+                  className={`${heroTitleClass} min-w-0 whitespace-normal`}
+                  data-testid="mini-site-preview-hero-title"
+                >
                   {heroTitle}
                 </h4>
                 {heroSubtitle ? (
@@ -154,48 +206,6 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
                 ) : null}
               </div>
             </div>
-
-            {presentation.showTrustStats && trustSectionEnabled ? (
-              <div className="mt-3 grid grid-cols-3 gap-1.5" data-testid="mini-site-preview-trust-stats">
-                {copy.trustCards.map((stat) => (
-                  <div
-                    key={stat.subtitle}
-                    className={`min-w-0 rounded-md border px-1.5 py-1.5 text-center ${
-                      isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-white/80"
-                    }`}
-                  >
-                    <p className="text-xs font-bold leading-snug whitespace-normal" style={{ color: theme.primaryColor }}>
-                      {stat.title}
-                    </p>
-                    <p
-                      className={`mt-0.5 text-[10px] font-medium uppercase leading-snug whitespace-normal ${isDark ? "text-slate-400" : "text-slate-500"}`}
-                    >
-                      {stat.subtitle}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-
-            {presentation.showBenefitsStrip && trustSectionEnabled && !benefitsSectionEnabled ? (
-              <div
-                className={`mt-3 rounded-md border px-2.5 py-2 ${
-                  isDark ? "border-slate-700 bg-slate-900/40" : "border-slate-200 bg-slate-50/80"
-                }`}
-                data-testid="mini-site-preview-benefits-strip"
-              >
-                <p className={`mb-1 text-[10px] font-semibold uppercase whitespace-normal ${mutedText}`}>
-                  {copy.benefitsSectionTitle}
-                </p>
-                <ul className="space-y-1">
-                  {copy.benefitsItems.filter(Boolean).map((item) => (
-                    <li key={item} className={`text-xs leading-snug whitespace-normal ${mutedText}`}>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
 
             <div className="mt-3 flex w-full flex-col gap-1.5">
               <button
@@ -218,15 +228,22 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
               </button>
             </div>
           </header>
-        ) : null}
-
-        {isSectionEnabled(config, "about") ? (
+        );
+      case "about":
+        return (
           <section
             className={previewCardClass(theme.backgroundStyle, presentation.sectionClass)}
             data-testid="mini-site-preview-about"
           >
-            <div className="mb-2 h-1 w-8 rounded-full" style={{ backgroundColor: theme.accentColor }} aria-hidden />
-            <h4 className={`${sectionHeadingClass} min-w-0 whitespace-normal`} data-testid="mini-site-preview-about-title">
+            <div
+              className="mb-2 h-1 w-8 rounded-full"
+              style={{ backgroundColor: theme.accentColor }}
+              aria-hidden
+            />
+            <h4
+              className={`${sectionHeadingClass} min-w-0 whitespace-normal`}
+              data-testid="mini-site-preview-about-title"
+            >
               {aboutTitle}
             </h4>
             {aboutBody ? (
@@ -240,14 +257,11 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
               <p className={`mt-1.5 text-xs italic ${mutedText}`}>About text will appear here.</p>
             )}
           </section>
-        ) : null}
-
-        {isSectionEnabled(config, "services") ? (
+        );
+      case "services":
+        return (
           <section
-            className={previewCardClass(
-              theme.backgroundStyle,
-              `${presentation.sectionClass} ${presentation.servicesClass}`,
-            )}
+            className={previewCardClass(theme.backgroundStyle, `${presentation.sectionClass} ${presentation.servicesClass}`)}
             data-testid="mini-site-preview-services"
             style={
               theme.template === "service"
@@ -257,9 +271,15 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
           >
             <div className="mb-2 flex flex-wrap items-start justify-between gap-1.5">
               <div className="min-w-0 flex-1">
-                <div className="mb-1 h-1 w-8 rounded-full" style={{ backgroundColor: theme.primaryColor }} aria-hidden />
+                <div
+                  className="mb-1 h-1 w-8 rounded-full"
+                  style={{ backgroundColor: theme.primaryColor }}
+                  aria-hidden
+                />
                 <p
-                  className={`${sectionHeadingClass} min-w-0 whitespace-normal ${theme.template === "portfolio" ? "uppercase tracking-wide" : ""}`}
+                  className={`${sectionHeadingClass} min-w-0 whitespace-normal ${
+                    theme.template === "portfolio" ? "uppercase tracking-wide" : ""
+                  }`}
                   data-testid="mini-site-preview-services-title"
                 >
                   {servicesTitle}
@@ -292,14 +312,19 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
               </button>
             </div>
           </section>
-        ) : null}
-
-        {isSectionEnabled(config, "contact") || socialLinks.website || socialLinks.instagram ? (
+        );
+      case "trust":
+        return renderTrust();
+      case "contact":
+        return (
           <section
             className={previewCardClass(theme.backgroundStyle, presentation.sectionClass)}
             data-testid="mini-site-preview-contact"
           >
-            <h4 className="min-w-0 text-xs font-semibold whitespace-normal" data-testid="mini-site-preview-contact-title">
+            <h4
+              className="min-w-0 text-xs font-semibold whitespace-normal"
+              data-testid="mini-site-preview-contact-title"
+            >
               {contactTitle}
             </h4>
             <div className={`mt-1.5 space-y-1 text-xs whitespace-normal ${mutedText}`}>
@@ -318,7 +343,22 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
               ) : null}
             </div>
           </section>
-        ) : null}
+        );
+      default:
+        return null;
+    }
+  }
+
+  const previewContent = (
+    <div
+      className={`${pageShellClass} template-${theme.template} mx-auto w-full max-w-none`}
+      style={pageShellStyle}
+      data-testid="mini-site-preview-frame"
+    >
+      <div className="space-y-3">
+        {orderedSectionTypes.map((type) => (
+          <div key={type}>{renderSection(type)}</div>
+        ))}
 
         <section
           className={`${previewCardClass(theme.backgroundStyle, `border-dashed text-center ${presentation.galleryClass}`)} py-6`}

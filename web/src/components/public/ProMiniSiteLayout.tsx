@@ -292,9 +292,6 @@ export function ProMiniSiteLayout({
   const benefitsSectionEnabled = siteConfig.sections.some(
     (section) => section.type === "benefits" && section.enabled,
   );
-  const trustSectionEnabled = siteConfig.sections.some(
-    (section) => section.type === "trust" && section.enabled,
-  );
   const serviceCardTheme = {
     template: theme.template,
     primaryColor: theme.primaryColor,
@@ -384,19 +381,6 @@ export function ProMiniSiteLayout({
         </div>
       </div>
 
-      {presentation.showTrustStats && trustSectionEnabled ? (
-        <TrustStatsRow stats={copy.trustCards} primaryColor={theme.primaryColor} isDark={isDark} />
-      ) : null}
-
-      {presentation.showBenefitsStrip && trustSectionEnabled && !benefitsSectionEnabled ? (
-        <BenefitsStrip
-          title={copy.benefitsSectionTitle}
-          items={copy.benefitsItems.filter(Boolean)}
-          primaryColor={theme.primaryColor}
-          isDark={isDark}
-        />
-      ) : null}
-
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         {ctas.showBookingCta ? (
           <Link
@@ -448,6 +432,26 @@ export function ProMiniSiteLayout({
       ) : (
         <p className={`text-sm italic ${mutedText}`}>About text will appear here.</p>
       )}
+    </section>
+  );
+
+  const renderTrust = () => (
+    <section
+      className={sectionCardClass(theme.backgroundStyle, presentation.sectionClass)}
+      data-testid="pro-mini-site-trust"
+    >
+      {presentation.showTrustStats ? (
+        <TrustStatsRow stats={copy.trustCards} primaryColor={theme.primaryColor} isDark={isDark} />
+      ) : null}
+
+      {presentation.showBenefitsStrip && !benefitsSectionEnabled ? (
+        <BenefitsStrip
+          title={copy.benefitsSectionTitle}
+          items={copy.benefitsItems.filter(Boolean)}
+          primaryColor={theme.primaryColor}
+          isDark={isDark}
+        />
+      ) : null}
     </section>
   );
 
@@ -633,6 +637,8 @@ export function ProMiniSiteLayout({
         return renderAbout();
       case "services":
         return renderServices();
+      case "trust":
+        return renderTrust();
       case "contact":
         return renderContact();
       case "booking_cta":

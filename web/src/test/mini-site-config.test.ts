@@ -184,7 +184,29 @@ describe("mini-site config helpers", () => {
     const enabled = getEnabledMiniSiteSections(config);
 
     expect(enabled.every((section) => section.enabled)).toBe(true);
-    expect(enabled.map((section) => section.type)).toEqual(["hero", "contact"]);
+    expect(enabled.map((section) => section.type)).toEqual(["hero", "trust", "contact"]);
+  });
+
+  it("preserves custom order for core sections including trust", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: [
+        { id: "hero", type: "hero", enabled: true, order: 10 },
+        { id: "about", type: "about", enabled: true, order: 3 },
+        { id: "services", type: "services", enabled: true, order: 1 },
+        { id: "trust", type: "trust", enabled: true, order: 2 },
+        { id: "contact", type: "contact", enabled: true, order: 4 },
+        { id: "booking_cta", type: "booking_cta", enabled: false, order: 5 },
+        { id: "gallery", type: "gallery", enabled: false, order: 6 },
+      ],
+      socialLinks: {},
+    });
+
+    const enabled = getEnabledMiniSiteSections(config);
+
+    // Hero is always pinned first, but the other sections keep their configured order.
+    expect(enabled.map((section) => section.type)).toEqual(["hero", "services", "trust", "about", "contact"]);
   });
 
   it("template and section type guards work", () => {

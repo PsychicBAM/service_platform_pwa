@@ -35,7 +35,7 @@ const DEFAULT_SECTION_ORDERS: Record<MiniSiteSectionType, number> = {
   about: 1,
   services: 2,
   benefits: 3,
-  trust: 2,
+  trust: 3,
   gallery: 4,
   pricing: 5,
   faq: 6,
@@ -525,7 +525,11 @@ export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
 
 export function getEnabledMiniSiteSections(config: MiniSiteConfig): MiniSiteSection[] {
   return config.sections
-    .filter((section) => section.enabled && section.type !== "trust")
+    .filter((section) => section.enabled)
     .slice()
-    .sort((left, right) => left.order - right.order);
+    .sort((left, right) => {
+      if (left.type === "hero" && right.type !== "hero") return -1;
+      if (right.type === "hero" && left.type !== "hero") return 1;
+      return left.order - right.order;
+    });
 }
