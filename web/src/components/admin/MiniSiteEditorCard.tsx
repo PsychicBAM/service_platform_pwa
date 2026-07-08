@@ -307,33 +307,43 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
   }
 
   const reorderableSectionTypes = ["about", "services", "trust", "contact"] as const;
-  function getSectionOrder(type: (typeof reorderableSectionTypes)[number]): number {
-    return draft.sections.find((section) => section.type === type)?.order ?? 0;
+  type ReorderableSectionType = (typeof reorderableSectionTypes)[number];
+
+  function getSectionOrder(config: MiniSiteConfig, type: ReorderableSectionType): number {
+    return config.sections.find((section) => section.type === type)?.order ?? 0;
   }
 
-  function moveSection(type: (typeof reorderableSectionTypes)[number], direction: -1 | 1) {
-    const sorted = [...reorderableSectionTypes].sort(
-      (a, b) => getSectionOrder(a) - getSectionOrder(b),
-    );
-    const index = sorted.indexOf(type);
-    const neighbor = sorted[index + direction];
-    if (!neighbor) return;
+  function moveSection(type: ReorderableSectionType, direction: -1 | 1) {
+    setDraft((current) => {
+      if (!current) {
+        return current;
+      }
 
-    const currentOrder = getSectionOrder(type);
-    const neighborOrder = getSectionOrder(neighbor);
+      const sorted = [...reorderableSectionTypes].sort(
+        (a, b) => getSectionOrder(current, a) - getSectionOrder(current, b),
+      );
+      const index = sorted.indexOf(type);
+      const neighbor = sorted[index + direction];
+      if (!neighbor) {
+        return current;
+      }
 
-    setDraft({
-      ...draft,
-      sections: draft.sections.map((section) => {
-        if (section.type === type) return { ...section, order: neighborOrder };
-        if (section.type === neighbor) return { ...section, order: currentOrder };
-        return section;
-      }),
+      const currentOrder = getSectionOrder(current, type);
+      const neighborOrder = getSectionOrder(current, neighbor);
+
+      return {
+        ...current,
+        sections: current.sections.map((section) => {
+          if (section.type === type) return { ...section, order: neighborOrder };
+          if (section.type === neighbor) return { ...section, order: currentOrder };
+          return section;
+        }),
+      };
     });
   }
 
   const sortedReorderableSections = [...reorderableSectionTypes].sort(
-    (a, b) => getSectionOrder(a) - getSectionOrder(b),
+    (a, b) => getSectionOrder(draft, a) - getSectionOrder(draft, b),
   );
   const aboutIndex = sortedReorderableSections.indexOf("about");
   const servicesIndex = sortedReorderableSections.indexOf("services");
