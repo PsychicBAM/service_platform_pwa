@@ -644,8 +644,8 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
               <DisabledMediaField
                 id="mini-site-cover-upload"
                 label="Cover image"
-                placeholder="Coming soon"
-                hint="Cover upload coming soon."
+                placeholder="Cover image upload coming soon"
+                hint="Cover image upload coming soon."
               />
             </div>
             <p className="text-xs text-slate-500" data-testid="public-profile-media-placeholder">
