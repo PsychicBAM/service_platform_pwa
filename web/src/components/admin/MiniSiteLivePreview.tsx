@@ -1,4 +1,12 @@
 import {
+  ServiceAboutSection,
+  ServiceContactSection,
+  ServiceFaqSection,
+  ServiceHeroSection,
+  ServiceServicesSection,
+  ServiceTrustSection,
+} from "@/components/public/ServiceProMiniSiteSections";
+import {
   CleanAboutSection,
   CleanContactSection,
   CleanFaqSection,
@@ -104,11 +112,18 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const visibleFaqItems = getVisibleFaqItems(faqItems);
 
   const isCleanTemplate = theme.template === "clean";
+  const isServiceTemplate = theme.template === "service";
   const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
   const cleanTheme = {
     primaryColor: theme.primaryColor,
     accentColor: theme.accentColor,
     backgroundStyle: theme.backgroundStyle,
+  };
+  const serviceTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+    buttonStyle: theme.buttonStyle,
   };
   const previewBusiness = {
     name: businessName,
@@ -117,6 +132,11 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   } as PublicBusiness;
   const showCleanHeroTrustStrip =
     isCleanTemplate &&
+    presentation.showTrustStats &&
+    !trustSectionEnabled &&
+    copy.trustCards.length > 0;
+  const showServiceHeroTrustRow =
+    isServiceTemplate &&
     presentation.showTrustStats &&
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
@@ -286,9 +306,110 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     }
   }
 
+  function renderServicePreviewSection(type: MiniSiteSectionType): JSX.Element | null {
+    const shell = {
+      variant: "preview" as const,
+      testIdPrefix: "mini-site-preview",
+      previewButtons: true,
+    };
+
+    switch (type) {
+      case "hero":
+        return (
+          <ServiceHeroSection
+            {...shell}
+            business={previewBusiness}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            copy={copy}
+            theme={serviceTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref="#"
+            secondaryOrderHref="#"
+            showBookingCta={hasMeaningfulText(primaryCtaLabel)}
+            showRequestCta={hasMeaningfulText(secondaryCtaLabel)}
+            showHeroTrustRow={showServiceHeroTrustRow}
+            operatingMode="both"
+          />
+        );
+      case "about":
+        return (
+          <ServiceAboutSection
+            {...shell}
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={null}
+            theme={serviceTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <ServiceServicesSection
+            {...shell}
+            title={servicesTitle}
+            badgeText={servicesBadge}
+            services={undefined}
+            publicSlug=""
+            theme={serviceTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust":
+        return (
+          <ServiceTrustSection
+            {...shell}
+            copy={copy}
+            theme={serviceTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            showBenefitsStrip={presentation.showBenefitsStrip}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <ServiceFaqSection
+            {...shell}
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            theme={serviceTheme}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        if (visibleSocialLinks.length === 0) {
+          return null;
+        }
+        return (
+          <ServiceContactSection
+            {...shell}
+            title={contactTitle}
+            contactAddress=""
+            contactPhone=""
+            socialLinks={socialLinks}
+            theme={serviceTheme}
+            isDark={isDark}
+          />
+        );
+      default:
+        return null;
+    }
+  }
+
   function renderSection(type: MiniSiteSectionType): JSX.Element | null {
     if (isCleanTemplate) {
       return renderCleanPreviewSection(type);
+    }
+    if (isServiceTemplate) {
+      return renderServicePreviewSection(type);
     }
 
     switch (type) {
@@ -586,7 +707,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
       style={pageShellStyle}
       data-testid="mini-site-preview-frame"
     >
-      <div className={isCleanTemplate ? "space-y-0" : "space-y-3"}>
+      <div className={isCleanTemplate ? "space-y-0" : isServiceTemplate ? "space-y-2.5" : "space-y-3"}>
         {orderedSectionTypes.map((type) => {
           const section = renderSection(type);
           return section ? <div key={type}>{section}</div> : null;
@@ -596,13 +717,17 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
           className={
             isCleanTemplate
               ? `border-t border-dashed ${isDark ? "border-slate-700/60" : "border-slate-200/60"} py-4 text-center`
-              : `${previewCardClass(theme.backgroundStyle, `border-dashed text-center ${presentation.galleryClass}`)} py-6`
+              : isServiceTemplate
+                ? `rounded-lg border-2 border-dashed py-4 text-center ${isDark ? "border-slate-700/80 bg-slate-900/40" : "border-slate-300/80 bg-white/80"}`
+                : `${previewCardClass(theme.backgroundStyle, `border-dashed text-center ${presentation.galleryClass}`)} py-6`
           }
           data-testid="mini-site-preview-gallery-placeholder"
           style={
-            theme.template === "portfolio"
-              ? { borderColor: theme.accentColor, backgroundColor: `${theme.accentColor}12` }
-              : undefined
+            isServiceTemplate
+              ? { borderColor: `${theme.accentColor}55` }
+              : theme.template === "portfolio"
+                ? { borderColor: theme.accentColor, backgroundColor: `${theme.accentColor}12` }
+                : undefined
           }
         >
           <p className={`text-xs font-medium ${mutedText}`}>Gallery coming soon</p>

@@ -21,6 +21,16 @@ import {
   normalizeMiniSiteConfig,
 } from "@/lib/miniSiteConfig";
 import {
+  ServiceAboutSection,
+  ServiceBookingCtaSection,
+  ServiceContactSection,
+  ServiceFaqSection,
+  ServiceGallerySection,
+  ServiceHeroSection,
+  ServiceServicesSection,
+  ServiceTrustSection,
+} from "@/components/public/ServiceProMiniSiteSections";
+import {
   getMiniSitePageShellClass,
   getMiniSitePageShellStyle,
   getMiniSiteSectionCardSurface,
@@ -310,17 +320,146 @@ export function ProMiniSiteLayout({
   const secondaryCtaClass = `${presentation.secondaryButtonClass} ${sectionBorder}`;
   const heroPadding = presentation.heroPaddingClass || "p-6 md:p-10 lg:p-12";
   const isCleanTemplate = theme.template === "clean";
+  const isServiceTemplate = theme.template === "service";
   const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
   const cleanTheme = {
     primaryColor: theme.primaryColor,
     accentColor: theme.accentColor,
     backgroundStyle: theme.backgroundStyle,
   };
+  const serviceTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+    buttonStyle: theme.buttonStyle,
+  };
   const showCleanHeroTrustStrip =
     isCleanTemplate &&
     presentation.showTrustStats &&
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
+  const showServiceHeroTrustRow =
+    isServiceTemplate &&
+    presentation.showTrustStats &&
+    !trustSectionEnabled &&
+    copy.trustCards.length > 0;
+
+  const renderServiceSection = (type: MiniSiteSectionType) => {
+    switch (type) {
+      case "hero":
+        return (
+          <ServiceHeroSection
+            business={business}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            copy={copy}
+            theme={serviceTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref={primaryBookingHref}
+            secondaryOrderHref={secondaryOrderHref}
+            showBookingCta={ctas.showBookingCta}
+            showRequestCta={ctas.showRequestCta}
+            showHeroTrustRow={showServiceHeroTrustRow}
+            operatingMode={business.operating_mode}
+          />
+        );
+      case "about":
+        return (
+          <ServiceAboutSection
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={business.description}
+            theme={serviceTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <ServiceServicesSection
+            title={servicesTitle}
+            badgeText={servicesBadgeText}
+            services={services}
+            publicSlug={publicSlug}
+            theme={serviceTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust":
+        return (
+          <ServiceTrustSection
+            copy={copy}
+            theme={serviceTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            showBenefitsStrip={presentation.showBenefitsStrip}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <ServiceFaqSection
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            theme={serviceTheme}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        return (
+          <ServiceContactSection
+            title={contactTitle}
+            contactAddress={contactAddress}
+            contactPhone={contactPhone}
+            socialLinks={socialLinks}
+            theme={serviceTheme}
+            isDark={isDark}
+          />
+        );
+      case "booking_cta":
+        if (!ctas.showBookingCta || !hasMeaningfulText(primaryCtaLabel)) {
+          return null;
+        }
+        return (
+          <ServiceBookingCtaSection
+            label={primaryCtaLabel}
+            href={primaryBookingHref}
+            theme={serviceTheme}
+            presentation={presentation}
+          />
+        );
+      case "gallery":
+        return <ServiceGallerySection theme={serviceTheme} isDark={isDark} />;
+      case "benefits":
+      case "pricing": {
+        const sectionTitle = getSectionField(siteConfig, type, "title") || (type === "benefits" ? "Benefits" : "Pricing");
+        const sectionBody = getSectionField(siteConfig, type, "body");
+        if (!sectionBody) {
+          return null;
+        }
+        return (
+          <section
+            className={`rounded-2xl border-2 p-5 md:p-6 ${
+              isDark ? "border-slate-700/80 bg-slate-900/55" : "border-slate-200/90 bg-white shadow-sm"
+            }`}
+            style={{ borderLeftColor: theme.primaryColor, borderLeftWidth: 4 }}
+            data-testid={`pro-mini-site-${type}`}
+          >
+            <h2 className={`text-xl font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>{sectionTitle}</h2>
+            <p className={`mt-2 text-sm leading-relaxed md:text-base ${mutedText}`}>{sectionBody}</p>
+          </section>
+        );
+      }
+      default:
+        return null;
+    }
+  };
 
   const renderCleanSection = (type: MiniSiteSectionType) => {
     switch (type) {
@@ -859,6 +998,9 @@ export function ProMiniSiteLayout({
   const renderSection = (type: MiniSiteSectionType) => {
     if (isCleanTemplate) {
       return renderCleanSection(type);
+    }
+    if (isServiceTemplate) {
+      return renderServiceSection(type);
     }
 
     switch (type) {
