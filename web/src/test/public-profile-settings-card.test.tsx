@@ -368,7 +368,9 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("mini-site-preview-hero")).toBeInTheDocument();
     expect(screen.getByTestId("mini-site-preview-hero-content")).toBeInTheDocument();
     expect(screen.getByTestId("mini-site-preview-logo-placeholder")).toBeInTheDocument();
-    expect(screen.getByTestId("mini-site-preview-hero-badge")).toHaveTextContent("Expert profile");
+    expect(screen.getByTestId("mini-site-preview-hero-badge")).toHaveTextContent(
+      DEFAULT_MINI_SITE_CONFIG.copy.heroBadgeText,
+    );
   });
 
   it("does not render media upload fields in live preview", async () => {
