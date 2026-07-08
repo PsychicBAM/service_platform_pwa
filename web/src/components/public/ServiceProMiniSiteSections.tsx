@@ -597,7 +597,6 @@ export function ServiceTrustSection({
 export type ServiceFaqSectionProps = ServiceSectionShell & {
   title: string;
   faqItems: MiniSiteCopy["faqItems"];
-  theme: ServiceTheme;
   isDark: boolean;
 };
 
@@ -606,7 +605,6 @@ export function ServiceFaqSection({
   testIdPrefix = "pro-mini-site",
   title,
   faqItems,
-  theme,
   isDark,
 }: ServiceFaqSectionProps) {
   const muted = serviceMutedText(isDark);

@@ -380,7 +380,6 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             {...shell}
             title={copy.faqSectionTitle}
             faqItems={faqItems}
-            theme={serviceTheme}
             isDark={isDark}
           />
         );
