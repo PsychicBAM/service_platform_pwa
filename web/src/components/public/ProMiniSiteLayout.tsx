@@ -1,6 +1,16 @@
 import { Link } from "react-router-dom";
 import { ServiceCard } from "@/components/ServiceCard";
 import {
+  CleanAboutSection,
+  CleanBookingCtaSection,
+  CleanContactSection,
+  CleanFaqSection,
+  CleanGallerySection,
+  CleanHeroSection,
+  CleanServicesSection,
+  CleanTrustSection,
+} from "@/components/public/CleanProMiniSiteSections";
+import {
   DEFAULT_MINI_SITE_CONFIG,
   formatServicesSectionBadge,
   getEnabledMiniSiteSections,
@@ -300,6 +310,140 @@ export function ProMiniSiteLayout({
   const secondaryCtaClass = `${presentation.secondaryButtonClass} ${sectionBorder}`;
   const heroPadding = presentation.heroPaddingClass || "p-6 md:p-10 lg:p-12";
   const isCleanTemplate = theme.template === "clean";
+  const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
+  const cleanTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+  };
+  const showCleanHeroTrustStrip =
+    isCleanTemplate &&
+    presentation.showTrustStats &&
+    !trustSectionEnabled &&
+    copy.trustCards.length > 0;
+
+  const renderCleanSection = (type: MiniSiteSectionType) => {
+    switch (type) {
+      case "hero":
+        return (
+          <CleanHeroSection
+            business={business}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            copy={copy}
+            theme={cleanTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref={primaryBookingHref}
+            secondaryOrderHref={secondaryOrderHref}
+            showBookingCta={ctas.showBookingCta}
+            showRequestCta={ctas.showRequestCta}
+            showHeroTrustStrip={showCleanHeroTrustStrip}
+            operatingMode={business.operating_mode}
+          />
+        );
+      case "about":
+        return (
+          <CleanAboutSection
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={business.description}
+            theme={cleanTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <CleanServicesSection
+            title={servicesTitle}
+            badgeText={servicesBadgeText}
+            services={services}
+            publicSlug={publicSlug}
+            theme={cleanTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust": {
+        const trust = (
+          <CleanTrustSection
+            copy={copy}
+            theme={cleanTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            showBenefitsStrip={presentation.showBenefitsStrip}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+        return trust;
+      }
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <CleanFaqSection
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            theme={cleanTheme}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        return (
+          <CleanContactSection
+            title={contactTitle}
+            contactAddress={contactAddress}
+            contactPhone={contactPhone}
+            socialLinks={socialLinks}
+            theme={cleanTheme}
+            isDark={isDark}
+          />
+        );
+      case "booking_cta":
+        if (!ctas.showBookingCta || !hasMeaningfulText(primaryCtaLabel)) {
+          return null;
+        }
+        return (
+          <CleanBookingCtaSection
+            label={primaryCtaLabel}
+            href={primaryBookingHref}
+            theme={cleanTheme}
+            presentation={presentation}
+          />
+        );
+      case "gallery":
+        return <CleanGallerySection theme={cleanTheme} isDark={isDark} />;
+      case "benefits":
+      case "pricing": {
+        const sectionTitle = getSectionField(siteConfig, type, "title") || (type === "benefits" ? "Benefits" : "Pricing");
+        const sectionBody = getSectionField(siteConfig, type, "body");
+        if (!sectionBody) {
+          return null;
+        }
+        return (
+          <section
+            className={`border-t ${isDark ? "border-slate-700/60" : "border-slate-200/60"} py-12 md:py-16`}
+            data-testid={`pro-mini-site-${type}`}
+          >
+            <p
+              className="mb-4 text-center text-xs font-medium uppercase tracking-[0.18em]"
+              style={{ color: theme.accentColor }}
+            >
+              {sectionTitle}
+            </p>
+            <p className={`mx-auto max-w-2xl text-center text-sm leading-relaxed md:text-base ${mutedText}`}>
+              {sectionBody}
+            </p>
+          </section>
+        );
+      }
+      default:
+        return null;
+    }
+  };
 
   const renderHero = () => (
     <header
@@ -714,6 +858,10 @@ export function ProMiniSiteLayout({
   };
 
   const renderSection = (type: MiniSiteSectionType) => {
+    if (isCleanTemplate) {
+      return renderCleanSection(type);
+    }
+
     switch (type) {
       case "hero":
         return renderHero();

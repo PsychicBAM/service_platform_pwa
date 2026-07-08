@@ -119,7 +119,7 @@ export function getMiniSitePreviewHeroTitleClass(template: MiniSiteTemplate): st
     case "expert":
       return "text-xl font-bold leading-tight tracking-tight";
     case "clean":
-      return "text-xl font-semibold leading-snug tracking-tight";
+      return "text-xl font-semibold leading-tight tracking-tight md:text-2xl";
     case "service":
       return "text-xl font-extrabold leading-tight tracking-tight";
     default:
@@ -338,14 +338,14 @@ export function getThemedServiceCardPresentation(
       };
     case "clean":
       return {
-        cardClass: `rounded-2xl border p-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)] ${
-          isDark ? baseCard : "border-slate-200/60 bg-white text-slate-900"
+        cardClass: `border-0 border-b last:border-b-0 bg-transparent p-0 shadow-none ${
+          isDark ? "text-slate-100" : "text-slate-900"
         }`,
         titleClass: "text-base font-medium tracking-tight break-words",
-        descriptionClass: `mt-2 text-sm leading-relaxed break-words ${isDark ? "text-slate-300" : "text-slate-600"}`,
+        descriptionClass: `mt-1 text-sm leading-relaxed break-words ${isDark ? "text-slate-300" : "text-slate-600"}`,
         metaClass: `text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`,
-        buttonClass: `mt-5 block w-full border px-4 py-2.5 text-center text-sm font-medium transition hover:bg-slate-50/80 ${radius}`,
-        iconWrapClass: `rounded-xl p-2 ${isDark ? "bg-slate-800/60" : "bg-slate-50"}`,
+        buttonClass: `inline-flex items-center gap-1 text-sm font-medium hover:underline`,
+        iconWrapClass: "hidden",
         buttonVariant: "outline",
       };
     default:
@@ -520,46 +520,34 @@ export function getMiniSiteTemplatePresentation(
     default:
       return withTemplateDefaults(isDark, {
         layoutClass: "template-clean mx-auto w-full max-w-4xl",
-        layoutSpacingClass: "space-y-12 md:space-y-14 lg:space-y-16",
-        heroClass: isDark
-          ? "shadow-sm ring-0 bg-slate-900/55"
-          : "shadow-sm ring-0 bg-white/98 shadow-slate-900/[0.04]",
-        heroLayoutClass: "flex flex-col gap-8 md:flex-row md:items-center md:gap-10",
-        heroPaddingClass: "p-8 md:p-12 lg:p-14",
-        sectionClass: "ring-0",
-        sectionPaddingClass: "p-7 md:p-10",
-        sectionRadiusClass: "rounded-3xl",
-        servicesClass: isDark ? "" : "border-slate-200/50 shadow-none",
-        galleryClass: "border-dashed border-slate-200/60",
+        layoutSpacingClass: "space-y-0",
+        heroClass: "border-0 bg-transparent shadow-none ring-0",
+        heroLayoutClass: "flex flex-col items-center text-center",
+        heroPaddingClass: "",
+        sectionClass: "border-0 bg-transparent shadow-none ring-0",
+        sectionPaddingClass: "",
+        sectionRadiusClass: "rounded-none",
+        servicesClass: "",
+        galleryClass: "border-dashed",
         heroTitleClass:
-          "break-words text-2xl font-semibold tracking-tight sm:text-3xl md:text-[2.35rem] md:leading-[1.15]",
-        sectionHeadingClass: "break-words text-lg font-medium tracking-tight sm:text-xl",
-        sectionHeadingAccentClass: "mb-6 h-px w-14",
+          "break-words text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl md:leading-[1.08] lg:text-[3.15rem]",
+        sectionHeadingClass: "break-words text-2xl font-medium tracking-tight md:text-3xl",
+        sectionHeadingAccentClass: "hidden",
         showBenefitsStrip: false,
         showTrustStats: true,
-        heroAccentClass: isDark ? "bg-slate-900/40" : "bg-white/90",
-        bookingCtaClass: "border-slate-200/50 shadow-none",
-        contactChipClass: isDark
-          ? "border-slate-700/70 bg-slate-900/30"
-          : "border-slate-200/55 bg-white shadow-sm shadow-slate-900/[0.02]",
-        trustStatClass: `rounded-2xl border px-5 py-4 text-center ${
-          isDark
-            ? "border-slate-700/60 bg-slate-900/30"
-            : "border-slate-200/55 bg-white shadow-sm shadow-slate-900/[0.02]"
-        }`,
-        faqItemClass: `min-w-0 rounded-2xl border px-5 py-4 ${
-          isDark
-            ? "border-slate-700/60 bg-slate-900/30"
-            : "border-slate-200/55 bg-white shadow-sm shadow-slate-900/[0.02]"
-        }`,
+        heroAccentClass: "",
+        bookingCtaClass: "",
+        contactChipClass: "",
+        trustStatClass: "",
+        faqItemClass: "",
         heroBadgeClass:
-          "inline-flex rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em]",
-        heroTopBarClass: "pointer-events-none absolute inset-x-10 top-0 h-px opacity-40",
-        primaryButtonClass: `inline-flex w-full items-center justify-center px-6 py-3.5 text-sm font-medium text-white shadow-sm transition hover:shadow-md hover:brightness-[1.02] sm:w-auto ${buttonRadius}`,
-        secondaryButtonClass: `inline-flex w-full items-center justify-center border px-6 py-3.5 text-sm font-medium shadow-none transition hover:bg-white/80 sm:w-auto ${buttonRadius} ${
+          "inline-flex rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em]",
+        heroTopBarClass: "hidden",
+        primaryButtonClass: `inline-flex w-full items-center justify-center px-7 py-3.5 text-sm font-medium text-white shadow-sm transition hover:shadow-md hover:brightness-[1.02] sm:w-auto ${buttonRadius}`,
+        secondaryButtonClass: `inline-flex w-full items-center justify-center border px-7 py-3.5 text-sm font-medium shadow-none transition hover:bg-white/70 sm:w-auto ${buttonRadius} ${
           isDark
-            ? "border-slate-600/80 bg-transparent hover:bg-slate-800/40"
-            : "border-slate-200/80 bg-white/60 hover:bg-white"
+            ? "border-slate-600/70 bg-transparent hover:bg-slate-800/30"
+            : "border-slate-300/80 bg-white/50 hover:bg-white"
         }`,
       });
   }

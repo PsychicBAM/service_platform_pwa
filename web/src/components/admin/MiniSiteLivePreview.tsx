@@ -1,4 +1,14 @@
 import {
+  CleanAboutSection,
+  CleanContactSection,
+  CleanFaqSection,
+  CleanGallerySection,
+  CleanHeroSection,
+  CleanServicesSection,
+  CleanTrustSection,
+} from "@/components/public/CleanProMiniSiteSections";
+import type { PublicBusiness } from "@/types/api";
+import {
   formatServicesSectionBadge,
   getEnabledMiniSiteSections,
   getVisibleFaqItems,
@@ -95,6 +105,22 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const visibleFaqItems = getVisibleFaqItems(faqItems);
 
   const isCleanTemplate = theme.template === "clean";
+  const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
+  const cleanTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+  };
+  const previewBusiness = {
+    name: businessName,
+    logo_url: null,
+    operating_mode: "both",
+  } as PublicBusiness;
+  const showCleanHeroTrustStrip =
+    isCleanTemplate &&
+    presentation.showTrustStats &&
+    !trustSectionEnabled &&
+    copy.trustCards.length > 0;
 
   const orderedSectionTypes = enabledSections
     .filter((section) =>
@@ -164,7 +190,109 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     );
   }
 
+  function renderCleanPreviewSection(type: MiniSiteSectionType): JSX.Element | null {
+    const shell = {
+      variant: "preview" as const,
+      testIdPrefix: "mini-site-preview",
+      previewButtons: true,
+    };
+
+    switch (type) {
+      case "hero":
+        return (
+          <CleanHeroSection
+            {...shell}
+            business={previewBusiness}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            copy={copy}
+            theme={cleanTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref="#"
+            secondaryOrderHref="#"
+            showBookingCta={hasMeaningfulText(primaryCtaLabel)}
+            showRequestCta={hasMeaningfulText(secondaryCtaLabel)}
+            showHeroTrustStrip={showCleanHeroTrustStrip}
+            operatingMode="both"
+          />
+        );
+      case "about":
+        return (
+          <CleanAboutSection
+            {...shell}
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={null}
+            theme={cleanTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <CleanServicesSection
+            {...shell}
+            title={servicesTitle}
+            badgeText={servicesBadge}
+            services={undefined}
+            publicSlug=""
+            theme={cleanTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust":
+        return (
+          <CleanTrustSection
+            {...shell}
+            copy={copy}
+            theme={cleanTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            showBenefitsStrip={presentation.showBenefitsStrip}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <CleanFaqSection
+            {...shell}
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            theme={cleanTheme}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        if (visibleSocialLinks.length === 0) {
+          return null;
+        }
+        return (
+          <CleanContactSection
+            {...shell}
+            title={contactTitle}
+            contactAddress=""
+            contactPhone=""
+            socialLinks={socialLinks}
+            theme={cleanTheme}
+            isDark={isDark}
+          />
+        );
+      default:
+        return null;
+    }
+  }
+
   function renderSection(type: MiniSiteSectionType): JSX.Element | null {
+    if (isCleanTemplate) {
+      return renderCleanPreviewSection(type);
+    }
+
     switch (type) {
       case "hero":
         return (
@@ -460,14 +588,18 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
       style={pageShellStyle}
       data-testid="mini-site-preview-frame"
     >
-      <div className={isCleanTemplate ? "space-y-3.5" : "space-y-3"}>
+      <div className={isCleanTemplate ? "space-y-0" : "space-y-3"}>
         {orderedSectionTypes.map((type) => {
           const section = renderSection(type);
           return section ? <div key={type}>{section}</div> : null;
         })}
 
         <section
-          className={`${previewCardClass(theme.backgroundStyle, `border-dashed text-center ${presentation.galleryClass}`)} py-6`}
+          className={
+            isCleanTemplate
+              ? `border-t border-dashed ${isDark ? "border-slate-700/60" : "border-slate-200/60"} py-4 text-center`
+              : `${previewCardClass(theme.backgroundStyle, `border-dashed text-center ${presentation.galleryClass}`)} py-6`
+          }
           data-testid="mini-site-preview-gallery-placeholder"
           style={
             theme.template === "portfolio"
