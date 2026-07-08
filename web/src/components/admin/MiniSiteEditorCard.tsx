@@ -244,6 +244,96 @@ function DisabledMediaField({
   );
 }
 
+function SectionVisibilitySwitch({
+  id,
+  label,
+  checked,
+  disabled,
+  onChange,
+  testId,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (checked: boolean) => void;
+  testId: string;
+}) {
+  const labelId = `${id}-label`;
+
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+      <span className="relative inline-flex h-5 w-9 shrink-0 align-middle">
+        <input
+          id={id}
+          type="checkbox"
+          role="switch"
+          aria-labelledby={labelId}
+          aria-checked={checked}
+          checked={checked}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.checked)}
+          data-testid={testId}
+          className="peer sr-only"
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-full bg-slate-200 transition-colors peer-checked:bg-blue-600 peer-disabled:bg-slate-100 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2"
+        />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-4 peer-disabled:bg-slate-100"
+        />
+      </span>
+      <label
+        id={labelId}
+        htmlFor={id}
+        className={`min-w-0 cursor-pointer truncate text-sm font-medium ${
+          disabled ? "text-slate-400" : "text-slate-700"
+        }`}
+      >
+        {label}
+      </label>
+    </div>
+  );
+}
+
+function SectionMoveButton({
+  direction,
+  disabled,
+  onClick,
+  ariaLabel,
+  testId,
+}: {
+  direction: "up" | "down";
+  disabled: boolean;
+  onClick: () => void;
+  ariaLabel: string;
+  testId: string;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      data-testid={testId}
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-base leading-none text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-slate-300 disabled:shadow-none disabled:hover:bg-transparent"
+    >
+      <span aria-hidden="true">{direction === "up" ? "↑" : "↓"}</span>
+    </button>
+  );
+}
+
+function SectionControlRow({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50/50 px-2 py-1.5 sm:px-2.5 sm:py-2">
+      {children}
+    </div>
+  );
+}
+
 export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorCardProps) {
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState<MiniSiteConfig | null>(null);
@@ -362,6 +452,85 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
   const trustIndex = sortedReorderableSections.indexOf("trust");
   const faqIndex = sortedReorderableSections.indexOf("faq");
   const contactIndex = sortedReorderableSections.indexOf("contact");
+
+  const sectionControls: Array<{
+    type: ReorderableSectionType;
+    label: string;
+    toggleId: string;
+    toggleTestId: string;
+    moveUpTestId: string;
+    moveDownTestId: string;
+    rowIndex: number;
+    isEnabled: boolean;
+    onToggle: (enabled: boolean) => void;
+  }> = [
+    {
+      type: "about",
+      label: "About",
+      toggleId: "mini-site-section-toggle-about",
+      toggleTestId: "mini-site-toggle-about",
+      moveUpTestId: "mini-site-move-up-about",
+      moveDownTestId: "mini-site-move-down-about",
+      rowIndex: aboutIndex,
+      isEnabled: draft.sections.some((section) => section.type === "about" && section.enabled),
+      onToggle: (enabled) => setDraft(updateSectionEnabled(draft, "about", enabled)),
+    },
+    {
+      type: "services",
+      label: "Services",
+      toggleId: "mini-site-section-toggle-services",
+      toggleTestId: "mini-site-toggle-services",
+      moveUpTestId: "mini-site-move-up-services",
+      moveDownTestId: "mini-site-move-down-services",
+      rowIndex: servicesIndex,
+      isEnabled: draft.sections.some((section) => section.type === "services" && section.enabled),
+      onToggle: (enabled) => setDraft(updateSectionEnabled(draft, "services", enabled)),
+    },
+    {
+      type: "trust",
+      label: "Benefits / trust",
+      toggleId: "mini-site-section-toggle-benefits-trust",
+      toggleTestId: "mini-site-toggle-benefits-trust",
+      moveUpTestId: "mini-site-move-up-trust",
+      moveDownTestId: "mini-site-move-down-trust",
+      rowIndex: trustIndex,
+      isEnabled: draft.sections.some((section) => section.type === "trust" && section.enabled),
+      onToggle: (enabled) => {
+        setDraft({
+          ...draft,
+          sections: draft.sections.map((section) => {
+            if (section.type === "trust") return { ...section, enabled };
+            if (section.type === "benefits") {
+              return { ...section, enabled: enabled ? section.enabled : false };
+            }
+            return section;
+          }),
+        });
+      },
+    },
+    {
+      type: "faq",
+      label: "FAQ",
+      toggleId: "mini-site-section-toggle-faq",
+      toggleTestId: "mini-site-toggle-faq",
+      moveUpTestId: "mini-site-move-up-faq",
+      moveDownTestId: "mini-site-move-down-faq",
+      rowIndex: faqIndex,
+      isEnabled: draft.sections.some((section) => section.type === "faq" && section.enabled),
+      onToggle: (enabled) => setDraft(updateSectionEnabled(draft, "faq", enabled)),
+    },
+    {
+      type: "contact",
+      label: "Contact",
+      toggleId: "mini-site-section-toggle-contact",
+      toggleTestId: "mini-site-toggle-contact",
+      moveUpTestId: "mini-site-move-up-contact",
+      moveDownTestId: "mini-site-move-down-contact",
+      rowIndex: contactIndex,
+      isEnabled: draft.sections.some((section) => section.type === "contact" && section.enabled),
+      onToggle: (enabled) => setDraft(updateSectionEnabled(draft, "contact", enabled)),
+    },
+  ];
 
   return (
     <div className="min-w-0 space-y-4 overflow-x-hidden" data-testid="mini-site-editor">
@@ -606,209 +775,35 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
           </EditorSection>
 
           <EditorSection title="Sections" description="Choose what appears on your Pro mini-site">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <label className="flex items-center gap-2 text-sm text-slate-700">
-                  <input
-                    id="mini-site-section-toggle-about"
-                    data-testid="mini-site-toggle-about"
-                    type="checkbox"
-                    checked={draft.sections.some((section) => section.type === "about" && section.enabled)}
+            <div className="space-y-1.5">
+              {sectionControls.map((section) => (
+                <SectionControlRow key={section.type}>
+                  <SectionVisibilitySwitch
+                    id={section.toggleId}
+                    label={section.label}
+                    checked={section.isEnabled}
                     disabled={saving}
-                    onChange={(event) =>
-                      setDraft(updateSectionEnabled(draft, "about", event.target.checked))
-                    }
-                    className="rounded border-slate-300"
+                    onChange={section.onToggle}
+                    testId={section.toggleTestId}
                   />
-                  About
-                </label>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    disabled={aboutIndex === 0}
-                    onClick={() => moveSection("about", -1)}
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    data-testid="mini-site-move-up-about"
-                    aria-label="Move About up"
-                  >
-                    Up
-                  </button>
-                  <button
-                    type="button"
-                    disabled={aboutIndex === sortedReorderableSections.length - 1}
-                    onClick={() => moveSection("about", 1)}
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    data-testid="mini-site-move-down-about"
-                    aria-label="Move About down"
-                  >
-                    Down
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <label className="flex items-center gap-2 text-sm text-slate-700">
-                  <input
-                    id="mini-site-section-toggle-services"
-                    data-testid="mini-site-toggle-services"
-                    type="checkbox"
-                    checked={draft.sections.some((section) => section.type === "services" && section.enabled)}
-                    disabled={saving}
-                    onChange={(event) =>
-                      setDraft(updateSectionEnabled(draft, "services", event.target.checked))
-                    }
-                    className="rounded border-slate-300"
-                  />
-                  Services
-                </label>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    disabled={servicesIndex === 0}
-                    onClick={() => moveSection("services", -1)}
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    data-testid="mini-site-move-up-services"
-                    aria-label="Move Services up"
-                  >
-                    Up
-                  </button>
-                  <button
-                    type="button"
-                    disabled={servicesIndex === sortedReorderableSections.length - 1}
-                    onClick={() => moveSection("services", 1)}
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    data-testid="mini-site-move-down-services"
-                    aria-label="Move Services down"
-                  >
-                    Down
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <label className="flex items-center gap-2 text-sm text-slate-700">
-                  <input
-                    id="mini-site-section-toggle-benefits-trust"
-                    data-testid="mini-site-toggle-benefits-trust"
-                    type="checkbox"
-                    checked={draft.sections.some((section) => section.type === "trust" && section.enabled)}
-                    disabled={saving}
-                    onChange={(event) => {
-                      const next = event.target.checked;
-                      setDraft({
-                        ...draft,
-                        sections: draft.sections.map((section) => {
-                          if (section.type === "trust") return { ...section, enabled: next };
-                          if (section.type === "benefits") return { ...section, enabled: next ? section.enabled : false };
-                          return section;
-                        }),
-                      });
-                    }}
-                    className="rounded border-slate-300"
-                  />
-                  Benefits / trust
-                </label>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    disabled={trustIndex === 0}
-                    onClick={() => moveSection("trust", -1)}
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    data-testid="mini-site-move-up-trust"
-                    aria-label="Move Benefits / trust up"
-                  >
-                    Up
-                  </button>
-                  <button
-                    type="button"
-                    disabled={trustIndex === sortedReorderableSections.length - 1}
-                    onClick={() => moveSection("trust", 1)}
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    data-testid="mini-site-move-down-trust"
-                    aria-label="Move Benefits / trust down"
-                  >
-                    Down
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <label className="flex items-center gap-2 text-sm text-slate-700">
-                  <input
-                    id="mini-site-section-toggle-faq"
-                    data-testid="mini-site-toggle-faq"
-                    type="checkbox"
-                    checked={draft.sections.some((section) => section.type === "faq" && section.enabled)}
-                    disabled={saving}
-                    onChange={(event) =>
-                      setDraft(updateSectionEnabled(draft, "faq", event.target.checked))
-                    }
-                    className="rounded border-slate-300"
-                  />
-                  FAQ
-                </label>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    disabled={faqIndex === 0}
-                    onClick={() => moveSection("faq", -1)}
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    data-testid="mini-site-move-up-faq"
-                    aria-label="Move FAQ up"
-                  >
-                    Up
-                  </button>
-                  <button
-                    type="button"
-                    disabled={faqIndex === sortedReorderableSections.length - 1}
-                    onClick={() => moveSection("faq", 1)}
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    data-testid="mini-site-move-down-faq"
-                    aria-label="Move FAQ down"
-                  >
-                    Down
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <label className="flex items-center gap-2 text-sm text-slate-700">
-                  <input
-                    id="mini-site-section-toggle-contact"
-                    data-testid="mini-site-toggle-contact"
-                    type="checkbox"
-                    checked={draft.sections.some((section) => section.type === "contact" && section.enabled)}
-                    disabled={saving}
-                    onChange={(event) =>
-                      setDraft(updateSectionEnabled(draft, "contact", event.target.checked))
-                    }
-                    className="rounded border-slate-300"
-                  />
-                  Contact
-                </label>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    disabled={contactIndex === 0}
-                    onClick={() => moveSection("contact", -1)}
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    data-testid="mini-site-move-up-contact"
-                    aria-label="Move Contact up"
-                  >
-                    Up
-                  </button>
-                  <button
-                    type="button"
-                    disabled={contactIndex === sortedReorderableSections.length - 1}
-                    onClick={() => moveSection("contact", 1)}
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    data-testid="mini-site-move-down-contact"
-                    aria-label="Move Contact down"
-                  >
-                    Down
-                  </button>
-                </div>
-              </div>
+                  <div className="flex shrink-0 items-center gap-0.5" role="group" aria-label={`${section.label} order`}>
+                    <SectionMoveButton
+                      direction="up"
+                      disabled={section.rowIndex === 0 || saving}
+                      onClick={() => moveSection(section.type, -1)}
+                      ariaLabel={`Move ${section.label} up`}
+                      testId={section.moveUpTestId}
+                    />
+                    <SectionMoveButton
+                      direction="down"
+                      disabled={section.rowIndex === sortedReorderableSections.length - 1 || saving}
+                      onClick={() => moveSection(section.type, 1)}
+                      ariaLabel={`Move ${section.label} down`}
+                      testId={section.moveDownTestId}
+                    />
+                  </div>
+                </SectionControlRow>
+              ))}
             </div>
           </EditorSection>
 
