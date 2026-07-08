@@ -152,7 +152,6 @@ function ServiceOfferingCard({
 
 function renderCtaButton({
   previewButtons,
-  testIdPrefix,
   label,
   href,
   className,
@@ -160,7 +159,6 @@ function renderCtaButton({
   testId,
 }: {
   previewButtons: boolean;
-  testIdPrefix: string;
   label: string;
   href: string;
   className: string;
