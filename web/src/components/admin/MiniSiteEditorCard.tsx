@@ -262,7 +262,12 @@ function SectionVisibilitySwitch({
   const labelId = `${id}-label`;
 
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+    <label
+      htmlFor={id}
+      className={`flex min-w-0 flex-1 items-center gap-2.5 ${
+        disabled ? "cursor-not-allowed" : "cursor-pointer"
+      }`}
+    >
       <span className="relative inline-flex h-5 w-9 shrink-0 align-middle">
         <input
           id={id}
@@ -274,7 +279,7 @@ function SectionVisibilitySwitch({
           disabled={disabled}
           onChange={(event) => onChange(event.target.checked)}
           data-testid={testId}
-          className="peer sr-only"
+          className="peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
         />
         <span
           aria-hidden="true"
@@ -285,16 +290,15 @@ function SectionVisibilitySwitch({
           className="pointer-events-none absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-4 peer-disabled:bg-slate-100"
         />
       </span>
-      <label
+      <span
         id={labelId}
-        htmlFor={id}
-        className={`min-w-0 cursor-pointer truncate text-sm font-medium ${
+        className={`min-w-0 truncate text-sm font-medium ${
           disabled ? "text-slate-400" : "text-slate-700"
         }`}
       >
         {label}
-      </label>
-    </div>
+      </span>
+    </label>
   );
 }
 
