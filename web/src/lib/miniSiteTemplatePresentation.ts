@@ -28,8 +28,8 @@ export type ThemedServiceCardPresentation = {
   iconWrapClass: string;
 };
 
-export const MINI_SITE_PREVIEW_VIEWPORT_PX = 410;
-export const MINI_SITE_PREVIEW_SCALE = 0.9;
+export const MINI_SITE_PREVIEW_VIEWPORT_PX = 380;
+export const MINI_SITE_PREVIEW_SCALE = 0.86;
 
 export function getMiniSitePreviewOuterShellClass(): string {
   return "overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border border-slate-200/80 bg-slate-100/90 shadow-inner [scrollbar-width:thin]";
@@ -50,7 +50,7 @@ export function getMiniSitePreviewScaledViewportStyle(): {
 }
 
 export function getMiniSitePreviewPageShellClass(): string {
-  return "relative w-full px-4 py-6";
+  return "relative w-full px-3 py-4";
 }
 
 export function getMiniSitePreviewHeroContentClass(template: MiniSiteTemplate): string {
@@ -63,31 +63,31 @@ export function getMiniSitePreviewHeroContentClass(template: MiniSiteTemplate): 
 export function getMiniSitePreviewHeroTitleClass(template: MiniSiteTemplate): string {
   switch (template) {
     case "portfolio":
-      return "text-2xl font-black uppercase leading-tight tracking-wide";
+      return "text-xl font-black uppercase leading-tight tracking-wide";
     case "clinic":
-      return "text-2xl font-semibold leading-tight text-emerald-950";
+      return "text-xl font-semibold leading-tight text-emerald-950";
     case "expert":
-      return "text-2xl font-bold leading-tight tracking-tight";
+      return "text-xl font-bold leading-tight tracking-tight";
     case "service":
-      return "text-2xl font-extrabold leading-tight tracking-tight";
+      return "text-xl font-extrabold leading-tight tracking-tight";
     default:
-      return "text-2xl font-bold leading-tight tracking-tight";
+      return "text-xl font-bold leading-tight tracking-tight";
   }
 }
 
 export function getMiniSitePreviewSectionHeadingClass(template: MiniSiteTemplate): string {
   switch (template) {
     case "portfolio":
-      return "text-lg font-black uppercase tracking-wide";
+      return "text-base font-black uppercase tracking-wide";
     case "clinic":
-      return "text-lg font-semibold text-emerald-950";
+      return "text-base font-semibold text-emerald-950";
     default:
-      return "text-lg font-semibold tracking-tight";
+      return "text-base font-semibold tracking-tight";
   }
 }
 
 export function getMiniSitePreviewPrimaryButtonClass(buttonStyle: MiniSiteButtonStyle): string {
-  return `inline-flex w-full items-center justify-center px-5 py-3 text-sm font-semibold text-white shadow-md ${buttonRadiusClass(buttonStyle)}`;
+  return `inline-flex w-full items-center justify-center px-4 py-2 text-xs font-semibold text-white shadow-sm ${buttonRadiusClass(buttonStyle)}`;
 }
 
 export function getMiniSitePreviewSecondaryButtonClass(
@@ -95,9 +95,70 @@ export function getMiniSitePreviewSecondaryButtonClass(
   buttonStyle: MiniSiteButtonStyle,
 ): string {
   const isDark = backgroundStyle === "dark";
-  return `inline-flex w-full items-center justify-center border-2 px-5 py-3 text-sm font-semibold shadow-sm ${buttonRadiusClass(buttonStyle)} ${
+  return `inline-flex w-full items-center justify-center border-2 px-4 py-2 text-xs font-semibold shadow-sm ${buttonRadiusClass(buttonStyle)} ${
     isDark ? "bg-slate-800/60" : "bg-white"
   }`;
+}
+
+export function getMiniSitePreviewServiceCardPresentation(
+  template: MiniSiteTemplate,
+  backgroundStyle: MiniSiteBackgroundStyle,
+  buttonStyle: MiniSiteButtonStyle,
+): ThemedServiceCardPresentation {
+  const isDark = backgroundStyle === "dark";
+  const radius = buttonRadiusClass(buttonStyle);
+  const baseCard = isDark
+    ? "border-slate-700/80 bg-slate-900/55 text-slate-100"
+    : "border-slate-200/90 bg-white text-slate-900";
+
+  switch (template) {
+    case "service":
+      return {
+        cardClass: `rounded-xl border-2 p-3 shadow-sm ${baseCard}`,
+        titleClass: "text-sm font-bold tracking-tight",
+        descriptionClass: `mt-1 text-xs leading-snug ${isDark ? "text-slate-300" : "text-slate-600"}`,
+        metaClass: `text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`,
+        buttonClass: `mt-3 block w-full px-3 py-2 text-center text-xs font-semibold text-white shadow-sm ${radius}`,
+        iconWrapClass: "rounded-lg bg-white/80 p-1.5 shadow-sm",
+      };
+    case "expert":
+      return {
+        cardClass: `rounded-2xl border p-3 shadow-md ${baseCard}`,
+        titleClass: "text-sm font-semibold tracking-tight",
+        descriptionClass: `mt-1 text-xs leading-snug ${isDark ? "text-slate-300" : "text-slate-600"}`,
+        metaClass: `text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`,
+        buttonClass: `mt-3 block w-full px-3 py-2 text-center text-xs font-semibold text-white shadow-md ${radius}`,
+        iconWrapClass: "rounded-full bg-white/90 p-2 shadow-sm",
+      };
+    case "clinic":
+      return {
+        cardClass: `rounded-xl border p-3 shadow-sm ${isDark ? baseCard : "border-teal-100/90 bg-white text-emerald-950"}`,
+        titleClass: "text-sm font-semibold text-emerald-950",
+        descriptionClass: `mt-1 text-xs leading-snug ${isDark ? "text-slate-300" : "text-slate-600"}`,
+        metaClass: `text-xs ${isDark ? "text-slate-400" : "text-teal-700/80"}`,
+        buttonClass: `mt-3 block w-full px-3 py-2 text-center text-xs font-semibold text-white shadow-sm ${radius}`,
+        iconWrapClass: "rounded-xl bg-teal-50 p-1.5",
+      };
+    case "portfolio":
+      return {
+        cardClass: `rounded-none border-2 p-3 shadow-sm ${baseCard}`,
+        titleClass: "text-sm font-black uppercase tracking-wide",
+        descriptionClass: `mt-1 text-xs leading-snug ${isDark ? "text-slate-300" : "text-slate-600"}`,
+        metaClass: `text-[10px] font-semibold uppercase tracking-wide ${isDark ? "text-slate-400" : "text-slate-500"}`,
+        buttonClass: `mt-3 block w-full border-2 px-3 py-2 text-center text-xs font-bold uppercase tracking-wide text-white shadow-sm ${radius}`,
+        iconWrapClass: "rounded-none border-2 border-slate-900/10 bg-white p-1.5",
+      };
+    case "clean":
+    default:
+      return {
+        cardClass: `rounded-xl border p-3 shadow-sm ${baseCard}`,
+        titleClass: "text-sm font-semibold",
+        descriptionClass: `mt-1 text-xs leading-snug ${isDark ? "text-slate-300" : "text-slate-600"}`,
+        metaClass: `text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`,
+        buttonClass: `mt-3 block w-full px-3 py-2 text-center text-xs font-semibold text-white shadow-sm ${radius}`,
+        iconWrapClass: "rounded-lg bg-slate-50 p-1.5",
+      };
+  }
 }
 
 export function getMiniSitePreviewDeviceShellClass(): string {

@@ -9,8 +9,8 @@ import {
   getMiniSitePreviewScaledViewportStyle,
   getMiniSitePreviewSecondaryButtonClass,
   getMiniSitePreviewSectionHeadingClass,
+  getMiniSitePreviewServiceCardPresentation,
   getMiniSiteTemplatePresentation,
-  getThemedServiceCardPresentation,
 } from "@/lib/miniSiteTemplatePresentation";
 import type {
   MiniSiteBackgroundStyle,
@@ -45,7 +45,7 @@ function previewCardClass(backgroundStyle: MiniSiteBackgroundStyle, extra = ""):
     backgroundStyle === "dark"
       ? "border-slate-700/80 bg-slate-900/60 text-slate-100 shadow-md"
       : "border-slate-200/90 bg-white text-slate-900 shadow-sm";
-  return `rounded-xl border p-4 ${surface} ${extra}`;
+  return `rounded-lg border p-3 ${surface} ${extra}`;
 }
 
 export function MiniSiteLivePreview({ config, businessName = "Your business" }: MiniSiteLivePreviewProps) {
@@ -80,7 +80,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const benefitsSectionEnabled = config.sections.some(
     (section) => section.type === "benefits" && section.enabled,
   );
-  const serviceCardStyle = getThemedServiceCardPresentation(
+  const serviceCardStyle = getMiniSitePreviewServiceCardPresentation(
     theme.template,
     theme.backgroundStyle,
     theme.buttonStyle,
@@ -93,7 +93,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
       style={pageShellStyle}
       data-testid="mini-site-preview-frame"
     >
-      <div className="space-y-4">
+      <div className="space-y-3">
         {isSectionEnabled(config, "hero") ? (
           <header
             className={`relative overflow-hidden ${previewCardClass(theme.backgroundStyle, presentation.heroClass)} ${
@@ -114,15 +114,15 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             />
             <div className={heroContentClass}>
               <div
-                className={`flex h-14 w-14 shrink-0 items-center justify-center text-xl font-bold shadow-sm ${
-                  theme.template === "expert" ? "rounded-full" : "rounded-xl"
+                className={`flex h-11 w-11 shrink-0 items-center justify-center text-base font-bold shadow-sm ${
+                  theme.template === "expert" ? "rounded-full" : "rounded-lg"
                 }`}
                 style={{ backgroundColor: `${theme.primaryColor}22`, color: theme.primaryColor }}
                 data-testid="mini-site-preview-logo-placeholder"
               >
                 {businessName.charAt(0).toUpperCase()}
               </div>
-              <div className="min-w-0 flex-1 space-y-2">
+              <div className="min-w-0 flex-1 space-y-1.5">
                 <p
                   className="inline-block max-w-full rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide whitespace-normal"
                   style={{ color: theme.accentColor, backgroundColor: `${theme.accentColor}18` }}
@@ -135,7 +135,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
                 </h4>
                 {heroSubtitle ? (
                   <p
-                    className={`min-w-0 text-sm font-medium whitespace-normal ${mutedText}`}
+                    className={`min-w-0 text-xs font-medium whitespace-normal ${mutedText}`}
                     data-testid="mini-site-preview-hero-subtitle"
                   >
                     {heroSubtitle}
@@ -143,7 +143,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
                 ) : null}
                 {heroBody ? (
                   <p
-                    className={`min-w-0 text-sm leading-relaxed whitespace-normal ${mutedText}`}
+                    className={`min-w-0 text-xs leading-relaxed whitespace-normal ${mutedText}`}
                     data-testid="mini-site-preview-hero-body"
                   >
                     {heroBody}
@@ -153,11 +153,11 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             </div>
 
             {presentation.showTrustStats ? (
-              <div className="mt-4 grid grid-cols-3 gap-2" data-testid="mini-site-preview-trust-stats">
+              <div className="mt-3 grid grid-cols-3 gap-1.5" data-testid="mini-site-preview-trust-stats">
                 {copy.trustCards.map((stat) => (
                   <div
                     key={stat.subtitle}
-                    className={`min-w-0 rounded-lg border px-2 py-2 text-center ${
+                    className={`min-w-0 rounded-md border px-1.5 py-1.5 text-center ${
                       isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-white/80"
                     }`}
                   >
@@ -176,7 +176,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
 
             {presentation.showBenefitsStrip && !benefitsSectionEnabled ? (
               <div
-                className={`mt-4 rounded-lg border px-3 py-2 ${
+                className={`mt-3 rounded-md border px-2.5 py-2 ${
                   isDark ? "border-slate-700 bg-slate-900/40" : "border-slate-200 bg-slate-50/80"
                 }`}
                 data-testid="mini-site-preview-benefits-strip"
@@ -194,7 +194,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
               </div>
             ) : null}
 
-            <div className="mt-4 flex w-full flex-col gap-2">
+            <div className="mt-3 flex w-full flex-col gap-1.5">
               <button
                 type="button"
                 disabled
@@ -228,13 +228,13 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             </h4>
             {aboutBody ? (
               <p
-                className={`mt-2 min-w-0 text-sm leading-relaxed whitespace-normal ${mutedText}`}
+                className={`mt-1.5 min-w-0 text-xs leading-relaxed whitespace-normal ${mutedText}`}
                 data-testid="mini-site-preview-about-body"
               >
                 {aboutBody}
               </p>
             ) : (
-              <p className={`mt-2 text-sm italic ${mutedText}`}>About text will appear here.</p>
+              <p className={`mt-1.5 text-xs italic ${mutedText}`}>About text will appear here.</p>
             )}
           </section>
         ) : null}
@@ -252,7 +252,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
                 : undefined
             }
           >
-            <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+            <div className="mb-2 flex flex-wrap items-start justify-between gap-1.5">
               <div className="min-w-0 flex-1">
                 <div className="mb-1 h-1 w-8 rounded-full" style={{ backgroundColor: theme.primaryColor }} aria-hidden />
                 <p
@@ -296,17 +296,17 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             className={previewCardClass(theme.backgroundStyle, presentation.sectionClass)}
             data-testid="mini-site-preview-contact"
           >
-            <h4 className="min-w-0 text-sm font-semibold whitespace-normal" data-testid="mini-site-preview-contact-title">
+            <h4 className="min-w-0 text-xs font-semibold whitespace-normal" data-testid="mini-site-preview-contact-title">
               {contactTitle}
             </h4>
-            <div className={`mt-2 space-y-1 text-sm whitespace-normal ${mutedText}`}>
+            <div className={`mt-1.5 space-y-1 text-xs whitespace-normal ${mutedText}`}>
               {socialLinks.website ? (
-                <p className="break-all" data-testid="mini-site-preview-website">
+                <p className="break-words" data-testid="mini-site-preview-website">
                   {socialLinks.website}
                 </p>
               ) : null}
               {socialLinks.instagram ? (
-                <p className="break-all" data-testid="mini-site-preview-instagram">
+                <p className="break-words" data-testid="mini-site-preview-instagram">
                   {socialLinks.instagram}
                 </p>
               ) : null}
@@ -318,7 +318,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
         ) : null}
 
         <section
-          className={`${previewCardClass(theme.backgroundStyle, `border-dashed text-center ${presentation.galleryClass}`)} py-8`}
+          className={`${previewCardClass(theme.backgroundStyle, `border-dashed text-center ${presentation.galleryClass}`)} py-6`}
           data-testid="mini-site-preview-gallery-placeholder"
           style={
             theme.template === "portfolio"
@@ -335,6 +335,8 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
       </div>
     </div>
   );
+
+  const scaledWidth = viewport.innerWidth * viewport.scale;
 
   return (
     <div
@@ -359,21 +361,28 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
         </span>
       </div>
 
-      <div className="flex min-h-0 flex-1 items-start justify-center">
+      <div className="flex min-h-0 flex-1 items-start justify-center overflow-hidden">
         <div
-          className={`${getMiniSitePreviewOuterShellClass()} w-full max-w-[410px] xl:max-w-[430px]`}
+          className={`${getMiniSitePreviewOuterShellClass()} mx-auto w-full`}
           data-testid="mini-site-preview-device-shell"
           style={{
-            maxHeight: "min(75vh, 720px)",
+            maxWidth: scaledWidth,
+            maxHeight: viewport.maxHeight,
           }}
         >
           <div
-            className="origin-top mx-auto scale-[0.92] xl:scale-100"
-            style={{
-              width: viewport.innerWidth,
-            }}
+            className="mx-auto overflow-hidden"
+            style={{ width: scaledWidth }}
           >
-            {previewContent}
+            <div
+              className="origin-top-left"
+              style={{
+                width: viewport.innerWidth,
+                transform: `scale(${viewport.scale})`,
+              }}
+            >
+              {previewContent}
+            </div>
           </div>
         </div>
       </div>

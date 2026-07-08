@@ -294,10 +294,10 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
   }
 
   return (
-    <div className="space-y-4" data-testid="mini-site-editor">
-      <div className="grid gap-5 lg:grid-cols-[minmax(380px,460px)_minmax(320px,1fr)] xl:gap-8 lg:items-start">
+    <div className="min-w-0 space-y-4 overflow-x-hidden" data-testid="mini-site-editor">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] md:items-start lg:grid-cols-1">
         <div
-          className="mini-site-editor-form space-y-3 min-w-0 lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]"
+          className="mini-site-editor-form min-w-0 space-y-3 md:max-h-[calc(100vh-9rem)] md:overflow-y-auto md:pr-1 lg:max-h-none lg:overflow-visible [scrollbar-width:thin]"
           data-testid="mini-site-editor-form"
         >
           <EditorSection title="Appearance" description="Template, colors, and styling">
@@ -327,7 +327,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
               </select>
             </label>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <ColorField
                 id="mini-site-primary-color"
                 label="Primary color"
@@ -356,7 +356,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
               />
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <label htmlFor="mini-site-background-style" className="block text-sm">
                 <span className="font-medium text-slate-700">Background style</span>
                 <select
@@ -438,7 +438,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
                 onChange={(value) => setDraft(updateCopyField(draft, "heroBadgeText", value))}
               />
             </div>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {([0, 1, 2] as const).map((index) => (
                 <div key={index} className="space-y-2 rounded-lg border border-slate-100 bg-slate-50/60 p-2.5">
                   <p className="text-xs font-semibold text-slate-500">Trust {index + 1}</p>
@@ -459,7 +459,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
                 </div>
               ))}
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <div>
                 <FieldLabel htmlFor="mini-site-benefits-section-title">Benefits title</FieldLabel>
                 <TextInput
@@ -479,7 +479,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
                 />
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {([0, 1, 2] as const).map((index) => (
                 <div key={index}>
                   <FieldLabel htmlFor={`mini-site-benefit-item-${index}`}>{`Benefit ${index + 1}`}</FieldLabel>
@@ -492,7 +492,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
                 </div>
               ))}
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <div>
                 <FieldLabel htmlFor="mini-site-services-section-title">Services title</FieldLabel>
                 <TextInput
@@ -513,7 +513,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
                 />
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <div>
                 <FieldLabel htmlFor="mini-site-primary-cta-label">Primary CTA</FieldLabel>
                 <TextInput
@@ -536,7 +536,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
           </EditorSection>
 
           <EditorSection title="Page content" description="Hero and about section copy">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <div>
                 <FieldLabel htmlFor="mini-site-hero-title">Hero title</FieldLabel>
                 <TextInput
@@ -602,7 +602,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
           </EditorSection>
 
           <EditorSection title="Social & media">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <div>
                 <FieldLabel htmlFor="mini-site-website">Website</FieldLabel>
                 <TextInput
@@ -634,11 +634,11 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
                 />
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <DisabledMediaField
                 id="mini-site-logo-upload"
                 label="Logo"
-                placeholder="Coming soon"
+                placeholder="Logo upload coming soon"
                 hint="Logo upload coming soon."
               />
               <DisabledMediaField
@@ -655,10 +655,10 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
         </div>
 
         <aside
-          className="min-w-0 lg:sticky lg:top-4 lg:self-start"
+          className="min-w-0 md:sticky md:top-4 md:self-start lg:static"
           data-testid="mini-site-editor-preview-panel"
         >
-          <div className="flex min-h-[420px] flex-col rounded-xl border border-slate-200 bg-gradient-to-b from-slate-50 via-white to-slate-100/90 p-3 shadow-sm sm:p-4 lg:min-h-[calc(100vh-9rem)]">
+          <div className="flex min-h-[360px] flex-col rounded-xl border border-slate-200 bg-gradient-to-b from-slate-50 via-white to-slate-100/90 p-3 shadow-sm sm:p-4 md:min-h-[420px] lg:min-h-[480px]">
             <MiniSiteLivePreview config={draft} businessName={businessName} />
           </div>
         </aside>
