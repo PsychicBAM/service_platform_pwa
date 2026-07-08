@@ -115,8 +115,15 @@ function mapTrustCardToWire(card: MiniSiteTrustCard): MiniSiteTrustCardWire {
   return { title: card.title, subtitle: card.subtitle };
 }
 
+function sanitizeFaqField(value: string): string {
+  return value.trim();
+}
+
 function mapFaqItemToWire(item: MiniSiteFaqItem): MiniSiteFaqItemWire {
-  return { question: item.question, answer: item.answer };
+  return {
+    question: sanitizeFaqField(item.question),
+    answer: sanitizeFaqField(item.answer),
+  };
 }
 
 function mapCopyToWire(copy: MiniSiteCopy): MiniSiteCopyWire {

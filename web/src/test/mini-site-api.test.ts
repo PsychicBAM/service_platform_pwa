@@ -7,8 +7,9 @@ import {
   updateMiniSiteConfig,
   type MiniSiteConfigWire,
 } from "@/api/miniSiteApi";
-import { DEFAULT_MINI_SITE_CONFIG, normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
+import { DEFAULT_MINI_SITE_CONFIG } from "@/lib/miniSiteConfig";
 import { apiClient } from "@/api/client";
+import type { MiniSiteConfig } from "@/types/miniSite";
 
 vi.mock("@/api/client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/api/client")>();
@@ -113,7 +114,7 @@ describe("miniSiteApi", () => {
   });
 
   it("mapMiniSiteConfig round-trip preserves explicitly empty FAQ rows", () => {
-    const clearedConfig = {
+    const clearedConfig: MiniSiteConfig = {
       ...DEFAULT_MINI_SITE_CONFIG,
       copy: {
         ...DEFAULT_MINI_SITE_CONFIG.copy,
@@ -127,6 +128,7 @@ describe("miniSiteApi", () => {
 
     const wire = mapMiniSiteConfigToWire(clearedConfig);
     expect(wire.copy?.faq_items?.[0]?.question).toBe("");
+    expect(wire.copy?.faq_items?.[1]?.question).toBe("");
     expect(wire.copy?.faq_items?.[1]?.answer).toBe("");
 
     const reloaded = mapMiniSiteConfigFromWire({
