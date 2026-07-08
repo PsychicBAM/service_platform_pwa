@@ -510,7 +510,6 @@ export type ExpertTrustSectionProps = ExpertSectionShell & {
   theme: ExpertTheme;
   isDark: boolean;
   showTrustStats: boolean;
-  showBenefitsStrip: boolean;
   benefitsSectionEnabled: boolean;
 };
 
@@ -521,7 +520,6 @@ export function ExpertTrustSection({
   theme,
   isDark,
   showTrustStats,
-  showBenefitsStrip,
   benefitsSectionEnabled,
 }: ExpertTrustSectionProps) {
   const muted = expertMutedText(isDark);

@@ -365,7 +365,10 @@ describe("PublicProfileSettingsCard", () => {
     const preview = screen.getByTestId("mini-site-live-preview");
     expect(preview).toHaveAttribute("data-template", "expert");
     expect(preview).toHaveAttribute("data-template-presentation", "expert");
-    expect(screen.getByTestId("mini-site-preview-hero")).toHaveClass("text-center");
+    expect(screen.getByTestId("mini-site-preview-hero")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-preview-hero-content")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-preview-logo-placeholder")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-preview-hero-badge")).toHaveTextContent("Expert profile");
   });
 
   it("does not render media upload fields in live preview", async () => {

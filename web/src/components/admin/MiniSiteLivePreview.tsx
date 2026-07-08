@@ -388,7 +388,6 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             theme={expertTheme}
             isDark={isDark}
             showTrustStats={presentation.showTrustStats}
-            showBenefitsStrip={presentation.showBenefitsStrip}
             benefitsSectionEnabled={benefitsSectionEnabled}
           />
         );
