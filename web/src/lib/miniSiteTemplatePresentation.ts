@@ -28,6 +28,78 @@ export type ThemedServiceCardPresentation = {
   iconWrapClass: string;
 };
 
+export const MINI_SITE_PREVIEW_VIEWPORT_PX = 410;
+export const MINI_SITE_PREVIEW_SCALE = 0.9;
+
+export function getMiniSitePreviewOuterShellClass(): string {
+  return "mx-auto overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-slate-100 shadow-sm [scrollbar-width:thin]";
+}
+
+export function getMiniSitePreviewScaledViewportStyle(): {
+  outerWidth: number;
+  innerWidth: number;
+  scale: number;
+  maxHeight: string;
+} {
+  return {
+    outerWidth: MINI_SITE_PREVIEW_VIEWPORT_PX * MINI_SITE_PREVIEW_SCALE,
+    innerWidth: MINI_SITE_PREVIEW_VIEWPORT_PX,
+    scale: MINI_SITE_PREVIEW_SCALE,
+    maxHeight: "min(70vh, 640px)",
+  };
+}
+
+export function getMiniSitePreviewPageShellClass(): string {
+  return "relative w-full px-4 py-6";
+}
+
+export function getMiniSitePreviewHeroContentClass(template: MiniSiteTemplate): string {
+  if (template === "expert") {
+    return "flex w-full min-w-0 flex-col items-center gap-4 text-center";
+  }
+  return "flex w-full min-w-0 flex-col gap-4";
+}
+
+export function getMiniSitePreviewHeroTitleClass(template: MiniSiteTemplate): string {
+  switch (template) {
+    case "portfolio":
+      return "text-2xl font-black uppercase leading-tight tracking-wide";
+    case "clinic":
+      return "text-2xl font-semibold leading-tight text-emerald-950";
+    case "expert":
+      return "text-2xl font-bold leading-tight tracking-tight";
+    case "service":
+      return "text-2xl font-extrabold leading-tight tracking-tight";
+    default:
+      return "text-2xl font-bold leading-tight tracking-tight";
+  }
+}
+
+export function getMiniSitePreviewSectionHeadingClass(template: MiniSiteTemplate): string {
+  switch (template) {
+    case "portfolio":
+      return "text-lg font-black uppercase tracking-wide";
+    case "clinic":
+      return "text-lg font-semibold text-emerald-950";
+    default:
+      return "text-lg font-semibold tracking-tight";
+  }
+}
+
+export function getMiniSitePreviewPrimaryButtonClass(buttonStyle: MiniSiteButtonStyle): string {
+  return `inline-flex w-full items-center justify-center px-5 py-3 text-sm font-semibold text-white shadow-md ${buttonRadiusClass(buttonStyle)}`;
+}
+
+export function getMiniSitePreviewSecondaryButtonClass(
+  backgroundStyle: MiniSiteBackgroundStyle,
+  buttonStyle: MiniSiteButtonStyle,
+): string {
+  const isDark = backgroundStyle === "dark";
+  return `inline-flex w-full items-center justify-center border-2 px-5 py-3 text-sm font-semibold shadow-sm ${buttonRadiusClass(buttonStyle)} ${
+    isDark ? "bg-slate-800/60" : "bg-white"
+  }`;
+}
+
 export function getMiniSitePreviewDeviceShellClass(): string {
   return "mx-auto w-full max-w-[375px]";
 }
