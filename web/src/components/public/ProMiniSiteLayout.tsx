@@ -292,6 +292,9 @@ export function ProMiniSiteLayout({
   const benefitsSectionEnabled = siteConfig.sections.some(
     (section) => section.type === "benefits" && section.enabled,
   );
+  const trustSectionEnabled = siteConfig.sections.some(
+    (section) => section.type === "trust" && section.enabled,
+  );
   const serviceCardTheme = {
     template: theme.template,
     primaryColor: theme.primaryColor,
@@ -381,11 +384,11 @@ export function ProMiniSiteLayout({
         </div>
       </div>
 
-      {presentation.showTrustStats ? (
+      {presentation.showTrustStats && trustSectionEnabled ? (
         <TrustStatsRow stats={copy.trustCards} primaryColor={theme.primaryColor} isDark={isDark} />
       ) : null}
 
-      {presentation.showBenefitsStrip && !benefitsSectionEnabled ? (
+      {presentation.showBenefitsStrip && trustSectionEnabled && !benefitsSectionEnabled ? (
         <BenefitsStrip
           title={copy.benefitsSectionTitle}
           items={copy.benefitsItems.filter(Boolean)}

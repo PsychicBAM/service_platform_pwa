@@ -32,6 +32,7 @@ export const MINI_SITE_SECTION_TYPES = [
   "about",
   "services",
   "benefits",
+  "trust",
   "gallery",
   "pricing",
   "faq",

@@ -87,6 +87,24 @@ describe("mini-site config helpers", () => {
     expect(types).toContain("booking_cta");
   });
 
+  it("normalizeMiniSiteConfig adds trust section enabled by default (backward compatible)", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: [
+        { id: "hero", type: "hero", enabled: true, order: 0 },
+        { id: "about", type: "about", enabled: true, order: 1 },
+        { id: "services", type: "services", enabled: true, order: 2 },
+        { id: "contact", type: "contact", enabled: true, order: 7 },
+        { id: "booking_cta", type: "booking_cta", enabled: true, order: 8 },
+      ],
+      socialLinks: {},
+    });
+
+    expect(config.sections.some((section) => section.type === "trust")).toBe(true);
+    expect(config.sections.find((section) => section.type === "trust")?.enabled).toBe(true);
+  });
+
   it("normalizeMiniSiteConfig handles null, undefined, and bad input safely", () => {
     const fromNull = normalizeMiniSiteConfig(null);
     const fromUndefined = normalizeMiniSiteConfig(undefined);

@@ -245,6 +245,38 @@ describe("ProMiniSiteLayout", () => {
     );
   });
 
+  it("hides configured sections (including Benefits/Trust) on Pro mini-site", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: {
+        ...DEFAULT_MINI_SITE_CONFIG.theme,
+        template: "service",
+      },
+      sections: [
+        { id: "hero", type: "hero", enabled: true, order: 0, title: "Saved hero title" },
+        { id: "about", type: "about", enabled: false, order: 1, title: "About our team" },
+        { id: "services", type: "services", enabled: false, order: 2, title: "Services" },
+        { id: "trust", type: "trust", enabled: false, order: 2.5 },
+        { id: "benefits", type: "benefits", enabled: false, order: 3, title: "Why choose us" },
+        { id: "booking_cta", type: "booking_cta", enabled: false, order: 4 },
+        { id: "gallery", type: "gallery", enabled: true, order: 5, title: "Gallery" },
+        { id: "contact", type: "contact", enabled: false, order: 7, title: "Contact" },
+      ],
+      socialLinks: {},
+    });
+
+    renderProMiniSiteLayout({ config });
+
+    expect(screen.getByTestId("pro-mini-site-hero")).toBeInTheDocument();
+
+    expect(screen.queryByTestId("pro-mini-site-about")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pro-mini-site-services")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pro-mini-site-contact")).not.toBeInTheDocument();
+
+    expect(screen.queryByTestId("pro-mini-site-trust-stats")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pro-mini-site-benefits-strip")).not.toBeInTheDocument();
+  });
+
   it("does not render gallery placeholder when gallery section is disabled", () => {
     renderProMiniSiteLayout();
 

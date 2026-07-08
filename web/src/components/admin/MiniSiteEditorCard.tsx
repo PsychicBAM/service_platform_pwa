@@ -51,6 +51,19 @@ function updateSectionField(
   };
 }
 
+function updateSectionEnabled(
+  config: MiniSiteConfig,
+  type: MiniSiteSectionType,
+  enabled: boolean,
+): MiniSiteConfig {
+  return {
+    ...config,
+    sections: config.sections.map((section) =>
+      section.type === type ? { ...section, enabled } : section,
+    ),
+  };
+}
+
 function FieldLabel({
   children,
   htmlFor,
@@ -532,6 +545,84 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
                   onChange={(value) => setDraft(updateCopyField(draft, "secondaryCtaLabel", value))}
                 />
               </div>
+            </div>
+          </EditorSection>
+
+          <EditorSection title="Sections" description="Choose what appears on your Pro mini-site">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  id="mini-site-section-toggle-about"
+                  data-testid="mini-site-toggle-about"
+                  type="checkbox"
+                  checked={draft.sections.some((section) => section.type === "about" && section.enabled)}
+                  disabled={saving}
+                  onChange={(event) =>
+                    setDraft(updateSectionEnabled(draft, "about", event.target.checked))
+                  }
+                  className="rounded border-slate-300"
+                />
+                About
+              </label>
+
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  id="mini-site-section-toggle-services"
+                  data-testid="mini-site-toggle-services"
+                  type="checkbox"
+                  checked={draft.sections.some((section) => section.type === "services" && section.enabled)}
+                  disabled={saving}
+                  onChange={(event) =>
+                    setDraft(updateSectionEnabled(draft, "services", event.target.checked))
+                  }
+                  className="rounded border-slate-300"
+                />
+                Services
+              </label>
+
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  id="mini-site-section-toggle-benefits-trust"
+                  data-testid="mini-site-toggle-benefits-trust"
+                  type="checkbox"
+                  checked={draft.sections.some((section) => section.type === "trust" && section.enabled)}
+                  disabled={saving}
+                  onChange={(event) => {
+                    const next = event.target.checked;
+                    setDraft({
+                      ...draft,
+                      sections: draft.sections.map((section) => {
+                        if (section.type === "trust") {
+                          return { ...section, enabled: next };
+                        }
+                        if (section.type === "benefits") {
+                          // When Benefits/Trust is hidden, also hide the full benefits section.
+                          // When it's shown, keep existing "benefits" enabled state.
+                          return { ...section, enabled: next ? section.enabled : false };
+                        }
+                        return section;
+                      }),
+                    });
+                  }}
+                  className="rounded border-slate-300"
+                />
+                Benefits / trust
+              </label>
+
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  id="mini-site-section-toggle-contact"
+                  data-testid="mini-site-toggle-contact"
+                  type="checkbox"
+                  checked={draft.sections.some((section) => section.type === "contact" && section.enabled)}
+                  disabled={saving}
+                  onChange={(event) =>
+                    setDraft(updateSectionEnabled(draft, "contact", event.target.checked))
+                  }
+                  className="rounded border-slate-300"
+                />
+                Contact
+              </label>
             </div>
           </EditorSection>
 

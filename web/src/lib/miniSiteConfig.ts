@@ -35,6 +35,7 @@ const DEFAULT_SECTION_ORDERS: Record<MiniSiteSectionType, number> = {
   about: 1,
   services: 2,
   benefits: 3,
+  trust: 2,
   gallery: 4,
   pricing: 5,
   faq: 6,
@@ -207,6 +208,12 @@ function createDefaultSection(type: MiniSiteSectionType, order: number): MiniSit
         enabled: false,
         title: "Why choose us",
       };
+    case "trust":
+      return {
+        ...base,
+        enabled: true,
+        title: "Trust",
+      };
     case "pricing":
       return {
         ...base,
@@ -228,8 +235,9 @@ function buildDefaultSections(): MiniSiteSection[] {
   const required = REQUIRED_MINI_SITE_SECTION_TYPES.map((type) =>
     createDefaultSection(type, DEFAULT_SECTION_ORDERS[type]),
   );
+  const trust = createDefaultSection("trust", DEFAULT_SECTION_ORDERS.trust);
   const gallery = createDefaultSection("gallery", DEFAULT_SECTION_ORDERS.gallery);
-  return [...required, gallery].sort((left, right) => left.order - right.order);
+  return [...required, trust, gallery].sort((left, right) => left.order - right.order);
 }
 
 export const DEFAULT_MINI_SITE_CONFIG: MiniSiteConfig = {
@@ -463,6 +471,11 @@ function ensureRequiredSections(sections: MiniSiteSection[]): MiniSiteSection[] 
     }
   }
 
+  // Backward-compatible: older configs may not have the `trust` section yet.
+  if (!byType.has("trust")) {
+    byType.set("trust", createDefaultSection("trust", DEFAULT_SECTION_ORDERS.trust));
+  }
+
   return Array.from(byType.values()).sort((left, right) => left.order - right.order);
 }
 
@@ -512,7 +525,7 @@ export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
 
 export function getEnabledMiniSiteSections(config: MiniSiteConfig): MiniSiteSection[] {
   return config.sections
-    .filter((section) => section.enabled)
+    .filter((section) => section.enabled && section.type !== "trust")
     .slice()
     .sort((left, right) => left.order - right.order);
 }

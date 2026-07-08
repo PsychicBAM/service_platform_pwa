@@ -177,6 +177,45 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("mini-site-preview-hero-title")).toHaveTextContent("Welcome");
   });
 
+  it("updates live preview when section visibility toggles change", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-live-preview");
+
+    // Initial state: core sections visible
+    expect(screen.getByTestId("mini-site-preview-about")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-preview-services")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-preview-contact")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-preview-trust-stats")).toBeInTheDocument();
+
+    // Hide About
+    await user.click(screen.getByTestId("mini-site-toggle-about"));
+    await waitFor(() => {
+      expect(screen.queryByTestId("mini-site-preview-about")).not.toBeInTheDocument();
+    });
+
+    // Hide Services
+    await user.click(screen.getByTestId("mini-site-toggle-services"));
+    await waitFor(() => {
+      expect(screen.queryByTestId("mini-site-preview-services")).not.toBeInTheDocument();
+    });
+
+    // Hide Benefits/Trust
+    await user.click(screen.getByTestId("mini-site-toggle-benefits-trust"));
+    await waitFor(() => {
+      expect(screen.queryByTestId("mini-site-preview-trust-stats")).not.toBeInTheDocument();
+      // In templates where the strip exists, it should also be hidden.
+      expect(screen.queryByTestId("mini-site-preview-benefits-strip")).not.toBeInTheDocument();
+    });
+
+    // Hide Contact
+    await user.click(screen.getByTestId("mini-site-toggle-contact"));
+    await waitFor(() => {
+      expect(screen.queryByTestId("mini-site-preview-contact")).not.toBeInTheDocument();
+    });
+  });
+
   it("updates live preview when hero title changes", async () => {
     const user = userEvent.setup();
     renderPublicProfileCard("pro");

@@ -80,6 +80,9 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const benefitsSectionEnabled = config.sections.some(
     (section) => section.type === "benefits" && section.enabled,
   );
+  const trustSectionEnabled = config.sections.some(
+    (section) => section.type === "trust" && section.enabled,
+  );
   const serviceCardStyle = getMiniSitePreviewServiceCardPresentation(
     theme.template,
     theme.backgroundStyle,
@@ -152,7 +155,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
               </div>
             </div>
 
-            {presentation.showTrustStats ? (
+            {presentation.showTrustStats && trustSectionEnabled ? (
               <div className="mt-3 grid grid-cols-3 gap-1.5" data-testid="mini-site-preview-trust-stats">
                 {copy.trustCards.map((stat) => (
                   <div
@@ -174,7 +177,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
               </div>
             ) : null}
 
-            {presentation.showBenefitsStrip && !benefitsSectionEnabled ? (
+            {presentation.showBenefitsStrip && trustSectionEnabled && !benefitsSectionEnabled ? (
               <div
                 className={`mt-3 rounded-md border px-2.5 py-2 ${
                   isDark ? "border-slate-700 bg-slate-900/40" : "border-slate-200 bg-slate-50/80"
