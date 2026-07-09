@@ -631,7 +631,6 @@ export function CoachTransformationSection({
   showBenefitsStrip,
   benefitsSectionEnabled,
 }: CoachTransformationSectionProps) {
-  const muted = coachMutedText(isDark);
   const steps = showBenefitsStrip && !benefitsSectionEnabled ? copy.benefitsItems.filter(Boolean) : [];
   const isPreview = variant === "preview";
 
