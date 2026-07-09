@@ -361,6 +361,12 @@ describe("PublicProfileSettingsCard", () => {
     expect(within(select).getByRole("option", { name: "Teacher" })).toBeInTheDocument();
   });
 
+  it("includes coach in the template selector", async () => {
+    renderPublicProfileCard("pro");
+    const select = await screen.findByTestId("mini-site-template");
+    expect(within(select).getByRole("option", { name: "Coach" })).toBeInTheDocument();
+  });
+
   it("reflects selected template in live preview", async () => {
     const user = userEvent.setup();
     renderPublicProfileCard("pro");

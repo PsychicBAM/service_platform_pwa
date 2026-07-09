@@ -133,6 +133,22 @@ def _default_copy_for_template(template: MiniSiteTemplate) -> MiniSiteCopy:
             primary_cta_label="Book a lesson",
             secondary_cta_label="Ask a question",
         )
+    if template == "coach":
+        return MiniSiteCopy(
+            hero_badge_text="Coaching & mentorship",
+            trust_cards=[
+                MiniSiteTrustCard(title="Focused", subtitle="1:1 guidance"),
+                MiniSiteTrustCard(title="Structured", subtitle="Coaching process"),
+                MiniSiteTrustCard(title="Action", subtitle="Clear next steps"),
+            ],
+            benefits_section_title="Your coaching journey",
+            benefits_items=["Clarify your goals", "Build a plan", "Take consistent action"],
+            services_section_title="Coaching programs",
+            services_section_badge_text="{count} available",
+            contact_section_title="Get in touch",
+            primary_cta_label="Book a session",
+            secondary_cta_label="Send inquiry",
+        )
     return MiniSiteCopy(
         hero_badge_text="Welcome",
         trust_cards=[

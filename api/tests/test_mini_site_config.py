@@ -349,3 +349,19 @@ def test_teacher_template_normalizes_with_education_defaults() -> None:
     assert config.theme.template == "teacher"
     assert config.copy.hero_badge_text == "Private lessons & tutoring"
     assert config.copy.primary_cta_label == "Book a lesson"
+
+
+def test_coach_template_normalizes_with_coaching_defaults() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": {**base.theme.model_dump(), "template": "coach"},
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+        },
+    )
+
+    assert config.theme.template == "coach"
+    assert config.copy.hero_badge_text == "Coaching & mentorship"
+    assert config.copy.primary_cta_label == "Book a session"

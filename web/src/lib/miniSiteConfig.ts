@@ -157,6 +157,23 @@ export function getDefaultCopyForTemplate(template: MiniSiteTemplate): MiniSiteC
         secondaryCtaLabel: "Ask a question",
         ...DEFAULT_FAQ_COPY,
       };
+    case "coach":
+      return {
+        heroBadgeText: "Coaching & mentorship",
+        trustCards: [
+          { title: "Focused", subtitle: "1:1 guidance" },
+          { title: "Structured", subtitle: "Coaching process" },
+          { title: "Action", subtitle: "Clear next steps" },
+        ],
+        benefitsSectionTitle: "Your coaching journey",
+        benefitsItems: ["Clarify your goals", "Build a plan", "Take consistent action"],
+        servicesSectionTitle: "Coaching programs",
+        servicesSectionBadgeText: "{count} available",
+        contactSectionTitle: "Get in touch",
+        primaryCtaLabel: "Book a session",
+        secondaryCtaLabel: "Send inquiry",
+        ...DEFAULT_FAQ_COPY,
+      };
     case "clean":
     default:
       return {

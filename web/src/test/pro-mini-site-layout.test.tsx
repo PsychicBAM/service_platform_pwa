@@ -224,6 +224,19 @@ describe("ProMiniSiteLayout", () => {
     expect(screen.getByTestId("pro-mini-site-trust-stats")).toBeInTheDocument();
   });
 
+  it("applies coach template presentation", () => {
+    renderProMiniSiteLayout({
+      config: createSavedMiniSiteConfig({ template: "coach" }),
+    });
+    const layout = screen.getByTestId("pro-mini-site-layout");
+    expect(layout).toHaveAttribute("data-template", "coach");
+    expect(layout).toHaveClass("template-coach");
+    expect(screen.getByTestId("pro-mini-site-coach-hero")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-coach-program-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-coach-outcomes")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-trust-stats")).toBeInTheDocument();
+  });
+
   it("keeps dark background readable", () => {
     renderProMiniSiteLayout({
       config: createSavedMiniSiteConfig({ backgroundStyle: "dark" }),

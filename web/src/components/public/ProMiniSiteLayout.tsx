@@ -61,6 +61,16 @@ import {
   TeacherLessonsSection,
 } from "@/components/public/TeacherProMiniSiteSections";
 import {
+  CoachAboutSection,
+  CoachBookingCtaSection,
+  CoachContactSection,
+  CoachFaqSection,
+  CoachGallerySection,
+  CoachHeroSection,
+  CoachProgramsSection,
+  CoachTransformationSection,
+} from "@/components/public/CoachProMiniSiteSections";
+import {
   ServiceAboutSection,
   ServiceBookingCtaSection,
   ServiceContactSection,
@@ -365,6 +375,7 @@ export function ProMiniSiteLayout({
   const isClinicTemplate = theme.template === "clinic";
   const isPortfolioTemplate = theme.template === "portfolio";
   const isTeacherTemplate = theme.template === "teacher";
+  const isCoachTemplate = theme.template === "coach";
   const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
   const cleanTheme = {
     primaryColor: theme.primaryColor,
@@ -396,6 +407,12 @@ export function ProMiniSiteLayout({
     buttonStyle: theme.buttonStyle,
   };
   const teacherTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+    buttonStyle: theme.buttonStyle,
+  };
+  const coachTheme = {
     primaryColor: theme.primaryColor,
     accentColor: theme.accentColor,
     backgroundStyle: theme.backgroundStyle,
@@ -770,6 +787,126 @@ export function ProMiniSiteLayout({
             data-testid={`pro-mini-site-${type}`}
           >
             <p className="text-xs font-medium" style={{ color: theme.accentColor }}>
+              {sectionTitle}
+            </p>
+            <p className={`mt-3 text-sm leading-relaxed md:text-base ${mutedText}`}>{sectionBody}</p>
+          </section>
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
+  const renderCoachSection = (type: MiniSiteSectionType) => {
+    switch (type) {
+      case "hero":
+        return (
+          <CoachHeroSection
+            business={business}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            copy={copy}
+            theme={coachTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref={primaryBookingHref}
+            secondaryOrderHref={secondaryOrderHref}
+            showBookingCta={ctas.showBookingCta}
+            showRequestCta={ctas.showRequestCta}
+            operatingMode={business.operating_mode}
+            services={services}
+            serviceCount={services?.length ?? null}
+          />
+        );
+      case "about":
+        return (
+          <CoachAboutSection
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={business.description}
+            theme={coachTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <CoachProgramsSection
+            title={servicesTitle}
+            badgeText={servicesBadgeText}
+            services={services}
+            publicSlug={publicSlug}
+            theme={coachTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust":
+        return (
+          <CoachTransformationSection
+            copy={copy}
+            theme={coachTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            showBenefitsStrip={presentation.showBenefitsStrip}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <CoachFaqSection
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            theme={coachTheme}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        return (
+          <CoachContactSection
+            title={contactTitle}
+            contactAddress={contactAddress}
+            contactPhone={contactPhone}
+            socialLinks={socialLinks}
+            theme={coachTheme}
+            isDark={isDark}
+          />
+        );
+      case "booking_cta":
+        if (!ctas.showBookingCta || !hasMeaningfulText(primaryCtaLabel)) {
+          return null;
+        }
+        return (
+          <CoachBookingCtaSection
+            primaryLabel={primaryCtaLabel}
+            primaryHref={primaryBookingHref}
+            secondaryLabel={secondaryCtaLabel}
+            secondaryHref={secondaryOrderHref}
+            showSecondary={ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel)}
+            theme={coachTheme}
+            presentation={presentation}
+          />
+        );
+      case "gallery":
+        return <CoachGallerySection theme={coachTheme} isDark={isDark} />;
+      case "benefits":
+      case "pricing": {
+        const sectionTitle = getSectionField(siteConfig, type, "title") || (type === "benefits" ? "Benefits" : "Pricing");
+        const sectionBody = getSectionField(siteConfig, type, "body");
+        if (!sectionBody) {
+          return null;
+        }
+        return (
+          <section
+            className="mx-auto max-w-3xl py-8 md:py-10"
+            data-testid={`pro-mini-site-${type}`}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: theme.accentColor }}>
               {sectionTitle}
             </p>
             <p className={`mt-3 text-sm leading-relaxed md:text-base ${mutedText}`}>{sectionBody}</p>
@@ -1572,6 +1709,9 @@ export function ProMiniSiteLayout({
     }
     if (isTeacherTemplate) {
       return renderTeacherSection(type);
+    }
+    if (isCoachTemplate) {
+      return renderCoachSection(type);
     }
 
     switch (type) {

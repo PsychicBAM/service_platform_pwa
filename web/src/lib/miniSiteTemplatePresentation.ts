@@ -116,6 +116,8 @@ export function getMiniSitePreviewHeroTitleClass(template: MiniSiteTemplate): st
       return "text-xl font-black uppercase leading-tight tracking-wide";
     case "teacher":
       return "text-xl font-semibold leading-tight tracking-tight";
+    case "coach":
+      return "text-xl font-bold leading-tight tracking-tight";
     case "clinic":
       return "text-xl font-semibold leading-tight text-emerald-950";
     case "expert":
@@ -135,6 +137,8 @@ export function getMiniSitePreviewSectionHeadingClass(template: MiniSiteTemplate
       return "text-base font-black uppercase tracking-wide";
     case "teacher":
       return "text-base font-semibold tracking-tight";
+    case "coach":
+      return "text-base font-bold tracking-tight";
     case "clinic":
       return "text-base font-semibold text-emerald-950";
     case "clean":
@@ -218,6 +222,16 @@ export function getMiniSitePreviewServiceCardPresentation(
         metaClass: `text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`,
         buttonClass: `mt-3 block w-full px-3 py-2 text-center text-xs font-semibold text-white shadow-sm ${radius}`,
         iconWrapClass: "rounded-full bg-white/90 p-1.5",
+        buttonVariant: "filled",
+      };
+    case "coach":
+      return {
+        cardClass: `rounded-xl border-l-4 border p-3 shadow-sm ${baseCard}`,
+        titleClass: "text-sm font-bold tracking-tight",
+        descriptionClass: `mt-1 text-xs leading-snug ${isDark ? "text-slate-300" : "text-slate-600"}`,
+        metaClass: `text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`,
+        buttonClass: `mt-3 block w-full px-3 py-2 text-center text-xs font-semibold text-white shadow-sm ${radius}`,
+        iconWrapClass: "rounded-lg bg-white/90 p-1.5",
         buttonVariant: "filled",
       };
     case "clean":
@@ -358,6 +372,16 @@ export function getThemedServiceCardPresentation(
         metaClass: `text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`,
         buttonClass: `mt-4 block w-full px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:brightness-105 ${radius}`,
         iconWrapClass: "rounded-full bg-white/90 p-2",
+        buttonVariant: "filled",
+      };
+    case "coach":
+      return {
+        cardClass: `rounded-2xl border-l-4 border p-4 shadow-md ${isDark ? baseCard : "border-slate-200/90 bg-white text-slate-900"}`,
+        titleClass: "text-base font-bold break-words",
+        descriptionClass: `mt-2 text-sm leading-relaxed break-words ${isDark ? "text-slate-300" : "text-slate-600"}`,
+        metaClass: `text-sm font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`,
+        buttonClass: `mt-4 block w-full px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:brightness-105 ${radius}`,
+        iconWrapClass: "rounded-lg bg-white/90 p-2",
         buttonVariant: "filled",
       };
     case "clean":
@@ -592,6 +616,37 @@ export function getMiniSiteTemplatePresentation(
         primaryButtonClass: `inline-flex w-full items-center justify-center px-8 py-4 text-base font-semibold text-white shadow-md transition hover:brightness-105 sm:w-auto ${buttonRadius}`,
         secondaryButtonClass: `inline-flex w-full items-center justify-center border-2 px-8 py-4 text-base font-semibold shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
           isDark ? "border-slate-600/70 bg-transparent hover:bg-slate-800/30" : "border-slate-300/80 bg-white hover:bg-slate-50"
+        }`,
+      });
+    case "coach":
+      return withTemplateDefaults(isDark, {
+        layoutClass: "template-coach w-full",
+        layoutSpacingClass: "space-y-0",
+        heroClass: "border-0 bg-transparent shadow-none ring-0",
+        heroLayoutClass: "flex flex-col gap-6 md:grid md:grid-cols-2 md:items-center",
+        heroPaddingClass: "",
+        sectionClass: "border-0 bg-transparent shadow-none ring-0",
+        sectionPaddingClass: "",
+        sectionRadiusClass: "rounded-none",
+        servicesClass: "",
+        galleryClass: "border-dashed",
+        heroTitleClass:
+          "whitespace-normal text-4xl font-bold tracking-tight sm:text-5xl md:text-[3.5rem] lg:leading-[1.05]",
+        sectionHeadingClass: "whitespace-normal text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl",
+        sectionHeadingAccentClass: "hidden",
+        showBenefitsStrip: true,
+        showTrustStats: true,
+        heroAccentClass: "",
+        bookingCtaClass: "",
+        contactChipClass: isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50",
+        trustStatClass: "",
+        faqItemClass: "",
+        heroBadgeClass:
+          "inline-flex font-semibold uppercase tracking-[0.14em]",
+        heroTopBarClass: "hidden",
+        primaryButtonClass: `inline-flex w-full items-center justify-center px-8 py-4 text-base font-semibold text-white shadow-lg transition hover:brightness-110 sm:w-auto ${buttonRadius}`,
+        secondaryButtonClass: `inline-flex w-full items-center justify-center border-2 px-8 py-4 text-base font-semibold shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
+          isDark ? "border-slate-500/80 bg-white/5 text-slate-100 hover:bg-white/10" : "border-white/30 bg-white/10 text-white hover:bg-white/20"
         }`,
       });
     case "clean":
