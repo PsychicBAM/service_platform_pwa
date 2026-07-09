@@ -95,6 +95,14 @@ export interface MiniSiteCopy {
   faqItems: [MiniSiteFaqItem, MiniSiteFaqItem, MiniSiteFaqItem];
 }
 
+/** Per-template editable content bucket (foundation for future template-specific fields). */
+export type MiniSiteTemplateFoundationBucket = Record<string, unknown>;
+
+/** Template-keyed content/media maps preserve data when switching templates. */
+export type MiniSiteTemplateFoundationMap = Partial<
+  Record<MiniSiteTemplate, MiniSiteTemplateFoundationBucket>
+>;
+
 export const MINI_SITE_CONFIG_VERSION = 1 as const;
 
 export type MiniSiteConfigVersion = typeof MINI_SITE_CONFIG_VERSION;
@@ -105,4 +113,6 @@ export interface MiniSiteConfig {
   sections: MiniSiteSection[];
   socialLinks: MiniSiteSocialLinks;
   copy: MiniSiteCopy;
+  templateContent: MiniSiteTemplateFoundationMap;
+  templateMedia: MiniSiteTemplateFoundationMap;
 }

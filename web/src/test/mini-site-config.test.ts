@@ -382,4 +382,56 @@ describe("mini-site config helpers", () => {
     expect(hasMeaningfulText("  ")).toBe(false);
     expect(hasMeaningfulText("Book now")).toBe(true);
   });
+
+  it("DEFAULT_MINI_SITE_CONFIG includes empty template foundation maps", () => {
+    expect(DEFAULT_MINI_SITE_CONFIG.templateContent).toEqual({});
+    expect(DEFAULT_MINI_SITE_CONFIG.templateMedia).toEqual({});
+  });
+
+  it("normalizeMiniSiteConfig defaults template foundation maps for legacy configs", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
+      socialLinks: {},
+    });
+
+    expect(config.templateContent).toEqual({});
+    expect(config.templateMedia).toEqual({});
+  });
+
+  it("normalizeMiniSiteConfig preserves template foundation buckets per template", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
+      socialLinks: {},
+      templateContent: {
+        clinic: { heroHeadline: "Care first" },
+        portfolio: { studioTagline: "Bold work" },
+      },
+      templateMedia: {
+        clinic: { heroImage: "https://example.com/clinic.jpg" },
+      },
+    });
+
+    expect(config.templateContent.clinic).toEqual({ heroHeadline: "Care first" });
+    expect(config.templateContent.portfolio).toEqual({ studioTagline: "Bold work" });
+    expect(config.templateMedia.clinic).toEqual({ heroImage: "https://example.com/clinic.jpg" });
+    expect(config.templateMedia.portfolio).toBeUndefined();
+  });
+
+  it("normalizeMiniSiteConfig preserves explicit empty template foundation buckets", () => {
+    const config = normalizeMiniSiteConfig({
+      version: 1,
+      theme: DEFAULT_MINI_SITE_CONFIG.theme,
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
+      socialLinks: {},
+      templateContent: { clinic: {} },
+      templateMedia: { portfolio: {} },
+    });
+
+    expect(config.templateContent.clinic).toEqual({});
+    expect(config.templateMedia.portfolio).toEqual({});
+  });
 });

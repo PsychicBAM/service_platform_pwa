@@ -14,6 +14,7 @@ import {
   type MiniSiteFaqItem,
   type MiniSiteSocialLinks,
   type MiniSiteTemplate,
+  type MiniSiteTemplateFoundationMap,
   type MiniSiteTheme,
   type MiniSiteTrustCard,
 } from "@/types/miniSite";
@@ -307,6 +308,8 @@ export const DEFAULT_MINI_SITE_CONFIG: MiniSiteConfig = {
   sections: buildDefaultSections(),
   socialLinks: {},
   copy: getDefaultCopyForTemplate(DEFAULT_THEME.template),
+  templateContent: {},
+  templateMedia: {},
 };
 
 export function isMiniSiteTemplate(value: unknown): value is MiniSiteTemplate {
@@ -650,6 +653,28 @@ function normalizeSections(input: unknown): MiniSiteSection[] {
   return ensureRequiredSections(sections);
 }
 
+function normalizeTemplateFoundationMap(input: unknown): MiniSiteTemplateFoundationMap {
+  if (input === null || input === undefined) {
+    return {};
+  }
+  if (typeof input !== "object" || Array.isArray(input)) {
+    return {};
+  }
+
+  const result: MiniSiteTemplateFoundationMap = {};
+  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
+    if (!isMiniSiteTemplate(key)) {
+      continue;
+    }
+    if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+      result[key] = { ...(value as Record<string, unknown>) };
+    } else if (value === null) {
+      result[key] = {};
+    }
+  }
+  return result;
+}
+
 export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
   if (input === null || input === undefined) {
     return {
@@ -658,6 +683,8 @@ export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
       sections: buildDefaultSections(),
       socialLinks: {},
       copy: getDefaultCopyForTemplate(DEFAULT_THEME.template),
+      templateContent: {},
+      templateMedia: {},
     };
   }
 
@@ -675,6 +702,8 @@ export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
     sections: normalizeSections(source.sections),
     socialLinks: normalizeSocialLinks(source.socialLinks ?? source.social_links),
     copy: normalizeCopy(source.copy, theme.template),
+    templateContent: normalizeTemplateFoundationMap(source.templateContent ?? source.template_content),
+    templateMedia: normalizeTemplateFoundationMap(source.templateMedia ?? source.template_media),
   };
 }
 

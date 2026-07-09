@@ -265,6 +265,8 @@ def default_mini_site_config() -> MiniSiteConfig:
         sections=_build_default_sections(),
         social_links=MiniSiteSocialLinks(),
         copy=_default_copy_for_template(theme.template),
+        template_content={},
+        template_media={},
     )
 
 
@@ -523,18 +525,39 @@ def _normalize_sections(input_value: object) -> list[MiniSiteSection]:
     return _ensure_required_sections(sections)
 
 
+def _normalize_template_foundation_map(input_value: object) -> dict[str, dict[str, Any]]:
+    if input_value is None:
+        return {}
+    if not isinstance(input_value, dict):
+        return {}
+
+    result: dict[str, dict[str, Any]] = {}
+    for key, value in input_value.items():
+        if not _is_mini_site_template(key):
+            continue
+        if isinstance(value, dict):
+            result[key] = dict(value)
+        elif value is None:
+            result[key] = {}
+    return result
+
+
 def normalize_mini_site_config(input_value: object) -> MiniSiteConfig:
     """Accept unknown or malformed input and return a safe mini-site config."""
     if input_value is None or not isinstance(input_value, dict):
         return default_mini_site_config()
 
     theme = _normalize_theme(input_value.get("theme"))
+    template_content_source = input_value.get("template_content", input_value.get("templateContent"))
+    template_media_source = input_value.get("template_media", input_value.get("templateMedia"))
     return MiniSiteConfig(
         version=MINI_SITE_CONFIG_VERSION,
         theme=theme,
         sections=_normalize_sections(input_value.get("sections")),
         social_links=_normalize_social_links(input_value.get("social_links")),
         copy=_normalize_copy(input_value.get("copy"), theme.template),
+        template_content=_normalize_template_foundation_map(template_content_source),
+        template_media=_normalize_template_foundation_map(template_media_source),
     )
 
 

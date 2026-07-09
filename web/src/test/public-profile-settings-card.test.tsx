@@ -458,4 +458,60 @@ describe("PublicProfileSettingsCard", () => {
       expect(faqAfter.compareDocumentPosition(trustAfter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
   });
+
+  it("renders template blocks panel for the selected template", async () => {
+    renderPublicProfileCard("pro");
+
+    expect(await screen.findByTestId("mini-site-template-blocks-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-template-blocks-heading")).toHaveTextContent("Template blocks");
+    expect(screen.getByTestId("mini-site-template-blocks-scope")).toHaveTextContent(/Only blocks for Clean are shown/i);
+    expect(screen.getByTestId("mini-site-template-block-hero")).toHaveTextContent("Editorial hero");
+  });
+
+  it("shows clinic-specific blocks when clinic template is selected", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "clinic");
+
+    expect(screen.getByTestId("mini-site-template-blocks-scope")).toHaveTextContent(/Only blocks for Clinic are shown/i);
+    expect(screen.getByTestId("mini-site-template-block-appointmentPanel")).toHaveTextContent("Appointment panel");
+    expect(screen.getByTestId("mini-site-template-block-specialties")).toHaveTextContent("Specialties & treatments");
+    expect(screen.queryByTestId("mini-site-template-block-workShowcase")).not.toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-template-media-slot-doctorOrClinicImage")).toHaveTextContent(
+      "Doctor / clinic image",
+    );
+    expect(screen.getByTestId("mini-site-template-media-slot-doctorOrClinicImage")).toHaveTextContent(/coming soon/i);
+  });
+
+  it("shows portfolio-specific blocks and hides clinic blocks when portfolio is selected", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "portfolio");
+
+    expect(screen.getByTestId("mini-site-template-blocks-scope")).toHaveTextContent(/Only blocks for Portfolio are shown/i);
+    expect(screen.getByTestId("mini-site-template-block-workShowcase")).toHaveTextContent("Work showcase");
+    expect(screen.queryByTestId("mini-site-template-block-appointmentPanel")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-template-block-specialties")).not.toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-template-media-slot-showreel")).toHaveTextContent("Showreel video");
+  });
+
+  it("updates template blocks panel when selected template changes", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "teacher");
+
+    expect(screen.getByTestId("mini-site-template-block-lessonPanel")).toHaveTextContent("Lesson overview panel");
+    expect(screen.queryByTestId("mini-site-template-block-programPanel")).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "coach");
+
+    expect(screen.getByTestId("mini-site-template-block-programPanel")).toHaveTextContent("Coaching program panel");
+    expect(screen.queryByTestId("mini-site-template-block-lessonPanel")).not.toBeInTheDocument();
+  });
 });

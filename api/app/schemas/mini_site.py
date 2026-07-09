@@ -149,6 +149,8 @@ class MiniSiteConfig(BaseModel):
     sections: list[MiniSiteSection]
     social_links: MiniSiteSocialLinks = Field(default_factory=MiniSiteSocialLinks)
     copy: MiniSiteCopy = Field(default_factory=MiniSiteCopy)
+    template_content: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    template_media: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
 
 class MiniSiteConfigWrite(BaseModel):
@@ -161,3 +163,5 @@ class MiniSiteConfigWrite(BaseModel):
     sections: list[Any] | None = None
     social_links: dict[str, Any] | None = None
     copy: dict[str, Any] | None = None
+    template_content: dict[str, Any] | None = None
+    template_media: dict[str, Any] | None = None

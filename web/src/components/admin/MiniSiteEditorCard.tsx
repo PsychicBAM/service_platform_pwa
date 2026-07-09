@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMiniSiteConfig, updateMiniSiteConfig } from "@/api/miniSiteApi";
 import { MiniSiteLivePreview } from "@/components/admin/MiniSiteLivePreview";
+import { MiniSiteTemplateBlocksPanel } from "@/components/admin/MiniSiteTemplateBlocksPanel";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { DEFAULT_MINI_SITE_BACKGROUND_COLOR, normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
@@ -569,6 +570,8 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
                 ))}
               </select>
             </label>
+
+            <MiniSiteTemplateBlocksPanel template={draft.theme.template} />
 
             <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <ColorField

@@ -11,6 +11,7 @@ import type {
   MiniSiteSectionType,
   MiniSiteSocialLinks,
   MiniSiteTemplate,
+  MiniSiteTemplateFoundationMap,
   MiniSiteTheme,
   MiniSiteTrustCard,
 } from "@/types/miniSite";
@@ -83,7 +84,19 @@ export type MiniSiteConfigWire = {
   sections: MiniSiteSectionWire[];
   social_links: MiniSiteSocialLinksWire;
   copy?: MiniSiteCopyWire;
+  template_content?: MiniSiteTemplateFoundationMap;
+  template_media?: MiniSiteTemplateFoundationMap;
 };
+
+function mapTemplateFoundationMapToWire(
+  map: MiniSiteTemplateFoundationMap,
+): MiniSiteTemplateFoundationMap {
+  const result: MiniSiteTemplateFoundationMap = {};
+  for (const [template, bucket] of Object.entries(map)) {
+    result[template as MiniSiteTemplate] = { ...bucket };
+  }
+  return result;
+}
 
 function miniSiteConfigPath(businessId: string | number): string {
   return `/businesses/${encodeURIComponent(String(businessId))}/mini-site-config`;
@@ -181,6 +194,8 @@ export function mapMiniSiteConfigFromWire(wire: MiniSiteConfigWire): MiniSiteCon
     sections: wire.sections,
     social_links: wire.social_links,
     copy: wire.copy,
+    template_content: wire.template_content,
+    template_media: wire.template_media,
   });
 }
 
@@ -191,6 +206,8 @@ export function mapMiniSiteConfigToWire(config: MiniSiteConfig): MiniSiteConfigW
     sections: config.sections.map(mapSectionToWire),
     social_links: mapSocialLinksToWire(config.socialLinks),
     copy: mapCopyToWire(config.copy),
+    template_content: mapTemplateFoundationMapToWire(config.templateContent),
+    template_media: mapTemplateFoundationMapToWire(config.templateMedia),
   };
 }
 

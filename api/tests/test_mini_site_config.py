@@ -365,3 +365,62 @@ def test_coach_template_normalizes_with_coaching_defaults() -> None:
     assert config.theme.template == "coach"
     assert config.copy.hero_badge_text == "Coaching & mentorship"
     assert config.copy.primary_cta_label == "Book a session"
+
+
+def test_default_config_includes_empty_template_foundation_maps() -> None:
+    config = default_mini_site_config()
+    assert config.template_content == {}
+    assert config.template_media == {}
+
+
+def test_normalize_adds_empty_template_foundation_maps_for_legacy_config() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+        },
+    )
+    assert config.template_content == {}
+    assert config.template_media == {}
+
+
+def test_normalize_preserves_template_foundation_buckets() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+            "template_content": {
+                "clinic": {"hero_headline": "Care first"},
+                "portfolio": {"studio_tagline": "Bold work"},
+            },
+            "template_media": {
+                "clinic": {"hero_image": "https://example.com/clinic.jpg"},
+            },
+        },
+    )
+    assert config.template_content["clinic"] == {"hero_headline": "Care first"}
+    assert config.template_content["portfolio"] == {"studio_tagline": "Bold work"}
+    assert config.template_media["clinic"] == {"hero_image": "https://example.com/clinic.jpg"}
+    assert "portfolio" not in config.template_media
+
+
+def test_normalize_preserves_explicit_empty_template_foundation_buckets() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+            "template_content": {"clinic": {}},
+            "template_media": {"portfolio": {}},
+        },
+    )
+    assert config.template_content["clinic"] == {}
+    assert config.template_media["portfolio"] == {}
