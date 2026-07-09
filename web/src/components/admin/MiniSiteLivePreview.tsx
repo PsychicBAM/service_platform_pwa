@@ -480,6 +480,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             theme={clinicTheme}
             isDark={isDark}
             businessName={businessName}
+            copy={copy}
           />
         );
       case "services":

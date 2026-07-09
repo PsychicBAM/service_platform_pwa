@@ -418,6 +418,7 @@ export function ProMiniSiteLayout({
             theme={clinicTheme}
             isDark={isDark}
             businessName={business.name}
+            copy={copy}
           />
         );
       case "services":
