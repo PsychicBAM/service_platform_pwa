@@ -1,4 +1,12 @@
 import {
+  ClinicAboutSection,
+  ClinicContactSection,
+  ClinicFaqSection,
+  ClinicHeroSection,
+  ClinicServicesSection,
+  ClinicTrustSection,
+} from "@/components/public/ClinicProMiniSiteSections";
+import {
   ExpertAboutSection,
   ExpertContactSection,
   ExpertFaqSection,
@@ -122,6 +130,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const isCleanTemplate = theme.template === "clean";
   const isServiceTemplate = theme.template === "service";
   const isExpertTemplate = theme.template === "expert";
+  const isClinicTemplate = theme.template === "clinic";
   const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
   const cleanTheme = {
     primaryColor: theme.primaryColor,
@@ -135,6 +144,12 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     buttonStyle: theme.buttonStyle,
   };
   const expertTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+    buttonStyle: theme.buttonStyle,
+  };
+  const clinicTheme = {
     primaryColor: theme.primaryColor,
     accentColor: theme.accentColor,
     backgroundStyle: theme.backgroundStyle,
@@ -156,6 +171,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
   const serviceBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
+  const clinicBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
   const showExpertHeroCredibility =
     isExpertTemplate &&
     presentation.showTrustStats &&
@@ -423,6 +439,108 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     }
   }
 
+  function renderClinicPreviewSection(type: MiniSiteSectionType): JSX.Element | null {
+    const shell = {
+      variant: "preview" as const,
+      testIdPrefix: "mini-site-preview",
+      previewButtons: true,
+    };
+    const clinicTrustHighlights =
+      !trustSectionEnabled && presentation.showTrustStats ? copy.trustCards : [];
+
+    switch (type) {
+      case "hero":
+        return (
+          <ClinicHeroSection
+            {...shell}
+            business={previewBusiness}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            theme={clinicTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref="#"
+            secondaryOrderHref="#"
+            showBookingCta={hasMeaningfulText(primaryCtaLabel)}
+            showRequestCta={hasMeaningfulText(secondaryCtaLabel)}
+            operatingMode="both"
+            serviceCount={2}
+            benefitHighlights={clinicBenefitHighlights}
+            trustHighlights={clinicTrustHighlights}
+            contactPhone=""
+          />
+        );
+      case "about":
+        return (
+          <ClinicAboutSection
+            {...shell}
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={null}
+            theme={clinicTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <ClinicServicesSection
+            {...shell}
+            title={servicesTitle}
+            badgeText={servicesBadge}
+            services={undefined}
+            publicSlug=""
+            theme={clinicTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust":
+        return (
+          <ClinicTrustSection
+            {...shell}
+            copy={copy}
+            theme={clinicTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            showBenefitsStrip={presentation.showBenefitsStrip}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <ClinicFaqSection
+            {...shell}
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            theme={clinicTheme}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        if (visibleSocialLinks.length === 0) {
+          return null;
+        }
+        return (
+          <ClinicContactSection
+            {...shell}
+            title={contactTitle}
+            contactAddress=""
+            contactPhone=""
+            socialLinks={socialLinks}
+            theme={clinicTheme}
+            isDark={isDark}
+          />
+        );
+      default:
+        return null;
+    }
+  }
+
   function renderServicePreviewSection(type: MiniSiteSectionType): JSX.Element | null {
     const shell = {
       variant: "preview" as const,
@@ -532,6 +650,9 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     }
     if (isExpertTemplate) {
       return renderExpertPreviewSection(type);
+    }
+    if (isClinicTemplate) {
+      return renderClinicPreviewSection(type);
     }
 
     switch (type) {

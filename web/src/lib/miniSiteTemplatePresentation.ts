@@ -482,28 +482,32 @@ export function getMiniSiteTemplatePresentation(
     case "clinic":
       return withTemplateDefaults(isDark, {
         layoutClass: "template-clinic mx-auto w-full max-w-5xl",
-        heroClass: isDark
-          ? `rounded-[2rem] shadow-lg ${sectionBase} bg-slate-900/65`
-          : `rounded-[2rem] border border-teal-100/90 bg-gradient-to-br from-teal-50/95 via-white to-emerald-50/70 shadow-md ${sectionBase}`,
+        layoutSpacingClass: "space-y-0",
+        heroClass: "border-0 bg-transparent shadow-none ring-0",
         heroLayoutClass: "flex flex-col gap-6 md:flex-row md:items-center",
-        sectionClass: isDark
-          ? `rounded-[1.75rem] ${sectionBase} bg-slate-900/55`
-          : `rounded-[1.75rem] border border-teal-100/80 bg-white shadow-sm ${sectionBase}`,
-        servicesClass: isDark ? "rounded-[1.75rem]" : "rounded-[1.75rem] border border-teal-100/80",
-        galleryClass: "rounded-[1.75rem] border-dashed",
+        heroPaddingClass: "",
+        sectionClass: "border-0 bg-transparent shadow-none ring-0",
+        sectionPaddingClass: "",
+        sectionRadiusClass: "rounded-none",
+        servicesClass: "",
+        galleryClass: "border-dashed",
         heroTitleClass:
-          "break-words text-3xl font-semibold tracking-tight text-emerald-950 sm:text-4xl md:text-[2.65rem] md:leading-tight",
-        sectionHeadingClass: "break-words text-lg font-semibold text-emerald-950 sm:text-xl",
+          "break-words text-3xl font-semibold tracking-tight sm:text-4xl md:text-[2.65rem] md:leading-[1.08]",
+        sectionHeadingClass: "break-words text-xl font-semibold tracking-tight md:text-2xl",
+        sectionHeadingAccentClass: "hidden",
         showBenefitsStrip: true,
         showTrustStats: true,
-        heroAccentClass: isDark ? "bg-slate-900/45" : "bg-white/85",
-        bookingCtaClass: "rounded-[1.75rem] border border-teal-100/70",
-        contactChipClass: isDark
-          ? "border-slate-700 bg-slate-900/40"
-          : "border-teal-100/80 bg-teal-50/50",
-        primaryButtonClass: `inline-flex w-full items-center justify-center px-7 py-4 text-sm font-semibold text-white shadow-md transition hover:brightness-105 sm:w-auto ${buttonRadius}`,
-        secondaryButtonClass: `inline-flex w-full items-center justify-center border-2 px-7 py-4 text-sm font-semibold shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
-          isDark ? "border-slate-600 bg-slate-900/40" : "border-teal-200 bg-white hover:bg-teal-50/50"
+        heroAccentClass: "",
+        bookingCtaClass: "",
+        contactChipClass: "",
+        trustStatClass: "",
+        faqItemClass: "",
+        heroBadgeClass:
+          "inline-flex rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em]",
+        heroTopBarClass: "hidden",
+        primaryButtonClass: `inline-flex w-full items-center justify-center px-7 py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-105 sm:w-auto ${buttonRadius}`,
+        secondaryButtonClass: `inline-flex w-full items-center justify-center border-2 px-7 py-3.5 text-sm font-semibold shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
+          isDark ? "border-slate-600/70 bg-transparent hover:bg-slate-800/30" : "border-slate-300/80 bg-white/70 hover:bg-white"
         }`,
       });
     case "portfolio":

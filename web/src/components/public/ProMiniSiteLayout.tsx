@@ -21,6 +21,16 @@ import {
   normalizeMiniSiteConfig,
 } from "@/lib/miniSiteConfig";
 import {
+  ClinicAboutSection,
+  ClinicBookingCtaSection,
+  ClinicContactSection,
+  ClinicFaqSection,
+  ClinicGallerySection,
+  ClinicHeroSection,
+  ClinicServicesSection,
+  ClinicTrustSection,
+} from "@/components/public/ClinicProMiniSiteSections";
+import {
   ExpertAboutSection,
   ExpertBookingCtaSection,
   ExpertContactSection,
@@ -332,6 +342,7 @@ export function ProMiniSiteLayout({
   const isCleanTemplate = theme.template === "clean";
   const isServiceTemplate = theme.template === "service";
   const isExpertTemplate = theme.template === "expert";
+  const isClinicTemplate = theme.template === "clinic";
   const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
   const cleanTheme = {
     primaryColor: theme.primaryColor,
@@ -350,6 +361,12 @@ export function ProMiniSiteLayout({
     backgroundStyle: theme.backgroundStyle,
     buttonStyle: theme.buttonStyle,
   };
+  const clinicTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+    buttonStyle: theme.buttonStyle,
+  };
   const showCleanHeroTrustStrip =
     isCleanTemplate &&
     presentation.showTrustStats &&
@@ -361,11 +378,136 @@ export function ProMiniSiteLayout({
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
   const serviceBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
+  const clinicBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
   const showExpertHeroCredibility =
     isExpertTemplate &&
     presentation.showTrustStats &&
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
+
+  const renderClinicSection = (type: MiniSiteSectionType) => {
+    const clinicTrustHighlights =
+      !trustSectionEnabled && presentation.showTrustStats ? copy.trustCards : [];
+
+    switch (type) {
+      case "hero":
+        return (
+          <ClinicHeroSection
+            business={business}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            theme={clinicTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref={primaryBookingHref}
+            secondaryOrderHref={secondaryOrderHref}
+            showBookingCta={ctas.showBookingCta}
+            showRequestCta={ctas.showRequestCta}
+            operatingMode={business.operating_mode}
+            serviceCount={services?.length ?? null}
+            benefitHighlights={clinicBenefitHighlights}
+            trustHighlights={clinicTrustHighlights}
+            contactPhone={contactPhone}
+          />
+        );
+      case "about":
+        return (
+          <ClinicAboutSection
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={business.description}
+            theme={clinicTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <ClinicServicesSection
+            title={servicesTitle}
+            badgeText={servicesBadgeText}
+            services={services}
+            publicSlug={publicSlug}
+            theme={clinicTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust":
+        return (
+          <ClinicTrustSection
+            copy={copy}
+            theme={clinicTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            showBenefitsStrip={presentation.showBenefitsStrip}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <ClinicFaqSection
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            theme={clinicTheme}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        return (
+          <ClinicContactSection
+            title={contactTitle}
+            contactAddress={contactAddress}
+            contactPhone={contactPhone}
+            socialLinks={socialLinks}
+            theme={clinicTheme}
+            isDark={isDark}
+          />
+        );
+      case "booking_cta":
+        if (!ctas.showBookingCta || !hasMeaningfulText(primaryCtaLabel)) {
+          return null;
+        }
+        return (
+          <ClinicBookingCtaSection
+            primaryLabel={primaryCtaLabel}
+            primaryHref={primaryBookingHref}
+            secondaryLabel={secondaryCtaLabel}
+            secondaryHref={secondaryOrderHref}
+            showSecondary={ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel)}
+            theme={clinicTheme}
+            presentation={presentation}
+          />
+        );
+      case "gallery":
+        return <ClinicGallerySection theme={clinicTheme} isDark={isDark} />;
+      case "benefits":
+      case "pricing": {
+        const sectionTitle = getSectionField(siteConfig, type, "title") || (type === "benefits" ? "Benefits" : "Pricing");
+        const sectionBody = getSectionField(siteConfig, type, "body");
+        if (!sectionBody) {
+          return null;
+        }
+        return (
+          <section
+            className="mx-auto max-w-3xl py-8 md:py-10"
+            data-testid={`pro-mini-site-${type}`}
+          >
+            <p className="text-xs font-medium uppercase tracking-[0.14em]" style={{ color: theme.accentColor }}>
+              {sectionTitle}
+            </p>
+            <p className={`mt-3 text-sm leading-relaxed md:text-base ${mutedText}`}>{sectionBody}</p>
+          </section>
+        );
+      }
+      default:
+        return null;
+    }
+  };
 
   const renderExpertSection = (type: MiniSiteSectionType) => {
     switch (type) {
@@ -1149,6 +1291,9 @@ export function ProMiniSiteLayout({
     }
     if (isExpertTemplate) {
       return renderExpertSection(type);
+    }
+    if (isClinicTemplate) {
+      return renderClinicSection(type);
     }
 
     switch (type) {
