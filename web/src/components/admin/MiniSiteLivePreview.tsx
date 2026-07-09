@@ -171,7 +171,6 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
   const serviceBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
-  const clinicBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
   const showExpertHeroCredibility =
     isExpertTemplate &&
     presentation.showTrustStats &&
@@ -445,8 +444,6 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
       testIdPrefix: "mini-site-preview",
       previewButtons: true,
     };
-    const clinicTrustHighlights =
-      !trustSectionEnabled && presentation.showTrustStats ? copy.trustCards : [];
 
     switch (type) {
       case "hero":
@@ -458,6 +455,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             heroSubtitle={heroSubtitle}
             heroBody={heroBody}
             heroBadgeText={copy.heroBadgeText}
+            copy={copy}
             theme={clinicTheme}
             presentation={presentation}
             primaryCtaLabel={primaryCtaLabel}
@@ -468,9 +466,8 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             showRequestCta={hasMeaningfulText(secondaryCtaLabel)}
             operatingMode="both"
             serviceCount={2}
-            benefitHighlights={clinicBenefitHighlights}
-            trustHighlights={clinicTrustHighlights}
             contactPhone=""
+            contactAddress=""
           />
         );
       case "about":
@@ -494,6 +491,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             publicSlug=""
             theme={clinicTheme}
             isDark={isDark}
+            primaryCtaLabel={primaryCtaLabel}
           />
         );
       case "trust":

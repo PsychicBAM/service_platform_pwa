@@ -378,7 +378,6 @@ export function ProMiniSiteLayout({
     !trustSectionEnabled &&
     copy.trustCards.length > 0;
   const serviceBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
-  const clinicBenefitHighlights = copy.benefitsItems.filter(Boolean).slice(0, 3);
   const showExpertHeroCredibility =
     isExpertTemplate &&
     presentation.showTrustStats &&
@@ -386,9 +385,6 @@ export function ProMiniSiteLayout({
     copy.trustCards.length > 0;
 
   const renderClinicSection = (type: MiniSiteSectionType) => {
-    const clinicTrustHighlights =
-      !trustSectionEnabled && presentation.showTrustStats ? copy.trustCards : [];
-
     switch (type) {
       case "hero":
         return (
@@ -398,6 +394,7 @@ export function ProMiniSiteLayout({
             heroSubtitle={heroSubtitle}
             heroBody={heroBody}
             heroBadgeText={copy.heroBadgeText}
+            copy={copy}
             theme={clinicTheme}
             presentation={presentation}
             primaryCtaLabel={primaryCtaLabel}
@@ -408,9 +405,8 @@ export function ProMiniSiteLayout({
             showRequestCta={ctas.showRequestCta}
             operatingMode={business.operating_mode}
             serviceCount={services?.length ?? null}
-            benefitHighlights={clinicBenefitHighlights}
-            trustHighlights={clinicTrustHighlights}
             contactPhone={contactPhone}
+            contactAddress={contactAddress}
           />
         );
       case "about":
@@ -432,6 +428,7 @@ export function ProMiniSiteLayout({
             publicSlug={publicSlug}
             theme={clinicTheme}
             isDark={isDark}
+            primaryCtaLabel={primaryCtaLabel}
           />
         );
       case "trust":
