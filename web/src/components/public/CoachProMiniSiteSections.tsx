@@ -718,7 +718,6 @@ export function CoachFaqSection({
   testIdPrefix = "pro-mini-site",
   title,
   faqItems,
-  theme,
   isDark,
 }: CoachFaqSectionProps) {
   const muted = coachMutedText(isDark);
