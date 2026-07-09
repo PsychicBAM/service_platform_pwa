@@ -117,6 +117,22 @@ def _default_copy_for_template(template: MiniSiteTemplate) -> MiniSiteCopy:
             primary_cta_label="Start a project",
             secondary_cta_label="Send inquiry",
         )
+    if template == "teacher":
+        return MiniSiteCopy(
+            hero_badge_text="Private lessons & tutoring",
+            trust_cards=[
+                MiniSiteTrustCard(title="Flexible", subtitle="Lesson scheduling"),
+                MiniSiteTrustCard(title="Personal", subtitle="1:1 instruction"),
+                MiniSiteTrustCard(title="Clear", subtitle="Learning goals"),
+            ],
+            benefits_section_title="How learning works",
+            benefits_items=["Assess your goals", "Structured lessons", "Practice between sessions"],
+            services_section_title="Lessons & courses",
+            services_section_badge_text="{count} available",
+            contact_section_title="Contact & availability",
+            primary_cta_label="Book a lesson",
+            secondary_cta_label="Ask a question",
+        )
     return MiniSiteCopy(
         hero_badge_text="Welcome",
         trust_cards=[

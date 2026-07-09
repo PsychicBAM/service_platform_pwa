@@ -4,6 +4,7 @@ export const MINI_SITE_TEMPLATES = [
   "expert",
   "clinic",
   "portfolio",
+  "teacher",
 ] as const;
 
 export type MiniSiteTemplate = (typeof MINI_SITE_TEMPLATES)[number];

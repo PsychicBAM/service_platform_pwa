@@ -355,6 +355,12 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("mini-site-preview-primary-button")).toHaveClass("rounded-full");
   });
 
+  it("includes teacher in the template selector", async () => {
+    renderPublicProfileCard("pro");
+    const select = await screen.findByTestId("mini-site-template");
+    expect(within(select).getByRole("option", { name: "Teacher" })).toBeInTheDocument();
+  });
+
   it("reflects selected template in live preview", async () => {
     const user = userEvent.setup();
     renderPublicProfileCard("pro");

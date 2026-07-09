@@ -211,6 +211,19 @@ describe("ProMiniSiteLayout", () => {
     expect(screen.getByTestId("pro-mini-site-portfolio-capabilities")).toBeInTheDocument();
   });
 
+  it("applies teacher template presentation", () => {
+    renderProMiniSiteLayout({
+      config: createSavedMiniSiteConfig({ template: "teacher" }),
+    });
+    const layout = screen.getByTestId("pro-mini-site-layout");
+    expect(layout).toHaveAttribute("data-template", "teacher");
+    expect(layout).toHaveClass("template-teacher");
+    expect(screen.getByTestId("pro-mini-site-teacher-hero")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-teacher-lesson-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-teacher-highlights")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-trust-stats")).toBeInTheDocument();
+  });
+
   it("keeps dark background readable", () => {
     renderProMiniSiteLayout({
       config: createSavedMiniSiteConfig({ backgroundStyle: "dark" }),

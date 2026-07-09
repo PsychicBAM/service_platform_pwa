@@ -6,7 +6,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-MiniSiteTemplate = Literal["clean", "service", "expert", "clinic", "portfolio"]
+MiniSiteTemplate = Literal["clean", "service", "expert", "clinic", "portfolio", "teacher"]
 MiniSiteBackgroundStyle = Literal["light", "soft", "dark"]
 MiniSiteButtonStyle = Literal["rounded", "pill", "square"]
 MiniSiteSectionType = Literal[
@@ -30,6 +30,7 @@ MINI_SITE_TEMPLATES: tuple[MiniSiteTemplate, ...] = (
     "expert",
     "clinic",
     "portfolio",
+    "teacher",
 )
 
 MINI_SITE_SECTION_TYPES: tuple[MiniSiteSectionType, ...] = (

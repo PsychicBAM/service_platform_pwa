@@ -564,7 +564,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
               >
                 {MINI_SITE_TEMPLATES.map((template) => (
                   <option key={template} value={template}>
-                    {template}
+                    {template.charAt(0).toUpperCase() + template.slice(1)}
                   </option>
                 ))}
               </select>

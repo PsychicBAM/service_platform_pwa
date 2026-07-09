@@ -140,6 +140,23 @@ export function getDefaultCopyForTemplate(template: MiniSiteTemplate): MiniSiteC
         secondaryCtaLabel: "Send inquiry",
         ...DEFAULT_FAQ_COPY,
       };
+    case "teacher":
+      return {
+        heroBadgeText: "Private lessons & tutoring",
+        trustCards: [
+          { title: "Flexible", subtitle: "Lesson scheduling" },
+          { title: "Personal", subtitle: "1:1 instruction" },
+          { title: "Clear", subtitle: "Learning goals" },
+        ],
+        benefitsSectionTitle: "How learning works",
+        benefitsItems: ["Assess your goals", "Structured lessons", "Practice between sessions"],
+        servicesSectionTitle: "Lessons & courses",
+        servicesSectionBadgeText: "{count} available",
+        contactSectionTitle: "Contact & availability",
+        primaryCtaLabel: "Book a lesson",
+        secondaryCtaLabel: "Ask a question",
+        ...DEFAULT_FAQ_COPY,
+      };
     case "clean":
     default:
       return {

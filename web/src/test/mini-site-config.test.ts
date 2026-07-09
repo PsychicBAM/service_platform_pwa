@@ -244,6 +244,7 @@ describe("mini-site config helpers", () => {
 
   it("template and section type guards work", () => {
     expect(isMiniSiteTemplate("clean")).toBe(true);
+    expect(isMiniSiteTemplate("teacher")).toBe(true);
     expect(isMiniSiteTemplate("webflow")).toBe(false);
     expect(isMiniSiteTemplate(null)).toBe(false);
 

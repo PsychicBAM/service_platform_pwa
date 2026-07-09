@@ -15,6 +15,14 @@ import {
   PortfolioWorkSection,
 } from "@/components/public/PortfolioProMiniSiteSections";
 import {
+  TeacherAboutSection,
+  TeacherContactSection,
+  TeacherFaqSection,
+  TeacherHeroSection,
+  TeacherLearningSection,
+  TeacherLessonsSection,
+} from "@/components/public/TeacherProMiniSiteSections";
+import {
   ExpertAboutSection,
   ExpertContactSection,
   ExpertFaqSection,
@@ -140,6 +148,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const isExpertTemplate = theme.template === "expert";
   const isClinicTemplate = theme.template === "clinic";
   const isPortfolioTemplate = theme.template === "portfolio";
+  const isTeacherTemplate = theme.template === "teacher";
   const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
   const cleanTheme = {
     primaryColor: theme.primaryColor,
@@ -165,6 +174,12 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     buttonStyle: theme.buttonStyle,
   };
   const portfolioTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+    buttonStyle: theme.buttonStyle,
+  };
+  const teacherTheme = {
     primaryColor: theme.primaryColor,
     accentColor: theme.accentColor,
     backgroundStyle: theme.backgroundStyle,
@@ -754,6 +769,105 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     }
   }
 
+  function renderTeacherPreviewSection(type: MiniSiteSectionType): JSX.Element | null {
+    const shell = {
+      variant: "preview" as const,
+      testIdPrefix: "mini-site-preview",
+      previewButtons: true,
+    };
+
+    switch (type) {
+      case "hero":
+        return (
+          <TeacherHeroSection
+            {...shell}
+            business={previewBusiness}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            copy={copy}
+            theme={teacherTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref="#"
+            secondaryOrderHref="#"
+            showBookingCta={hasMeaningfulText(primaryCtaLabel)}
+            showRequestCta={hasMeaningfulText(secondaryCtaLabel)}
+            operatingMode="both"
+            services={undefined}
+            serviceCount={2}
+          />
+        );
+      case "about":
+        return (
+          <TeacherAboutSection
+            {...shell}
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={null}
+            theme={teacherTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <TeacherLessonsSection
+            {...shell}
+            title={servicesTitle}
+            badgeText={servicesBadge}
+            services={undefined}
+            publicSlug=""
+            theme={teacherTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust":
+        return (
+          <TeacherLearningSection
+            {...shell}
+            copy={copy}
+            theme={teacherTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            showBenefitsStrip={presentation.showBenefitsStrip}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <TeacherFaqSection
+            {...shell}
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            theme={teacherTheme}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        if (visibleSocialLinks.length === 0) {
+          return null;
+        }
+        return (
+          <TeacherContactSection
+            {...shell}
+            title={contactTitle}
+            contactAddress=""
+            contactPhone=""
+            socialLinks={socialLinks}
+            theme={teacherTheme}
+            isDark={isDark}
+          />
+        );
+      default:
+        return null;
+    }
+  }
+
   function renderSection(type: MiniSiteSectionType): JSX.Element | null {
     if (isCleanTemplate) {
       return renderCleanPreviewSection(type);
@@ -769,6 +883,9 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     }
     if (isPortfolioTemplate) {
       return renderPortfolioPreviewSection(type);
+    }
+    if (isTeacherTemplate) {
+      return renderTeacherPreviewSection(type);
     }
 
     switch (type) {
