@@ -1074,14 +1074,12 @@ export function ClinicBookingCtaSection({
 }
 
 export type ClinicGallerySectionProps = ClinicSectionShell & {
-  theme: ClinicTheme;
   isDark: boolean;
 };
 
 export function ClinicGallerySection({
   variant = "full",
   testIdPrefix = "pro-mini-site",
-  theme,
   isDark,
 }: ClinicGallerySectionProps) {
   const muted = clinicMutedText(isDark);

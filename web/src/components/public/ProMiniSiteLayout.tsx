@@ -482,7 +482,7 @@ export function ProMiniSiteLayout({
           />
         );
       case "gallery":
-        return <ClinicGallerySection theme={clinicTheme} isDark={isDark} />;
+        return <ClinicGallerySection isDark={isDark} />;
       case "benefits":
       case "pricing": {
         const sectionTitle = getSectionField(siteConfig, type, "title") || (type === "benefits" ? "Benefits" : "Pricing");
