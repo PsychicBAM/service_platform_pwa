@@ -1,4 +1,4 @@
-import type { MiniSiteTemplate, MiniSiteTemplateFoundationMap } from "@/types/miniSite";
+import type { MiniSiteTemplate } from "@/types/miniSite";
 
 export type MiniSiteImageMedia = {
   kind: "image";
@@ -21,6 +21,12 @@ export type MiniSiteImageMediaWire = {
 const ALLOWED_IMAGE_CONTENT_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export type MiniSiteTemplateImages = Partial<Record<string, MiniSiteImageMedia>>;
+
+/** Per-template media bucket keyed by slot id (e.g. heroImage). */
+export type MiniSiteTemplateMediaBucket = Partial<Record<string, MiniSiteImageMedia>>;
+
+/** Template-keyed media maps preserve uploads when switching templates. */
+export type MiniSiteTemplateMediaMap = Partial<Record<MiniSiteTemplate, MiniSiteTemplateMediaBucket>>;
 
 export function isAllowedMiniSiteImageFile(file: File): boolean {
   return ALLOWED_IMAGE_CONTENT_TYPES.has(file.type);
@@ -88,7 +94,7 @@ export function mapMiniSiteImageMediaToWire(media: MiniSiteImageMedia): MiniSite
   };
 }
 
-export function normalizeTemplateMediaMap(input: unknown): MiniSiteTemplateFoundationMap {
+export function normalizeTemplateMediaMap(input: unknown): MiniSiteTemplateMediaMap {
   if (input === null || input === undefined) {
     return {};
   }
@@ -105,7 +111,7 @@ export function normalizeTemplateMediaMap(input: unknown): MiniSiteTemplateFound
     "teacher",
     "coach",
   ];
-  const result: MiniSiteTemplateFoundationMap = {};
+  const result: MiniSiteTemplateMediaMap = {};
 
   for (const [key, bucket] of Object.entries(input as Record<string, unknown>)) {
     if (!templates.includes(key as MiniSiteTemplate)) {
@@ -133,9 +139,9 @@ export function normalizeTemplateMediaMap(input: unknown): MiniSiteTemplateFound
 }
 
 export function getTemplateImageSlots(
-  templateMedia: MiniSiteTemplateFoundationMap,
+  templateMedia: MiniSiteTemplateMediaMap,
   template: MiniSiteTemplate,
-): Partial<Record<string, MiniSiteImageMedia>> {
+): MiniSiteTemplateImages {
   const bucket = templateMedia[template];
   if (!bucket || typeof bucket !== "object") {
     return {};
@@ -165,11 +171,11 @@ export function resolveMiniSiteMediaUrl(url: string): string {
 }
 
 export function updateTemplateMediaSlot(
-  templateMedia: MiniSiteTemplateFoundationMap,
+  templateMedia: MiniSiteTemplateMediaMap,
   template: MiniSiteTemplate,
   slot: string,
   media: MiniSiteImageMedia | null,
-): MiniSiteTemplateFoundationMap {
+): MiniSiteTemplateMediaMap {
   const next = { ...templateMedia };
   const bucket = { ...(next[template] ?? {}) };
 
@@ -189,11 +195,11 @@ export function updateTemplateMediaSlot(
 }
 
 export function updateTemplateMediaAlt(
-  templateMedia: MiniSiteTemplateFoundationMap,
+  templateMedia: MiniSiteTemplateMediaMap,
   template: MiniSiteTemplate,
   slot: string,
   alt: string,
-): MiniSiteTemplateFoundationMap {
+): MiniSiteTemplateMediaMap {
   const bucket = templateMedia[template];
   const existing = bucket?.[slot];
   const media = normalizeMiniSiteImageMedia(existing);

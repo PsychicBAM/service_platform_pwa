@@ -11,19 +11,20 @@ import {
   updateTemplateMediaSlot,
   type MiniSiteImageMedia,
 } from "@/lib/miniSiteMedia";
-import type { MiniSiteTemplate, MiniSiteTemplateFoundationMap } from "@/types/miniSite";
+import type { MiniSiteTemplateMediaMap } from "@/lib/miniSiteMedia";
+import type { MiniSiteTemplate } from "@/types/miniSite";
 import { getAdminSettingsErrorMessage } from "@/utils/errors";
 
 type MiniSiteTemplateMediaSectionProps = {
   businessId: string;
   template: MiniSiteTemplate;
-  templateMedia: MiniSiteTemplateFoundationMap;
+  templateMedia: MiniSiteTemplateMediaMap;
   disabled?: boolean;
-  onTemplateMediaChange: (templateMedia: MiniSiteTemplateFoundationMap) => void;
+  onTemplateMediaChange: (templateMedia: MiniSiteTemplateMediaMap) => void;
 };
 
 function getSlotMedia(
-  templateMedia: MiniSiteTemplateFoundationMap,
+  templateMedia: MiniSiteTemplateMediaMap,
   template: MiniSiteTemplate,
   slotId: string,
 ): MiniSiteImageMedia | null {

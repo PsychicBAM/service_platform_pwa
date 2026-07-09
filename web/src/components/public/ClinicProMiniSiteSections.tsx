@@ -336,7 +336,7 @@ export function ClinicHeroSection({
                 <MiniSiteSlotImage
                   media={heroImage}
                   className={`w-full max-w-md ${isPreview ? "h-24 rounded-lg" : "h-36 rounded-xl"}`}
-                  testId={`${testIdPrefix}-template-hero-image`}
+                  testId={`${testIdPrefix}-template-heroImage`}
                 />
               ) : null}
               <p
@@ -467,7 +467,7 @@ export function ClinicHeroSection({
                     <MiniSiteSlotImage
                       media={doctorOrClinicImage}
                       className={`shrink-0 ${isPreview ? "h-14 w-14 rounded-2xl" : "h-20 w-20 rounded-2xl"}`}
-                      testId={`${testIdPrefix}-template-doctor-clinic-image`}
+                      testId={`${testIdPrefix}-template-doctorOrClinicImage`}
                     />
                   ) : (
                   <div

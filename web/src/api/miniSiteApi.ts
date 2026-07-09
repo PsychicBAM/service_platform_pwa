@@ -1,9 +1,10 @@
 import { apiClient } from "@/api/client";
 import { normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
 import {
-  mapMiniSiteImageMediaFromWire,
   mapMiniSiteImageMediaToWire,
   normalizeMiniSiteImageMedia,
+  type MiniSiteImageMediaWire,
+  type MiniSiteTemplateMediaMap,
 } from "@/lib/miniSiteMedia";
 import type {
   MiniSiteBackgroundStyle,
@@ -90,7 +91,7 @@ export type MiniSiteConfigWire = {
   social_links: MiniSiteSocialLinksWire;
   copy?: MiniSiteCopyWire;
   template_content?: MiniSiteTemplateFoundationMap;
-  template_media?: MiniSiteTemplateFoundationMap;
+  template_media?: Record<string, Record<string, MiniSiteImageMediaWire>>;
 };
 
 function mapTemplateContentMapToWire(
@@ -103,41 +104,22 @@ function mapTemplateContentMapToWire(
   return result;
 }
 
-function mapTemplateMediaMapFromWire(map: MiniSiteTemplateFoundationMap | undefined): MiniSiteTemplateFoundationMap {
-  if (!map) {
-    return {};
-  }
-  const result: MiniSiteTemplateFoundationMap = {};
+function mapTemplateMediaMapToWire(
+  map: MiniSiteTemplateMediaMap,
+): Record<string, Record<string, MiniSiteImageMediaWire>> {
+  const result: Record<string, Record<string, MiniSiteImageMediaWire>> = {};
   for (const [template, bucket] of Object.entries(map)) {
     if (!bucket || typeof bucket !== "object") {
       continue;
     }
-    const normalizedBucket: Record<string, unknown> = {};
-    for (const [slot, value] of Object.entries(bucket)) {
-      const media = mapMiniSiteImageMediaFromWire(value);
-      if (media) {
-        normalizedBucket[slot] = media;
-      }
-    }
-    result[template as MiniSiteTemplate] = normalizedBucket;
-  }
-  return result;
-}
-
-function mapTemplateMediaMapToWire(map: MiniSiteTemplateFoundationMap): MiniSiteTemplateFoundationMap {
-  const result: MiniSiteTemplateFoundationMap = {};
-  for (const [template, bucket] of Object.entries(map)) {
-    if (!bucket || typeof bucket !== "object") {
-      continue;
-    }
-    const wireBucket: Record<string, unknown> = {};
+    const wireBucket: Record<string, MiniSiteImageMediaWire> = {};
     for (const [slot, value] of Object.entries(bucket)) {
       const media = normalizeMiniSiteImageMedia(value);
       if (media) {
         wireBucket[slot] = mapMiniSiteImageMediaToWire(media);
       }
     }
-    result[template as MiniSiteTemplate] = wireBucket;
+    result[template] = wireBucket;
   }
   return result;
 }

@@ -1,3 +1,5 @@
+import type { MiniSiteTemplateMediaMap } from "@/lib/miniSiteMedia";
+
 export const MINI_SITE_TEMPLATES = [
   "clean",
   "service",
@@ -114,5 +116,5 @@ export interface MiniSiteConfig {
   socialLinks: MiniSiteSocialLinks;
   copy: MiniSiteCopy;
   templateContent: MiniSiteTemplateFoundationMap;
-  templateMedia: MiniSiteTemplateFoundationMap;
+  templateMedia: MiniSiteTemplateMediaMap;
 }
