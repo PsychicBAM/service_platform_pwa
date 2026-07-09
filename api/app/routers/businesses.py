@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -9,7 +9,8 @@ from app.models.business import Business
 from app.models.enums import ConsentEntityType, ConsentSource
 from app.schemas.business import BusinessAdminRead, BusinessUpdate
 from app.schemas.legal_consent_records import LegalConsentRecordListResponse
-from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite
+from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite, MiniSiteTemplate
+from app.schemas.mini_site_media import MiniSiteMediaRemoveResponse, MiniSiteMediaUploadResponse
 from app.services.business_service import BusinessService
 from app.services.legal_consent_service import LegalConsentService
 
@@ -60,6 +61,54 @@ async def save_mini_site_config(
     if business.id != business_id:
         raise ValueError("business mismatch")  # pragma: no cover
     return await BusinessService(db).save_mini_site_config(business, payload)
+
+
+@router.post(
+    "/{business_id}/mini-site-media/upload",
+    response_model=MiniSiteMediaUploadResponse,
+)
+async def upload_mini_site_media(
+    business_id: uuid.UUID,
+    template: MiniSiteTemplate = Form(...),
+    slot: str = Form(...),
+    file: UploadFile = File(...),
+    alt: str | None = Form(default=None),
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> MiniSiteMediaUploadResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    content = await file.read()
+    content_type = file.content_type or ""
+    return await BusinessService(db).upload_mini_site_media(
+        business,
+        template=template,
+        slot=slot,
+        content=content,
+        content_type=content_type,
+        original_filename=file.filename or "upload",
+        alt=alt,
+    )
+
+
+@router.delete(
+    "/{business_id}/mini-site-media",
+    response_model=MiniSiteMediaRemoveResponse,
+)
+async def remove_mini_site_media(
+    business_id: uuid.UUID,
+    template: MiniSiteTemplate = Query(...),
+    slot: str = Query(...),
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> MiniSiteMediaRemoveResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    return await BusinessService(db).remove_mini_site_media(
+        business,
+        template=template,
+        slot=slot,
+    )
 
 
 @router.get("/{business_id}/legal-consents", response_model=LegalConsentRecordListResponse)

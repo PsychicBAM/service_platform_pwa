@@ -21,4 +21,11 @@ describe("miniSiteTemplateEditorRegistry", () => {
     expect(isMiniSiteEditorBlockLabelForTemplate("Work showcase", "portfolio")).toBe(true);
     expect(isMiniSiteEditorBlockLabelForTemplate("Work showcase", "clinic")).toBe(false);
   });
+
+  it("defines active image media slots per template", () => {
+    const clinic = getMiniSiteTemplateEditorDefinition("clinic");
+    expect(clinic.imageMediaSlots.map((slot) => slot.id)).toEqual(["heroImage", "doctorOrClinicImage"]);
+    const portfolio = getMiniSiteTemplateEditorDefinition("portfolio");
+    expect(portfolio.imageMediaSlots.map((slot) => slot.id)).toEqual(["heroVisual", "featuredWorkImage"]);
+  });
 });

@@ -20,6 +20,7 @@ import {
   isFaqItemFilled,
   normalizeMiniSiteConfig,
 } from "@/lib/miniSiteConfig";
+import { getTemplateImageSlots } from "@/lib/miniSiteMedia";
 import {
   ClinicAboutSection,
   ClinicBookingCtaSection,
@@ -313,6 +314,7 @@ export function ProMiniSiteLayout({
 }: ProMiniSiteLayoutProps) {
   const siteConfig = normalizeMiniSiteConfig(config ?? DEFAULT_MINI_SITE_CONFIG);
   const { theme, socialLinks, copy } = siteConfig;
+  const templateImages = getTemplateImageSlots(siteConfig.templateMedia, theme.template);
   const enabledSections = getEnabledMiniSiteSections(siteConfig);
   const ctas = getProMiniSiteCtas(business, publicSlug, services);
   const primaryBookingHref = bookingHref ?? ctas.bookingHref;
@@ -458,6 +460,7 @@ export function ProMiniSiteLayout({
             serviceCount={services?.length ?? null}
             contactPhone={contactPhone}
             contactAddress={contactAddress}
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -581,6 +584,7 @@ export function ProMiniSiteLayout({
             operatingMode={business.operating_mode}
             services={services}
             serviceCount={services?.length ?? null}
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -700,6 +704,7 @@ export function ProMiniSiteLayout({
             operatingMode={business.operating_mode}
             services={services}
             serviceCount={services?.length ?? null}
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -820,6 +825,7 @@ export function ProMiniSiteLayout({
             operatingMode={business.operating_mode}
             services={services}
             serviceCount={services?.length ?? null}
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -939,6 +945,7 @@ export function ProMiniSiteLayout({
             showRequestCta={ctas.showRequestCta}
             operatingMode={business.operating_mode}
             showHeroCredibility={showExpertHeroCredibility}
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -1058,6 +1065,7 @@ export function ProMiniSiteLayout({
             serviceCount={services?.length ?? null}
             benefitHighlights={serviceBenefitHighlights}
             showHeroTrustPills={showServiceHeroTrustPills}
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -1178,6 +1186,7 @@ export function ProMiniSiteLayout({
             showRequestCta={ctas.showRequestCta}
             showHeroTrustStrip={showCleanHeroTrustStrip}
             operatingMode={business.operating_mode}
+            templateImages={templateImages}
           />
         );
       case "about":

@@ -63,6 +63,7 @@ import {
   hasMeaningfulText,
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
+import { getTemplateImageSlots } from "@/lib/miniSiteMedia";
 import {
   getMiniSitePageShellStyle,
   getMiniSitePreviewHeroContentClass,
@@ -128,6 +129,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     theme.backgroundStyle,
     theme.buttonStyle,
   );
+  const templateImages = getTemplateImageSlots(config.templateMedia, theme.template);
   const viewport = getMiniSitePreviewScaledViewportStyle();
   const pageShellClass = getMiniSitePreviewPageShellClass();
   const pageShellStyle = getMiniSitePageShellStyle(theme.backgroundColor, theme.backgroundStyle);
@@ -318,6 +320,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             showRequestCta={hasMeaningfulText(secondaryCtaLabel)}
             showHeroTrustStrip={showCleanHeroTrustStrip}
             operatingMode="both"
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -415,6 +418,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             showRequestCta={hasMeaningfulText(secondaryCtaLabel)}
             operatingMode="both"
             showHeroCredibility={showExpertHeroCredibility}
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -513,6 +517,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             serviceCount={2}
             contactPhone=""
             contactAddress=""
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -616,6 +621,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             serviceCount={2}
             benefitHighlights={serviceBenefitHighlights}
             showHeroTrustPills={showServiceHeroTrustPills}
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -715,6 +721,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             operatingMode="both"
             services={undefined}
             serviceCount={2}
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -813,6 +820,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             operatingMode="both"
             services={undefined}
             serviceCount={2}
+            templateImages={templateImages}
           />
         );
       case "about":
@@ -912,6 +920,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             operatingMode="both"
             services={undefined}
             serviceCount={2}
+            templateImages={templateImages}
           />
         );
       case "about":

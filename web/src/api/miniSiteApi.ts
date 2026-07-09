@@ -1,5 +1,10 @@
 import { apiClient } from "@/api/client";
 import { normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
+import {
+  mapMiniSiteImageMediaFromWire,
+  mapMiniSiteImageMediaToWire,
+  normalizeMiniSiteImageMedia,
+} from "@/lib/miniSiteMedia";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -88,12 +93,51 @@ export type MiniSiteConfigWire = {
   template_media?: MiniSiteTemplateFoundationMap;
 };
 
-function mapTemplateFoundationMapToWire(
+function mapTemplateContentMapToWire(
   map: MiniSiteTemplateFoundationMap,
 ): MiniSiteTemplateFoundationMap {
   const result: MiniSiteTemplateFoundationMap = {};
   for (const [template, bucket] of Object.entries(map)) {
     result[template as MiniSiteTemplate] = { ...bucket };
+  }
+  return result;
+}
+
+function mapTemplateMediaMapFromWire(map: MiniSiteTemplateFoundationMap | undefined): MiniSiteTemplateFoundationMap {
+  if (!map) {
+    return {};
+  }
+  const result: MiniSiteTemplateFoundationMap = {};
+  for (const [template, bucket] of Object.entries(map)) {
+    if (!bucket || typeof bucket !== "object") {
+      continue;
+    }
+    const normalizedBucket: Record<string, unknown> = {};
+    for (const [slot, value] of Object.entries(bucket)) {
+      const media = mapMiniSiteImageMediaFromWire(value);
+      if (media) {
+        normalizedBucket[slot] = media;
+      }
+    }
+    result[template as MiniSiteTemplate] = normalizedBucket;
+  }
+  return result;
+}
+
+function mapTemplateMediaMapToWire(map: MiniSiteTemplateFoundationMap): MiniSiteTemplateFoundationMap {
+  const result: MiniSiteTemplateFoundationMap = {};
+  for (const [template, bucket] of Object.entries(map)) {
+    if (!bucket || typeof bucket !== "object") {
+      continue;
+    }
+    const wireBucket: Record<string, unknown> = {};
+    for (const [slot, value] of Object.entries(bucket)) {
+      const media = normalizeMiniSiteImageMedia(value);
+      if (media) {
+        wireBucket[slot] = mapMiniSiteImageMediaToWire(media);
+      }
+    }
+    result[template as MiniSiteTemplate] = wireBucket;
   }
   return result;
 }
@@ -206,8 +250,8 @@ export function mapMiniSiteConfigToWire(config: MiniSiteConfig): MiniSiteConfigW
     sections: config.sections.map(mapSectionToWire),
     social_links: mapSocialLinksToWire(config.socialLinks),
     copy: mapCopyToWire(config.copy),
-    template_content: mapTemplateFoundationMapToWire(config.templateContent),
-    template_media: mapTemplateFoundationMapToWire(config.templateMedia),
+    template_content: mapTemplateContentMapToWire(config.templateContent),
+    template_media: mapTemplateMediaMapToWire(config.templateMedia),
   };
 }
 

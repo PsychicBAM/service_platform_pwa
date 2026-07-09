@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from app.config import get_settings
 from app.exceptions.auth import AppError
@@ -49,3 +51,7 @@ app.include_router(orders.router, prefix=settings.api_v1_prefix)
 app.include_router(clients.router, prefix=settings.api_v1_prefix)
 app.include_router(superadmin.router, prefix=settings.api_v1_prefix)
 app.include_router(public.router, prefix=settings.api_v1_prefix)
+
+upload_root = Path(settings.mini_site_upload_root)
+upload_root.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(upload_root)), name="mini_site_uploads")

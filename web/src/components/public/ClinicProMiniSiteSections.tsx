@@ -7,6 +7,7 @@ import {
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
+import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import type {
   MiniSiteBackgroundStyle,
@@ -15,6 +16,7 @@ import type {
   MiniSiteSocialLinks,
 } from "@/types/miniSite";
 import { formatDuration, serviceActionLabel } from "@/utils/format";
+import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 
 export type ClinicSectionVariant = "full" | "preview";
 
@@ -265,6 +267,7 @@ export type ClinicHeroSectionProps = ClinicSectionShell & {
   serviceCount: number | null;
   contactPhone: string;
   contactAddress: string;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function ClinicHeroSection({
@@ -289,11 +292,14 @@ export function ClinicHeroSection({
   serviceCount,
   contactPhone,
   contactAddress,
+  templateImages,
 }: ClinicHeroSectionProps) {
   const isDark = theme.backgroundStyle === "dark";
   const muted = clinicMutedText(isDark);
   const isPreview = variant === "preview";
   const monogram = business.name.charAt(0).toUpperCase();
+  const heroImage = templateImages?.heroImage ?? null;
+  const doctorOrClinicImage = templateImages?.doctorOrClinicImage ?? null;
   const hasPhone = hasMeaningfulText(contactPhone);
   const hasAddress = hasMeaningfulText(contactAddress);
   const trustChips = buildTrustChips(copy);
@@ -326,6 +332,13 @@ export function ClinicHeroSection({
             data-testid={`${testIdPrefix}-hero-content`}
           >
             <div className={`clinic-hero-copy flex min-w-0 flex-col justify-center ${isPreview ? "space-y-3" : "space-y-6 lg:space-y-7"}`}>
+              {heroImage ? (
+                <MiniSiteSlotImage
+                  media={heroImage}
+                  className={`w-full max-w-md ${isPreview ? "h-24 rounded-lg" : "h-36 rounded-xl"}`}
+                  testId={`${testIdPrefix}-template-hero-image`}
+                />
+              ) : null}
               <p
                 className={`inline-flex w-fit rounded-full px-4 py-1.5 font-medium uppercase tracking-[0.18em] ${
                   isPreview ? "text-[10px]" : "text-xs md:text-sm"
@@ -450,6 +463,13 @@ export function ClinicHeroSection({
                 </div>
 
                 <div className="flex items-center gap-5">
+                  {doctorOrClinicImage ? (
+                    <MiniSiteSlotImage
+                      media={doctorOrClinicImage}
+                      className={`shrink-0 ${isPreview ? "h-14 w-14 rounded-2xl" : "h-20 w-20 rounded-2xl"}`}
+                      testId={`${testIdPrefix}-template-doctor-clinic-image`}
+                    />
+                  ) : (
                   <div
                     className={`flex shrink-0 items-center justify-center rounded-2xl border-2 font-bold ${
                       isPreview ? "h-14 w-14 text-xl" : "h-20 w-20 text-3xl"
@@ -463,6 +483,7 @@ export function ClinicHeroSection({
                   >
                     {monogram}
                   </div>
+                  )}
                   <div className="min-w-0">
                     <p className={`font-semibold ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}>{business.name}</p>
                     <p className={`${isPreview ? "text-xs" : "text-base"} ${muted}`}>Trusted clinic care</p>

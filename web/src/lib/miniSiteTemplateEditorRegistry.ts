@@ -17,11 +17,25 @@ export interface MiniSiteFutureMediaSlotDefinition {
   status: MiniSiteFutureMediaSlotStatus;
 }
 
+export interface MiniSiteImageMediaSlotDefinition {
+  id: string;
+  label: string;
+}
+
+export interface MiniSiteVideoMediaSlotDefinition {
+  id: string;
+  label: string;
+  status: MiniSiteFutureMediaSlotStatus;
+}
+
 export interface MiniSiteTemplateEditorDefinition {
   template: MiniSiteTemplate;
   label: string;
   description: string;
   blocks: MiniSiteEditorBlockDefinition[];
+  imageMediaSlots: MiniSiteImageMediaSlotDefinition[];
+  videoMediaSlots: MiniSiteVideoMediaSlotDefinition[];
+  /** @deprecated Use imageMediaSlots / videoMediaSlots */
   futureMediaSlots: MiniSiteFutureMediaSlotDefinition[];
 }
 
@@ -41,8 +55,9 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
     ],
     futureMediaSlots: [
       { id: "heroImage", label: "Hero image", type: "image", status: "coming_soon" },
-      { id: "coverImage", label: "Cover image", type: "image", status: "coming_soon" },
     ],
+    imageMediaSlots: [{ id: "heroImage", label: "Hero image" }],
+    videoMediaSlots: [],
   },
   service: {
     template: "service",
@@ -59,9 +74,14 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
     ],
     futureMediaSlots: [
       { id: "heroImage", label: "Hero image", type: "image", status: "coming_soon" },
-      { id: "teamPhoto", label: "Team / van photo", type: "image", status: "coming_soon" },
+      { id: "serviceImage", label: "Service image", type: "image", status: "coming_soon" },
       { id: "introVideo", label: "Intro video", type: "video", status: "coming_soon" },
     ],
+    imageMediaSlots: [
+      { id: "heroImage", label: "Hero image" },
+      { id: "serviceImage", label: "Service image" },
+    ],
+    videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
   },
   expert: {
     template: "expert",
@@ -77,9 +97,15 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       { id: "bookingCta", label: "Session CTA", description: "Book or request a session." },
     ],
     futureMediaSlots: [
-      { id: "profilePhoto", label: "Profile photo", type: "image", status: "coming_soon" },
+      { id: "profileImage", label: "Profile image", type: "image", status: "coming_soon" },
+      { id: "heroImage", label: "Hero image", type: "image", status: "coming_soon" },
       { id: "introVideo", label: "Intro video", type: "video", status: "coming_soon" },
     ],
+    imageMediaSlots: [
+      { id: "profileImage", label: "Profile image" },
+      { id: "heroImage", label: "Hero image" },
+    ],
+    videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
   },
   clinic: {
     template: "clinic",
@@ -101,6 +127,11 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       { id: "doctorOrClinicImage", label: "Doctor / clinic image", type: "image", status: "coming_soon" },
       { id: "introVideo", label: "Intro video", type: "video", status: "coming_soon" },
     ],
+    imageMediaSlots: [
+      { id: "heroImage", label: "Hero image" },
+      { id: "doctorOrClinicImage", label: "Doctor / clinic image" },
+    ],
+    videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
   },
   portfolio: {
     template: "portfolio",
@@ -118,9 +149,14 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
     ],
     futureMediaSlots: [
       { id: "heroVisual", label: "Hero visual", type: "image", status: "coming_soon" },
-      { id: "projectGallery", label: "Project gallery", type: "image", status: "coming_soon" },
+      { id: "featuredWorkImage", label: "Featured work image", type: "image", status: "coming_soon" },
       { id: "showreel", label: "Showreel video", type: "video", status: "coming_soon" },
     ],
+    imageMediaSlots: [
+      { id: "heroVisual", label: "Hero visual" },
+      { id: "featuredWorkImage", label: "Featured work image" },
+    ],
+    videoMediaSlots: [{ id: "showreel", label: "Showreel video", status: "coming_soon" }],
   },
   teacher: {
     template: "teacher",
@@ -138,10 +174,15 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       { id: "bookingCta", label: "Start learning CTA", description: "Book a lesson call-to-action." },
     ],
     futureMediaSlots: [
-      { id: "heroImage", label: "Hero image", type: "image", status: "coming_soon" },
-      { id: "classroomPhoto", label: "Classroom / teaching photo", type: "image", status: "coming_soon" },
+      { id: "courseImage", label: "Course image", type: "image", status: "coming_soon" },
+      { id: "lessonPreviewImage", label: "Lesson preview image", type: "image", status: "coming_soon" },
       { id: "introVideo", label: "Intro video", type: "video", status: "coming_soon" },
     ],
+    imageMediaSlots: [
+      { id: "courseImage", label: "Course image" },
+      { id: "lessonPreviewImage", label: "Lesson preview image" },
+    ],
+    videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
   },
   coach: {
     template: "coach",
@@ -160,9 +201,14 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
     ],
     futureMediaSlots: [
       { id: "heroImage", label: "Hero image", type: "image", status: "coming_soon" },
-      { id: "coachingPhoto", label: "Coaching session photo", type: "image", status: "coming_soon" },
+      { id: "programImage", label: "Program image", type: "image", status: "coming_soon" },
       { id: "introVideo", label: "Intro video", type: "video", status: "coming_soon" },
     ],
+    imageMediaSlots: [
+      { id: "heroImage", label: "Hero image" },
+      { id: "programImage", label: "Program image" },
+    ],
+    videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
   },
 };
 

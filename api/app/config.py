@@ -59,6 +59,8 @@ class Settings(BaseSettings):
     stripe_success_url: str = "http://localhost:5173/billing/success"
     stripe_cancel_url: str = "http://localhost:5173/billing/cancel"
 
+    mini_site_upload_root: str = "data/uploads"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [

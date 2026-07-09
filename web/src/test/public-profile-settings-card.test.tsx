@@ -3,6 +3,7 @@ import { screen, waitFor, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApiClientError } from "@/api/client";
 import * as miniSiteApi from "@/api/miniSiteApi";
+import * as miniSiteMediaApi from "@/api/miniSiteMediaApi";
 import {
   PublicProfileSettingsCard,
   PUBLIC_PROFILE_DESCRIPTION,
@@ -16,6 +17,11 @@ import { renderRoute } from "@/test/test-utils";
 vi.mock("@/api/miniSiteApi", () => ({
   getMiniSiteConfig: vi.fn(),
   updateMiniSiteConfig: vi.fn(),
+}));
+
+vi.mock("@/api/miniSiteMediaApi", () => ({
+  uploadMiniSiteMedia: vi.fn(),
+  removeMiniSiteMedia: vi.fn(),
 }));
 
 function renderPublicProfileCard(currentPlan?: string) {
@@ -33,6 +39,19 @@ describe("PublicProfileSettingsCard", () => {
     vi.clearAllMocks();
     vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue(DEFAULT_MINI_SITE_CONFIG);
     vi.mocked(miniSiteApi.updateMiniSiteConfig).mockImplementation(async (_id, config) => config);
+    vi.mocked(miniSiteMediaApi.uploadMiniSiteMedia).mockResolvedValue({
+      template: "clinic",
+      slot: "heroImage",
+      media: {
+        kind: "image",
+        url: "/uploads/mini_site/test/hero.webp",
+        alt: "",
+        filename: "hero.webp",
+        contentType: "image/webp",
+        size: 100,
+      },
+    });
+    vi.mocked(miniSiteMediaApi.removeMiniSiteMedia).mockResolvedValue(undefined);
   });
 
   it("renders title and description", async () => {
@@ -184,20 +203,85 @@ describe("PublicProfileSettingsCard", () => {
     expect(await screen.findByTestId("mini-site-editor-save-error")).toBeInTheDocument();
   });
 
-  it("keeps media upload fields disabled with coming soon hints", async () => {
-    renderPublicProfileCard("free");
+  it("renders template media section for the selected template", async () => {
+    renderPublicProfileCard("pro");
 
-    expect(await screen.findByTestId("mini-site-logo-upload")).toBeDisabled();
-    expect(screen.getByTestId("mini-site-logo-upload-hint")).toHaveTextContent(
-      /logo upload coming soon/i,
+    expect(await screen.findByTestId("mini-site-template-media-section")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-template-media-scope")).toHaveTextContent(/Images for Clean/i);
+    expect(screen.getByTestId("mini-site-media-slot-heroImage")).toBeInTheDocument();
+  });
+
+  it("shows clinic image slots when clinic template is selected", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "clinic");
+
+    expect(screen.getByTestId("mini-site-media-slot-heroImage")).toHaveTextContent("Hero image");
+    expect(screen.getByTestId("mini-site-media-slot-doctorOrClinicImage")).toHaveTextContent(
+      "Doctor / clinic image",
     );
-    expect(screen.getByTestId("mini-site-cover-upload")).toBeDisabled();
-    expect(screen.getByTestId("mini-site-cover-upload-hint")).toHaveTextContent(
-      /cover image upload coming soon/i,
-    );
-    expect(screen.getByTestId("public-profile-media-placeholder")).toHaveTextContent(
-      /gallery and media uploads are coming soon/i,
-    );
+    expect(screen.queryByTestId("mini-site-media-slot-heroVisual")).not.toBeInTheDocument();
+  });
+
+  it("shows portfolio image slots and hides clinic slots when portfolio is selected", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "portfolio");
+
+    expect(screen.getByTestId("mini-site-media-slot-heroVisual")).toHaveTextContent("Hero visual");
+    expect(screen.queryByTestId("mini-site-media-slot-doctorOrClinicImage")).not.toBeInTheDocument();
+  });
+
+  it("upload success updates draft preview image", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "clinic");
+
+    const file = new File(["webp"], "hero.webp", { type: "image/webp" });
+    const input = screen.getByTestId("mini-site-media-file-heroImage");
+    await user.upload(input, file);
+
+    await waitFor(() => {
+      expect(miniSiteMediaApi.uploadMiniSiteMedia).toHaveBeenCalled();
+      expect(screen.getByTestId("mini-site-media-preview-heroImage")).toBeInTheDocument();
+      expect(screen.getByTestId("mini-site-preview-template-heroImage")).toBeInTheDocument();
+    });
+  });
+
+  it("remove image clears slot preview", async () => {
+    const user = userEvent.setup();
+    vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue({
+      ...DEFAULT_MINI_SITE_CONFIG,
+      theme: { ...DEFAULT_MINI_SITE_CONFIG.theme, template: "clinic" },
+      templateMedia: {
+        clinic: {
+          heroImage: {
+            kind: "image",
+            url: "/uploads/mini_site/test/hero.webp",
+            alt: "Clinic hero",
+            filename: "hero.webp",
+            contentType: "image/webp",
+            size: 100,
+          },
+        },
+      },
+    });
+
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-media-preview-heroImage");
+    await user.click(screen.getByTestId("mini-site-media-remove-heroImage"));
+
+    await waitFor(() => {
+      expect(miniSiteMediaApi.removeMiniSiteMedia).toHaveBeenCalled();
+      expect(screen.queryByTestId("mini-site-media-preview-heroImage")).not.toBeInTheDocument();
+    });
   });
 
   it("renders live preview after config load", async () => {

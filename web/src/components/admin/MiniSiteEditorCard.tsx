@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMiniSiteConfig, updateMiniSiteConfig } from "@/api/miniSiteApi";
 import { MiniSiteLivePreview } from "@/components/admin/MiniSiteLivePreview";
+import { MiniSiteTemplateMediaSection } from "@/components/admin/MiniSiteTemplateMediaSection";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { DEFAULT_MINI_SITE_BACKGROUND_COLOR, normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
@@ -211,36 +212,6 @@ function EditorSection({
       </div>
       <div className="space-y-3">{children}</div>
     </section>
-  );
-}
-
-function DisabledMediaField({
-  id,
-  label,
-  placeholder,
-  hint,
-}: {
-  id: string;
-  label: string;
-  placeholder: string;
-  hint: string;
-}) {
-  return (
-    <div>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <input
-        id={id}
-        type="text"
-        disabled
-        readOnly
-        placeholder={placeholder}
-        className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 disabled:cursor-not-allowed"
-        data-testid={id}
-      />
-      <p className="mt-1 text-xs text-slate-500" data-testid={`${id}-hint`}>
-        {hint}
-      </p>
-    </div>
   );
 }
 
@@ -671,6 +642,16 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
             />
           </EditorSection>
 
+          <EditorSection title="Media" description="Template-specific images for the selected mini-site layout">
+            <MiniSiteTemplateMediaSection
+              businessId={businessId}
+              template={draft.theme.template}
+              templateMedia={draft.templateMedia}
+              disabled={saving}
+              onTemplateMediaChange={(templateMedia) => setDraft({ ...draft, templateMedia })}
+            />
+          </EditorSection>
+
           <EditorSection title="Labels & CTAs" description="Marketing labels shown on the public mini-site">
             <div>
               <FieldLabel htmlFor="mini-site-hero-badge-text">Hero badge</FieldLabel>
@@ -921,7 +902,7 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
             </div>
           </EditorSection>
 
-          <EditorSection title="Social & media">
+          <EditorSection title="Social links" description="Links shown on your public mini-site contact section">
             <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <div>
                 <FieldLabel htmlFor="mini-site-website">Website</FieldLabel>
@@ -954,23 +935,6 @@ export function MiniSiteEditorCard({ businessId, businessName }: MiniSiteEditorC
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
-              <DisabledMediaField
-                id="mini-site-logo-upload"
-                label="Logo"
-                placeholder="Logo upload coming soon"
-                hint="Logo upload coming soon."
-              />
-              <DisabledMediaField
-                id="mini-site-cover-upload"
-                label="Cover image"
-                placeholder="Cover image upload coming soon"
-                hint="Cover image upload coming soon."
-              />
-            </div>
-            <p className="text-xs text-slate-500" data-testid="public-profile-media-placeholder">
-              Gallery and media uploads are coming soon.
-            </p>
           </EditorSection>
         </div>
 

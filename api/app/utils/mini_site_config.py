@@ -542,6 +542,75 @@ def _normalize_template_foundation_map(input_value: object) -> dict[str, dict[st
     return result
 
 
+def _normalize_image_media_value(value: object) -> dict[str, Any] | None:
+    if isinstance(value, str):
+        url = _sanitize_text(value)
+        if url:
+            return {
+                "kind": "image",
+                "url": url,
+                "alt": "",
+                "filename": "",
+                "content_type": "",
+                "size": 0,
+            }
+        return None
+    if not isinstance(value, dict):
+        return None
+
+    kind = value.get("kind")
+    if kind is not None and kind != "image":
+        return None
+
+    url_raw = value.get("url")
+    if not isinstance(url_raw, str):
+        return None
+    url = _sanitize_text(url_raw)
+    if not url:
+        return None
+
+    size = value.get("size")
+    normalized_size = size if isinstance(size, int) and size >= 0 else 0
+    content_type_raw = value.get("content_type", value.get("contentType"))
+    content_type = _sanitize_text(content_type_raw) or ""
+
+    return {
+        "kind": "image",
+        "url": url,
+        "alt": _sanitize_text(value.get("alt")) or "",
+        "filename": _sanitize_text(value.get("filename")) or "",
+        "content_type": content_type,
+        "size": normalized_size,
+    }
+
+
+def _normalize_template_media_map(input_value: object) -> dict[str, dict[str, Any]]:
+    if input_value is None:
+        return {}
+    if not isinstance(input_value, dict):
+        return {}
+
+    result: dict[str, dict[str, Any]] = {}
+    for key, value in input_value.items():
+        if not _is_mini_site_template(key):
+            continue
+        if value is None:
+            result[key] = {}
+            continue
+        if not isinstance(value, dict):
+            continue
+
+        bucket: dict[str, Any] = {}
+        for slot_key, slot_value in value.items():
+            if not isinstance(slot_key, str) or not slot_key.strip():
+                continue
+            media = _normalize_image_media_value(slot_value)
+            if media is not None:
+                bucket[slot_key.strip()] = media
+        result[key] = bucket
+    return result
+
+
 def normalize_mini_site_config(input_value: object) -> MiniSiteConfig:
     """Accept unknown or malformed input and return a safe mini-site config."""
     if input_value is None or not isinstance(input_value, dict):
@@ -557,7 +626,7 @@ def normalize_mini_site_config(input_value: object) -> MiniSiteConfig:
         social_links=_normalize_social_links(input_value.get("social_links")),
         copy=_normalize_copy(input_value.get("copy"), theme.template),
         template_content=_normalize_template_foundation_map(template_content_source),
-        template_media=_normalize_template_foundation_map(template_media_source),
+        template_media=_normalize_template_media_map(template_media_source),
     )
 
 

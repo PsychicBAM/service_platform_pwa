@@ -7,7 +7,9 @@ import {
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
+import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
+import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -230,6 +232,7 @@ export type TeacherHeroSectionProps = TeacherSectionShell & {
   operatingMode: OperatingMode;
   services: PublicService[] | undefined;
   serviceCount: number | null;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function TeacherHeroSection({
@@ -253,11 +256,14 @@ export function TeacherHeroSection({
   operatingMode,
   services,
   serviceCount,
+  templateImages,
 }: TeacherHeroSectionProps) {
   const isDark = theme.backgroundStyle === "dark";
   const muted = teacherMutedText(isDark);
   const isPreview = variant === "preview";
   const monogram = business.name.charAt(0).toUpperCase();
+  const lessonPreviewImage = templateImages?.lessonPreviewImage ?? null;
+  const courseImage = templateImages?.courseImage ?? null;
   const highlightCards = buildHighlightCards({ copy, serviceCount });
   const previewLessons = (services ?? []).slice(0, 3);
   const outcomeChips = copy.benefitsItems.filter(Boolean).slice(0, 3);
@@ -281,6 +287,14 @@ export function TeacherHeroSection({
             data-testid={`${testIdPrefix}-hero-content`}
           >
             <div className={`min-w-0 ${isPreview ? "space-y-2" : "space-y-5 md:space-y-6"}`}>
+              {lessonPreviewImage ? (
+                <MiniSiteSlotImage
+                  media={lessonPreviewImage}
+                  className={`w-full max-w-md ${isPreview ? "h-20 rounded-lg" : "h-32 rounded-xl md:h-40"}`}
+                  testId={`${testIdPrefix}-template-lessonPreviewImage`}
+                />
+              ) : null}
+
               <p
                 className={`inline-flex w-fit rounded-full px-3 py-1 font-medium ${
                   isPreview ? "text-[10px]" : "text-xs md:text-sm"
@@ -383,15 +397,23 @@ export function TeacherHeroSection({
 
               <div className={isPreview ? "space-y-3 p-4" : "space-y-4 p-6 lg:p-7"}>
                 <div className="flex items-center gap-4">
-                  <div
-                    className={`flex shrink-0 items-center justify-center font-bold text-white ${
-                      isPreview ? "h-12 w-12 text-lg" : "h-16 w-16 text-2xl"
-                    } ${buttonRadiusClass(theme.buttonStyle)}`}
-                    style={{ backgroundColor: theme.primaryColor }}
-                    data-testid={`${testIdPrefix}-logo-placeholder`}
-                  >
-                    {monogram}
-                  </div>
+                  {courseImage ? (
+                    <MiniSiteSlotImage
+                      media={courseImage}
+                      className={`shrink-0 ${isPreview ? "h-12 w-12" : "h-16 w-16"} ${buttonRadiusClass(theme.buttonStyle)}`}
+                      testId={`${testIdPrefix}-template-courseImage`}
+                    />
+                  ) : (
+                    <div
+                      className={`flex shrink-0 items-center justify-center font-bold text-white ${
+                        isPreview ? "h-12 w-12 text-lg" : "h-16 w-16 text-2xl"
+                      } ${buttonRadiusClass(theme.buttonStyle)}`}
+                      style={{ backgroundColor: theme.primaryColor }}
+                      data-testid={`${testIdPrefix}-logo-placeholder`}
+                    >
+                      {monogram}
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <p className={`font-semibold ${isPreview ? "text-sm" : "text-lg md:text-xl"}`}>{business.name}</p>
                     <p className={`${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>

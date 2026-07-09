@@ -243,21 +243,57 @@ describe("miniSiteApi", () => {
     const wire = mapMiniSiteConfigToWire({
       ...DEFAULT_MINI_SITE_CONFIG,
       templateContent: { clinic: { heroHeadline: "Care first" } },
-      templateMedia: { portfolio: { heroVisual: "https://example.com/hero.jpg" } },
+      templateMedia: {
+        portfolio: {
+          heroVisual: {
+            kind: "image",
+            url: "/uploads/mini_site/123/hero.webp",
+            alt: "Hero",
+            filename: "hero.webp",
+            contentType: "image/webp",
+            size: 1200,
+          },
+        },
+      },
     });
 
     expect(wire.template_content).toEqual({ clinic: { heroHeadline: "Care first" } });
-    expect(wire.template_media).toEqual({ portfolio: { heroVisual: "https://example.com/hero.jpg" } });
+    expect(wire.template_media?.portfolio?.heroVisual).toEqual({
+      kind: "image",
+      url: "/uploads/mini_site/123/hero.webp",
+      alt: "Hero",
+      filename: "hero.webp",
+      content_type: "image/webp",
+      size: 1200,
+    });
   });
 
   it("mapMiniSiteConfigFromWire preserves template foundation maps", () => {
     const config = mapMiniSiteConfigFromWire({
       ...wireConfig,
       template_content: { teacher: { lessonIntro: "Start here" } },
-      template_media: { coach: { introVideo: "https://example.com/intro.mp4" } },
+      template_media: {
+        coach: {
+          heroImage: {
+            kind: "image",
+            url: "/uploads/mini_site/123/hero.webp",
+            alt: "Coach hero",
+            filename: "hero.webp",
+            content_type: "image/webp",
+            size: 900,
+          },
+        },
+      },
     });
 
     expect(config.templateContent.teacher).toEqual({ lessonIntro: "Start here" });
-    expect(config.templateMedia.coach).toEqual({ introVideo: "https://example.com/intro.mp4" });
+    expect(config.templateMedia.coach?.heroImage).toEqual({
+      kind: "image",
+      url: "/uploads/mini_site/123/hero.webp",
+      alt: "Coach hero",
+      filename: "hero.webp",
+      contentType: "image/webp",
+      size: 900,
+    });
   });
 });

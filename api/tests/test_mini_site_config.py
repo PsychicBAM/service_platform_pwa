@@ -424,3 +424,29 @@ def test_normalize_preserves_explicit_empty_template_foundation_buckets() -> Non
     )
     assert config.template_content["clinic"] == {}
     assert config.template_media["portfolio"] == {}
+
+
+def test_normalize_preserves_structured_template_media_metadata() -> None:
+    base = default_mini_site_config()
+    config = normalize_mini_site_config(
+        {
+            "version": 1,
+            "theme": base.theme.model_dump(),
+            "sections": [section.model_dump() for section in base.sections],
+            "social_links": {},
+            "template_media": {
+                "clinic": {
+                    "heroImage": {
+                        "kind": "image",
+                        "url": "/uploads/mini_site/1/abc.webp",
+                        "alt": "Hero",
+                        "filename": "abc.webp",
+                        "content_type": "image/webp",
+                        "size": 1200,
+                    }
+                }
+            },
+        },
+    )
+    assert config.template_media["clinic"]["heroImage"]["url"] == "/uploads/mini_site/1/abc.webp"
+    assert config.template_media["clinic"]["heroImage"]["content_type"] == "image/webp"

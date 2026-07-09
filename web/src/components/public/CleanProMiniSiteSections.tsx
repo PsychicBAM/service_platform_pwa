@@ -6,7 +6,9 @@ import {
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
+import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
+import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import type { MiniSiteBackgroundStyle, MiniSiteCopy, MiniSiteSocialLinks } from "@/types/miniSite";
 import { formatDuration, serviceActionLabel } from "@/utils/format";
 
@@ -128,6 +130,7 @@ export type CleanHeroSectionProps = CleanSectionShell & {
   showRequestCta: boolean;
   showHeroTrustStrip: boolean;
   operatingMode: OperatingMode;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function CleanHeroSection({
@@ -150,10 +153,12 @@ export function CleanHeroSection({
   showRequestCta,
   showHeroTrustStrip,
   operatingMode,
+  templateImages,
 }: CleanHeroSectionProps) {
   const isDark = theme.backgroundStyle === "dark";
   const muted = cleanMutedText(isDark);
   const isPreview = variant === "preview";
+  const heroImage = templateImages?.heroImage ?? null;
 
   return (
     <header
@@ -178,6 +183,14 @@ export function CleanHeroSection({
         }`}
         data-testid={`${testIdPrefix}-hero-content`}
       >
+        {heroImage ? (
+          <MiniSiteSlotImage
+            media={heroImage}
+            className={`w-full max-w-md ${isPreview ? "h-24 rounded-lg" : "h-36 rounded-xl md:h-44"}`}
+            testId={`${testIdPrefix}-template-heroImage`}
+          />
+        ) : null}
+
         {business.logo_url ? (
           <img
             src={business.logo_url}

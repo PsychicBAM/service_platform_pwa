@@ -7,7 +7,9 @@ import {
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
+import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
+import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -225,6 +227,7 @@ export type CoachHeroSectionProps = CoachSectionShell & {
   operatingMode: OperatingMode;
   services: PublicService[] | undefined;
   serviceCount: number | null;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function CoachHeroSection({
@@ -248,11 +251,14 @@ export function CoachHeroSection({
   operatingMode,
   services,
   serviceCount,
+  templateImages,
 }: CoachHeroSectionProps) {
   const isDark = theme.backgroundStyle === "dark";
   const muted = coachMutedText(isDark);
   const isPreview = variant === "preview";
   const monogram = business.name.charAt(0).toUpperCase();
+  const heroImage = templateImages?.heroImage ?? null;
+  const programImage = templateImages?.programImage ?? null;
   const outcomeCards = buildOutcomeCards({ copy, serviceCount });
   const programPreview = (services ?? []).slice(0, 3);
   const focusChips = copy.benefitsItems.filter(Boolean).slice(0, 3);
@@ -278,6 +284,14 @@ export function CoachHeroSection({
             data-testid={`${testIdPrefix}-hero-content`}
           >
             <div className={`min-w-0 ${isPreview ? "space-y-2" : "space-y-5 md:space-y-6"}`}>
+              {heroImage ? (
+                <MiniSiteSlotImage
+                  media={heroImage}
+                  className={`w-full max-w-md ${isPreview ? "h-20 rounded-lg" : "h-32 rounded-xl md:h-40"}`}
+                  testId={`${testIdPrefix}-template-heroImage`}
+                />
+              ) : null}
+
               <p
                 className={`inline-flex font-semibold tracking-[0.14em] uppercase ${isPreview ? "text-[9px]" : "text-xs"}`}
                 style={{ color: theme.accentColor }}
@@ -381,15 +395,23 @@ export function CoachHeroSection({
 
               <div className={isPreview ? "space-y-3 p-4" : "space-y-4 p-6"}>
                 <div className="flex items-center gap-4">
-                  <div
-                    className={`flex shrink-0 items-center justify-center font-bold text-white ${
-                      isPreview ? "h-11 w-11 text-base" : "h-14 w-14 text-xl"
-                    } ${buttonRadiusClass(theme.buttonStyle)}`}
-                    style={{ backgroundColor: theme.primaryColor }}
-                    data-testid={`${testIdPrefix}-logo-placeholder`}
-                  >
-                    {monogram}
-                  </div>
+                  {programImage ? (
+                    <MiniSiteSlotImage
+                      media={programImage}
+                      className={`shrink-0 ${isPreview ? "h-11 w-11" : "h-14 w-14"} ${buttonRadiusClass(theme.buttonStyle)}`}
+                      testId={`${testIdPrefix}-template-programImage`}
+                    />
+                  ) : (
+                    <div
+                      className={`flex shrink-0 items-center justify-center font-bold text-white ${
+                        isPreview ? "h-11 w-11 text-base" : "h-14 w-14 text-xl"
+                      } ${buttonRadiusClass(theme.buttonStyle)}`}
+                      style={{ backgroundColor: theme.primaryColor }}
+                      data-testid={`${testIdPrefix}-logo-placeholder`}
+                    >
+                      {monogram}
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <p className={`font-bold ${isPreview ? "text-sm" : "text-lg"}`}>{business.name}</p>
                     <p className={`${isPreview ? "text-[10px]" : "text-sm"} ${isDark ? muted : "text-slate-600"}`}>

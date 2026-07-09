@@ -35,6 +35,7 @@ services:
       - ./api:/app
       - ./scripts:/scripts:ro
       - ./.env.production.example:/.env.production.example:ro
+      - service_platform_uploads:/app/data/uploads
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   web:
@@ -52,3 +53,4 @@ services:
 
 volumes:
   service_platform_postgres_data:
+  service_platform_uploads:

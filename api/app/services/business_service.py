@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import uuid
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
-from app.exceptions.business import BusinessNotFoundError, InvalidTimezoneError
+from app.exceptions.business import BusinessNotFoundError, InvalidTimezoneError, ValidationAppError
 from app.models.business import Business
 from app.models.enums import PublicPageVariant
 from app.models.subscription import Subscription
@@ -23,7 +24,20 @@ from app.schemas.business import (
     BusinessUpdate,
     PublicBusinessRead,
 )
-from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite
+from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite, MiniSiteTemplate
+from app.schemas.mini_site_media import MiniSiteImageMedia, MiniSiteMediaRemoveResponse, MiniSiteMediaUploadResponse
+from app.services.mini_site_media_storage import (
+    build_mini_site_image_public_url,
+    delete_mini_site_upload_file_if_owned,
+    extension_for_content_type,
+    mini_site_business_upload_dir,
+    resolve_mini_site_upload_path,
+    sanitize_original_filename,
+)
+from app.utils.mini_site_media_slots import (
+    MINI_SITE_IMAGE_MAX_BYTES,
+    is_allowed_mini_site_image_slot,
+)
 
 
 class BusinessService:
@@ -71,6 +85,90 @@ class BusinessService:
         await self.session.commit()
         await self.session.refresh(business)
         return read_mini_site_config_from_settings(business.settings)
+
+    async def upload_mini_site_media(
+        self,
+        business: Business,
+        *,
+        template: MiniSiteTemplate,
+        slot: str,
+        content: bytes,
+        content_type: str,
+        original_filename: str,
+        alt: str | None = None,
+    ) -> MiniSiteMediaUploadResponse:
+        if not is_allowed_mini_site_image_slot(template, slot):
+            raise ValidationAppError("Invalid template media slot.")
+        if not content:
+            raise ValidationAppError("Image file is required.")
+        if len(content) > MINI_SITE_IMAGE_MAX_BYTES:
+            raise ValidationAppError("Image file exceeds the 5 MB limit.")
+
+        extension = extension_for_content_type(content_type)
+        stored_filename = f"{uuid.uuid4().hex}{extension}"
+        mini_site_business_upload_dir(business.id)
+        destination = resolve_mini_site_upload_path(business.id, stored_filename)
+
+        config = read_mini_site_config_from_settings(business.settings)
+        existing_bucket = config.template_media.get(template, {})
+        existing_entry = existing_bucket.get(slot) if isinstance(existing_bucket, dict) else None
+        existing_url = existing_entry.get("url") if isinstance(existing_entry, dict) else None
+        delete_mini_site_upload_file_if_owned(business.id, existing_url if isinstance(existing_url, str) else None)
+
+        destination.write_bytes(content)
+
+        media = MiniSiteImageMedia(
+            kind="image",
+            url=build_mini_site_image_public_url(business.id, stored_filename),
+            alt=(alt or "").replace("<", "").replace(">", "").strip(),
+            filename=sanitize_original_filename(original_filename),
+            content_type=content_type,
+            size=len(content),
+        )
+
+        template_media = dict(config.template_media)
+        bucket = dict(template_media.get(template, {}))
+        bucket[slot] = media.model_dump()
+        template_media[template] = bucket
+        updated = config.model_copy(update={"template_media": template_media})
+        business.settings = merge_mini_site_config_into_settings(business.settings, updated)
+        flag_modified(business, "settings")
+        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(business)
+
+        return MiniSiteMediaUploadResponse(template=template, slot=slot, media=media)
+
+    async def remove_mini_site_media(
+        self,
+        business: Business,
+        *,
+        template: MiniSiteTemplate,
+        slot: str,
+    ) -> MiniSiteMediaRemoveResponse:
+        if not is_allowed_mini_site_image_slot(template, slot):
+            raise ValidationAppError("Invalid template media slot.")
+
+        config = read_mini_site_config_from_settings(business.settings)
+        template_media = dict(config.template_media)
+        bucket = dict(template_media.get(template, {}))
+        existing_entry = bucket.pop(slot, None)
+        existing_url = existing_entry.get("url") if isinstance(existing_entry, dict) else None
+        delete_mini_site_upload_file_if_owned(business.id, existing_url if isinstance(existing_url, str) else None)
+
+        if bucket:
+            template_media[template] = bucket
+        else:
+            template_media.pop(template, None)
+
+        updated = config.model_copy(update={"template_media": template_media})
+        business.settings = merge_mini_site_config_into_settings(business.settings, updated)
+        flag_modified(business, "settings")
+        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(business)
+
+        return MiniSiteMediaRemoveResponse(template=template, slot=slot, removed=True)
 
     async def get_public_business(self, slug: str) -> PublicBusinessRead:
         business = await self.repo.get_public_by_slug(slug)

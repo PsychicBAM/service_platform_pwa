@@ -19,6 +19,7 @@ import {
   type MiniSiteTrustCard,
 } from "@/types/miniSite";
 import { normalizeHexColorInput } from "./miniSiteTemplatePresentation";
+import { normalizeTemplateMediaMap } from "./miniSiteMedia";
 
 function sanitizePlainText(value: string): string {
   return value.replace(/[<>]/g, "").trim();
@@ -703,7 +704,7 @@ export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
     socialLinks: normalizeSocialLinks(source.socialLinks ?? source.social_links),
     copy: normalizeCopy(source.copy, theme.template),
     templateContent: normalizeTemplateFoundationMap(source.templateContent ?? source.template_content),
-    templateMedia: normalizeTemplateFoundationMap(source.templateMedia ?? source.template_media),
+    templateMedia: normalizeTemplateMediaMap(source.templateMedia ?? source.template_media),
   };
 }
 

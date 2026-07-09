@@ -69,3 +69,6 @@ gitleaks-nogit-report.json
 # OS
 .DS_Store
 Thumbs.db
+
+# User-uploaded mini-site media (stored on disk, not in git)
+data/uploads/

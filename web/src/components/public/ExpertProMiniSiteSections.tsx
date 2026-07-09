@@ -7,7 +7,9 @@ import {
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
+import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
+import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -183,6 +185,7 @@ export type ExpertHeroSectionProps = ExpertSectionShell & {
   showRequestCta: boolean;
   operatingMode: OperatingMode;
   showHeroCredibility: boolean;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function ExpertHeroSection({
@@ -205,11 +208,14 @@ export function ExpertHeroSection({
   showRequestCta,
   operatingMode,
   showHeroCredibility,
+  templateImages,
 }: ExpertHeroSectionProps) {
   const isDark = theme.backgroundStyle === "dark";
   const muted = expertMutedText(isDark);
   const isPreview = variant === "preview";
   const monogram = business.name.charAt(0).toUpperCase();
+  const heroImage = templateImages?.heroImage ?? null;
+  const profileImage = templateImages?.profileImage ?? null;
 
   return (
     <header
@@ -232,6 +238,14 @@ export function ExpertHeroSection({
           >
             {heroBadgeText}
           </p>
+
+          {heroImage ? (
+            <MiniSiteSlotImage
+              media={heroImage}
+              className={`mx-auto w-full max-w-xs ${isPreview ? "h-16 rounded-lg md:mx-0" : "h-24 rounded-xl md:mx-0 md:h-32"}`}
+              testId={`${testIdPrefix}-template-heroImage`}
+            />
+          ) : null}
 
           <h1
             className={`${presentation.heroTitleClass} whitespace-normal ${isDark ? "text-slate-50" : "text-slate-900"}`}
@@ -295,7 +309,13 @@ export function ExpertHeroSection({
           } ${isDark ? "bg-slate-900/60 ring-1 ring-slate-700/70" : "bg-white/80 ring-1 ring-slate-200/70 shadow-lg"}`}
           aria-hidden={false}
         >
-          {business.logo_url ? (
+          {profileImage ? (
+            <MiniSiteSlotImage
+              media={profileImage}
+              className={`object-cover ${isPreview ? "h-16 w-16 rounded-full" : "h-24 w-24 rounded-full md:h-28 md:w-28"}`}
+              testId={`${testIdPrefix}-template-profileImage`}
+            />
+          ) : business.logo_url ? (
             <img
               src={business.logo_url}
               alt=""

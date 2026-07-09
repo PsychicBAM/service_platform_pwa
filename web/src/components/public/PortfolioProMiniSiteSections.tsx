@@ -7,7 +7,9 @@ import {
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
+import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
+import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -243,6 +245,7 @@ export type PortfolioHeroSectionProps = PortfolioSectionShell & {
   operatingMode: OperatingMode;
   services: PublicService[] | undefined;
   serviceCount: number | null;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function PortfolioHeroSection({
@@ -266,11 +269,14 @@ export function PortfolioHeroSection({
   operatingMode,
   services,
   serviceCount,
+  templateImages,
 }: PortfolioHeroSectionProps) {
   const isDark = theme.backgroundStyle === "dark";
   const muted = portfolioMutedText(isDark);
   const isPreview = variant === "preview";
   const monogram = business.name.charAt(0).toUpperCase();
+  const heroVisual = templateImages?.heroVisual ?? null;
+  const featuredWorkImage = templateImages?.featuredWorkImage ?? null;
   const capabilityCards = buildCapabilityCards({ copy, serviceCount });
   const highlightServices = (services ?? []).slice(0, 3);
   const chips = [
@@ -360,9 +366,16 @@ export function PortfolioHeroSection({
           </div>
 
           <div
-            className={`portfolio-hero-visual relative ${isPreview ? "min-h-[10rem]" : "min-h-[18rem] md:min-h-[22rem] lg:min-h-[26rem]"}`}
+            className={`portfolio-hero-visual relative overflow-hidden ${isPreview ? "min-h-[10rem]" : "min-h-[18rem] md:min-h-[22rem] lg:min-h-[26rem]"}`}
             data-testid={`${testIdPrefix}-portfolio-hero-visual`}
           >
+            {heroVisual ? (
+              <MiniSiteSlotImage
+                media={heroVisual}
+                className="absolute inset-0 h-full w-full"
+                testId={`${testIdPrefix}-template-heroVisual`}
+              />
+            ) : null}
             <div
               className={`absolute ${isPreview ? "-right-2 top-0 h-16 w-16" : "-right-4 top-0 h-28 w-28 md:h-36 md:w-36"} rounded-full blur-2xl`}
               style={{ backgroundColor: `${theme.primaryColor}25` }}
@@ -376,18 +389,26 @@ export function PortfolioHeroSection({
             <div
               className={`relative z-10 flex h-full flex-col ${isPreview ? "gap-2 p-3" : "gap-4 p-5 md:p-6"} ${
                 isDark ? "bg-slate-950/80 ring-1 ring-slate-700/60" : "bg-white shadow-2xl ring-1 ring-slate-900/10"
-              } ${isPreview ? "rounded-xl" : "rounded-2xl lg:rounded-3xl"}`}
+              } ${heroVisual ? (isDark ? "bg-slate-950/70" : "bg-white/90") : ""} ${isPreview ? "rounded-xl" : "rounded-2xl lg:rounded-3xl"}`}
             >
               <div className="flex items-start justify-between gap-3">
-                <div
-                  className={`flex items-center justify-center font-black ${
-                    isPreview ? "h-12 w-12 text-xl" : "h-16 w-16 text-3xl md:h-20 md:w-20 md:text-4xl"
-                  } ${buttonRadiusClass(theme.buttonStyle)}`}
-                  style={{ backgroundColor: theme.primaryColor, color: "#fff" }}
-                  data-testid={`${testIdPrefix}-logo-placeholder`}
-                >
-                  {monogram}
-                </div>
+                {featuredWorkImage && !heroVisual ? (
+                  <MiniSiteSlotImage
+                    media={featuredWorkImage}
+                    className={`shrink-0 ${isPreview ? "h-12 w-12" : "h-16 w-16 md:h-20 md:w-20"} ${buttonRadiusClass(theme.buttonStyle)}`}
+                    testId={`${testIdPrefix}-template-featuredWorkImage`}
+                  />
+                ) : !heroVisual ? (
+                  <div
+                    className={`flex items-center justify-center font-black ${
+                      isPreview ? "h-12 w-12 text-xl" : "h-16 w-16 text-3xl md:h-20 md:w-20 md:text-4xl"
+                    } ${buttonRadiusClass(theme.buttonStyle)}`}
+                    style={{ backgroundColor: theme.primaryColor, color: "#fff" }}
+                    data-testid={`${testIdPrefix}-logo-placeholder`}
+                  >
+                    {monogram}
+                  </div>
+                ) : null}
                 {serviceCount != null && serviceCount > 0 ? (
                   <p className={`text-right font-black uppercase leading-none ${isPreview ? "text-lg" : "text-3xl md:text-4xl"}`}>
                     <span style={{ color: theme.primaryColor }}>{serviceCount}</span>

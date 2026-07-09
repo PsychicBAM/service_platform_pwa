@@ -411,13 +411,25 @@ describe("mini-site config helpers", () => {
         portfolio: { studioTagline: "Bold work" },
       },
       templateMedia: {
-        clinic: { heroImage: "https://example.com/clinic.jpg" },
+        clinic: {
+          heroImage: {
+            kind: "image",
+            url: "/uploads/mini_site/1/clinic.webp",
+            alt: "Clinic",
+            filename: "clinic.webp",
+            content_type: "image/webp",
+            size: 100,
+          },
+        },
       },
     });
 
     expect(config.templateContent.clinic).toEqual({ heroHeadline: "Care first" });
     expect(config.templateContent.portfolio).toEqual({ studioTagline: "Bold work" });
-    expect(config.templateMedia.clinic).toEqual({ heroImage: "https://example.com/clinic.jpg" });
+    expect(config.templateMedia.clinic?.heroImage).toMatchObject({
+      kind: "image",
+      url: "/uploads/mini_site/1/clinic.webp",
+    });
     expect(config.templateMedia.portfolio).toBeUndefined();
   });
 

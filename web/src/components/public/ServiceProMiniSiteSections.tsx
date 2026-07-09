@@ -8,7 +8,9 @@ import {
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
+import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
+import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -198,6 +200,7 @@ export type ServiceHeroSectionProps = ServiceSectionShell & {
   serviceCount: number | null;
   benefitHighlights: string[];
   showHeroTrustPills: boolean;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function ServiceHeroSection({
@@ -222,11 +225,14 @@ export function ServiceHeroSection({
   serviceCount,
   benefitHighlights,
   showHeroTrustPills,
+  templateImages,
 }: ServiceHeroSectionProps) {
   const isDark = theme.backgroundStyle === "dark";
   const muted = serviceMutedText(isDark);
   const isPreview = variant === "preview";
   const panelSurface = isDark ? "bg-slate-950/85 text-slate-100" : "bg-slate-900 text-white";
+  const heroImage = templateImages?.heroImage ?? null;
+  const serviceImage = templateImages?.serviceImage ?? null;
 
   return (
     <header
@@ -243,6 +249,14 @@ export function ServiceHeroSection({
         data-testid={`${testIdPrefix}-hero-content`}
       >
         <div className={`min-w-0 ${isPreview ? "space-y-1.5" : "space-y-4 md:space-y-5"}`}>
+          {heroImage ? (
+            <MiniSiteSlotImage
+              media={heroImage}
+              className={`w-full max-w-md ${isPreview ? "h-20 rounded-lg" : "h-32 rounded-xl md:h-40"}`}
+              testId={`${testIdPrefix}-template-heroImage`}
+            />
+          ) : null}
+
           <div className="flex flex-wrap items-center gap-2">
             {business.logo_url ? (
               <img
@@ -347,6 +361,14 @@ export function ServiceHeroSection({
           className={`${panelSurface} ${isPreview ? "rounded-lg p-3 shadow-lg" : "rounded-2xl p-5 shadow-2xl md:p-6"}`}
           data-testid={`${testIdPrefix}-hero-cta-group`}
         >
+          {serviceImage ? (
+            <MiniSiteSlotImage
+              media={serviceImage}
+              className={`w-full ${isPreview ? "mb-2 h-20 rounded-md" : "mb-4 h-32 rounded-xl"}`}
+              testId={`${testIdPrefix}-template-serviceImage`}
+            />
+          ) : null}
+
           <p className={`font-bold uppercase tracking-wider ${isPreview ? "text-[10px]" : "text-xs"} text-slate-300`}>
             Get started today
           </p>
