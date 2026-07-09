@@ -417,6 +417,7 @@ export function ProMiniSiteLayout({
             fallbackBody={business.description}
             theme={clinicTheme}
             isDark={isDark}
+            businessName={business.name}
           />
         );
       case "services":

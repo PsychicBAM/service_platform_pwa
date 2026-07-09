@@ -481,7 +481,7 @@ export function getMiniSiteTemplatePresentation(
       });
     case "clinic":
       return withTemplateDefaults(isDark, {
-        layoutClass: "template-clinic mx-auto w-full max-w-5xl",
+        layoutClass: "template-clinic mx-auto w-full max-w-6xl",
         layoutSpacingClass: "space-y-0",
         heroClass: "border-0 bg-transparent shadow-none ring-0",
         heroLayoutClass: "flex flex-col gap-6 md:flex-row md:items-center",
@@ -492,7 +492,7 @@ export function getMiniSiteTemplatePresentation(
         servicesClass: "",
         galleryClass: "border-dashed",
         heroTitleClass:
-          "break-words text-3xl font-semibold tracking-tight sm:text-4xl md:text-[2.65rem] md:leading-[1.08]",
+          "break-words text-3xl font-semibold tracking-tight sm:text-4xl md:text-[2.85rem] lg:text-[3.15rem] md:leading-[1.06]",
         sectionHeadingClass: "break-words text-xl font-semibold tracking-tight md:text-2xl",
         sectionHeadingAccentClass: "hidden",
         showBenefitsStrip: true,

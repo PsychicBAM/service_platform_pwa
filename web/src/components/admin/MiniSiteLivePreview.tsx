@@ -479,6 +479,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             fallbackBody={null}
             theme={clinicTheme}
             isDark={isDark}
+            businessName={businessName}
           />
         );
       case "services":

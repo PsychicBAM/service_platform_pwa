@@ -35,14 +35,18 @@ function clinicMutedText(isDark: boolean): string {
   return isDark ? "text-slate-300" : "text-slate-600";
 }
 
+function clinicSurface(isDark: boolean): string {
+  return isDark ? "bg-slate-900/70 text-slate-100" : "bg-white text-slate-900";
+}
+
 function heroIntro(mode: OperatingMode): string {
   switch (mode) {
     case "booking_only":
-      return "Schedule your visit online — compassionate care from trusted specialists.";
+      return "Book your visit online — compassionate specialists and a calm, patient-first experience.";
     case "orders_only":
-      return "Send a consultation request or ask our care team a question.";
+      return "Request a consultation or message our care team — we respond with clear next steps.";
     default:
-      return "Book appointments and access specialist care — a calm, professional experience.";
+      return "Trusted clinic care with easy appointments — specialists, treatments, and support in one place.";
   }
 }
 
@@ -78,12 +82,12 @@ function renderCtaButton({
 function buildTrustChips(copy: MiniSiteCopy): string[] {
   const fromBenefits = copy.benefitsItems.filter(Boolean).slice(0, 2);
   const fromTrust = copy.trustCards.map((card) => card.subtitle).filter(Boolean);
-  const combined = [...fromBenefits, ...fromTrust];
-  const unique = Array.from(new Set(combined));
-  return unique.slice(0, 3);
+  return Array.from(new Set([...fromBenefits, ...fromTrust])).slice(0, 3);
 }
 
 type ClinicInfoTile = {
+  key: string;
+  glyph: string;
   label: string;
   value: string;
   detail?: string;
@@ -103,38 +107,69 @@ function buildClinicInfoTiles({
   const benefits = copy.benefitsItems.filter(Boolean);
   const trust = copy.trustCards;
 
-  const appointmentsTile: ClinicInfoTile = {
+  const appointments: ClinicInfoTile = {
+    key: "appointments",
+    glyph: "Ap",
     label: "Appointments",
     value: benefits[0] ?? trust[0]?.subtitle ?? "Easy booking",
-    detail: trust[0]?.title ?? undefined,
+    detail: trust[0]?.title,
   };
 
-  const specialistsTile: ClinicInfoTile = {
+  const specialists: ClinicInfoTile = {
+    key: "specialists",
+    glyph: "Sp",
     label: "Specialists",
     value:
       serviceCount != null && serviceCount > 0
         ? `${serviceCount} treatment${serviceCount === 1 ? "" : "s"}`
         : (benefits[1] ?? trust[1]?.subtitle ?? "Specialist care"),
-    detail: serviceCount != null && serviceCount > 0 ? "Available to book" : trust[1]?.title,
+    detail: serviceCount != null && serviceCount > 0 ? "Available online" : trust[1]?.title,
   };
 
-  let contactTile: ClinicInfoTile;
+  let contact: ClinicInfoTile;
   if (hasMeaningfulText(contactPhone)) {
-    contactTile = { label: "Contact", value: contactPhone.trim(), detail: "Call the clinic" };
+    contact = { key: "contact", glyph: "Ph", label: "Contact", value: contactPhone.trim(), detail: "Call the clinic" };
   } else if (hasMeaningfulText(contactAddress)) {
-    contactTile = { label: "Location", value: contactAddress.trim(), detail: "Visit us" };
+    contact = { key: "location", glyph: "Lo", label: "Location", value: contactAddress.trim(), detail: "Clinic address" };
   } else {
-    contactTile = {
+    contact = {
+      key: "care",
+      glyph: "Pc",
       label: "Patient care",
       value: benefits[2] ?? trust[2]?.subtitle ?? copy.benefitsSectionTitle,
       detail: trust[2]?.title,
     };
   }
 
-  return [appointmentsTile, specialistsTile, contactTile];
+  return [appointments, specialists, contact];
 }
 
-function ClinicSpecialtyCard({
+function MedicalIconTile({
+  theme,
+  isPreview,
+  glyph = "+",
+}: {
+  theme: ClinicTheme;
+  isPreview: boolean;
+  glyph?: string;
+}) {
+  return (
+    <div
+      className={`flex shrink-0 items-center justify-center rounded-2xl font-semibold ${
+        isPreview ? "h-10 w-10 text-sm" : "h-14 w-14 text-xl"
+      }`}
+      style={{
+        background: `linear-gradient(145deg, ${theme.primaryColor}18, ${theme.accentColor}12)`,
+        color: theme.primaryColor,
+      }}
+      aria-hidden
+    >
+      {glyph}
+    </div>
+  );
+}
+
+function ClinicSpecialtyRow({
   slug,
   service,
   theme,
@@ -151,8 +186,8 @@ function ClinicSpecialtyCard({
 }) {
   const duration = service.type === "booking" ? formatDuration(service.duration_minutes) : null;
   const descriptionPreview = service.description
-    ? service.description.length > (variant === "preview" ? 64 : 110)
-      ? `${service.description.slice(0, variant === "preview" ? 64 : 110).trim()}…`
+    ? service.description.length > (variant === "preview" ? 58 : 100)
+      ? `${service.description.slice(0, variant === "preview" ? 58 : 100).trim()}…`
       : service.description
     : null;
   const muted = clinicMutedText(isDark);
@@ -161,69 +196,48 @@ function ClinicSpecialtyCard({
     service.type === "booking"
       ? hasMeaningfulText(primaryCtaLabel)
         ? primaryCtaLabel
-        : "Book appointment"
+        : "Book"
       : serviceActionLabel(service.type);
 
   return (
     <article
-      className={`group flex gap-3 md:gap-4 ${isPreview ? "p-2.5" : "p-4 md:p-5"} ${
-        isDark ? "bg-slate-900/50" : "bg-white/95"
-      }`}
-      style={{
-        borderLeft: `3px solid ${theme.primaryColor}`,
-        boxShadow: isDark ? undefined : `inset 0 0 0 1px ${theme.primaryColor}12`,
-      }}
+      className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${
+        isPreview ? "rounded-xl p-2.5" : "rounded-2xl p-4 md:p-5"
+      } ${clinicSurface(isDark)} shadow-sm`}
       data-testid="service-card"
     >
-      <div
-        className={`flex shrink-0 items-center justify-center font-semibold ${
-          isPreview ? "h-9 w-9 rounded-lg text-sm" : "h-12 w-12 rounded-xl text-lg"
-        }`}
-        style={{
-          backgroundColor: `${theme.primaryColor}14`,
-          color: theme.primaryColor,
-        }}
-        aria-hidden
-      >
-        +
-      </div>
-      <div className="min-w-0 flex-1">
-        <p
-          className={`font-medium uppercase tracking-[0.12em] ${isPreview ? "text-[9px]" : "text-[10px]"}`}
-          style={{ color: theme.accentColor }}
-        >
-          {service.type === "booking" ? "Treatment" : "Consultation"}
-        </p>
-        <h3
-          className={`mt-0.5 whitespace-normal font-semibold tracking-tight ${
-            isPreview ? "text-xs" : "text-base md:text-lg"
-          } ${isDark ? "text-slate-100" : "text-slate-900"}`}
-        >
-          {service.name}
-        </h3>
-        {descriptionPreview ? (
-          <p className={`mt-1.5 whitespace-normal leading-relaxed ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>
-            {descriptionPreview}
+      <div className={`flex min-w-0 flex-1 gap-3 ${isPreview ? "" : "md:gap-4"}`}>
+        <MedicalIconTile theme={theme} isPreview={isPreview} glyph="Rx" />
+        <div className="min-w-0 flex-1">
+          <p
+            className={`font-medium uppercase tracking-[0.12em] ${isPreview ? "text-[9px]" : "text-[10px]"}`}
+            style={{ color: theme.accentColor }}
+          >
+            {service.type === "booking" ? "Specialty treatment" : "Consultation"}
           </p>
-        ) : null}
-        <div
-          className={`mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 ${isPreview ? "text-[10px]" : "text-xs md:text-sm"} ${muted}`}
-        >
-          <PriceLabel service={service} />
-          {duration ? <span>{duration}</span> : null}
-          <span className="capitalize">{service.type === "booking" ? "appointment" : "request"}</span>
+          <h3 className={`mt-0.5 whitespace-normal font-semibold ${isPreview ? "text-xs" : "text-base md:text-lg"}`}>
+            {service.name}
+          </h3>
+          {descriptionPreview ? (
+            <p className={`mt-1 whitespace-normal leading-relaxed ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>
+              {descriptionPreview}
+            </p>
+          ) : null}
+          <div className={`mt-2 flex flex-wrap gap-2 ${isPreview ? "text-[10px]" : "text-xs"} ${muted}`}>
+            <PriceLabel service={service} />
+            {duration ? <span>{duration}</span> : null}
+          </div>
         </div>
-        <Link
-          to={`/b/${slug}/services/${service.id}`}
-          className={`mt-2 inline-flex items-center gap-1 font-semibold hover:underline ${
-            isPreview ? "text-[10px]" : "text-sm"
-          }`}
-          style={{ color: theme.primaryColor }}
-        >
-          {ctaLabel}
-          <span aria-hidden>→</span>
-        </Link>
       </div>
+      <Link
+        to={`/b/${slug}/services/${service.id}`}
+        className={`shrink-0 px-4 py-2 text-center font-semibold text-white transition hover:brightness-105 ${
+          isPreview ? "rounded-lg text-[10px]" : "rounded-xl text-sm"
+        }`}
+        style={{ backgroundColor: theme.primaryColor }}
+      >
+        {ctaLabel}
+      </Link>
     </article>
   );
 }
@@ -279,188 +293,76 @@ export function ClinicHeroSection({
   const hasPhone = hasMeaningfulText(contactPhone);
   const trustChips = buildTrustChips(copy);
   const infoTiles = buildClinicInfoTiles({ copy, serviceCount, contactPhone, contactAddress });
-  const processRows = copy.benefitsItems.filter(Boolean).slice(0, 3);
+  const careBullets = copy.benefitsItems.filter(Boolean).slice(0, 3);
+  const trustBullets = copy.trustCards.slice(0, Math.max(0, 3 - careBullets.length));
 
   return (
     <header data-testid={`${testIdPrefix}-hero`}>
       <div
-        className={`relative overflow-hidden ${isPreview ? "rounded-lg" : "rounded-2xl md:rounded-3xl"}`}
+        className={`relative ${isPreview ? "px-1 pt-1 pb-6" : "px-2 pt-2 pb-10 md:pb-14"}`}
         style={{
           background: isDark
-            ? `linear-gradient(120deg, ${theme.primaryColor}20 0%, rgba(15,23,42,0.95) 55%, ${theme.accentColor}12 100%)`
-            : `linear-gradient(120deg, ${theme.primaryColor}10 0%, #f8fafc 45%, ${theme.accentColor}08 100%)`,
+            ? `linear-gradient(180deg, ${theme.primaryColor}22 0%, ${theme.accentColor}10 55%, transparent 100%)`
+            : `linear-gradient(180deg, ${theme.primaryColor}14 0%, ${theme.accentColor}08 50%, transparent 100%)`,
         }}
       >
         <div
-          className={`grid items-stretch ${isPreview ? "gap-3 p-3" : "gap-5 p-5 md:grid-cols-[1.05fr_0.95fr] md:gap-6 md:p-7 lg:p-9"}`}
-          data-testid={`${testIdPrefix}-hero-content`}
+          className={`mx-auto max-w-6xl overflow-hidden shadow-xl ${isPreview ? "rounded-xl" : "rounded-3xl"} ${clinicSurface(isDark)}`}
         >
-          <div className={`flex min-w-0 flex-col justify-center ${isPreview ? "space-y-2" : "space-y-4 md:space-y-5"}`}>
-            <p
-              className={`inline-flex w-fit rounded-md px-2.5 py-1 font-medium uppercase tracking-[0.14em] ${
-                isPreview ? "text-[9px]" : "text-[11px]"
-              } ${isDark ? "bg-white/10 text-slate-200" : "bg-white/80 text-slate-700 shadow-sm"}`}
-              data-testid={`${testIdPrefix}-hero-badge`}
-            >
-              {heroBadgeText}
-            </p>
-
-            <h1
-              className={`${presentation.heroTitleClass} whitespace-normal ${isDark ? "text-white" : "text-slate-900"}`}
-              data-testid={`${testIdPrefix}-hero-title`}
-            >
-              {heroTitle}
-            </h1>
-
-            {heroSubtitle ? (
-              <p
-                className={`whitespace-normal font-medium ${isPreview ? "text-xs" : "text-base md:text-lg"} ${muted}`}
-                data-testid={`${testIdPrefix}-hero-subtitle`}
-              >
-                {heroSubtitle}
-              </p>
-            ) : (
-              <p className={`whitespace-normal ${isPreview ? "text-xs" : "text-base md:text-lg"} ${muted}`}>
-                {heroIntro(operatingMode)}
-              </p>
-            )}
-
-            {heroBody ? (
-              <p
-                className={`max-w-lg whitespace-normal leading-relaxed ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}
-                data-testid={`${testIdPrefix}-hero-body`}
-              >
-                {heroBody}
-              </p>
-            ) : null}
-
-            <div
-              className={`flex flex-col ${isPreview ? "gap-1.5" : "gap-2.5 sm:flex-row sm:flex-wrap"}`}
-            >
-              {showBookingCta && hasMeaningfulText(primaryCtaLabel)
-                ? renderCtaButton({
-                    previewButtons,
-                    label: primaryCtaLabel,
-                    href: primaryBookingHref,
-                    className: presentation.primaryButtonClass,
-                    style: { backgroundColor: theme.primaryColor },
-                    testId: previewButtons ? `${testIdPrefix}-primary-button` : `${testIdPrefix}-book-cta`,
-                  })
-                : null}
-              {showRequestCta && hasMeaningfulText(secondaryCtaLabel)
-                ? renderCtaButton({
-                    previewButtons,
-                    label: secondaryCtaLabel,
-                    href: secondaryOrderHref,
-                    className: presentation.secondaryButtonClass,
-                    style: {
-                      borderColor: isDark ? "rgba(255,255,255,0.25)" : theme.accentColor,
-                      color: isDark ? "#fff" : theme.accentColor,
-                      backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.85)",
-                    },
-                    testId: previewButtons ? `${testIdPrefix}-secondary-button` : `${testIdPrefix}-request-cta`,
-                  })
-                : null}
-            </div>
-
-            {trustChips.length > 0 ? (
-              <div className={`flex flex-wrap gap-2 ${isPreview ? "pt-1" : "pt-2"}`} data-testid={`${testIdPrefix}-hero-trust-chips`}>
-                {trustChips.map((chip) => (
-                  <span
-                    key={chip}
-                    className={`rounded-md px-2.5 py-1 font-medium ${
-                      isPreview ? "text-[10px]" : "text-xs"
-                    } ${isDark ? "bg-white/10 text-slate-200" : "bg-white/90 text-slate-700 shadow-sm"}`}
-                  >
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </div>
-
-          <aside
-            className={`flex flex-col overflow-hidden ${isPreview ? "rounded-lg" : "rounded-xl md:rounded-2xl"} ${
-              isDark ? "bg-slate-950/80 shadow-xl ring-1 ring-slate-700/60" : "bg-white shadow-xl ring-1 ring-slate-200/80"
-            }`}
-            data-testid={`${testIdPrefix}-hero-appointment-card`}
+          <div
+            className={`grid ${isPreview ? "gap-3 p-3" : "gap-6 p-6 md:grid-cols-[1.15fr_0.85fr] md:gap-8 md:p-8 lg:p-10"}`}
+            data-testid={`${testIdPrefix}-hero-content`}
           >
-            <div
-              className={`${isPreview ? "px-3 py-2" : "px-5 py-3 md:px-6 md:py-4"}`}
-              style={{ backgroundColor: theme.primaryColor }}
-            >
-              <p className={`font-semibold text-white ${isPreview ? "text-[10px]" : "text-sm"}`}>
-                Appointment availability
-              </p>
-            </div>
-
-            <div className={`flex flex-1 flex-col ${isPreview ? "gap-2 p-3" : "gap-3 p-5 md:p-6"}`}>
-              <div className="flex items-center gap-3">
-                <div
-                  className={`flex shrink-0 items-center justify-center rounded-full font-bold text-white ${
-                    isPreview ? "h-10 w-10 text-sm" : "h-14 w-14 text-xl"
-                  }`}
-                  style={{ backgroundColor: theme.primaryColor }}
-                  data-testid={`${testIdPrefix}-logo-placeholder`}
+            <div className={`min-w-0 ${isPreview ? "space-y-2" : "space-y-4 md:space-y-5"}`}>
+              <div className="flex items-center gap-2">
+                <span className="h-8 w-1 rounded-full" style={{ backgroundColor: theme.primaryColor }} aria-hidden />
+                <p
+                  className={`font-medium uppercase tracking-[0.16em] ${isPreview ? "text-[9px]" : "text-[11px]"}`}
+                  style={{ color: theme.accentColor }}
+                  data-testid={`${testIdPrefix}-hero-badge`}
                 >
-                  {monogram}
-                </div>
-                <div className="min-w-0">
-                  <p className={`font-semibold ${isPreview ? "text-xs" : "text-base"} ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-                    {business.name}
-                  </p>
-                  <p className={`${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>Book a visit</p>
-                </div>
+                  {heroBadgeText}
+                </p>
               </div>
 
-              <p className={`font-semibold ${isPreview ? "text-xs" : "text-lg"} ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-                {serviceCount != null && serviceCount > 0
-                  ? `${serviceCount} specialt${serviceCount === 1 ? "y" : "ies"} open for booking`
-                  : "Schedule your appointment today"}
-              </p>
+              <h1
+                className={`${presentation.heroTitleClass} whitespace-normal leading-[1.1]`}
+                data-testid={`${testIdPrefix}-hero-title`}
+              >
+                {heroTitle}
+              </h1>
 
-              {hasPhone ? (
-                <a
-                  href={`tel:${contactPhone}`}
-                  className={`font-semibold hover:underline ${isPreview ? "text-sm" : "text-xl"}`}
-                  style={{ color: theme.primaryColor }}
+              {heroSubtitle ? (
+                <p
+                  className={`max-w-xl whitespace-normal font-medium ${isPreview ? "text-xs" : "text-lg"} ${muted}`}
+                  data-testid={`${testIdPrefix}-hero-subtitle`}
                 >
-                  {contactPhone}
-                </a>
+                  {heroSubtitle}
+                </p>
+              ) : (
+                <p className={`max-w-xl whitespace-normal ${isPreview ? "text-xs" : "text-lg"} ${muted}`}>
+                  {heroIntro(operatingMode)}
+                </p>
+              )}
+
+              {heroBody ? (
+                <p
+                  className={`max-w-lg whitespace-normal leading-relaxed ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}
+                  data-testid={`${testIdPrefix}-hero-body`}
+                >
+                  {heroBody}
+                </p>
               ) : null}
 
-              {processRows.length > 0 ? (
-                <ul className={`space-y-2 border-t pt-3 ${isDark ? "border-slate-700/60" : "border-slate-100"}`}>
-                  {processRows.map((item, index) => (
-                    <li
-                      key={item}
-                      className={`flex items-start gap-2.5 whitespace-normal ${isPreview ? "text-[10px]" : "text-sm"} ${
-                        isDark ? "text-slate-200" : "text-slate-700"
-                      }`}
-                    >
-                      <span
-                        className={`flex shrink-0 items-center justify-center rounded-full font-semibold text-white ${
-                          isPreview ? "h-5 w-5 text-[9px]" : "h-6 w-6 text-[11px]"
-                        }`}
-                        style={{ backgroundColor: theme.accentColor }}
-                      >
-                        {index + 1}
-                      </span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-
-              <div className={`mt-auto flex flex-col ${isPreview ? "gap-1.5 pt-1" : "gap-2 pt-2"}`} data-testid={`${testIdPrefix}-hero-cta-group`}>
+              <div className={`flex flex-col ${isPreview ? "gap-1.5" : "gap-2.5 sm:flex-row sm:flex-wrap"}`}>
                 {showBookingCta && hasMeaningfulText(primaryCtaLabel)
                   ? renderCtaButton({
                       previewButtons,
                       label: primaryCtaLabel,
                       href: primaryBookingHref,
-                      className: `${presentation.primaryButtonClass} w-full`,
+                      className: presentation.primaryButtonClass,
                       style: { backgroundColor: theme.primaryColor },
-                      testId: previewButtons ? `${testIdPrefix}-appointment-primary` : `${testIdPrefix}-appointment-book`,
+                      testId: previewButtons ? `${testIdPrefix}-primary-button` : `${testIdPrefix}-book-cta`,
                     })
                   : null}
                 {showRequestCta && hasMeaningfulText(secondaryCtaLabel)
@@ -468,43 +370,181 @@ export function ClinicHeroSection({
                       previewButtons,
                       label: secondaryCtaLabel,
                       href: secondaryOrderHref,
-                      className: `${presentation.secondaryButtonClass} w-full`,
-                      style: { borderColor: theme.accentColor, color: theme.accentColor },
-                      testId: previewButtons ? `${testIdPrefix}-appointment-secondary` : `${testIdPrefix}-appointment-request`,
+                      className: presentation.secondaryButtonClass,
+                      style: { borderColor: theme.accentColor, color: theme.accentColor, backgroundColor: "transparent" },
+                      testId: previewButtons ? `${testIdPrefix}-secondary-button` : `${testIdPrefix}-request-cta`,
                     })
                   : null}
               </div>
-            </div>
-          </aside>
-        </div>
-      </div>
 
-      <div
-        className={`grid grid-cols-3 divide-x ${isPreview ? "mt-2 rounded-lg" : "mt-4 rounded-xl md:mt-5"} ${
-          isDark ? "divide-slate-700/60 bg-slate-900/50 ring-1 ring-slate-700/55" : "divide-slate-200/80 bg-white/90 shadow-sm ring-1 ring-slate-200/70"
-        }`}
-        data-testid={`${testIdPrefix}-clinic-info-strip`}
-      >
-        {infoTiles.map((tile) => (
-          <div key={tile.label} className={`min-w-0 text-center ${isPreview ? "px-2 py-2.5" : "px-3 py-4 md:px-5 md:py-5"}`}>
-            <p
-              className={`font-medium uppercase tracking-[0.12em] ${isPreview ? "text-[9px]" : "text-[10px]"}`}
-              style={{ color: theme.accentColor }}
+              {trustChips.length > 0 ? (
+                <div className="flex flex-wrap gap-2" data-testid={`${testIdPrefix}-hero-trust-chips`}>
+                  {trustChips.map((chip) => (
+                    <span
+                      key={chip}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium ${
+                        isPreview ? "text-[10px]" : "text-xs"
+                      }`}
+                      style={{ backgroundColor: `${theme.primaryColor}10`, color: theme.primaryColor }}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: theme.accentColor }} aria-hidden />
+                      {chip}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            <aside
+              className={`overflow-hidden ${isPreview ? "rounded-lg" : "rounded-2xl"} ring-1`}
+              style={{
+                borderColor: `${theme.primaryColor}25`,
+                background: isDark
+                  ? `linear-gradient(180deg, ${theme.primaryColor}16 0%, rgba(15,23,42,0.9) 100%)`
+                  : `linear-gradient(180deg, ${theme.primaryColor}08 0%, #f8fafc 100%)`,
+              }}
+              data-testid={`${testIdPrefix}-hero-appointment-card`}
             >
-              {tile.label}
-            </p>
-            <p
-              className={`mt-1 whitespace-normal font-semibold ${isPreview ? "text-[11px]" : "text-sm md:text-base"} ${
-                isDark ? "text-slate-100" : "text-slate-900"
-              }`}
-            >
-              {tile.value}
-            </p>
-            {tile.detail ? (
-              <p className={`mt-0.5 whitespace-normal ${isPreview ? "text-[9px]" : "text-xs"} ${muted}`}>{tile.detail}</p>
-            ) : null}
+              <div
+                className={`flex items-center justify-between ${isPreview ? "px-3 py-2" : "px-5 py-4"}`}
+                style={{ backgroundColor: theme.primaryColor }}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`flex items-center justify-center rounded-full bg-white/20 font-bold text-white ${
+                      isPreview ? "h-8 w-8 text-xs" : "h-10 w-10 text-sm"
+                    }`}
+                    data-testid={`${testIdPrefix}-logo-placeholder`}
+                  >
+                    {monogram}
+                  </div>
+                  <div>
+                    <p className={`font-semibold text-white ${isPreview ? "text-[10px]" : "text-sm"}`}>Book a visit</p>
+                    <p className={`text-white/80 ${isPreview ? "text-[9px]" : "text-xs"}`}>{business.name}</p>
+                  </div>
+                </div>
+                <p className={`font-medium text-white/90 ${isPreview ? "text-[9px]" : "text-xs"}`}>Intake panel</p>
+              </div>
+
+              <div className={`${isPreview ? "space-y-2 p-3" : "space-y-4 p-5 md:p-6"}`}>
+                <div
+                  className={`rounded-xl text-center ${isPreview ? "px-2 py-2" : "px-4 py-3"} ${clinicSurface(isDark)} shadow-sm`}
+                >
+                  <p className={`font-medium uppercase tracking-wide ${isPreview ? "text-[9px]" : "text-[10px]"} ${muted}`}>
+                    Appointment availability
+                  </p>
+                  <p className={`mt-1 font-semibold ${isPreview ? "text-sm" : "text-xl"}`}>
+                    {serviceCount != null && serviceCount > 0
+                      ? `${serviceCount} specialt${serviceCount === 1 ? "y" : "ies"}`
+                      : "Open for booking"}
+                  </p>
+                </div>
+
+                {hasPhone ? (
+                  <a
+                    href={`tel:${contactPhone}`}
+                    className={`block rounded-xl px-3 py-2 font-semibold hover:underline ${
+                      isPreview ? "text-xs" : "text-base"
+                    }`}
+                    style={{ backgroundColor: `${theme.primaryColor}12`, color: theme.primaryColor }}
+                  >
+                    {contactPhone}
+                  </a>
+                ) : null}
+
+                <ul className={`space-y-2 ${isPreview ? "text-[10px]" : "text-sm"}`}>
+                  {careBullets.map((item) => (
+                    <li key={item} className={`flex items-start gap-2 whitespace-normal ${muted}`}>
+                      <span
+                        className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                        style={{ backgroundColor: theme.accentColor }}
+                        aria-hidden
+                      >
+                        ✓
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                  {trustBullets.map((stat) => (
+                    <li key={stat.subtitle} className={`flex items-start gap-2 whitespace-normal ${muted}`}>
+                      <span
+                        className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                        style={{ backgroundColor: theme.primaryColor }}
+                        aria-hidden
+                      >
+                        ✓
+                      </span>
+                      <span>
+                        <span className="font-medium" style={{ color: theme.primaryColor }}>
+                          {stat.title}
+                        </span>{" "}
+                        {stat.subtitle}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div
+                  className={`flex flex-col border-t pt-3 ${isDark ? "border-slate-700/60" : "border-slate-200/80"} ${
+                    isPreview ? "gap-1.5" : "gap-2"
+                  }`}
+                  data-testid={`${testIdPrefix}-hero-cta-group`}
+                >
+                  {showBookingCta && hasMeaningfulText(primaryCtaLabel)
+                    ? renderCtaButton({
+                        previewButtons,
+                        label: primaryCtaLabel,
+                        href: primaryBookingHref,
+                        className: `${presentation.primaryButtonClass} w-full`,
+                        style: { backgroundColor: theme.primaryColor },
+                        testId: previewButtons ? `${testIdPrefix}-appointment-primary` : `${testIdPrefix}-appointment-book`,
+                      })
+                    : null}
+                  {showRequestCta && hasMeaningfulText(secondaryCtaLabel)
+                    ? renderCtaButton({
+                        previewButtons,
+                        label: secondaryCtaLabel,
+                        href: secondaryOrderHref,
+                        className: `${presentation.secondaryButtonClass} w-full`,
+                        style: { borderColor: theme.accentColor, color: theme.accentColor },
+                        testId: previewButtons ? `${testIdPrefix}-appointment-secondary` : `${testIdPrefix}-appointment-request`,
+                      })
+                    : null}
+                </div>
+              </div>
+            </aside>
           </div>
-        ))}
+        </div>
+
+        <div
+          className={`relative z-10 mx-auto grid max-w-6xl grid-cols-3 gap-3 ${
+            isPreview ? "-mt-4 px-1" : "-mt-6 px-2 md:-mt-8 md:gap-4"
+          }`}
+          data-testid={`${testIdPrefix}-clinic-info-strip`}
+        >
+          {infoTiles.map((tile) => (
+            <div
+              key={tile.key}
+              className={`text-center shadow-md ${isPreview ? "rounded-lg px-2 py-2.5" : "rounded-2xl px-3 py-4 md:px-4 md:py-5"} ${clinicSurface(isDark)}`}
+            >
+              <div
+                className={`mx-auto flex items-center justify-center rounded-full font-bold ${
+                  isPreview ? "mb-1 h-7 w-7 text-[9px]" : "mb-2 h-9 w-9 text-[10px]"
+                }`}
+                style={{ backgroundColor: `${theme.primaryColor}14`, color: theme.primaryColor }}
+              >
+                {tile.glyph}
+              </div>
+              <p className={`font-medium uppercase tracking-[0.12em] ${isPreview ? "text-[9px]" : "text-[10px]"}`} style={{ color: theme.accentColor }}>
+                {tile.label}
+              </p>
+              <p className={`mt-1 whitespace-normal font-semibold ${isPreview ? "text-[11px]" : "text-sm"}`}>{tile.value}</p>
+              {tile.detail ? (
+                <p className={`mt-0.5 whitespace-normal ${isPreview ? "text-[9px]" : "text-xs"} ${muted}`}>{tile.detail}</p>
+              ) : null}
+            </div>
+          ))}
+        </div>
       </div>
     </header>
   );
@@ -516,6 +556,7 @@ export type ClinicAboutSectionProps = ClinicSectionShell & {
   fallbackBody: string | null;
   theme: ClinicTheme;
   isDark: boolean;
+  businessName: string;
 };
 
 export function ClinicAboutSection({
@@ -526,23 +567,21 @@ export function ClinicAboutSection({
   fallbackBody,
   theme,
   isDark,
+  businessName,
 }: ClinicAboutSectionProps) {
   const muted = clinicMutedText(isDark);
   const content = body || fallbackBody;
   const isPreview = variant === "preview";
+  const monogram = businessName.charAt(0).toUpperCase();
 
   return (
-    <section className={`${isPreview ? "py-3" : "py-8 md:py-10"}`} data-testid={`${testIdPrefix}-about`}>
+    <section className={`${isPreview ? "py-4" : "py-10 md:py-12"}`} data-testid={`${testIdPrefix}-about`}>
       <div
-        className={`mx-auto flex max-w-5xl overflow-hidden ${isPreview ? "rounded-lg" : "rounded-2xl"}`}
-        style={{ boxShadow: isDark ? undefined : `inset 4px 0 0 ${theme.primaryColor}` }}
+        className={`mx-auto grid max-w-6xl overflow-hidden shadow-sm ${isPreview ? "rounded-xl" : "rounded-3xl"} ${
+          isPreview ? "" : "md:grid-cols-[1.1fr_0.9fr]"
+        } ${clinicSurface(isDark)}`}
       >
-        <div
-          className={`hidden shrink-0 md:block ${isPreview ? "w-1" : "w-1.5"}`}
-          style={{ backgroundColor: theme.primaryColor }}
-          aria-hidden
-        />
-        <div className={`flex-1 ${isPreview ? "p-3" : "p-6 md:p-8"} ${isDark ? "bg-slate-900/40" : "bg-slate-50/80"}`}>
+        <div className={isPreview ? "p-3" : "p-6 md:p-8 lg:p-10"}>
           <p
             className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs"}`}
             style={{ color: theme.accentColor }}
@@ -550,13 +589,7 @@ export function ClinicAboutSection({
           >
             About the clinic
           </p>
-          <h2
-            className={`mt-2 whitespace-normal font-semibold tracking-tight ${
-              isPreview ? "text-sm" : "text-2xl md:text-3xl"
-            } ${isDark ? "text-slate-100" : "text-slate-900"}`}
-          >
-            {title}
-          </h2>
+          <h2 className={`mt-2 whitespace-normal font-semibold ${isPreview ? "text-sm" : "text-2xl md:text-3xl"}`}>{title}</h2>
           {content ? (
             <p
               className={`mt-3 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-base md:text-lg"} ${muted}`}
@@ -567,6 +600,22 @@ export function ClinicAboutSection({
           ) : (
             <p className={`mt-3 text-sm italic ${muted}`}>About text will appear here.</p>
           )}
+        </div>
+        <div
+          className={`flex items-center justify-center ${isPreview ? "min-h-[4rem] p-3" : "min-h-[12rem] p-8"}`}
+          style={{
+            background: `linear-gradient(135deg, ${theme.primaryColor}12, ${theme.accentColor}10)`,
+          }}
+          aria-hidden
+        >
+          <div
+            className={`flex items-center justify-center rounded-full font-bold text-white shadow-lg ${
+              isPreview ? "h-14 w-14 text-xl" : "h-24 w-24 text-4xl"
+            }`}
+            style={{ backgroundColor: theme.primaryColor }}
+          >
+            {monogram}
+          </div>
         </div>
       </div>
     </section>
@@ -600,41 +649,37 @@ export function ClinicServicesSection({
 
   return (
     <section
-      className={`${isPreview ? "py-3" : "py-8 md:py-10"}`}
+      className={`${isPreview ? "py-4" : "py-10 md:py-12"}`}
       aria-labelledby={`${testIdPrefix}-services-heading`}
       data-testid={`${testIdPrefix}-services`}
     >
       <div
-        className={`mx-auto max-w-5xl ${isPreview ? "rounded-lg p-3" : "rounded-2xl p-5 md:p-7"}`}
+        className={`mx-auto max-w-6xl ${isPreview ? "rounded-xl px-3 py-4" : "rounded-3xl px-5 py-8 md:px-8 md:py-10"}`}
         style={{
           background: isDark
-            ? `linear-gradient(180deg, ${theme.primaryColor}10 0%, rgba(15,23,42,0.5) 100%)`
-            : `linear-gradient(180deg, ${theme.primaryColor}06 0%, #f1f5f9 100%)`,
+            ? `linear-gradient(180deg, ${theme.primaryColor}12 0%, rgba(15,23,42,0.55) 100%)`
+            : `linear-gradient(180deg, ${theme.primaryColor}08 0%, ${theme.accentColor}06 100%)`,
         }}
       >
-        <div className={`${isPreview ? "mb-2" : "mb-6 md:mb-8"} flex flex-wrap items-end justify-between gap-3`}>
+        <div className={`${isPreview ? "mb-3" : "mb-6 md:mb-8"} flex flex-wrap items-end justify-between gap-3`}>
           <div>
-            <p
-              className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs"}`}
-              style={{ color: theme.accentColor }}
-            >
+            <p className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs"}`} style={{ color: theme.accentColor }}>
               Medical specialties
             </p>
             <h2
               id={`${testIdPrefix}-services-heading`}
-              className={`mt-1 whitespace-normal font-semibold tracking-tight ${
-                isPreview ? "text-sm" : "text-2xl md:text-3xl"
-              } ${isDark ? "text-slate-100" : "text-slate-900"}`}
+              className={`mt-1 whitespace-normal font-semibold ${isPreview ? "text-sm" : "text-2xl md:text-3xl"}`}
               data-testid={`${testIdPrefix}-services-title`}
             >
               {sectionTitle}
             </h2>
+            <p className={`mt-1 whitespace-normal ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}>
+              Treatments and appointments with our care team.
+            </p>
           </div>
           {badgeText ? (
             <span
-              className={`rounded-md px-2.5 py-1 font-medium ${isPreview ? "text-[10px]" : "text-xs"} ${
-                isDark ? "bg-slate-800/80 text-slate-200" : "bg-white text-slate-700 shadow-sm"
-              }`}
+              className={`rounded-full px-3 py-1 font-medium ${isPreview ? "text-[10px]" : "text-xs"} ${clinicSurface(isDark)} shadow-sm`}
               data-testid={`${testIdPrefix}-services-badge`}
             >
               {badgeText}
@@ -645,7 +690,7 @@ export function ClinicServicesSection({
         {services && services.length > 0 ? (
           <div className={`grid gap-3 ${isPreview ? "" : "md:grid-cols-2 md:gap-4"}`}>
             {services.map((service) => (
-              <ClinicSpecialtyCard
+              <ClinicSpecialtyRow
                 key={service.id}
                 slug={publicSlug}
                 service={service}
@@ -657,12 +702,12 @@ export function ClinicServicesSection({
             ))}
           </div>
         ) : isPreview ? (
-          <ClinicSpecialtyCard
+          <ClinicSpecialtyRow
             slug=""
             service={{
               id: "preview-sample",
               name: "General consultation",
-              description: "Specialties and treatments will appear here on the live page.",
+              description: "Specialties and treatments appear here on the live page.",
               type: "booking",
               price_cents: 12000,
               duration_minutes: 45,
@@ -717,70 +762,70 @@ export function ClinicTrustSection({
   }
 
   return (
-    <section className={`${isPreview ? "py-3" : "py-8 md:py-10"}`} data-testid={`${testIdPrefix}-trust`}>
-      <div className="mx-auto max-w-5xl">
-        <p
-          className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs"}`}
-          style={{ color: theme.accentColor }}
-        >
-          Patient care
-        </p>
-        <h2
-          className={`mt-1 whitespace-normal font-semibold tracking-tight ${
-            isPreview ? "text-sm" : "text-xl md:text-2xl"
-          } ${isDark ? "text-slate-100" : "text-slate-900"}`}
-        >
-          {copy.benefitsSectionTitle}
-        </h2>
+    <section className={`${isPreview ? "py-4" : "py-10 md:py-12"}`} data-testid={`${testIdPrefix}-trust`}>
+      <div className={`mx-auto max-w-6xl ${isPreview ? "space-y-3" : "space-y-4"}`}>
+        <div>
+          <p className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs"}`} style={{ color: theme.accentColor }}>
+            Patient care
+          </p>
+          <h2 className={`mt-1 font-semibold ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}>{copy.benefitsSectionTitle}</h2>
+        </div>
 
-        <div className={`mt-4 grid ${isPreview ? "gap-3" : "gap-5 md:grid-cols-2 md:gap-8 md:mt-6"}`}>
+        <div
+          className={`grid overflow-hidden shadow-sm ${isPreview ? "rounded-xl" : "rounded-3xl"} ${
+            isPreview ? "" : "md:grid-cols-2"
+          }`}
+        >
           {hasBenefits ? (
-            <div data-testid={`${testIdPrefix}-benefits-strip`}>
-              <p className={`mb-3 font-medium ${isPreview ? "text-xs" : "text-sm"} ${muted}`}>What to expect</p>
-              <ol className="space-y-3">
+            <div
+              className={isPreview ? "p-3" : "p-6 md:p-8"}
+              style={{ backgroundColor: isDark ? `${theme.primaryColor}14` : `${theme.primaryColor}08` }}
+              data-testid={`${testIdPrefix}-benefits-strip`}
+            >
+              <p className={`mb-4 font-medium ${isPreview ? "text-xs" : "text-sm"} ${muted}`}>What to expect</p>
+              <ol className="space-y-4">
                 {copy.benefitsItems.filter(Boolean).map((item, index) => (
-                  <li key={item} className="flex gap-3">
+                  <li key={item} className="flex gap-4">
                     <span
-                      className={`flex shrink-0 items-center justify-center rounded-lg font-bold text-white ${
-                        isPreview ? "h-7 w-7 text-[10px]" : "h-9 w-9 text-xs"
-                      }`}
-                      style={{ backgroundColor: theme.primaryColor }}
+                      className={`shrink-0 font-bold leading-none ${isPreview ? "text-lg" : "text-3xl md:text-4xl"}`}
+                      style={{ color: `${theme.primaryColor}55` }}
                     >
-                      {index + 1}
+                      {String(index + 1).padStart(2, "0")}
                     </span>
-                    <p
-                      className={`min-w-0 whitespace-normal pt-1 ${isPreview ? "text-xs" : "text-sm md:text-base"} ${
-                        isDark ? "text-slate-200" : "text-slate-800"
-                      }`}
-                    >
-                      {item}
-                    </p>
+                    <p className={`min-w-0 whitespace-normal pt-1 ${isPreview ? "text-xs" : "text-sm md:text-base"}`}>{item}</p>
                   </li>
                 ))}
               </ol>
             </div>
-          ) : (
-            <div />
-          )}
+          ) : null}
 
           {showTrustStats ? (
             <div
-              className={`${isPreview ? "rounded-lg p-3" : "rounded-2xl p-5 md:p-6"} ${
-                isDark ? "bg-slate-900/50 ring-1 ring-slate-700/55" : "bg-white shadow-sm ring-1 ring-slate-200/70"
-              }`}
+              className={`${clinicSurface(isDark)} ${isPreview ? "p-3" : "p-6 md:p-8"}`}
               data-testid={`${testIdPrefix}-trust-stats`}
             >
-              <p className={`mb-3 font-medium ${isPreview ? "text-xs" : "text-sm"} ${muted}`}>Why patients choose us</p>
+              <p className={`mb-4 font-medium ${isPreview ? "text-xs" : "text-sm"} ${muted}`}>Why patients choose us</p>
               <div className="space-y-4">
                 {copy.trustCards.map((stat) => (
-                  <div key={stat.subtitle} className="min-w-0 border-b pb-3 last:border-0 last:pb-0" style={{ borderColor: `${theme.primaryColor}20` }}>
-                    <p
-                      className={`whitespace-normal font-semibold ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}
-                      style={{ color: theme.primaryColor }}
+                  <div
+                    key={stat.subtitle}
+                    className={`flex items-start gap-3 rounded-xl ${isPreview ? "p-2" : "p-3"}`}
+                    style={{ backgroundColor: isDark ? "rgba(255,255,255,0.04)" : `${theme.accentColor}08` }}
+                  >
+                    <span
+                      className={`flex shrink-0 items-center justify-center rounded-lg font-bold text-white ${
+                        isPreview ? "h-8 w-8 text-xs" : "h-10 w-10 text-sm"
+                      }`}
+                      style={{ backgroundColor: theme.primaryColor }}
                     >
-                      {stat.title}
-                    </p>
-                    <p className={`mt-1 whitespace-normal ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>{stat.subtitle}</p>
+                      {stat.title.slice(0, 2)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className={`font-semibold ${isPreview ? "text-sm" : "text-lg"}`} style={{ color: theme.primaryColor }}>
+                        {stat.title}
+                      </p>
+                      <p className={`whitespace-normal ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>{stat.subtitle}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -813,22 +858,20 @@ export function ClinicFaqSection({
 
   return (
     <section
-      className={`${isPreview ? "py-3" : "py-8 md:py-10"}`}
+      className={`${isPreview ? "py-4" : "py-10 md:py-12"}`}
       aria-labelledby={`${testIdPrefix}-faq-heading`}
       data-testid={`${testIdPrefix}-faq`}
     >
-      <div className="mx-auto max-w-3xl">
+      <div className={`mx-auto max-w-4xl ${isPreview ? "rounded-xl p-3" : "rounded-3xl p-6 md:p-8"} ${clinicSurface(isDark)} shadow-sm`}>
         <h2
           id={`${testIdPrefix}-faq-heading`}
-          className={`whitespace-normal font-semibold tracking-tight ${isPreview ? "text-sm" : "text-xl md:text-2xl"} ${
-            isDark ? "text-slate-100" : "text-slate-900"
-          }`}
+          className={`whitespace-normal font-semibold ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}
           data-testid={`${testIdPrefix}-faq-title`}
         >
           {title}
         </h2>
-        <p className={`mt-1 ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}>Common questions from patients</p>
-        <dl className={`mt-4 divide-y ${isDark ? "divide-slate-700/55" : "divide-slate-200/80"} ${isPreview ? "" : "md:mt-6"}`}>
+        <p className={`mt-1 ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}>Patient questions & answers</p>
+        <dl className={`mt-4 space-y-0 ${isPreview ? "" : "mt-6"}`}>
           {items.map((item, index) => {
             if (!isFaqItemFilled(item)) {
               return null;
@@ -837,27 +880,20 @@ export function ClinicFaqSection({
             return (
               <div
                 key={`${index}-${item.question}`}
-                className={`grid gap-2 py-4 ${isPreview ? "py-3" : "md:grid-cols-[auto_1fr] md:gap-4 md:py-5"}`}
+                className={`border-b border-l-4 py-4 pl-4 last:border-b-0 ${isDark ? "border-slate-700/55" : "border-slate-200/80"} ${
+                  isPreview ? "py-3 pl-3" : "md:py-5 md:pl-5"
+                }`}
+                style={{ borderLeftColor: theme.primaryColor }}
                 data-testid={`${testIdPrefix}-faq-item-${index}`}
               >
                 <dt
-                  className={`whitespace-normal font-semibold ${isPreview ? "text-xs" : "text-sm md:text-base"} ${
-                    isDark ? "text-slate-100" : "text-slate-900"
-                  }`}
+                  className={`whitespace-normal font-semibold ${isPreview ? "text-xs" : "text-sm md:text-base"}`}
                   data-testid={`${testIdPrefix}-faq-item-${index}-question`}
                 >
-                  <span
-                    className={`mr-2 inline-flex items-center justify-center rounded-md font-bold text-white ${
-                      isPreview ? "h-5 w-5 text-[9px]" : "h-6 w-6 text-[10px]"
-                    }`}
-                    style={{ backgroundColor: theme.primaryColor }}
-                  >
-                    Q
-                  </span>
                   {item.question}
                 </dt>
                 <dd
-                  className={`whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-sm"} ${muted} md:pl-8`}
+                  className={`mt-2 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-sm"} ${muted}`}
                   data-testid={`${testIdPrefix}-faq-item-${index}-answer`}
                 >
                   {item.answer}
@@ -902,75 +938,63 @@ export function ClinicContactSection({
 
   return (
     <section
-      className={`${isPreview ? "py-3" : "py-8 md:py-10"}`}
+      className={`${isPreview ? "py-4" : "py-10 md:py-12"}`}
       aria-labelledby={`${testIdPrefix}-contact-heading`}
       data-testid={`${testIdPrefix}-contact`}
     >
       <div
-        className={`mx-auto max-w-5xl overflow-hidden ${isPreview ? "rounded-lg" : "rounded-2xl"}`}
+        className={`mx-auto max-w-6xl ${isPreview ? "rounded-xl p-3" : "rounded-3xl p-6 md:p-8"}`}
         style={{
           background: isDark
-            ? `linear-gradient(135deg, ${theme.primaryColor}12 0%, rgba(15,23,42,0.7) 100%)`
-            : `linear-gradient(135deg, ${theme.primaryColor}08 0%, #f8fafc 100%)`,
+            ? `linear-gradient(135deg, ${theme.primaryColor}16 0%, rgba(15,23,42,0.8) 100%)`
+            : `linear-gradient(135deg, ${theme.primaryColor}10 0%, #ffffff 100%)`,
         }}
       >
-        <div className={`grid ${isPreview ? "gap-3 p-3" : "gap-6 p-6 md:grid-cols-[0.9fr_1.1fr] md:p-8"}`}>
-          <div>
-            <h2
-              id={`${testIdPrefix}-contact-heading`}
-              className={`whitespace-normal font-semibold tracking-tight ${isPreview ? "text-sm" : "text-xl md:text-2xl"} ${
-                isDark ? "text-slate-100" : "text-slate-900"
-              }`}
-              data-testid={`${testIdPrefix}-contact-title`}
-            >
-              {title}
-            </h2>
-            <p className={`mt-2 ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}>
-              Reach our care team for appointments and clinic information.
-            </p>
-          </div>
+        <h2
+          id={`${testIdPrefix}-contact-heading`}
+          className={`whitespace-normal font-semibold ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}
+          data-testid={`${testIdPrefix}-contact-title`}
+        >
+          {title}
+        </h2>
+        <p className={`mt-1 ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}>Appointment details & clinic location</p>
 
-          <div className={`space-y-4 ${isPreview ? "text-xs" : "text-sm"}`}>
-            {hasAddress ? (
-              <div
-                className={`${isPreview ? "rounded-md p-2.5" : "rounded-xl p-4"} ${
-                  isDark ? "bg-slate-900/60" : "bg-white shadow-sm"
-                }`}
+        <div className={`mt-4 grid gap-3 ${isPreview ? "" : "md:mt-6 md:grid-cols-2 md:gap-4"}`}>
+          {hasPhone ? (
+            <div className={`rounded-2xl ${isPreview ? "p-3" : "p-5"} ${clinicSurface(isDark)} shadow-sm`}>
+              <p className={`text-xs font-medium uppercase tracking-wide ${muted}`}>Phone</p>
+              <a
+                href={`tel:${contactPhone}`}
+                className={`mt-2 inline-block font-semibold hover:underline ${isPreview ? "text-lg" : "text-2xl md:text-3xl"}`}
+                style={{ color: theme.primaryColor }}
               >
-                <p className={`text-xs font-medium uppercase tracking-wide ${muted}`}>Clinic address</p>
-                <p className={`mt-1 whitespace-normal font-medium ${isPreview ? "text-sm" : "text-base md:text-lg"} ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-                  {contactAddress}
-                </p>
-              </div>
-            ) : null}
-            {hasPhone ? (
-              <div
-                className={`${isPreview ? "rounded-md p-2.5" : "rounded-xl p-4"} ${
-                  isDark ? "bg-slate-900/60" : "bg-white shadow-sm"
-                }`}
-              >
-                <p className={`text-xs font-medium uppercase tracking-wide ${muted}`}>Phone</p>
-                <a
-                  href={`tel:${contactPhone}`}
-                  className={`mt-1 inline-block font-semibold hover:underline ${isPreview ? "text-base" : "text-xl md:text-2xl"}`}
-                  style={{ color: theme.primaryColor }}
-                >
-                  {contactPhone}
-                </a>
-              </div>
-            ) : null}
-            {entries.length > 0 ? (
-              <div className={`flex flex-wrap gap-x-4 gap-y-2 ${isPreview ? "text-[11px]" : "text-xs"}`} data-testid={`${testIdPrefix}-social-links`}>
-                {entries.map((entry) => (
-                  <div key={entry.key} className="min-w-0" data-testid={`${testIdPrefix}-${entry.key}`}>
-                    <span className={`font-medium ${muted}`}>{entry.label}: </span>
-                    <span className={isDark ? "text-slate-200" : "text-slate-700"}>{entry.value}</span>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
+                {contactPhone}
+              </a>
+            </div>
+          ) : null}
+          {hasAddress ? (
+            <div className={`rounded-2xl ${isPreview ? "p-3" : "p-5"} ${clinicSurface(isDark)} shadow-sm`}>
+              <p className={`text-xs font-medium uppercase tracking-wide ${muted}`}>Clinic address</p>
+              <p className={`mt-2 whitespace-normal font-medium ${isPreview ? "text-sm" : "text-base md:text-lg"}`}>{contactAddress}</p>
+            </div>
+          ) : null}
         </div>
+
+        {entries.length > 0 ? (
+          <div
+            className={`mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t pt-4 ${isDark ? "border-slate-700/55" : "border-slate-200/70"} ${
+              isPreview ? "text-[11px]" : "text-xs"
+            }`}
+            data-testid={`${testIdPrefix}-social-links`}
+          >
+            {entries.map((entry) => (
+              <div key={entry.key} data-testid={`${testIdPrefix}-${entry.key}`}>
+                <span className={`font-medium ${muted}`}>{entry.label}: </span>
+                <span>{entry.value}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -1003,49 +1027,46 @@ export function ClinicBookingCtaSection({
   const showSecondaryCta = showSecondary && hasMeaningfulText(secondaryLabel ?? "") && secondaryHref;
 
   return (
-    <section className={`${isPreview ? "py-3" : "py-8 md:py-10"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
+    <section className={`${isPreview ? "py-4" : "py-10 md:py-12"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
       <div
-        className={`mx-auto flex max-w-5xl flex-col items-start justify-between gap-4 overflow-hidden ${
-          isPreview ? "rounded-lg p-3" : "rounded-2xl p-6 md:flex-row md:items-center md:p-8"
-        }`}
+        className={`mx-auto max-w-6xl overflow-hidden ${isPreview ? "rounded-xl" : "rounded-3xl"}`}
         style={{
           background: isDark
-            ? `linear-gradient(90deg, ${theme.primaryColor}22 0%, rgba(15,23,42,0.85) 100%)`
-            : `linear-gradient(90deg, ${theme.primaryColor}12 0%, ${theme.accentColor}10 100%)`,
-          boxShadow: isDark ? undefined : `inset 0 0 0 1px ${theme.primaryColor}18`,
+            ? `linear-gradient(90deg, ${theme.primaryColor}24 0%, rgba(15,23,42,0.9) 100%)`
+            : `linear-gradient(90deg, ${theme.primaryColor}16 0%, ${theme.accentColor}12 100%)`,
         }}
       >
-        <div className="min-w-0">
-          <p className={`font-semibold tracking-tight ${isPreview ? "text-sm" : "text-xl md:text-2xl"} ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-            Ready to schedule your visit?
-          </p>
-          <p className={`mt-1 ${isPreview ? "text-[11px]" : "text-sm md:text-base"} ${clinicMutedText(isDark)}`}>
-            Book an appointment online or send a request — our care team will follow up promptly.
-          </p>
-        </div>
-        <div className={`flex w-full shrink-0 flex-col ${isPreview ? "gap-1.5" : "gap-2 sm:w-auto sm:flex-row sm:gap-3"}`}>
-          {renderCtaButton({
-            previewButtons,
-            label: primaryLabel,
-            href: primaryHref,
-            className: presentation.primaryButtonClass,
-            style: { backgroundColor: theme.primaryColor },
-            testId: previewButtons ? `${testIdPrefix}-primary-button` : `${testIdPrefix}-booking-cta-link`,
-          })}
-          {showSecondaryCta
-            ? renderCtaButton({
-                previewButtons,
-                label: secondaryLabel!,
-                href: secondaryHref!,
-                className: presentation.secondaryButtonClass,
-                style: {
-                  borderColor: isDark ? "rgba(255,255,255,0.3)" : theme.accentColor,
-                  color: isDark ? "#fff" : theme.accentColor,
-                  backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.9)",
-                },
-                testId: previewButtons ? `${testIdPrefix}-secondary-button` : `${testIdPrefix}-request-cta`,
-              })
-            : null}
+        <div
+          className={`flex flex-col justify-between gap-4 ${isPreview ? "p-3" : "p-6 md:flex-row md:items-center md:p-8 lg:p-10"} ${
+            clinicSurface(isDark)
+          } m-1 rounded-[inherit] shadow-sm`}
+        >
+          <div className="min-w-0">
+            <p className={`font-semibold ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}>Schedule your visit</p>
+            <p className={`mt-1 ${isPreview ? "text-[11px]" : "text-sm md:text-base"} ${clinicMutedText(isDark)}`}>
+              Ready to book an appointment? Our care team is here to help you take the next step.
+            </p>
+          </div>
+          <div className={`flex w-full shrink-0 flex-col ${isPreview ? "gap-1.5" : "gap-2 sm:w-auto sm:flex-row sm:gap-3"}`}>
+            {renderCtaButton({
+              previewButtons,
+              label: primaryLabel,
+              href: primaryHref,
+              className: presentation.primaryButtonClass,
+              style: { backgroundColor: theme.primaryColor },
+              testId: previewButtons ? `${testIdPrefix}-primary-button` : `${testIdPrefix}-booking-cta-link`,
+            })}
+            {showSecondaryCta
+              ? renderCtaButton({
+                  previewButtons,
+                  label: secondaryLabel!,
+                  href: secondaryHref!,
+                  className: presentation.secondaryButtonClass,
+                  style: { borderColor: theme.accentColor, color: theme.accentColor },
+                  testId: previewButtons ? `${testIdPrefix}-secondary-button` : `${testIdPrefix}-request-cta`,
+                })
+              : null}
+          </div>
         </div>
       </div>
     </section>
@@ -1068,15 +1089,11 @@ export function ClinicGallerySection({
 
   return (
     <section
-      className={`border-t text-center ${isPreview ? "py-4" : "py-8 md:py-10"}`}
-      style={{ borderTopColor: `${theme.accentColor}25` }}
+      className={`text-center ${isPreview ? "py-4" : "py-8 md:py-10"}`}
       aria-labelledby={`${testIdPrefix}-gallery-heading`}
       data-testid={`${testIdPrefix}-gallery-placeholder`}
     >
-      <h2
-        id={`${testIdPrefix}-gallery-heading`}
-        className={`font-semibold ${isPreview ? "text-sm" : "text-lg"} ${isDark ? "text-slate-100" : "text-slate-900"}`}
-      >
+      <h2 id={`${testIdPrefix}-gallery-heading`} className={`font-semibold ${isPreview ? "text-sm" : "text-lg"}`}>
         Gallery
       </h2>
       <p className={`mx-auto mt-2 max-w-md whitespace-normal ${isPreview ? "text-xs" : "text-sm"} ${muted}`}>
