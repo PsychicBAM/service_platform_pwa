@@ -35,17 +35,6 @@ function clinicMutedText(isDark: boolean): string {
   return isDark ? "text-slate-300" : "text-slate-600";
 }
 
-function buttonRadiusClass(buttonStyle: MiniSiteButtonStyle): string {
-  switch (buttonStyle) {
-    case "pill":
-      return "rounded-full";
-    case "square":
-      return "rounded-none";
-    default:
-      return "rounded-xl";
-  }
-}
-
 function heroIntro(mode: OperatingMode): string {
   switch (mode) {
     case "booking_only":
