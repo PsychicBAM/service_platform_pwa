@@ -481,7 +481,7 @@ export function getMiniSiteTemplatePresentation(
       });
     case "clinic":
       return withTemplateDefaults(isDark, {
-        layoutClass: "template-clinic mx-auto w-full max-w-[75rem]",
+        layoutClass: "template-clinic w-full",
         layoutSpacingClass: "space-y-0",
         heroClass: "border-0 bg-transparent shadow-none ring-0",
         heroLayoutClass: "flex flex-col gap-6 md:flex-row md:items-center",
@@ -492,8 +492,8 @@ export function getMiniSiteTemplatePresentation(
         servicesClass: "",
         galleryClass: "border-dashed",
         heroTitleClass:
-          "break-words text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl lg:text-[3.5rem] lg:leading-[1.06]",
-        sectionHeadingClass: "break-words text-2xl font-semibold tracking-tight md:text-3xl lg:text-4xl",
+          "whitespace-normal text-4xl font-semibold tracking-tight sm:text-5xl md:text-[3.25rem] lg:text-[3.75rem] lg:leading-[1.05]",
+        sectionHeadingClass: "whitespace-normal text-2xl font-semibold tracking-tight md:text-3xl lg:text-4xl",
         sectionHeadingAccentClass: "hidden",
         showBenefitsStrip: true,
         showTrustStats: true,
@@ -505,8 +505,8 @@ export function getMiniSiteTemplatePresentation(
         heroBadgeClass:
           "inline-flex rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em]",
         heroTopBarClass: "hidden",
-        primaryButtonClass: `inline-flex w-full items-center justify-center px-7 py-3.5 text-sm font-semibold text-white shadow-md transition hover:brightness-105 sm:w-auto ${buttonRadius}`,
-        secondaryButtonClass: `inline-flex w-full items-center justify-center border-2 px-7 py-3.5 text-sm font-semibold shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
+        primaryButtonClass: `inline-flex w-full items-center justify-center px-8 py-4 text-base font-semibold text-white shadow-md transition hover:brightness-105 sm:w-auto ${buttonRadius}`,
+        secondaryButtonClass: `inline-flex w-full items-center justify-center border-2 px-8 py-4 text-base font-semibold shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
           isDark ? "border-slate-600/70 bg-transparent hover:bg-slate-800/30" : "border-slate-300/80 bg-white/70 hover:bg-white"
         }`,
       });

@@ -31,7 +31,7 @@ type ClinicTheme = {
   buttonStyle: MiniSiteButtonStyle;
 };
 
-const CLINIC_CONTAINER = "mx-auto w-full max-w-[75rem] px-4 md:px-6";
+const CLINIC_CONTAINER = "mx-auto w-full max-w-[75rem] px-5 sm:px-6 md:px-8 lg:px-10";
 
 function clinicMutedText(isDark: boolean): string {
   return isDark ? "text-slate-300" : "text-slate-600";
@@ -174,51 +174,70 @@ function ClinicSpecialtyCard({
 
   return (
     <article
-      className={`flex h-full flex-col ${isPreview ? "rounded-xl p-4" : "rounded-2xl p-6 lg:p-7"} ${clinicPanel(isDark)} shadow-sm ${
-        isDark ? "ring-1 ring-slate-700/60" : "ring-1 ring-slate-200/80"
+      className={`flex h-full flex-col overflow-hidden ${isPreview ? "rounded-xl" : "rounded-3xl"} ${clinicPanel(isDark)} ${
+        isDark ? "ring-1 ring-slate-700/50" : "shadow-md ring-1 ring-slate-200/70"
       }`}
       data-testid="service-card"
     >
-      <div className="flex flex-1 gap-4">
-        <div
-          className={`flex shrink-0 items-center justify-center rounded-2xl font-semibold ${
-            isPreview ? "h-11 w-11 text-base" : "h-14 w-14 text-xl"
-          }`}
-          style={{ backgroundColor: `${theme.primaryColor}12`, color: theme.primaryColor }}
-          aria-hidden
-        >
-          +
-        </div>
-        <div className="min-w-0 flex-1">
-          <p
-            className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs"}`}
-            style={{ color: theme.accentColor }}
+      <div
+        className={`h-1 shrink-0 ${isPreview ? "" : "h-1.5"}`}
+        style={{ background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.accentColor}88)` }}
+        aria-hidden
+      />
+      <div className={`flex flex-1 flex-col ${isPreview ? "p-4" : "p-7 lg:p-8"}`}>
+        <div className="flex flex-1 gap-5">
+          <div
+            className={`flex shrink-0 items-center justify-center rounded-2xl border font-semibold ${
+              isPreview ? "h-12 w-12 text-lg" : "h-16 w-16 text-2xl"
+            }`}
+            style={{
+              borderColor: `${theme.primaryColor}30`,
+              backgroundColor: `${theme.primaryColor}08`,
+              color: theme.primaryColor,
+            }}
+            aria-hidden
           >
-            {service.type === "booking" ? "Treatment" : "Consultation"}
-          </p>
-          <h3 className={`mt-1 whitespace-normal font-semibold ${isPreview ? "text-base" : "text-xl lg:text-2xl"}`}>
-            {service.name}
-          </h3>
-          {descriptionPreview ? (
-            <p className={`mt-2 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-base"} ${muted}`}>
-              {descriptionPreview}
+            ✚
+          </div>
+          <div className="min-w-0 flex-1">
+            <p
+              className={`font-medium uppercase tracking-[0.16em] ${isPreview ? "text-[10px]" : "text-xs"}`}
+              style={{ color: theme.accentColor }}
+            >
+              {service.type === "booking" ? "Specialty treatment" : "Medical consultation"}
             </p>
-          ) : null}
-          <div className={`mt-3 flex flex-wrap gap-3 ${isPreview ? "text-xs" : "text-sm"} ${muted}`}>
-            <PriceLabel service={service} />
-            {duration ? <span>{duration}</span> : null}
+            <h3 className={`mt-2 whitespace-normal font-semibold leading-tight ${isPreview ? "text-base" : "text-xl lg:text-2xl"}`}>
+              {service.name}
+            </h3>
+            {descriptionPreview ? (
+              <p className={`mt-3 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-base lg:text-lg"} ${muted}`}>
+                {descriptionPreview}
+              </p>
+            ) : null}
+            <div
+              className={`mt-4 flex flex-wrap items-center gap-2 ${isPreview ? "text-xs" : "text-sm md:text-base"} ${muted}`}
+            >
+              <span
+                className={`rounded-full px-3 py-1 ${isDark ? "bg-slate-800/80" : "bg-slate-100"}`}
+              >
+                <PriceLabel service={service} />
+              </span>
+              {duration ? (
+                <span className={`rounded-full px-3 py-1 ${isDark ? "bg-slate-800/80" : "bg-slate-100"}`}>{duration}</span>
+              ) : null}
+            </div>
           </div>
         </div>
+        <Link
+          to={`/b/${slug}/services/${service.id}`}
+          className={`mt-6 inline-flex w-full items-center justify-center font-semibold text-white transition hover:brightness-105 ${
+            isPreview ? "rounded-lg py-2.5 text-xs" : "rounded-xl py-4 text-base md:text-lg"
+          }`}
+          style={{ backgroundColor: theme.primaryColor }}
+        >
+          {ctaLabel}
+        </Link>
       </div>
-      <Link
-        to={`/b/${slug}/services/${service.id}`}
-        className={`mt-5 inline-flex w-full items-center justify-center font-semibold text-white transition hover:brightness-105 ${
-          isPreview ? "rounded-lg py-2.5 text-xs" : "rounded-xl py-3.5 text-base"
-        }`}
-        style={{ backgroundColor: theme.primaryColor }}
-      >
-        {ctaLabel}
-      </Link>
     </article>
   );
 }
@@ -284,28 +303,29 @@ export function ClinicHeroSection({
         className={isPreview ? "pb-4" : "pb-8 lg:pb-10"}
       >
         <div
-          className={`relative overflow-hidden ${isPreview ? "rounded-2xl" : "rounded-3xl"} ${clinicPanel(isDark)} shadow-lg ${
-            isDark ? "ring-1 ring-slate-700/60" : "ring-1 ring-slate-200/70"
+          className={`relative overflow-hidden ${isPreview ? "rounded-2xl" : "rounded-[2rem] lg:rounded-[2.25rem]"} ${clinicPanel(isDark)} ${
+            isDark ? "ring-1 ring-slate-700/50" : "shadow-xl ring-1 ring-slate-200/60"
           }`}
           data-testid={`${testIdPrefix}-hero`}
           style={{
             background: isDark
               ? undefined
-              : `linear-gradient(135deg, #ffffff 0%, ${theme.primaryColor}06 55%, ${theme.accentColor}05 100%)`,
+              : `linear-gradient(160deg, #ffffff 0%, #f8fafc 42%, ${theme.primaryColor}04 100%)`,
           }}
         >
           <div
-            className={`clinic-hero-shell grid items-center ${
-              isPreview ? "gap-4 p-4" : "gap-8 p-6 md:grid-cols-[1.15fr_0.85fr] md:gap-10 md:p-10 lg:p-12"
+            className={`clinic-hero-shell grid items-stretch ${
+              isPreview
+                ? "gap-4 p-4"
+                : "min-h-[28rem] gap-10 p-8 md:grid-cols-[1.05fr_0.95fr] md:gap-12 md:p-10 lg:min-h-[32rem] lg:p-14"
             }`}
             data-testid={`${testIdPrefix}-hero-content`}
           >
-            <div className={`clinic-hero-copy min-w-0 ${isPreview ? "space-y-3" : "space-y-5 lg:space-y-6"}`}>
+            <div className={`clinic-hero-copy flex min-w-0 flex-col justify-center ${isPreview ? "space-y-3" : "space-y-6 lg:space-y-7"}`}>
               <p
-                className={`inline-flex font-medium uppercase tracking-[0.16em] ${
+                className={`inline-flex w-fit rounded-full px-4 py-1.5 font-medium uppercase tracking-[0.18em] ${
                   isPreview ? "text-[10px]" : "text-xs md:text-sm"
-                }`}
-                style={{ color: theme.accentColor }}
+                } ${isDark ? "bg-slate-800/80 text-slate-200" : "bg-slate-100 text-slate-600"}`}
                 data-testid={`${testIdPrefix}-hero-badge`}
               >
                 {heroBadgeText}
@@ -320,20 +340,20 @@ export function ClinicHeroSection({
 
               {heroSubtitle ? (
                 <p
-                  className={`max-w-2xl whitespace-normal font-medium ${isPreview ? "text-sm" : "text-lg md:text-xl"} ${muted}`}
+                  className={`max-w-2xl whitespace-normal font-medium leading-relaxed ${isPreview ? "text-sm" : "text-xl md:text-2xl"} ${muted}`}
                   data-testid={`${testIdPrefix}-hero-subtitle`}
                 >
                   {heroSubtitle}
                 </p>
               ) : (
-                <p className={`max-w-2xl whitespace-normal ${isPreview ? "text-sm" : "text-lg md:text-xl"} ${muted}`}>
+                <p className={`max-w-2xl whitespace-normal leading-relaxed ${isPreview ? "text-sm" : "text-xl md:text-2xl"} ${muted}`}>
                   {heroIntro(operatingMode)}
                 </p>
               )}
 
               {heroBody ? (
                 <p
-                  className={`max-w-2xl whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-base md:text-lg"} ${muted}`}
+                  className={`max-w-2xl whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-base md:text-lg lg:text-xl"} ${muted}`}
                   data-testid={`${testIdPrefix}-hero-body`}
                 >
                   {heroBody}
@@ -367,14 +387,19 @@ export function ClinicHeroSection({
               </div>
 
               {trustChips.length > 0 ? (
-                <div className="flex flex-wrap gap-2" data-testid={`${testIdPrefix}-hero-trust-chips`}>
+                <div className="flex flex-wrap gap-2.5" data-testid={`${testIdPrefix}-hero-trust-chips`}>
                   {trustChips.map((chip) => (
                     <span
                       key={chip}
-                      className={`rounded-full px-3 py-1.5 font-medium ${
+                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-medium ${
                         isPreview ? "text-[10px]" : "text-sm"
-                      } ${isDark ? "bg-slate-800/80 text-slate-200" : "bg-slate-100 text-slate-700"}`}
+                      } ${isDark ? "border-slate-600/70 bg-slate-800/50 text-slate-200" : "border-slate-200/90 bg-white text-slate-600 shadow-sm"}`}
                     >
+                      <span
+                        className="h-1.5 w-1.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: theme.accentColor }}
+                        aria-hidden
+                      />
                       {chip}
                     </span>
                   ))}
@@ -383,45 +408,69 @@ export function ClinicHeroSection({
             </div>
 
             <aside
-              className={`clinic-appointment-card overflow-hidden ${isPreview ? "rounded-xl" : "rounded-2xl"} ${
-                isDark ? "bg-slate-950/90 ring-1 ring-slate-700/70" : "bg-slate-50 ring-1 ring-slate-200/80"
-              } shadow-md`}
+              className={`clinic-appointment-card flex flex-col overflow-hidden ${isPreview ? "rounded-xl" : "rounded-[1.5rem] lg:rounded-[1.75rem]"} ${
+                isDark ? "bg-slate-950/95 ring-1 ring-slate-700/60" : "bg-white ring-1 ring-slate-200/70"
+              } shadow-lg`}
               data-testid={`${testIdPrefix}-hero-appointment-card`}
             >
               <div
-                className={`border-b ${isDark ? "border-slate-700/70 bg-slate-900/80" : "border-slate-200/80 bg-white"} ${
-                  isPreview ? "px-4 py-3" : "px-6 py-4 lg:px-7 lg:py-5"
+                className={`border-b ${isDark ? "border-slate-700/60" : "border-slate-100"} ${
+                  isPreview ? "px-4 py-3" : "px-7 py-5 lg:px-8 lg:py-6"
                 }`}
+                style={{
+                  background: isDark
+                    ? `linear-gradient(90deg, ${theme.primaryColor}20 0%, rgba(15,23,42,0.95) 100%)`
+                    : `linear-gradient(90deg, ${theme.primaryColor}08 0%, #f8fafc 100%)`,
+                }}
               >
-                <p className={`font-semibold ${isPreview ? "text-xs" : "text-base md:text-lg"}`}>Book a visit</p>
-                <p className={`${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>Appointment availability</p>
+                <p className={`font-semibold ${isPreview ? "text-xs" : "text-lg md:text-xl"}`}>Book a visit</p>
+                <p className={`mt-0.5 ${isPreview ? "text-[10px]" : "text-sm md:text-base"} ${muted}`}>
+                  Clinic appointment intake
+                </p>
               </div>
 
-              <div className={isPreview ? "space-y-3 p-4" : "space-y-5 p-6 lg:p-8"}>
-                <div className="flex items-center gap-4">
+              <div className={`flex flex-1 flex-col ${isPreview ? "space-y-3 p-4" : "space-y-6 p-7 lg:space-y-7 lg:p-9"}`}>
+                <div
+                  className={`rounded-2xl text-center ${isPreview ? "px-3 py-2.5" : "px-5 py-4"} ${
+                    isDark ? "bg-slate-900/80" : "bg-slate-50"
+                  }`}
+                >
+                  <p className={`font-medium uppercase tracking-wide ${isPreview ? "text-[9px]" : "text-xs"} ${muted}`}>
+                    Appointment availability
+                  </p>
+                  <p className={`mt-1 font-semibold ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}>
+                    {serviceCount != null && serviceCount > 0
+                      ? `${serviceCount} specialt${serviceCount === 1 ? "y" : "ies"} available`
+                      : "Open for booking"}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-5">
                   <div
-                    className={`flex shrink-0 items-center justify-center rounded-2xl font-bold text-white ${
-                      isPreview ? "h-12 w-12 text-lg" : "h-16 w-16 text-2xl"
+                    className={`flex shrink-0 items-center justify-center rounded-2xl border-2 font-bold ${
+                      isPreview ? "h-14 w-14 text-xl" : "h-20 w-20 text-3xl"
                     }`}
-                    style={{ backgroundColor: theme.primaryColor }}
+                    style={{
+                      borderColor: `${theme.primaryColor}35`,
+                      backgroundColor: `${theme.primaryColor}10`,
+                      color: theme.primaryColor,
+                    }}
                     data-testid={`${testIdPrefix}-logo-placeholder`}
                   >
                     {monogram}
                   </div>
                   <div className="min-w-0">
-                    <p className={`font-semibold ${isPreview ? "text-sm" : "text-lg md:text-xl"}`}>{business.name}</p>
-                    <p className={`${isPreview ? "text-xs" : "text-sm md:text-base"} ${muted}`}>
-                      {serviceCount != null && serviceCount > 0
-                        ? `${serviceCount} specialt${serviceCount === 1 ? "y" : "ies"} open`
-                        : "Schedule your appointment"}
-                    </p>
+                    <p className={`font-semibold ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}>{business.name}</p>
+                    <p className={`${isPreview ? "text-xs" : "text-base"} ${muted}`}>Trusted clinic care</p>
                   </div>
                 </div>
 
                 {hasPhone ? (
                   <a
                     href={`tel:${contactPhone}`}
-                    className={`block font-semibold hover:underline ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}
+                    className={`block rounded-xl px-4 py-3 font-semibold hover:underline ${
+                      isPreview ? "text-sm" : "text-xl md:text-2xl"
+                    } ${isDark ? "bg-slate-900/80" : "bg-slate-50"}`}
                     style={{ color: theme.primaryColor }}
                   >
                     {contactPhone}
@@ -429,18 +478,22 @@ export function ClinicHeroSection({
                 ) : null}
 
                 {hasAddress ? (
-                  <p className={`whitespace-normal ${isPreview ? "text-xs" : "text-sm md:text-base"} ${muted}`}>{contactAddress}</p>
+                  <p className={`whitespace-normal rounded-xl px-4 py-3 ${isPreview ? "text-xs" : "text-base"} ${muted} ${
+                    isDark ? "bg-slate-900/80" : "bg-slate-50"
+                  }`}>
+                    {contactAddress}
+                  </p>
                 ) : null}
 
                 {careSteps.length > 0 ? (
-                  <ul className={`space-y-3 ${isPreview ? "text-xs" : "text-sm md:text-base"}`}>
+                  <ul className={`space-y-3.5 ${isPreview ? "text-xs" : "text-base md:text-lg"}`}>
                     {careSteps.map((step, index) => (
-                      <li key={step} className={`flex gap-3 whitespace-normal ${muted}`}>
+                      <li key={step} className={`flex gap-3.5 whitespace-normal ${muted}`}>
                         <span
-                          className={`flex shrink-0 items-center justify-center rounded-full font-semibold text-white ${
-                            isPreview ? "h-6 w-6 text-[10px]" : "h-7 w-7 text-xs"
+                          className={`flex shrink-0 items-center justify-center rounded-full border-2 font-semibold ${
+                            isPreview ? "h-7 w-7 text-[10px]" : "h-8 w-8 text-xs"
                           }`}
-                          style={{ backgroundColor: theme.accentColor }}
+                          style={{ borderColor: theme.accentColor, color: theme.accentColor }}
                         >
                           {index + 1}
                         </span>
@@ -450,7 +503,7 @@ export function ClinicHeroSection({
                   </ul>
                 ) : null}
 
-                <div className={`flex flex-col ${isPreview ? "gap-2" : "gap-3"}`}>
+                <div className={`mt-auto flex flex-col ${isPreview ? "gap-2" : "gap-3"}`}>
                   {showBookingCta && hasMeaningfulText(primaryCtaLabel)
                     ? renderCtaButton({
                         previewButtons,
@@ -478,32 +531,36 @@ export function ClinicHeroSection({
         </div>
 
         <div
-          className={`mt-6 grid grid-cols-1 gap-4 md:grid-cols-3 ${isPreview ? "mt-4 gap-2" : "lg:mt-8 lg:gap-6"}`}
+          className={`mt-8 grid grid-cols-1 gap-4 md:grid-cols-3 ${isPreview ? "mt-4 gap-2" : "lg:mt-10 lg:gap-6"}`}
           data-testid={`${testIdPrefix}-clinic-info-strip`}
         >
           {valueCards.map((card) => (
             <div
               key={card.key}
-              className={`${isPreview ? "rounded-xl p-3" : "rounded-2xl p-5 lg:p-6"} ${clinicPanel(isDark)} shadow-sm ${
-                isDark ? "ring-1 ring-slate-700/60" : "ring-1 ring-slate-200/80"
+              className={`flex gap-4 ${isPreview ? "rounded-xl p-3" : "rounded-2xl p-6 lg:p-7"} ${clinicPanel(isDark)} ${
+                isDark ? "ring-1 ring-slate-700/50" : "shadow-md ring-1 ring-slate-200/70"
               }`}
             >
               <div
-                className={`mb-3 flex items-center justify-center rounded-full font-semibold ${
-                  isPreview ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm"
+                className={`flex shrink-0 items-center justify-center rounded-2xl font-semibold ${
+                  isPreview ? "h-10 w-10 text-xs" : "h-14 w-14 text-sm"
                 }`}
-                style={{ backgroundColor: `${theme.primaryColor}12`, color: theme.primaryColor }}
+                style={{ backgroundColor: `${theme.primaryColor}10`, color: theme.primaryColor }}
                 aria-hidden
               >
                 {card.label.slice(0, 2)}
               </div>
-              <p className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs"}`} style={{ color: theme.accentColor }}>
-                {card.label}
-              </p>
-              <p className={`mt-2 whitespace-normal font-semibold ${isPreview ? "text-sm" : "text-lg md:text-xl"}`}>{card.title}</p>
-              {card.detail ? (
-                <p className={`mt-1 whitespace-normal ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>{card.detail}</p>
-              ) : null}
+              <div className="min-w-0">
+                <p className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs"}`} style={{ color: theme.accentColor }}>
+                  {card.label}
+                </p>
+                <p className={`mt-1.5 whitespace-normal font-semibold leading-snug ${isPreview ? "text-sm" : "text-lg md:text-xl"}`}>
+                  {card.title}
+                </p>
+                {card.detail ? (
+                  <p className={`mt-1 whitespace-normal ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>{card.detail}</p>
+                ) : null}
+              </div>
             </div>
           ))}
         </div>
@@ -540,58 +597,68 @@ export function ClinicAboutSection({
   const identityChips = buildTrustChips(copy);
 
   return (
-    <section className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-10 lg:py-14"}`} data-testid={`${testIdPrefix}-about`}>
-      <div className={`grid items-stretch ${isPreview ? "gap-4" : "gap-8 lg:grid-cols-2 lg:gap-10"}`}>
-        <div className={`${isPreview ? "rounded-xl p-4" : "rounded-2xl p-6 lg:p-8"} ${clinicPanel(isDark)} shadow-sm`}>
+    <section className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`} data-testid={`${testIdPrefix}-about`}>
+      <div className={`grid items-stretch ${isPreview ? "gap-4" : "gap-8 lg:grid-cols-2 lg:gap-12"}`}>
+        <div
+          className={`${isPreview ? "rounded-xl p-4" : "rounded-[1.75rem] p-8 lg:p-10"} ${clinicPanel(isDark)} ${
+            isDark ? "ring-1 ring-slate-700/50" : "shadow-lg ring-1 ring-slate-200/60"
+          }`}
+        >
           <p
-            className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs md:text-sm"}`}
+            className={`font-medium uppercase tracking-[0.16em] ${isPreview ? "text-[10px]" : "text-xs md:text-sm"}`}
             style={{ color: theme.accentColor }}
             data-testid={`${testIdPrefix}-about-title`}
           >
             About the clinic
           </p>
-          <h2 className={`mt-2 whitespace-normal font-semibold ${isPreview ? "text-lg" : "text-2xl md:text-3xl lg:text-4xl"}`}>{title}</h2>
+          <h2 className={`mt-3 whitespace-normal font-semibold leading-tight ${isPreview ? "text-lg" : "text-3xl md:text-4xl lg:text-[2.75rem]"}`}>
+            {title}
+          </h2>
           {content ? (
             <p
-              className={`mt-4 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-base md:text-lg"} ${muted}`}
+              className={`mt-5 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-lg md:text-xl"} ${muted}`}
               data-testid={`${testIdPrefix}-about-body`}
             >
               {content}
             </p>
           ) : (
-            <p className={`mt-4 text-sm italic ${muted}`}>About text will appear here.</p>
+            <p className={`mt-5 text-sm italic ${muted}`}>About text will appear here.</p>
           )}
         </div>
 
         <div
-          className={`flex flex-col justify-between ${isPreview ? "rounded-xl p-4" : "rounded-2xl p-6 lg:p-8"}`}
-          style={{
-            background: isDark
-              ? `linear-gradient(145deg, ${theme.primaryColor}18 0%, rgba(15,23,42,0.9) 100%)`
-              : `linear-gradient(145deg, ${theme.primaryColor}08 0%, #f8fafc 100%)`,
-          }}
+          className={`flex flex-col justify-between ${isPreview ? "rounded-xl p-4" : "rounded-[1.75rem] p-8 lg:p-10"} ${
+            isDark ? "bg-slate-900/80 ring-1 ring-slate-700/50" : "bg-white shadow-lg ring-1 ring-slate-200/60"
+          }`}
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             <div
-              className={`flex items-center justify-center rounded-2xl font-bold text-white ${
+              className={`flex items-center justify-center rounded-2xl border-2 font-bold ${
                 isPreview ? "h-14 w-14 text-xl" : "h-20 w-20 text-3xl"
               }`}
-              style={{ backgroundColor: theme.primaryColor }}
+              style={{
+                borderColor: `${theme.primaryColor}35`,
+                backgroundColor: `${theme.primaryColor}10`,
+                color: theme.primaryColor,
+              }}
             >
               {monogram}
             </div>
             <div>
-              <p className={`font-semibold ${isPreview ? "text-sm" : "text-xl"}`}>{businessName}</p>
-              <p className={`${isPreview ? "text-xs" : "text-sm"} ${muted}`}>Trusted clinic care</p>
+              <p className={`font-semibold ${isPreview ? "text-sm" : "text-2xl md:text-3xl"}`}>{businessName}</p>
+              <p className={`${isPreview ? "text-xs" : "text-base md:text-lg"} ${muted}`}>Trusted clinic care</p>
             </div>
           </div>
           {identityChips.length > 0 ? (
-            <div className={`mt-4 flex flex-wrap gap-2 ${isPreview ? "" : "mt-6"}`}>
+            <div className={`flex flex-wrap gap-2.5 ${isPreview ? "mt-4" : "mt-8"}`}>
               {identityChips.map((chip) => (
                 <span
                   key={chip}
-                  className={`rounded-full px-3 py-1.5 font-medium ${isPreview ? "text-[10px]" : "text-sm"} ${clinicPanel(isDark)} shadow-sm`}
+                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-medium ${
+                    isPreview ? "text-[10px]" : "text-sm"
+                  } ${isDark ? "border-slate-600/70 bg-slate-800/50 text-slate-200" : "border-slate-200/90 bg-slate-50 text-slate-600"}`}
                 >
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: theme.accentColor }} aria-hidden />
                   {chip}
                 </span>
               ))}
@@ -630,38 +697,37 @@ export function ClinicServicesSection({
 
   return (
     <section
-      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-10 lg:py-14"}`}
+      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
       aria-labelledby={`${testIdPrefix}-services-heading`}
       data-testid={`${testIdPrefix}-services`}
     >
       <div
-        className={`${isPreview ? "rounded-2xl p-4" : "rounded-3xl p-6 lg:p-10"}`}
+        className={`${isPreview ? "rounded-2xl p-4" : "rounded-[2rem] p-8 lg:p-12"} ${clinicPanel(isDark)} ${
+          isDark ? "ring-1 ring-slate-700/50" : "shadow-lg ring-1 ring-slate-200/60"
+        }`}
         data-testid={`${testIdPrefix}-clinic-specialties`}
-        style={{
-          background: isDark
-            ? `linear-gradient(180deg, ${theme.primaryColor}10 0%, rgba(15,23,42,0.55) 100%)`
-            : `linear-gradient(180deg, ${theme.primaryColor}06 0%, #f1f5f9 100%)`,
-        }}
       >
-        <div className={`${isPreview ? "mb-4" : "mb-8"} flex flex-wrap items-end justify-between gap-4`}>
-          <div>
-            <p className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs md:text-sm"}`} style={{ color: theme.accentColor }}>
-              Medical specialties
+        <div className={`${isPreview ? "mb-4" : "mb-10"} flex flex-wrap items-end justify-between gap-6`}>
+          <div className="max-w-3xl">
+            <p className={`font-medium uppercase tracking-[0.16em] ${isPreview ? "text-[10px]" : "text-xs md:text-sm"}`} style={{ color: theme.accentColor }}>
+              Specialties & treatments
             </p>
             <h2
               id={`${testIdPrefix}-services-heading`}
-              className={`mt-2 whitespace-normal font-semibold ${isPreview ? "text-lg" : "text-2xl md:text-3xl lg:text-4xl"}`}
+              className={`mt-3 whitespace-normal font-semibold leading-tight ${isPreview ? "text-lg" : "text-3xl md:text-4xl lg:text-[2.75rem]"}`}
               data-testid={`${testIdPrefix}-services-title`}
             >
               {sectionTitle}
             </h2>
-            <p className={`mt-2 max-w-2xl whitespace-normal ${isPreview ? "text-xs" : "text-base md:text-lg"} ${muted}`}>
-              Treatments and appointments with our care team.
+            <p className={`mt-3 max-w-2xl whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-lg md:text-xl"} ${muted}`}>
+              Expert-led treatments and appointments with our clinical care team.
             </p>
           </div>
           {badgeText ? (
             <span
-              className={`rounded-full px-4 py-1.5 font-medium ${isPreview ? "text-[10px]" : "text-sm"} ${clinicPanel(isDark)} shadow-sm`}
+              className={`rounded-full border px-5 py-2 font-medium ${isPreview ? "text-[10px]" : "text-sm md:text-base"} ${
+                isDark ? "border-slate-600/70 bg-slate-800/50" : "border-slate-200/90 bg-slate-50 text-slate-600"
+              }`}
               data-testid={`${testIdPrefix}-services-badge`}
             >
               {badgeText}
@@ -670,7 +736,7 @@ export function ClinicServicesSection({
         </div>
 
         {services && services.length > 0 ? (
-          <div className={`grid gap-4 ${isPreview ? "" : "md:grid-cols-2 md:gap-6 lg:gap-8"}`}>
+          <div className={`grid gap-5 ${isPreview ? "" : "md:grid-cols-2 md:gap-8 lg:gap-10"}`}>
             {services.map((service) => (
               <ClinicSpecialtyCard
                 key={service.id}
@@ -745,30 +811,31 @@ export function ClinicTrustSection({
 
   return (
     <section
-      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-10 lg:py-14"}`}
+      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
       data-testid={`${testIdPrefix}-trust`}
     >
-      <div data-testid={`${testIdPrefix}-clinic-care`} className={`grid ${isPreview ? "gap-4" : "gap-6 lg:grid-cols-2 lg:gap-8"}`}>
+      <div data-testid={`${testIdPrefix}-clinic-care`} className={`grid ${isPreview ? "gap-4" : "gap-8 lg:grid-cols-2 lg:gap-10"}`}>
         {hasBenefits ? (
           <div
-            className={`${isPreview ? "rounded-xl p-4" : "rounded-2xl p-6 lg:p-8"}`}
-            style={{ backgroundColor: isDark ? `${theme.primaryColor}14` : `${theme.primaryColor}08` }}
+            className={`flex flex-col ${isPreview ? "rounded-xl p-4" : "min-h-[22rem] rounded-[1.75rem] p-8 lg:p-10"} ${clinicPanel(isDark)} ${
+              isDark ? "ring-1 ring-slate-700/50" : "shadow-lg ring-1 ring-slate-200/60"
+            }`}
             data-testid={`${testIdPrefix}-benefits-strip`}
           >
-            <p className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs md:text-sm"}`} style={{ color: theme.accentColor }}>
+            <p className={`font-medium uppercase tracking-[0.16em] ${isPreview ? "text-[10px]" : "text-xs md:text-sm"}`} style={{ color: theme.accentColor }}>
               Patient care
             </p>
-            <h2 className={`mt-2 font-semibold ${isPreview ? "text-base" : "text-xl md:text-2xl lg:text-3xl"}`}>What to expect</h2>
-            <ol className={`mt-5 space-y-4 ${isPreview ? "mt-3 space-y-3" : "lg:mt-6 lg:space-y-5"}`}>
+            <h2 className={`mt-3 font-semibold ${isPreview ? "text-base" : "text-2xl md:text-3xl lg:text-4xl"}`}>What to expect</h2>
+            <ol className={`mt-6 flex-1 space-y-6 ${isPreview ? "mt-3 space-y-3" : "lg:mt-8 lg:space-y-7"}`}>
               {copy.benefitsItems.filter(Boolean).map((item, index) => (
-                <li key={item} className="flex gap-4">
+                <li key={item} className="flex gap-5">
                   <span
-                    className={`shrink-0 font-bold leading-none ${isPreview ? "text-xl" : "text-3xl md:text-4xl"}`}
-                    style={{ color: `${theme.primaryColor}40` }}
+                    className={`shrink-0 font-bold leading-none tabular-nums ${isPreview ? "text-2xl" : "text-4xl md:text-5xl lg:text-6xl"}`}
+                    style={{ color: `${theme.primaryColor}35` }}
                   >
                     {String(index + 1).padStart(2, "0")}
                   </span>
-                  <p className={`min-w-0 whitespace-normal pt-1 ${isPreview ? "text-xs" : "text-base md:text-lg"}`}>{item}</p>
+                  <p className={`min-w-0 whitespace-normal pt-2 leading-relaxed ${isPreview ? "text-xs" : "text-lg md:text-xl"}`}>{item}</p>
                 </li>
               ))}
             </ol>
@@ -779,19 +846,21 @@ export function ClinicTrustSection({
 
         {showTrustStats ? (
           <div
-            className={`${isPreview ? "rounded-xl p-4" : "rounded-2xl p-6 lg:p-8"} ${clinicPanel(isDark)} shadow-sm`}
+            className={`flex flex-col ${isPreview ? "rounded-xl p-4" : "min-h-[22rem] rounded-[1.75rem] p-8 lg:p-10"} ${clinicPanel(isDark)} ${
+              isDark ? "ring-1 ring-slate-700/50" : "shadow-lg ring-1 ring-slate-200/60"
+            }`}
             data-testid={`${testIdPrefix}-trust-stats`}
           >
-            <p className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs md:text-sm"}`} style={{ color: theme.accentColor }}>
+            <p className={`font-medium uppercase tracking-[0.16em] ${isPreview ? "text-[10px]" : "text-xs md:text-sm"}`} style={{ color: theme.accentColor }}>
               Why patients choose us
             </p>
-            <div className={`mt-5 space-y-5 ${isPreview ? "mt-3 space-y-3" : ""}`}>
+            <div className={`mt-6 flex flex-1 flex-col justify-center space-y-7 ${isPreview ? "mt-3 space-y-4" : "lg:mt-8 lg:space-y-8"}`}>
               {copy.trustCards.map((stat) => (
-                <div key={stat.subtitle} className={`border-b pb-4 last:border-0 last:pb-0 ${isDark ? "border-slate-700/60" : "border-slate-200/80"}`}>
-                  <p className={`font-semibold ${isPreview ? "text-lg" : "text-2xl md:text-3xl"}`} style={{ color: theme.primaryColor }}>
+                <div key={stat.subtitle} className={`border-b pb-6 last:border-0 last:pb-0 ${isDark ? "border-slate-700/60" : "border-slate-200/80"}`}>
+                  <p className={`font-semibold leading-tight ${isPreview ? "text-xl" : "text-3xl md:text-4xl lg:text-[2.5rem]"}`} style={{ color: theme.primaryColor }}>
                     {stat.title}
                   </p>
-                  <p className={`mt-1 whitespace-normal ${isPreview ? "text-xs" : "text-base"} ${muted}`}>{stat.subtitle}</p>
+                  <p className={`mt-2 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-lg md:text-xl"} ${muted}`}>{stat.subtitle}</p>
                 </div>
               ))}
             </div>
@@ -823,20 +892,24 @@ export function ClinicFaqSection({
 
   return (
     <section
-      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-10 lg:py-14"}`}
+      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
       aria-labelledby={`${testIdPrefix}-faq-heading`}
       data-testid={`${testIdPrefix}-faq`}
     >
-      <div className={`${isPreview ? "rounded-xl p-4" : "rounded-2xl p-6 lg:p-8"} ${clinicPanel(isDark)} shadow-sm`}>
+      <div
+        className={`${isPreview ? "rounded-xl p-4" : "rounded-[1.75rem] p-8 lg:p-10"} ${clinicPanel(isDark)} ${
+          isDark ? "ring-1 ring-slate-700/50" : "shadow-lg ring-1 ring-slate-200/60"
+        }`}
+      >
         <h2
           id={`${testIdPrefix}-faq-heading`}
-          className={`whitespace-normal font-semibold ${isPreview ? "text-base" : "text-xl md:text-2xl lg:text-3xl"}`}
+          className={`whitespace-normal font-semibold ${isPreview ? "text-base" : "text-2xl md:text-3xl lg:text-4xl"}`}
           data-testid={`${testIdPrefix}-faq-title`}
         >
           {title}
         </h2>
-        <p className={`mt-2 ${isPreview ? "text-xs" : "text-base"} ${muted}`}>Common patient questions</p>
-        <dl className={`mt-5 divide-y ${isDark ? "divide-slate-700/60" : "divide-slate-200/80"} ${isPreview ? "mt-3" : "lg:mt-6"}`}>
+        <p className={`mt-2 ${isPreview ? "text-xs" : "text-lg"} ${muted}`}>Common patient questions</p>
+        <dl className={`mt-6 divide-y ${isDark ? "divide-slate-700/60" : "divide-slate-200/80"} ${isPreview ? "mt-3" : "lg:mt-8"}`}>
           {items.map((item, index) => {
             if (!isFaqItemFilled(item)) {
               return null;
@@ -845,18 +918,18 @@ export function ClinicFaqSection({
             return (
               <div
                 key={`${index}-${item.question}`}
-                className={`border-l-4 py-4 pl-4 ${isPreview ? "py-3 pl-3" : "lg:py-5 lg:pl-5"}`}
+                className={`border-l-4 py-5 pl-5 ${isPreview ? "py-3 pl-3" : "lg:py-6 lg:pl-6"}`}
                 style={{ borderLeftColor: theme.primaryColor }}
                 data-testid={`${testIdPrefix}-faq-item-${index}`}
               >
                 <dt
-                  className={`whitespace-normal font-semibold ${isPreview ? "text-xs" : "text-base md:text-lg"}`}
+                  className={`whitespace-normal font-semibold ${isPreview ? "text-xs" : "text-lg md:text-xl"}`}
                   data-testid={`${testIdPrefix}-faq-item-${index}-question`}
                 >
                   {item.question}
                 </dt>
                 <dd
-                  className={`mt-2 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-base"} ${muted}`}
+                  className={`mt-3 whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-base md:text-lg"} ${muted}`}
                   data-testid={`${testIdPrefix}-faq-item-${index}-answer`}
                 >
                   {item.answer}
@@ -901,56 +974,77 @@ export function ClinicContactSection({
 
   return (
     <section
-      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-10 lg:py-14"}`}
+      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
       aria-labelledby={`${testIdPrefix}-contact-heading`}
       data-testid={`${testIdPrefix}-contact`}
     >
-      <div className={`${isPreview ? "rounded-xl p-4" : "rounded-2xl p-6 lg:p-8"} ${clinicPanel(isDark)} shadow-sm`}>
-        <h2
-          id={`${testIdPrefix}-contact-heading`}
-          className={`whitespace-normal font-semibold ${isPreview ? "text-base" : "text-xl md:text-2xl lg:text-3xl"}`}
-          data-testid={`${testIdPrefix}-contact-title`}
+      <div
+        className={`overflow-hidden ${isPreview ? "rounded-xl" : "rounded-[1.75rem]"} ${clinicPanel(isDark)} ${
+          isDark ? "ring-1 ring-slate-700/50" : "shadow-lg ring-1 ring-slate-200/60"
+        }`}
+      >
+        <div
+          className={`border-b ${isDark ? "border-slate-700/60" : "border-slate-100"} ${
+            isPreview ? "px-4 py-3" : "px-8 py-6 lg:px-10 lg:py-7"
+          }`}
+          style={{
+            background: isDark
+              ? `linear-gradient(90deg, ${theme.primaryColor}18 0%, rgba(15,23,42,0.95) 100%)`
+              : `linear-gradient(90deg, ${theme.primaryColor}06 0%, #f8fafc 100%)`,
+          }}
         >
-          {title}
-        </h2>
-        <p className={`mt-2 ${isPreview ? "text-xs" : "text-base"} ${muted}`}>Appointment details and clinic location</p>
+          <h2
+            id={`${testIdPrefix}-contact-heading`}
+            className={`whitespace-normal font-semibold ${isPreview ? "text-base" : "text-2xl md:text-3xl lg:text-4xl"}`}
+            data-testid={`${testIdPrefix}-contact-title`}
+          >
+            {title}
+          </h2>
+          <p className={`mt-1 ${isPreview ? "text-xs" : "text-lg md:text-xl"} ${muted}`}>Appointment details and clinic location</p>
+        </div>
 
-        <div className={`mt-5 grid gap-4 ${isPreview ? "mt-3" : "md:mt-6 md:grid-cols-2 md:gap-6"}`}>
-          {hasPhone ? (
-            <div className={`rounded-2xl ${isPreview ? "p-3" : "p-5 lg:p-6"} ${isDark ? "bg-slate-800/60" : "bg-slate-50"}`}>
-              <p className={`text-xs font-medium uppercase tracking-wide md:text-sm ${muted}`}>Phone</p>
-              <a
-                href={`tel:${contactPhone}`}
-                className={`mt-2 inline-block font-semibold hover:underline ${isPreview ? "text-lg" : "text-2xl md:text-3xl"}`}
-                style={{ color: theme.primaryColor }}
-              >
-                {contactPhone}
-              </a>
-            </div>
-          ) : null}
-          {hasAddress ? (
-            <div className={`rounded-2xl ${isPreview ? "p-3" : "p-5 lg:p-6"} ${isDark ? "bg-slate-800/60" : "bg-slate-50"}`}>
-              <p className={`text-xs font-medium uppercase tracking-wide md:text-sm ${muted}`}>Clinic address</p>
-              <p className={`mt-2 whitespace-normal font-medium ${isPreview ? "text-sm" : "text-base md:text-lg"}`}>{contactAddress}</p>
+        <div className={`${isPreview ? "p-4" : "p-8 lg:p-10"}`}>
+          <div className={`grid gap-5 ${isPreview ? "" : "md:grid-cols-2 md:gap-8"}`}>
+            {hasPhone ? (
+              <div className={`rounded-2xl ${isPreview ? "p-3" : "p-6 lg:p-8"} ${isDark ? "bg-slate-900/80" : "bg-slate-50"}`}>
+                <p className={`text-xs font-medium uppercase tracking-[0.14em] md:text-sm ${muted}`}>Phone</p>
+                <a
+                  href={`tel:${contactPhone}`}
+                  className={`mt-3 inline-block font-semibold hover:underline ${isPreview ? "text-lg" : "text-3xl md:text-4xl"}`}
+                  style={{ color: theme.primaryColor }}
+                >
+                  {contactPhone}
+                </a>
+                <p className={`mt-2 ${isPreview ? "text-[10px]" : "text-base"} ${muted}`}>Call to schedule or ask about availability</p>
+              </div>
+            ) : null}
+            {hasAddress ? (
+              <div className={`rounded-2xl ${isPreview ? "p-3" : "p-6 lg:p-8"} ${isDark ? "bg-slate-900/80" : "bg-slate-50"}`}>
+                <p className={`text-xs font-medium uppercase tracking-[0.14em] md:text-sm ${muted}`}>Clinic address</p>
+                <p className={`mt-3 whitespace-normal font-medium leading-relaxed ${isPreview ? "text-sm" : "text-xl md:text-2xl"}`}>
+                  {contactAddress}
+                </p>
+                <p className={`mt-2 ${isPreview ? "text-[10px]" : "text-base"} ${muted}`}>Visit us for in-person appointments</p>
+              </div>
+            ) : null}
+          </div>
+
+          {entries.length > 0 ? (
+            <div
+              className={`mt-8 flex flex-wrap gap-x-6 gap-y-3 border-t pt-6 ${isDark ? "border-slate-700/60" : "border-slate-200/80"} ${
+                isPreview ? "text-[10px]" : "text-base"
+              }`}
+              data-testid={`${testIdPrefix}-social-links`}
+            >
+              {entries.map((entry) => (
+                <div key={entry.key} data-testid={`${testIdPrefix}-${entry.key}`}>
+                  <span className={`font-medium ${muted}`}>{entry.label}: </span>
+                  <span>{entry.value}</span>
+                </div>
+              ))}
             </div>
           ) : null}
         </div>
-
-        {entries.length > 0 ? (
-          <div
-            className={`mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t pt-4 ${isDark ? "border-slate-700/60" : "border-slate-200/80"} ${
-              isPreview ? "text-[10px]" : "text-sm"
-            }`}
-            data-testid={`${testIdPrefix}-social-links`}
-          >
-            {entries.map((entry) => (
-              <div key={entry.key} data-testid={`${testIdPrefix}-${entry.key}`}>
-                <span className={`font-medium ${muted}`}>{entry.label}: </span>
-                <span>{entry.value}</span>
-              </div>
-            ))}
-          </div>
-        ) : null}
       </div>
     </section>
   );
@@ -983,24 +1077,24 @@ export function ClinicBookingCtaSection({
   const showSecondaryCta = showSecondary && hasMeaningfulText(secondaryLabel ?? "") && secondaryHref;
 
   return (
-    <section className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-10 lg:py-14"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
+    <section className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
       <div
-        className={`flex flex-col justify-between gap-5 ${isPreview ? "rounded-xl p-4" : "rounded-2xl p-6 md:flex-row md:items-center md:p-8 lg:p-10"} ${
+        className={`flex flex-col justify-between gap-8 ${isPreview ? "rounded-xl p-4" : "rounded-[2rem] p-8 md:flex-row md:items-center md:gap-10 lg:p-12"} ${
           clinicPanel(isDark)
-        } shadow-sm`}
+        } ${isDark ? "ring-1 ring-slate-700/50" : "shadow-xl ring-1 ring-slate-200/60"}`}
         style={{
           background: isDark
             ? undefined
-            : `linear-gradient(90deg, #ffffff 0%, ${theme.primaryColor}06 50%, ${theme.accentColor}05 100%)`,
+            : `linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, ${theme.primaryColor}05 100%)`,
         }}
       >
-        <div className="min-w-0">
-          <p className={`font-semibold ${isPreview ? "text-base" : "text-xl md:text-2xl lg:text-3xl"}`}>Schedule your visit</p>
-          <p className={`mt-2 ${isPreview ? "text-xs" : "text-base md:text-lg"} ${clinicMutedText(isDark)}`}>
+        <div className="min-w-0 flex-1">
+          <p className={`font-semibold leading-tight ${isPreview ? "text-base" : "text-3xl md:text-4xl lg:text-[2.75rem]"}`}>Schedule your visit</p>
+          <p className={`mt-3 max-w-2xl leading-relaxed ${isPreview ? "text-xs" : "text-lg md:text-xl"} ${clinicMutedText(isDark)}`}>
             Ready to book an appointment? Our care team will help you take the next step.
           </p>
         </div>
-        <div className={`flex w-full shrink-0 flex-col ${isPreview ? "gap-2" : "gap-3 sm:w-auto sm:flex-row"}`}>
+        <div className={`flex w-full shrink-0 flex-col ${isPreview ? "gap-2" : "gap-4 sm:min-w-[20rem] sm:flex-row md:w-auto"}`}>
           {renderCtaButton({
             previewButtons,
             label: primaryLabel,
