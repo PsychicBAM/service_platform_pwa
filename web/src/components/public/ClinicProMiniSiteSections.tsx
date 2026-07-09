@@ -33,6 +33,10 @@ type ClinicTheme = {
 
 const CLINIC_CONTAINER = "mx-auto w-full max-w-[75rem] px-5 sm:px-6 md:px-8 lg:px-10";
 
+function clinicContainerClass(isPreview: boolean): string {
+  return isPreview ? "mx-auto w-full max-w-none px-3" : CLINIC_CONTAINER;
+}
+
 function clinicMutedText(isDark: boolean): string {
   return isDark ? "text-slate-300" : "text-slate-600";
 }
@@ -297,7 +301,7 @@ export function ClinicHeroSection({
   const careSteps = copy.benefitsItems.filter(Boolean).slice(0, 3);
 
   return (
-    <div className={CLINIC_CONTAINER}>
+    <div className={clinicContainerClass(isPreview)}>
       <section
         data-testid={`${testIdPrefix}-clinic-hero`}
         className={isPreview ? "pb-4" : "pb-8 lg:pb-10"}
@@ -531,13 +535,13 @@ export function ClinicHeroSection({
         </div>
 
         <div
-          className={`mt-8 grid grid-cols-1 gap-4 md:grid-cols-3 ${isPreview ? "mt-4 gap-2" : "lg:mt-10 lg:gap-6"}`}
+          className={`mt-8 grid grid-cols-1 gap-4 ${isPreview ? "mt-4 gap-2" : "md:grid-cols-3 lg:mt-10 lg:gap-6"}`}
           data-testid={`${testIdPrefix}-clinic-info-strip`}
         >
           {valueCards.map((card) => (
             <div
               key={card.key}
-              className={`flex gap-4 ${isPreview ? "rounded-xl p-3" : "rounded-2xl p-6 lg:p-7"} ${clinicPanel(isDark)} ${
+              className={`flex min-w-0 gap-4 ${isPreview ? "rounded-xl p-3" : "rounded-2xl p-6 lg:p-7"} ${clinicPanel(isDark)} ${
                 isDark ? "ring-1 ring-slate-700/50" : "shadow-md ring-1 ring-slate-200/70"
               }`}
             >
@@ -550,7 +554,7 @@ export function ClinicHeroSection({
               >
                 {card.label.slice(0, 2)}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className={`font-medium uppercase tracking-[0.14em] ${isPreview ? "text-[10px]" : "text-xs"}`} style={{ color: theme.accentColor }}>
                   {card.label}
                 </p>
@@ -597,7 +601,7 @@ export function ClinicAboutSection({
   const identityChips = buildTrustChips(copy);
 
   return (
-    <section className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`} data-testid={`${testIdPrefix}-about`}>
+    <section className={`${clinicContainerClass(isPreview)} ${isPreview ? "py-4" : "py-12 lg:py-16"}`} data-testid={`${testIdPrefix}-about`}>
       <div className={`grid items-stretch ${isPreview ? "gap-4" : "gap-8 lg:grid-cols-2 lg:gap-12"}`}>
         <div
           className={`${isPreview ? "rounded-xl p-4" : "rounded-[1.75rem] p-8 lg:p-10"} ${clinicPanel(isDark)} ${
@@ -697,7 +701,7 @@ export function ClinicServicesSection({
 
   return (
     <section
-      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
+      className={`${clinicContainerClass(isPreview)} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
       aria-labelledby={`${testIdPrefix}-services-heading`}
       data-testid={`${testIdPrefix}-services`}
     >
@@ -811,7 +815,7 @@ export function ClinicTrustSection({
 
   return (
     <section
-      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
+      className={`${clinicContainerClass(isPreview)} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
       data-testid={`${testIdPrefix}-trust`}
     >
       <div data-testid={`${testIdPrefix}-clinic-care`} className={`grid ${isPreview ? "gap-4" : "gap-8 lg:grid-cols-2 lg:gap-10"}`}>
@@ -892,7 +896,7 @@ export function ClinicFaqSection({
 
   return (
     <section
-      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
+      className={`${clinicContainerClass(isPreview)} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
       aria-labelledby={`${testIdPrefix}-faq-heading`}
       data-testid={`${testIdPrefix}-faq`}
     >
@@ -974,7 +978,7 @@ export function ClinicContactSection({
 
   return (
     <section
-      className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
+      className={`${clinicContainerClass(isPreview)} ${isPreview ? "py-4" : "py-12 lg:py-16"}`}
       aria-labelledby={`${testIdPrefix}-contact-heading`}
       data-testid={`${testIdPrefix}-contact`}
     >
@@ -1077,7 +1081,7 @@ export function ClinicBookingCtaSection({
   const showSecondaryCta = showSecondary && hasMeaningfulText(secondaryLabel ?? "") && secondaryHref;
 
   return (
-    <section className={`${CLINIC_CONTAINER} ${isPreview ? "py-4" : "py-12 lg:py-16"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
+    <section className={`${clinicContainerClass(isPreview)} ${isPreview ? "py-4" : "py-12 lg:py-16"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
       <div
         className={`flex flex-col justify-between gap-8 ${isPreview ? "rounded-xl p-4" : "rounded-[2rem] p-8 md:flex-row md:items-center md:gap-10 lg:p-12"} ${
           clinicPanel(isDark)
@@ -1133,7 +1137,7 @@ export function ClinicGallerySection({
 
   return (
     <section
-      className={`${CLINIC_CONTAINER} text-center ${isPreview ? "py-4" : "py-8 lg:py-10"}`}
+      className={`${clinicContainerClass(isPreview)} text-center ${isPreview ? "py-4" : "py-8 lg:py-10"}`}
       aria-labelledby={`${testIdPrefix}-gallery-heading`}
       data-testid={`${testIdPrefix}-gallery-placeholder`}
     >

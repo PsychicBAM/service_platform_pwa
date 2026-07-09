@@ -459,59 +459,42 @@ describe("PublicProfileSettingsCard", () => {
     });
   });
 
-  it("renders template blocks panel for the selected template", async () => {
+  it("does not render the template blocks panel in the editor", async () => {
     renderPublicProfileCard("pro");
 
-    expect(await screen.findByTestId("mini-site-template-blocks-panel")).toBeInTheDocument();
-    expect(screen.getByTestId("mini-site-template-blocks-heading")).toHaveTextContent("Template blocks");
-    expect(screen.getByTestId("mini-site-template-blocks-scope")).toHaveTextContent(/Only blocks for Clean are shown/i);
-    expect(screen.getByTestId("mini-site-template-block-hero")).toHaveTextContent("Editorial hero");
+    await screen.findByTestId("mini-site-editor");
+    expect(screen.queryByTestId("mini-site-template-blocks-panel")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-template-blocks-heading")).not.toBeInTheDocument();
   });
 
-  it("shows clinic-specific blocks when clinic template is selected", async () => {
+  it("renders clinic preview with stacked info strip cards", async () => {
     const user = userEvent.setup();
     renderPublicProfileCard("pro");
 
     await screen.findByTestId("mini-site-template");
     await user.selectOptions(screen.getByTestId("mini-site-template"), "clinic");
 
-    expect(screen.getByTestId("mini-site-template-blocks-scope")).toHaveTextContent(/Only blocks for Clinic are shown/i);
-    expect(screen.getByTestId("mini-site-template-block-appointmentPanel")).toHaveTextContent("Appointment panel");
-    expect(screen.getByTestId("mini-site-template-block-specialties")).toHaveTextContent("Specialties & treatments");
-    expect(screen.queryByTestId("mini-site-template-block-workShowcase")).not.toBeInTheDocument();
-    expect(screen.getByTestId("mini-site-template-media-slot-doctorOrClinicImage")).toHaveTextContent(
-      "Doctor / clinic image",
-    );
-    expect(screen.getByTestId("mini-site-template-media-slot-doctorOrClinicImage")).toHaveTextContent(/coming soon/i);
+    const preview = screen.getByTestId("mini-site-live-preview");
+    expect(preview).toHaveAttribute("data-template", "clinic");
+
+    const infoStrip = screen.getByTestId("mini-site-preview-clinic-info-strip");
+    expect(infoStrip.className).toContain("grid-cols-1");
+    expect(infoStrip.className).not.toContain("md:grid-cols-3");
+
+    expect(within(infoStrip).getByText("Appointments")).toBeInTheDocument();
+    expect(within(infoStrip).getByText("Specialties")).toBeInTheDocument();
+    expect(within(infoStrip).getByText(/patient care|contact|location/i)).toBeInTheDocument();
   });
 
-  it("shows portfolio-specific blocks and hides clinic blocks when portfolio is selected", async () => {
+  it("keeps template selector behavior when clinic is selected", async () => {
     const user = userEvent.setup();
     renderPublicProfileCard("pro");
 
-    await screen.findByTestId("mini-site-template");
-    await user.selectOptions(screen.getByTestId("mini-site-template"), "portfolio");
+    const select = await screen.findByTestId("mini-site-template");
+    await user.selectOptions(select, "clinic");
 
-    expect(screen.getByTestId("mini-site-template-blocks-scope")).toHaveTextContent(/Only blocks for Portfolio are shown/i);
-    expect(screen.getByTestId("mini-site-template-block-workShowcase")).toHaveTextContent("Work showcase");
-    expect(screen.queryByTestId("mini-site-template-block-appointmentPanel")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("mini-site-template-block-specialties")).not.toBeInTheDocument();
-    expect(screen.getByTestId("mini-site-template-media-slot-showreel")).toHaveTextContent("Showreel video");
-  });
-
-  it("updates template blocks panel when selected template changes", async () => {
-    const user = userEvent.setup();
-    renderPublicProfileCard("pro");
-
-    await screen.findByTestId("mini-site-template");
-    await user.selectOptions(screen.getByTestId("mini-site-template"), "teacher");
-
-    expect(screen.getByTestId("mini-site-template-block-lessonPanel")).toHaveTextContent("Lesson overview panel");
-    expect(screen.queryByTestId("mini-site-template-block-programPanel")).not.toBeInTheDocument();
-
-    await user.selectOptions(screen.getByTestId("mini-site-template"), "coach");
-
-    expect(screen.getByTestId("mini-site-template-block-programPanel")).toHaveTextContent("Coaching program panel");
-    expect(screen.queryByTestId("mini-site-template-block-lessonPanel")).not.toBeInTheDocument();
+    expect(select).toHaveValue("clinic");
+    expect(screen.getByTestId("mini-site-live-preview")).toHaveAttribute("data-template", "clinic");
+    expect(screen.queryByTestId("mini-site-template-blocks-panel")).not.toBeInTheDocument();
   });
 });
