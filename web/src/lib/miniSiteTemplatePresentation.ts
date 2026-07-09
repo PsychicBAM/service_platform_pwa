@@ -512,27 +512,33 @@ export function getMiniSiteTemplatePresentation(
       });
     case "portfolio":
       return withTemplateDefaults(isDark, {
-        layoutClass: "template-portfolio mx-auto w-full max-w-5xl",
-        heroClass: isDark
-          ? `border-2 shadow-2xl ${sectionBase} bg-slate-950/80`
-          : `border-2 border-slate-900/10 bg-white shadow-2xl ${sectionBase}`,
-        heroLayoutClass: "flex flex-col gap-6 md:flex-row md:items-end md:justify-between",
-        sectionClass: isDark ? `border shadow-xl ${sectionBase} bg-slate-950/70` : `shadow-xl ${sectionBase} bg-white`,
-        servicesClass: isDark ? "border-2" : "border border-slate-200 shadow-md",
-        galleryClass: isDark
-          ? "border-2 border-dashed py-14 shadow-inner"
-          : "border-2 border-dashed py-14 shadow-sm",
+        layoutClass: "template-portfolio w-full",
+        layoutSpacingClass: "space-y-0",
+        heroClass: "border-0 bg-transparent shadow-none ring-0",
+        heroLayoutClass: "flex flex-col gap-6 md:flex-row md:items-end",
+        heroPaddingClass: "",
+        sectionClass: "border-0 bg-transparent shadow-none ring-0",
+        sectionPaddingClass: "",
+        sectionRadiusClass: "rounded-none",
+        servicesClass: "",
+        galleryClass: "border-dashed",
         heroTitleClass:
-          "break-words text-3xl font-black uppercase tracking-wide sm:text-4xl md:text-5xl md:leading-none",
-        sectionHeadingClass: "break-words text-xl font-black uppercase tracking-wide sm:text-2xl",
+          "whitespace-normal text-4xl font-black uppercase tracking-tight sm:text-5xl md:text-6xl lg:text-[4.25rem] lg:leading-[0.95]",
+        sectionHeadingClass: "whitespace-normal text-2xl font-black uppercase tracking-tight md:text-3xl lg:text-4xl",
+        sectionHeadingAccentClass: "hidden",
         showBenefitsStrip: false,
         showTrustStats: true,
-        heroAccentClass: isDark ? "bg-slate-950/50" : "bg-white",
-        bookingCtaClass: "border-2 border-slate-900/10 shadow-xl",
-        contactChipClass: isDark ? "border-slate-700 bg-slate-950/50" : "border-slate-200 bg-slate-50",
-        primaryButtonClass: `inline-flex w-full items-center justify-center px-7 py-4 text-sm font-black uppercase tracking-wide text-white shadow-xl transition hover:brightness-105 sm:w-auto ${buttonRadius}`,
-        secondaryButtonClass: `inline-flex w-full items-center justify-center border-2 px-7 py-4 text-sm font-bold uppercase tracking-wide shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
-          isDark ? "bg-slate-950/50" : "bg-white"
+        heroAccentClass: "",
+        bookingCtaClass: "",
+        contactChipClass: isDark ? "border-slate-700 bg-slate-900/50" : "border-slate-700 bg-slate-900 text-white",
+        trustStatClass: "",
+        faqItemClass: "",
+        heroBadgeClass:
+          "inline-flex font-bold uppercase tracking-[0.2em]",
+        heroTopBarClass: "hidden",
+        primaryButtonClass: `inline-flex w-full items-center justify-center px-8 py-4 text-sm font-black uppercase tracking-wide text-white shadow-xl transition hover:brightness-110 sm:w-auto ${buttonRadius}`,
+        secondaryButtonClass: `inline-flex w-full items-center justify-center border-2 px-8 py-4 text-sm font-bold uppercase tracking-wide shadow-sm transition hover:shadow-md sm:w-auto ${buttonRadius} ${
+          isDark ? "border-slate-500 bg-transparent text-slate-100 hover:bg-slate-800/40" : "border-slate-900/20 bg-white text-slate-900 hover:bg-slate-50"
         }`,
       });
     case "clean":

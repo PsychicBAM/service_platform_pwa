@@ -207,6 +207,8 @@ describe("ProMiniSiteLayout", () => {
     expect(layout).toHaveClass("template-portfolio");
     expect(screen.getByTestId("pro-mini-site-page-shell")).toBeInTheDocument();
     expect(screen.getByTestId("pro-mini-site-hero-title")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-portfolio-hero")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-portfolio-capabilities")).toBeInTheDocument();
   });
 
   it("keeps dark background readable", () => {

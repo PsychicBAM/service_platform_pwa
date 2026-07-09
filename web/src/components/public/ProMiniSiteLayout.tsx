@@ -41,6 +41,16 @@ import {
   ExpertTrustSection,
 } from "@/components/public/ExpertProMiniSiteSections";
 import {
+  PortfolioAboutSection,
+  PortfolioBookingCtaSection,
+  PortfolioContactSection,
+  PortfolioFaqSection,
+  PortfolioGallerySection,
+  PortfolioHeroSection,
+  PortfolioProcessSection,
+  PortfolioWorkSection,
+} from "@/components/public/PortfolioProMiniSiteSections";
+import {
   ServiceAboutSection,
   ServiceBookingCtaSection,
   ServiceContactSection,
@@ -343,6 +353,7 @@ export function ProMiniSiteLayout({
   const isServiceTemplate = theme.template === "service";
   const isExpertTemplate = theme.template === "expert";
   const isClinicTemplate = theme.template === "clinic";
+  const isPortfolioTemplate = theme.template === "portfolio";
   const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
   const cleanTheme = {
     primaryColor: theme.primaryColor,
@@ -362,6 +373,12 @@ export function ProMiniSiteLayout({
     buttonStyle: theme.buttonStyle,
   };
   const clinicTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+    buttonStyle: theme.buttonStyle,
+  };
+  const portfolioTheme = {
     primaryColor: theme.primaryColor,
     accentColor: theme.accentColor,
     backgroundStyle: theme.backgroundStyle,
@@ -497,6 +514,125 @@ export function ProMiniSiteLayout({
             data-testid={`pro-mini-site-${type}`}
           >
             <p className="text-xs font-medium uppercase tracking-[0.14em]" style={{ color: theme.accentColor }}>
+              {sectionTitle}
+            </p>
+            <p className={`mt-3 text-sm leading-relaxed md:text-base ${mutedText}`}>{sectionBody}</p>
+          </section>
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
+  const renderPortfolioSection = (type: MiniSiteSectionType) => {
+    switch (type) {
+      case "hero":
+        return (
+          <PortfolioHeroSection
+            business={business}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            copy={copy}
+            theme={portfolioTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref={primaryBookingHref}
+            secondaryOrderHref={secondaryOrderHref}
+            showBookingCta={ctas.showBookingCta}
+            showRequestCta={ctas.showRequestCta}
+            operatingMode={business.operating_mode}
+            services={services}
+            serviceCount={services?.length ?? null}
+          />
+        );
+      case "about":
+        return (
+          <PortfolioAboutSection
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={business.description}
+            theme={portfolioTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <PortfolioWorkSection
+            title={servicesTitle}
+            badgeText={servicesBadgeText}
+            services={services}
+            publicSlug={publicSlug}
+            theme={portfolioTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust":
+        return (
+          <PortfolioProcessSection
+            copy={copy}
+            theme={portfolioTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <PortfolioFaqSection
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            theme={portfolioTheme}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        return (
+          <PortfolioContactSection
+            title={contactTitle}
+            contactAddress={contactAddress}
+            contactPhone={contactPhone}
+            socialLinks={socialLinks}
+            theme={portfolioTheme}
+            isDark={isDark}
+          />
+        );
+      case "booking_cta":
+        if (!ctas.showBookingCta || !hasMeaningfulText(primaryCtaLabel)) {
+          return null;
+        }
+        return (
+          <PortfolioBookingCtaSection
+            primaryLabel={primaryCtaLabel}
+            primaryHref={primaryBookingHref}
+            secondaryLabel={secondaryCtaLabel}
+            secondaryHref={secondaryOrderHref}
+            showSecondary={ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel)}
+            theme={portfolioTheme}
+            presentation={presentation}
+          />
+        );
+      case "gallery":
+        return <PortfolioGallerySection theme={portfolioTheme} isDark={isDark} />;
+      case "benefits":
+      case "pricing": {
+        const sectionTitle = getSectionField(siteConfig, type, "title") || (type === "benefits" ? "Benefits" : "Pricing");
+        const sectionBody = getSectionField(siteConfig, type, "body");
+        if (!sectionBody) {
+          return null;
+        }
+        return (
+          <section
+            className="mx-auto max-w-3xl py-8 md:py-10"
+            data-testid={`pro-mini-site-${type}`}
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: theme.accentColor }}>
               {sectionTitle}
             </p>
             <p className={`mt-3 text-sm leading-relaxed md:text-base ${mutedText}`}>{sectionBody}</p>
@@ -1293,6 +1429,9 @@ export function ProMiniSiteLayout({
     }
     if (isClinicTemplate) {
       return renderClinicSection(type);
+    }
+    if (isPortfolioTemplate) {
+      return renderPortfolioSection(type);
     }
 
     switch (type) {

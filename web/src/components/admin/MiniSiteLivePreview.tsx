@@ -7,6 +7,14 @@ import {
   ClinicTrustSection,
 } from "@/components/public/ClinicProMiniSiteSections";
 import {
+  PortfolioAboutSection,
+  PortfolioContactSection,
+  PortfolioFaqSection,
+  PortfolioHeroSection,
+  PortfolioProcessSection,
+  PortfolioWorkSection,
+} from "@/components/public/PortfolioProMiniSiteSections";
+import {
   ExpertAboutSection,
   ExpertContactSection,
   ExpertFaqSection,
@@ -131,6 +139,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
   const isServiceTemplate = theme.template === "service";
   const isExpertTemplate = theme.template === "expert";
   const isClinicTemplate = theme.template === "clinic";
+  const isPortfolioTemplate = theme.template === "portfolio";
   const trustSectionEnabled = enabledSections.some((section) => section.type === "trust");
   const cleanTheme = {
     primaryColor: theme.primaryColor,
@@ -150,6 +159,12 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     buttonStyle: theme.buttonStyle,
   };
   const clinicTheme = {
+    primaryColor: theme.primaryColor,
+    accentColor: theme.accentColor,
+    backgroundStyle: theme.backgroundStyle,
+    buttonStyle: theme.buttonStyle,
+  };
+  const portfolioTheme = {
     primaryColor: theme.primaryColor,
     accentColor: theme.accentColor,
     backgroundStyle: theme.backgroundStyle,
@@ -641,6 +656,104 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     }
   }
 
+  function renderPortfolioPreviewSection(type: MiniSiteSectionType): JSX.Element | null {
+    const shell = {
+      variant: "preview" as const,
+      testIdPrefix: "mini-site-preview",
+      previewButtons: true,
+    };
+
+    switch (type) {
+      case "hero":
+        return (
+          <PortfolioHeroSection
+            {...shell}
+            business={previewBusiness}
+            heroTitle={heroTitle}
+            heroSubtitle={heroSubtitle}
+            heroBody={heroBody}
+            heroBadgeText={copy.heroBadgeText}
+            copy={copy}
+            theme={portfolioTheme}
+            presentation={presentation}
+            primaryCtaLabel={primaryCtaLabel}
+            secondaryCtaLabel={secondaryCtaLabel}
+            primaryBookingHref="#"
+            secondaryOrderHref="#"
+            showBookingCta={hasMeaningfulText(primaryCtaLabel)}
+            showRequestCta={hasMeaningfulText(secondaryCtaLabel)}
+            operatingMode="both"
+            services={undefined}
+            serviceCount={2}
+          />
+        );
+      case "about":
+        return (
+          <PortfolioAboutSection
+            {...shell}
+            title={aboutTitle}
+            body={aboutBody || null}
+            fallbackBody={null}
+            theme={portfolioTheme}
+            isDark={isDark}
+          />
+        );
+      case "services":
+        return (
+          <PortfolioWorkSection
+            {...shell}
+            title={servicesTitle}
+            badgeText={servicesBadge}
+            services={undefined}
+            publicSlug=""
+            theme={portfolioTheme}
+            isDark={isDark}
+          />
+        );
+      case "trust":
+        return (
+          <PortfolioProcessSection
+            {...shell}
+            copy={copy}
+            theme={portfolioTheme}
+            isDark={isDark}
+            showTrustStats={presentation.showTrustStats}
+            benefitsSectionEnabled={benefitsSectionEnabled}
+          />
+        );
+      case "faq":
+        if (visibleFaqItems.length === 0) {
+          return null;
+        }
+        return (
+          <PortfolioFaqSection
+            {...shell}
+            title={copy.faqSectionTitle}
+            faqItems={faqItems}
+            theme={portfolioTheme}
+            isDark={isDark}
+          />
+        );
+      case "contact":
+        if (visibleSocialLinks.length === 0) {
+          return null;
+        }
+        return (
+          <PortfolioContactSection
+            {...shell}
+            title={contactTitle}
+            contactAddress=""
+            contactPhone=""
+            socialLinks={socialLinks}
+            theme={portfolioTheme}
+            isDark={isDark}
+          />
+        );
+      default:
+        return null;
+    }
+  }
+
   function renderSection(type: MiniSiteSectionType): JSX.Element | null {
     if (isCleanTemplate) {
       return renderCleanPreviewSection(type);
@@ -653,6 +766,9 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     }
     if (isClinicTemplate) {
       return renderClinicPreviewSection(type);
+    }
+    if (isPortfolioTemplate) {
+      return renderPortfolioPreviewSection(type);
     }
 
     switch (type) {
