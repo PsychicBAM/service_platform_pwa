@@ -414,8 +414,6 @@ export function getMiniSiteTemplatePresentation(
   buttonStyle: MiniSiteButtonStyle = "rounded",
 ): MiniSiteTemplatePresentation {
   const isDark = backgroundStyle === "dark";
-  const cardRing = isDark ? "ring-1 ring-white/10" : "ring-1 ring-slate-200/60";
-  const sectionBase = cardRing;
   const buttonRadius = buttonRadiusClass(buttonStyle);
 
   switch (template) {

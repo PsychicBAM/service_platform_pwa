@@ -652,7 +652,6 @@ export function PortfolioProcessSection({
   showTrustStats,
   benefitsSectionEnabled,
 }: PortfolioProcessSectionProps) {
-  const muted = portfolioMutedText(isDark);
   const benefits = !benefitsSectionEnabled ? copy.benefitsItems.filter(Boolean) : [];
   const isPreview = variant === "preview";
 
@@ -821,7 +820,6 @@ export function PortfolioContactSection({
   theme,
   isDark,
 }: PortfolioContactSectionProps) {
-  const muted = portfolioMutedText(isDark);
   const entries = getVisibleSocialLinks(socialLinks);
   const hasAddress = hasMeaningfulText(contactAddress);
   const hasPhone = hasMeaningfulText(contactPhone);
