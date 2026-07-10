@@ -550,6 +550,37 @@ describe("ProMiniSiteLayout", () => {
     );
     expect(source).not.toContain("dangerouslySetInnerHTML");
   });
+
+  it("renders safe video embed when valid intro video is configured", () => {
+    const config = normalizeMiniSiteConfig({
+      ...createSavedMiniSiteConfig({ template: "clean" }),
+      templateMedia: {
+        clean: {
+          introVideo: {
+            kind: "video",
+            url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            provider: "youtube",
+            embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            title: "",
+          },
+        },
+      },
+    });
+
+    renderProMiniSiteLayout({ config });
+
+    const embed = screen.getByTestId("pro-mini-site-template-introVideo");
+    expect(embed).toBeInTheDocument();
+    const iframe = within(embed).getByTitle("Embedded video");
+    expect(iframe).toHaveAttribute("src", "https://www.youtube.com/embed/dQw4w9WgXcQ");
+    expect(iframe).toHaveAttribute("loading", "lazy");
+  });
+
+  it("does not render empty video block when video is missing", () => {
+    renderProMiniSiteLayout({ config: createSavedMiniSiteConfig({ template: "clean" }) });
+
+    expect(screen.queryByTestId("pro-mini-site-template-introVideo")).not.toBeInTheDocument();
+  });
 });
 
 describe("getProMiniSiteCtas", () => {

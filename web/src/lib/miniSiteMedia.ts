@@ -1,4 +1,10 @@
 import type { MiniSiteTemplate } from "@/types/miniSite";
+import {
+  mapMiniSiteVideoMediaToWire,
+  normalizeMiniSiteVideoMedia,
+  type MiniSiteVideoMedia,
+  type MiniSiteVideoMediaWire,
+} from "@/lib/miniSiteVideo";
 
 export type MiniSiteImageMedia = {
   kind: "image";
@@ -37,10 +43,13 @@ export const MINI_SITE_IMAGE_UPLOAD_HINT = `${MINI_SITE_IMAGE_TYPES_LABEL} ${MIN
 export const MINI_SITE_IMAGE_TOO_LARGE_MESSAGE = `Image is too large. Maximum size is ${MINI_SITE_IMAGE_MAX_MB} MB.`;
 export const MINI_SITE_IMAGE_INVALID_TYPE_MESSAGE = `Only ${MINI_SITE_IMAGE_UPLOAD_HINT} are supported.`;
 
+export type MiniSiteMedia = MiniSiteImageMedia | MiniSiteVideoMedia;
+export type MiniSiteMediaWire = MiniSiteImageMediaWire | MiniSiteVideoMediaWire;
+
 export type MiniSiteTemplateImages = Partial<Record<string, MiniSiteImageMedia>>;
 
-/** Per-template media bucket keyed by slot id (e.g. heroImage). */
-export type MiniSiteTemplateMediaBucket = Partial<Record<string, MiniSiteImageMedia>>;
+/** Per-template media bucket keyed by slot id (e.g. heroImage, introVideo). */
+export type MiniSiteTemplateMediaBucket = Partial<Record<string, MiniSiteMedia>>;
 
 /** Template-keyed media maps preserve uploads when switching templates. */
 export type MiniSiteTemplateMediaMap = Partial<Record<MiniSiteTemplate, MiniSiteTemplateMediaBucket>>;
@@ -127,6 +136,10 @@ export function mapMiniSiteImageMediaToWire(media: MiniSiteImageMedia): MiniSite
   };
 }
 
+export function normalizeTemplateMediaSlotValue(value: unknown): MiniSiteMedia | null {
+  return normalizeMiniSiteImageMedia(value) ?? normalizeMiniSiteVideoMedia(value);
+}
+
 export function normalizeTemplateMediaMap(input: unknown): MiniSiteTemplateMediaMap {
   if (input === null || input === undefined) {
     return {};
@@ -158,9 +171,9 @@ export function normalizeTemplateMediaMap(input: unknown): MiniSiteTemplateMedia
       continue;
     }
 
-    const normalizedBucket: Record<string, MiniSiteImageMedia> = {};
+    const normalizedBucket: Record<string, MiniSiteMedia> = {};
     for (const [slotKey, slotValue] of Object.entries(bucket as Record<string, unknown>)) {
-      const media = normalizeMiniSiteImageMedia(slotValue);
+      const media = normalizeTemplateMediaSlotValue(slotValue);
       if (media) {
         normalizedBucket[slotKey] = media;
       }
@@ -207,11 +220,18 @@ export function resolveMiniSiteMediaEditorPreviewUrl(media: MiniSiteImageMedia):
   return resolveMiniSiteMediaUrl(media.thumbnailUrl || media.url);
 }
 
+export function mapMiniSiteMediaToWire(media: MiniSiteMedia): MiniSiteMediaWire {
+  if (media.kind === "video") {
+    return mapMiniSiteVideoMediaToWire(media);
+  }
+  return mapMiniSiteImageMediaToWire(media);
+}
+
 export function updateTemplateMediaSlot(
   templateMedia: MiniSiteTemplateMediaMap,
   template: MiniSiteTemplate,
   slot: string,
-  media: MiniSiteImageMedia | null,
+  media: MiniSiteMedia | null,
 ): MiniSiteTemplateMediaMap {
   const next = { ...templateMedia };
   const bucket = { ...(next[template] ?? {}) };

@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { removeMiniSiteMedia, uploadMiniSiteMedia } from "@/api/miniSiteMediaApi";
+import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
 import {
   getMiniSiteTemplateEditorDefinition,
 } from "@/lib/miniSiteTemplateEditorRegistry";
@@ -15,8 +16,14 @@ import {
   updateTemplateMediaAlt,
   updateTemplateMediaSlot,
   type MiniSiteImageMedia,
+  type MiniSiteTemplateMediaMap,
 } from "@/lib/miniSiteMedia";
-import type { MiniSiteTemplateMediaMap } from "@/lib/miniSiteMedia";
+import {
+  buildMiniSiteVideoMediaFromUrl,
+  MINI_SITE_VIDEO_INVALID_URL_MESSAGE,
+  normalizeMiniSiteVideoMedia,
+  type MiniSiteVideoMedia,
+} from "@/lib/miniSiteVideo";
 import type { MiniSiteTemplate } from "@/types/miniSite";
 import { getAdminSettingsErrorMessage } from "@/utils/errors";
 
@@ -28,12 +35,20 @@ type MiniSiteTemplateMediaSectionProps = {
   onTemplateMediaChange: (templateMedia: MiniSiteTemplateMediaMap) => void;
 };
 
-function getSlotMedia(
+function getImageSlotMedia(
   templateMedia: MiniSiteTemplateMediaMap,
   template: MiniSiteTemplate,
   slotId: string,
 ): MiniSiteImageMedia | null {
   return normalizeMiniSiteImageMedia(templateMedia[template]?.[slotId]);
+}
+
+function getVideoSlotMedia(
+  templateMedia: MiniSiteTemplateMediaMap,
+  template: MiniSiteTemplate,
+  slotId: string,
+): MiniSiteVideoMedia | null {
+  return normalizeMiniSiteVideoMedia(templateMedia[template]?.[slotId]);
 }
 
 export function MiniSiteTemplateMediaSection({
@@ -47,6 +62,7 @@ export function MiniSiteTemplateMediaSection({
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
   const [slotErrors, setSlotErrors] = useState<Record<string, string>>({});
+  const [videoDrafts, setVideoDrafts] = useState<Record<string, string>>({});
 
   async function handleFileSelected(slotId: string, file: File | undefined) {
     if (!file || disabled) {
@@ -77,7 +93,7 @@ export function MiniSiteTemplateMediaSection({
     });
 
     try {
-      const existing = getSlotMedia(templateMedia, template, slotId);
+      const existing = getImageSlotMedia(templateMedia, template, slotId);
       const response = await uploadMiniSiteMedia(businessId, file, {
         template,
         slot: slotId,
@@ -100,7 +116,7 @@ export function MiniSiteTemplateMediaSection({
     }
   }
 
-  async function handleRemove(slotId: string) {
+  async function handleImageRemove(slotId: string) {
     if (disabled) {
       return;
     }
@@ -125,19 +141,81 @@ export function MiniSiteTemplateMediaSection({
     }
   }
 
+  function handleVideoDraftChange(slotId: string, value: string) {
+    setVideoDrafts((current) => ({ ...current, [slotId]: value }));
+    setSlotErrors((current) => {
+      const next = { ...current };
+      delete next[slotId];
+      return next;
+    });
+  }
+
+  function commitVideoUrl(slotId: string) {
+    if (disabled) {
+      return;
+    }
+
+    const existing = getVideoSlotMedia(templateMedia, template, slotId);
+    const draft = videoDrafts[slotId] ?? existing?.url ?? "";
+    const trimmed = draft.trim();
+
+    if (!trimmed) {
+      onTemplateMediaChange(updateTemplateMediaSlot(templateMedia, template, slotId, null));
+      setVideoDrafts((current) => {
+        const next = { ...current };
+        delete next[slotId];
+        return next;
+      });
+      return;
+    }
+
+    const media = buildMiniSiteVideoMediaFromUrl(trimmed, existing?.title ?? "");
+    if (!media) {
+      setSlotErrors((current) => ({
+        ...current,
+        [slotId]: MINI_SITE_VIDEO_INVALID_URL_MESSAGE,
+      }));
+      return;
+    }
+
+    onTemplateMediaChange(updateTemplateMediaSlot(templateMedia, template, slotId, media));
+    setVideoDrafts((current) => {
+      const next = { ...current };
+      delete next[slotId];
+      return next;
+    });
+  }
+
+  function handleVideoRemove(slotId: string) {
+    if (disabled) {
+      return;
+    }
+    onTemplateMediaChange(updateTemplateMediaSlot(templateMedia, template, slotId, null));
+    setVideoDrafts((current) => {
+      const next = { ...current };
+      delete next[slotId];
+      return next;
+    });
+    setSlotErrors((current) => {
+      const next = { ...current };
+      delete next[slotId];
+      return next;
+    });
+  }
+
   return (
     <section className="space-y-3" data-testid="mini-site-template-media-section">
       <div>
         <h4 className="text-sm font-semibold text-slate-800">Media</h4>
         <p className="text-xs text-slate-500" data-testid="mini-site-template-media-helper">
-          Upload images for this template. {MINI_SITE_IMAGE_UPLOAD_HINT}. Images are shown only on the
-          selected template. Pick a file from your device — no URL needed.
+          Upload images directly. Add YouTube or Vimeo links for videos. {MINI_SITE_IMAGE_UPLOAD_HINT}.
+          Media is shown only on the selected template.
         </p>
       </div>
 
       <div className="space-y-3">
         {definition.imageMediaSlots.map((slot) => {
-          const media = getSlotMedia(templateMedia, template, slot.id);
+          const media = getImageSlotMedia(templateMedia, template, slot.id);
           const isUploading = uploadingSlot === slot.id;
           const error = slotErrors[slot.id];
 
@@ -176,7 +254,7 @@ export function MiniSiteTemplateMediaSection({
                   <button
                     type="button"
                     disabled={disabled || isUploading}
-                    onClick={() => void handleRemove(slot.id)}
+                    onClick={() => void handleImageRemove(slot.id)}
                     className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                     data-testid={`mini-site-media-remove-${slot.id}`}
                   >
@@ -214,6 +292,68 @@ export function MiniSiteTemplateMediaSection({
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
                 data-testid={`mini-site-media-alt-${slot.id}`}
               />
+
+              {error ? (
+                <p className="mt-2 text-xs text-rose-600" data-testid={`mini-site-media-error-${slot.id}`}>
+                  {error}
+                </p>
+              ) : null}
+            </div>
+          );
+        })}
+
+        {definition.videoMediaSlots.map((slot) => {
+          const media = getVideoSlotMedia(templateMedia, template, slot.id);
+          const draft = videoDrafts[slot.id] ?? media?.url ?? "";
+          const error = slotErrors[slot.id];
+
+          return (
+            <div
+              key={slot.id}
+              className="rounded-xl border border-slate-200 bg-slate-50/70 p-3"
+              data-testid={`mini-site-media-slot-${slot.id}`}
+            >
+              <p className="text-sm font-medium text-slate-800">{slot.label}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{slot.description}</p>
+
+              <label htmlFor={`mini-site-media-video-${slot.id}`} className="mt-2 block text-xs font-medium text-slate-600">
+                Video link
+              </label>
+              <input
+                id={`mini-site-media-video-${slot.id}`}
+                type="url"
+                value={draft}
+                disabled={disabled}
+                placeholder="https://www.youtube.com/watch?v=..."
+                onChange={(event) => handleVideoDraftChange(slot.id, event.target.value)}
+                onBlur={() => commitVideoUrl(slot.id)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+                data-testid={`mini-site-media-video-input-${slot.id}`}
+              />
+
+              {media ? (
+                <div className="mt-2">
+                  <MiniSiteVideoEmbed
+                    media={media}
+                    variant="preview"
+                    testId={`mini-site-media-preview-${slot.id}`}
+                  />
+                </div>
+              ) : null}
+
+              {media ? (
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => handleVideoRemove(slot.id)}
+                    className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    data-testid={`mini-site-media-remove-${slot.id}`}
+                  >
+                    Remove video
+                  </button>
+                </div>
+              ) : null}
 
               {error ? (
                 <p className="mt-2 text-xs text-rose-600" data-testid={`mini-site-media-error-${slot.id}`}>

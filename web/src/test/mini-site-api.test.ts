@@ -273,6 +273,31 @@ describe("miniSiteApi", () => {
     });
   });
 
+  it("mapMiniSiteConfigToWire includes video media metadata", () => {
+    const wire = mapMiniSiteConfigToWire({
+      ...DEFAULT_MINI_SITE_CONFIG,
+      templateMedia: {
+        clinic: {
+          introVideo: {
+            kind: "video",
+            url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            provider: "youtube",
+            embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            title: "Intro",
+          },
+        },
+      },
+    });
+
+    expect(wire.template_media?.clinic?.introVideo).toEqual({
+      kind: "video",
+      url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      provider: "youtube",
+      embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      title: "Intro",
+    });
+  });
+
   it("mapMiniSiteConfigFromWire preserves template foundation maps", () => {
     const config = mapMiniSiteConfigFromWire({
       ...wireConfig,

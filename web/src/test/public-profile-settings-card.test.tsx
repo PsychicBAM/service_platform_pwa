@@ -213,6 +213,7 @@ describe("PublicProfileSettingsCard", () => {
     expect(await screen.findByTestId("mini-site-template-media-section")).toBeInTheDocument();
     expect(screen.getByTestId("mini-site-template-media-helper")).toHaveTextContent(/12 MB/i);
     expect(screen.getByTestId("mini-site-template-media-helper")).toHaveTextContent(/JPG, PNG, or WebP/i);
+    expect(screen.getByTestId("mini-site-template-media-helper")).toHaveTextContent(/YouTube or Vimeo/i);
     expect(screen.getByTestId("mini-site-media-slot-heroImage")).toBeInTheDocument();
     expect(screen.getByTestId("mini-site-media-slot-servicesImage")).toBeInTheDocument();
     expect(screen.getByTestId("mini-site-media-slot-ctaImage")).toBeInTheDocument();
@@ -254,6 +255,118 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("mini-site-media-slot-heroVisual")).toHaveTextContent("Hero visual");
     expect(screen.getByTestId("mini-site-media-slot-collaborationImage")).toHaveTextContent("Collaboration image");
     expect(screen.queryByTestId("mini-site-media-slot-doctorOrClinicImage")).not.toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-media-slot-showreelVideo")).toHaveTextContent("Showreel video");
+    expect(screen.queryByTestId("mini-site-media-slot-introVideo")).not.toBeInTheDocument();
+  });
+
+  it("shows teacher video slots when teacher template is selected", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "teacher");
+
+    expect(screen.getByTestId("mini-site-media-slot-introVideo")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-media-slot-lessonPreviewVideo")).toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-media-slot-showreelVideo")).not.toBeInTheDocument();
+  });
+
+  it("editing a valid video URL updates draft preview", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "clinic");
+
+    const input = screen.getByTestId("mini-site-media-video-input-introVideo");
+    await user.clear(input);
+    await user.type(input, "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    fireEvent.blur(input);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("mini-site-media-preview-introVideo")).toBeInTheDocument();
+      expect(screen.getByTestId("mini-site-preview-template-introVideo")).toBeInTheDocument();
+    });
+  });
+
+  it("shows validation error for unsupported video URLs", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "clinic");
+
+    const input = screen.getByTestId("mini-site-media-video-input-introVideo");
+    await user.type(input, "https://example.com/video.mp4");
+    fireEvent.blur(input);
+
+    expect(await screen.findByTestId("mini-site-media-error-introVideo")).toHaveTextContent(
+      "Use a YouTube or Vimeo link.",
+    );
+    expect(screen.queryByTestId("mini-site-media-preview-introVideo")).not.toBeInTheDocument();
+  });
+
+  it("clearing video URL hides preview", async () => {
+    const user = userEvent.setup();
+    vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue({
+      ...DEFAULT_MINI_SITE_CONFIG,
+      theme: { ...DEFAULT_MINI_SITE_CONFIG.theme, template: "clinic" },
+      templateMedia: {
+        clinic: {
+          introVideo: {
+            kind: "video",
+            url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            provider: "youtube",
+            embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            title: "",
+          },
+        },
+      },
+    });
+
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-media-preview-introVideo");
+    const input = screen.getByTestId("mini-site-media-video-input-introVideo");
+    await user.clear(input);
+    fireEvent.blur(input);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("mini-site-media-preview-introVideo")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("mini-site-preview-template-introVideo")).not.toBeInTheDocument();
+    });
+  });
+
+  it("save sends templateMedia video metadata", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "clinic");
+
+    const input = screen.getByTestId("mini-site-media-video-input-introVideo");
+    await user.type(input, "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    fireEvent.blur(input);
+    await screen.findByTestId("mini-site-media-preview-introVideo");
+
+    await user.click(screen.getByTestId("public-profile-save-button"));
+
+    await waitFor(() => {
+      expect(miniSiteApi.updateMiniSiteConfig).toHaveBeenCalledWith(
+        BUSINESS_ID,
+        expect.objectContaining({
+          templateMedia: expect.objectContaining({
+            clinic: expect.objectContaining({
+              introVideo: expect.objectContaining({
+                kind: "video",
+                provider: "youtube",
+                embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+              }),
+            }),
+          }),
+        }),
+      );
+    });
   });
 
   it("upload success updates draft preview image", async () => {

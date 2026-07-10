@@ -11,6 +11,8 @@ import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
+import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -483,6 +485,7 @@ export type TeacherAboutSectionProps = TeacherSectionShell & {
   fallbackBody: string | null;
   theme: TeacherTheme;
   isDark: boolean;
+  introVideo?: MiniSiteVideoMedia | null;
 };
 
 export function TeacherAboutSection({
@@ -493,6 +496,7 @@ export function TeacherAboutSection({
   fallbackBody,
   theme,
   isDark,
+  introVideo = null,
 }: TeacherAboutSectionProps) {
   const muted = teacherMutedText(isDark);
   const content = body || fallbackBody;
@@ -530,6 +534,11 @@ export function TeacherAboutSection({
         ) : (
           <p className={`mt-4 text-sm italic ${muted}`}>About text will appear here.</p>
         )}
+        {introVideo ? (
+          <div className={`${isPreview ? "mt-2" : "mt-5"}`}>
+            <MiniSiteVideoEmbed media={introVideo} variant={variant} testId={`${testIdPrefix}-template-introVideo`} />
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -543,6 +552,7 @@ export type TeacherLessonsSectionProps = TeacherSectionShell & {
   theme: TeacherTheme;
   isDark: boolean;
   templateImages?: MiniSiteTemplateImages;
+  lessonPreviewVideo?: MiniSiteVideoMedia | null;
 };
 
 export function TeacherLessonsSection({
@@ -555,6 +565,7 @@ export function TeacherLessonsSection({
   theme,
   isDark,
   templateImages,
+  lessonPreviewVideo = null,
 }: TeacherLessonsSectionProps) {
   const muted = teacherMutedText(isDark);
   const isPreview = variant === "preview";
@@ -595,6 +606,16 @@ export function TeacherLessonsSection({
             </span>
           ) : null}
         </div>
+
+        {lessonPreviewVideo ? (
+          <div className={`${isPreview ? "mb-3" : "mb-6"}`}>
+            <MiniSiteVideoEmbed
+              media={lessonPreviewVideo}
+              variant={variant}
+              testId={`${testIdPrefix}-template-lessonPreviewVideo`}
+            />
+          </div>
+        ) : null}
 
         {servicesImage ? (
           <MiniSiteSectionAccentImage

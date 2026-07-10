@@ -11,6 +11,8 @@ import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
+import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -560,6 +562,7 @@ export type PortfolioWorkSectionProps = PortfolioSectionShell & {
   theme: PortfolioTheme;
   isDark: boolean;
   templateImages?: MiniSiteTemplateImages;
+  showreelVideo?: MiniSiteVideoMedia | null;
 };
 
 export function PortfolioWorkSection({
@@ -572,6 +575,7 @@ export function PortfolioWorkSection({
   theme,
   isDark,
   templateImages,
+  showreelVideo = null,
 }: PortfolioWorkSectionProps) {
   const muted = portfolioMutedText(isDark);
   const isPreview = variant === "preview";
@@ -612,6 +616,16 @@ export function PortfolioWorkSection({
             </span>
           ) : null}
         </div>
+
+        {showreelVideo ? (
+          <div className={`${isPreview ? "mb-3" : "mb-6 md:mb-8"}`}>
+            <MiniSiteVideoEmbed
+              media={showreelVideo}
+              variant={variant}
+              testId={`${testIdPrefix}-template-showreelVideo`}
+            />
+          </div>
+        ) : null}
 
         {servicesImage ? (
           <MiniSiteSectionAccentImage

@@ -10,6 +10,8 @@ import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
+import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import type { MiniSiteBackgroundStyle, MiniSiteCopy, MiniSiteSocialLinks } from "@/types/miniSite";
 import { formatDuration, serviceActionLabel } from "@/utils/format";
 
@@ -333,6 +335,7 @@ export type CleanAboutSectionProps = CleanSectionShell & {
   fallbackBody: string | null;
   theme: CleanTheme;
   isDark: boolean;
+  introVideo?: MiniSiteVideoMedia | null;
 };
 
 export function CleanAboutSection({
@@ -343,6 +346,7 @@ export function CleanAboutSection({
   fallbackBody,
   theme,
   isDark,
+  introVideo = null,
 }: CleanAboutSectionProps) {
   const muted = cleanMutedText(isDark);
   const content = body || fallbackBody;
@@ -373,6 +377,15 @@ export function CleanAboutSection({
       ) : (
         <p className={`text-center text-sm italic ${muted}`}>About text will appear here.</p>
       )}
+      {introVideo ? (
+        <div className={`mx-auto max-w-2xl ${variant === "preview" ? "mt-2" : "mt-6"}`}>
+          <MiniSiteVideoEmbed
+            media={introVideo}
+            variant={variant}
+            testId={`${testIdPrefix}-template-introVideo`}
+          />
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -18,6 +18,8 @@ import type {
 import { formatDuration, serviceActionLabel } from "@/utils/format";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
+import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 
 export type ClinicSectionVariant = "full" | "preview";
 
@@ -603,6 +605,7 @@ export type ClinicAboutSectionProps = ClinicSectionShell & {
   isDark: boolean;
   businessName: string;
   copy: MiniSiteCopy;
+  introVideo?: MiniSiteVideoMedia | null;
 };
 
 export function ClinicAboutSection({
@@ -615,6 +618,7 @@ export function ClinicAboutSection({
   isDark,
   businessName,
   copy,
+  introVideo = null,
 }: ClinicAboutSectionProps) {
   const muted = clinicMutedText(isDark);
   const content = body || fallbackBody;
@@ -692,6 +696,11 @@ export function ClinicAboutSection({
           ) : null}
         </div>
       </div>
+      {introVideo ? (
+        <div className={`${isPreview ? "mt-4" : "mt-8 lg:mt-10"}`}>
+          <MiniSiteVideoEmbed media={introVideo} variant={variant} testId={`${testIdPrefix}-template-introVideo`} />
+        </div>
+      ) : null}
     </section>
   );
 }

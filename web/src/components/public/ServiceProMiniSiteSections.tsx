@@ -12,6 +12,8 @@ import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
+import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -440,6 +442,7 @@ export type ServiceAboutSectionProps = ServiceSectionShell & {
   fallbackBody: string | null;
   theme: ServiceTheme;
   isDark: boolean;
+  introVideo?: MiniSiteVideoMedia | null;
 };
 
 export function ServiceAboutSection({
@@ -450,6 +453,7 @@ export function ServiceAboutSection({
   fallbackBody,
   theme,
   isDark,
+  introVideo = null,
 }: ServiceAboutSectionProps) {
   const muted = serviceMutedText(isDark);
   const content = body || fallbackBody;
@@ -482,6 +486,11 @@ export function ServiceAboutSection({
         ) : (
           <p className={`mt-2 text-sm italic ${muted}`}>About text will appear here.</p>
         )}
+        {introVideo ? (
+          <div className={`${isPreview ? "mt-2" : "mt-4"}`}>
+            <MiniSiteVideoEmbed media={introVideo} variant={variant} testId={`${testIdPrefix}-template-introVideo`} />
+          </div>
+        ) : null}
       </div>
     </section>
   );

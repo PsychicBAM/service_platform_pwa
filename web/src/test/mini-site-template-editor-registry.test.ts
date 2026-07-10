@@ -53,4 +53,17 @@ describe("miniSiteTemplateEditorRegistry", () => {
       "collaborationImage",
     ]);
   });
+
+  it("defines video media slots per template", () => {
+    expect(getMiniSiteTemplateEditorDefinition("clean").videoMediaSlots.map((slot) => slot.id)).toEqual([
+      "introVideo",
+    ]);
+    expect(getMiniSiteTemplateEditorDefinition("portfolio").videoMediaSlots.map((slot) => slot.id)).toEqual([
+      "showreelVideo",
+    ]);
+    expect(getMiniSiteTemplateEditorDefinition("teacher").videoMediaSlots.map((slot) => slot.id)).toEqual([
+      "introVideo",
+      "lessonPreviewVideo",
+    ]);
+  });
 });

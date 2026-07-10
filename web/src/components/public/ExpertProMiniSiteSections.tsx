@@ -11,6 +11,8 @@ import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
+import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -370,6 +372,7 @@ export type ExpertAboutSectionProps = ExpertSectionShell & {
   fallbackBody: string | null;
   theme: ExpertTheme;
   isDark: boolean;
+  introVideo?: MiniSiteVideoMedia | null;
 };
 
 export function ExpertAboutSection({
@@ -380,6 +383,7 @@ export function ExpertAboutSection({
   fallbackBody,
   theme,
   isDark,
+  introVideo = null,
 }: ExpertAboutSectionProps) {
   const muted = expertMutedText(isDark);
   const content = body || fallbackBody;
@@ -415,6 +419,11 @@ export function ExpertAboutSection({
         ) : (
           <p className={`mt-4 text-sm italic ${muted}`}>About text will appear here.</p>
         )}
+        {introVideo ? (
+          <div className={`${isPreview ? "mt-2" : "mt-5"}`}>
+            <MiniSiteVideoEmbed media={introVideo} variant={variant} testId={`${testIdPrefix}-template-introVideo`} />
+          </div>
+        ) : null}
       </div>
     </section>
   );

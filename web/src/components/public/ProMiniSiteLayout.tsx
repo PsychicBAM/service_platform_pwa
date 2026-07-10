@@ -21,6 +21,7 @@ import {
   normalizeMiniSiteConfig,
 } from "@/lib/miniSiteConfig";
 import { getTemplateImageSlots } from "@/lib/miniSiteMedia";
+import { getTemplateVideoSlots } from "@/lib/miniSiteVideo";
 import {
   ClinicAboutSection,
   ClinicBookingCtaSection,
@@ -315,6 +316,7 @@ export function ProMiniSiteLayout({
   const siteConfig = normalizeMiniSiteConfig(config ?? DEFAULT_MINI_SITE_CONFIG);
   const { theme, socialLinks, copy } = siteConfig;
   const templateImages = getTemplateImageSlots(siteConfig.templateMedia, theme.template);
+  const templateVideos = getTemplateVideoSlots(siteConfig.templateMedia, theme.template);
   const enabledSections = getEnabledMiniSiteSections(siteConfig);
   const ctas = getProMiniSiteCtas(business, publicSlug, services);
   const primaryBookingHref = bookingHref ?? ctas.bookingHref;
@@ -473,6 +475,7 @@ export function ProMiniSiteLayout({
             isDark={isDark}
             businessName={business.name}
             copy={copy}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":
@@ -609,6 +612,7 @@ export function ProMiniSiteLayout({
             theme={portfolioTheme}
             isDark={isDark}
             templateImages={templateImages}
+            showreelVideo={templateVideos.showreelVideo ?? null}
           />
         );
       case "trust":
@@ -719,6 +723,7 @@ export function ProMiniSiteLayout({
             fallbackBody={business.description}
             theme={teacherTheme}
             isDark={isDark}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":
@@ -731,6 +736,7 @@ export function ProMiniSiteLayout({
             theme={teacherTheme}
             isDark={isDark}
             templateImages={templateImages}
+            lessonPreviewVideo={templateVideos.lessonPreviewVideo ?? null}
           />
         );
       case "trust":
@@ -842,6 +848,7 @@ export function ProMiniSiteLayout({
             fallbackBody={business.description}
             theme={coachTheme}
             isDark={isDark}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":
@@ -964,6 +971,7 @@ export function ProMiniSiteLayout({
             fallbackBody={business.description}
             theme={expertTheme}
             isDark={isDark}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":
@@ -1086,6 +1094,7 @@ export function ProMiniSiteLayout({
             fallbackBody={business.description}
             theme={serviceTheme}
             isDark={isDark}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":
@@ -1209,6 +1218,7 @@ export function ProMiniSiteLayout({
             fallbackBody={business.description}
             theme={cleanTheme}
             isDark={isDark}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":

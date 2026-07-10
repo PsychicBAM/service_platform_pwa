@@ -27,7 +27,7 @@ export interface MiniSiteImageMediaSlotDefinition {
 export interface MiniSiteVideoMediaSlotDefinition {
   id: string;
   label: string;
-  status: MiniSiteFutureMediaSlotStatus;
+  description: string;
 }
 
 export interface MiniSiteTemplateEditorDefinition {
@@ -78,7 +78,13 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
         ratioHint: "Recommended 1200×600 or wider.",
       },
     ],
-    videoMediaSlots: [],
+    videoMediaSlots: [
+      {
+        id: "introVideo",
+        label: "Intro video",
+        description: "Appears near the about section. Paste a YouTube or Vimeo link.",
+      },
+    ],
   },
   service: {
     template: "service",
@@ -118,7 +124,13 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
         ratioHint: "Recommended 1200×600 or wider.",
       },
     ],
-    videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
+    videoMediaSlots: [
+      {
+        id: "introVideo",
+        label: "Intro video",
+        description: "Appears near the about section or service introduction. Paste a YouTube or Vimeo link.",
+      },
+    ],
   },
   expert: {
     template: "expert",
@@ -164,7 +176,13 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
         ratioHint: "Recommended 1200×600 or wider.",
       },
     ],
-    videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
+    videoMediaSlots: [
+      {
+        id: "introVideo",
+        label: "Intro video",
+        description: "Appears near the about or profile area. Paste a YouTube or Vimeo link.",
+      },
+    ],
   },
   clinic: {
     template: "clinic",
@@ -212,7 +230,13 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
         ratioHint: "Recommended 1200×600 or wider.",
       },
     ],
-    videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
+    videoMediaSlots: [
+      {
+        id: "introVideo",
+        label: "Intro video",
+        description: "Appears near the clinic introduction or appointment area. Paste a YouTube or Vimeo link.",
+      },
+    ],
   },
   portfolio: {
     template: "portfolio",
@@ -259,7 +283,13 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
         ratioHint: "Recommended 1200×600 or wider.",
       },
     ],
-    videoMediaSlots: [{ id: "showreel", label: "Showreel video", status: "coming_soon" }],
+    videoMediaSlots: [
+      {
+        id: "showreelVideo",
+        label: "Showreel video",
+        description: "Appears as a creative showreel block near the work showcase. Paste a YouTube or Vimeo link.",
+      },
+    ],
   },
   teacher: {
     template: "teacher",
@@ -307,7 +337,18 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
         ratioHint: "Recommended 1200×600 or wider.",
       },
     ],
-    videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
+    videoMediaSlots: [
+      {
+        id: "introVideo",
+        label: "Intro video",
+        description: "Appears near the course and lesson introduction. Paste a YouTube or Vimeo link.",
+      },
+      {
+        id: "lessonPreviewVideo",
+        label: "Lesson preview video",
+        description: "Appears near lessons and courses. Paste a YouTube or Vimeo link.",
+      },
+    ],
   },
   coach: {
     template: "coach",
@@ -355,7 +396,13 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
         ratioHint: "Recommended 1200×600 or wider.",
       },
     ],
-    videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
+    videoMediaSlots: [
+      {
+        id: "introVideo",
+        label: "Intro video",
+        description: "Appears near the coaching program or process area. Paste a YouTube or Vimeo link.",
+      },
+    ],
   },
 };
 

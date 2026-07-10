@@ -64,6 +64,7 @@ import {
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
 import { getTemplateImageSlots } from "@/lib/miniSiteMedia";
+import { getTemplateVideoSlots } from "@/lib/miniSiteVideo";
 import {
   getMiniSitePageShellStyle,
   getMiniSitePreviewHeroContentClass,
@@ -130,6 +131,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
     theme.buttonStyle,
   );
   const templateImages = getTemplateImageSlots(config.templateMedia, theme.template);
+  const templateVideos = getTemplateVideoSlots(config.templateMedia, theme.template);
   const viewport = getMiniSitePreviewScaledViewportStyle();
   const pageShellClass = getMiniSitePreviewPageShellClass();
   const pageShellStyle = getMiniSitePageShellStyle(theme.backgroundColor, theme.backgroundStyle);
@@ -332,6 +334,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             fallbackBody={null}
             theme={cleanTheme}
             isDark={isDark}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":
@@ -431,6 +434,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             fallbackBody={null}
             theme={expertTheme}
             isDark={isDark}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":
@@ -533,6 +537,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             isDark={isDark}
             businessName={businessName}
             copy={copy}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":
@@ -636,6 +641,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             fallbackBody={null}
             theme={serviceTheme}
             isDark={isDark}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":
@@ -750,6 +756,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             theme={portfolioTheme}
             isDark={isDark}
             templateImages={templateImages}
+            showreelVideo={templateVideos.showreelVideo ?? null}
           />
         );
       case "trust":
@@ -837,6 +844,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             fallbackBody={null}
             theme={teacherTheme}
             isDark={isDark}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":
@@ -850,6 +858,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             theme={teacherTheme}
             isDark={isDark}
             templateImages={templateImages}
+            lessonPreviewVideo={templateVideos.lessonPreviewVideo ?? null}
           />
         );
       case "trust":
@@ -938,6 +947,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             fallbackBody={null}
             theme={coachTheme}
             isDark={isDark}
+            introVideo={templateVideos.introVideo ?? null}
           />
         );
       case "services":

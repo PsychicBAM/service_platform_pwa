@@ -21,6 +21,7 @@ from app.schemas.mini_site import (
     MiniSiteTheme,
     MiniSiteTrustCard,
 )
+from app.utils.mini_site_video import normalize_video_media_value
 
 # Persisted at Business.settings["mini_site"] as nullable JSON (key absent = no saved config).
 MINI_SITE_SETTINGS_KEY = "mini_site"
@@ -606,6 +607,13 @@ def _normalize_image_media_value(value: object) -> dict[str, Any] | None:
     }
 
 
+def _normalize_media_slot_value(value: object) -> dict[str, Any] | None:
+    image = _normalize_image_media_value(value)
+    if image is not None:
+        return image
+    return normalize_video_media_value(value)
+
+
 def _normalize_template_media_map(input_value: object) -> dict[str, dict[str, Any]]:
     if input_value is None:
         return {}
@@ -626,7 +634,7 @@ def _normalize_template_media_map(input_value: object) -> dict[str, dict[str, An
         for slot_key, slot_value in value.items():
             if not isinstance(slot_key, str) or not slot_key.strip():
                 continue
-            media = _normalize_image_media_value(slot_value)
+            media = _normalize_media_slot_value(slot_value)
             if media is not None:
                 bucket[slot_key.strip()] = media
         result[key] = bucket
