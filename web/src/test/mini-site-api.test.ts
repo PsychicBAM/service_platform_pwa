@@ -248,10 +248,14 @@ describe("miniSiteApi", () => {
           heroVisual: {
             kind: "image",
             url: "/uploads/mini_site/123/hero.webp",
+            thumbnailUrl: "/uploads/mini_site/123/hero_thumb.webp",
             alt: "Hero",
             filename: "hero.webp",
             contentType: "image/webp",
             size: 1200,
+            originalSize: 0,
+            width: 0,
+            height: 0,
           },
         },
       },
@@ -261,6 +265,7 @@ describe("miniSiteApi", () => {
     expect(wire.template_media?.portfolio?.heroVisual).toEqual({
       kind: "image",
       url: "/uploads/mini_site/123/hero.webp",
+      thumbnail_url: "/uploads/mini_site/123/hero_thumb.webp",
       alt: "Hero",
       filename: "hero.webp",
       content_type: "image/webp",
@@ -277,10 +282,14 @@ describe("miniSiteApi", () => {
           heroImage: {
             kind: "image",
             url: "/uploads/mini_site/123/hero.webp",
+            thumbnailUrl: "",
             alt: "Coach hero",
             filename: "hero.webp",
-            content_type: "image/webp",
+            contentType: "image/webp",
             size: 900,
+            originalSize: 0,
+            width: 0,
+            height: 0,
           },
         },
       },
@@ -290,10 +299,14 @@ describe("miniSiteApi", () => {
     expect(config.templateMedia.coach?.heroImage).toEqual({
       kind: "image",
       url: "/uploads/mini_site/123/hero.webp",
+      thumbnailUrl: "",
       alt: "Coach hero",
       filename: "hero.webp",
       contentType: "image/webp",
       size: 900,
+      originalSize: 0,
+      width: 0,
+      height: 0,
     });
   });
 });

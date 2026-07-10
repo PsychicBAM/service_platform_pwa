@@ -80,3 +80,14 @@ def delete_mini_site_upload_file_if_owned(business_id: uuid.UUID, url: str | Non
     path = resolve_mini_site_upload_path(business_id, filename)
     if path.is_file():
         path.unlink()
+
+
+def delete_mini_site_media_files_if_owned(business_id: uuid.UUID, media: object | None) -> None:
+    if not isinstance(media, dict):
+        return
+    seen: set[str] = set()
+    for key in ("url", "thumbnail_url", "thumbnailUrl"):
+        url = media.get(key)
+        if isinstance(url, str) and url and url not in seen:
+            seen.add(url)
+            delete_mini_site_upload_file_if_owned(business_id, url)

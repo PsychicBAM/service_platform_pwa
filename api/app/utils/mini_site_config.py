@@ -549,10 +549,14 @@ def _normalize_image_media_value(value: object) -> dict[str, Any] | None:
             return {
                 "kind": "image",
                 "url": url,
+                "thumbnail_url": "",
                 "alt": "",
                 "filename": "",
                 "content_type": "",
                 "size": 0,
+                "original_size": 0,
+                "width": 0,
+                "height": 0,
             }
         return None
     if not isinstance(value, dict):
@@ -574,13 +578,31 @@ def _normalize_image_media_value(value: object) -> dict[str, Any] | None:
     content_type_raw = value.get("content_type", value.get("contentType"))
     content_type = _sanitize_text(content_type_raw) or ""
 
+    thumbnail_url_raw = value.get("thumbnail_url", value.get("thumbnailUrl"))
+    thumbnail_url = _sanitize_text(thumbnail_url_raw) or ""
+
+    original_size_raw = value.get("original_size", value.get("originalSize"))
+    normalized_original_size = (
+        original_size_raw if isinstance(original_size_raw, int) and original_size_raw >= 0 else 0
+    )
+
+    width_raw = value.get("width")
+    normalized_width = width_raw if isinstance(width_raw, int) and width_raw >= 0 else 0
+
+    height_raw = value.get("height")
+    normalized_height = height_raw if isinstance(height_raw, int) and height_raw >= 0 else 0
+
     return {
         "kind": "image",
         "url": url,
+        "thumbnail_url": thumbnail_url,
         "alt": _sanitize_text(value.get("alt")) or "",
         "filename": _sanitize_text(value.get("filename")) or "",
         "content_type": content_type,
         "size": normalized_size,
+        "original_size": normalized_original_size,
+        "width": normalized_width,
+        "height": normalized_height,
     }
 
 

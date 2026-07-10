@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,12 +25,11 @@ from app.schemas.business import (
 )
 from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite, MiniSiteTemplate
 from app.schemas.mini_site_media import MiniSiteImageMedia, MiniSiteMediaRemoveResponse, MiniSiteMediaUploadResponse
+from app.services.mini_site_image_optimizer import optimize_mini_site_image
 from app.services.mini_site_media_storage import (
-    build_mini_site_image_public_url,
-    delete_mini_site_upload_file_if_owned,
+    delete_mini_site_media_files_if_owned,
     extension_for_content_type,
     mini_site_business_upload_dir,
-    resolve_mini_site_upload_path,
     sanitize_original_filename,
 )
 from app.utils.mini_site_media_slots import (
@@ -105,26 +103,30 @@ class BusinessService:
         if len(content) > MINI_SITE_IMAGE_MAX_BYTES:
             raise ValidationAppError(MINI_SITE_IMAGE_MAX_SIZE_MESSAGE)
 
-        extension = extension_for_content_type(content_type)
-        stored_filename = f"{uuid.uuid4().hex}{extension}"
+        extension_for_content_type(content_type)
         mini_site_business_upload_dir(business.id)
-        destination = resolve_mini_site_upload_path(business.id, stored_filename)
 
         config = read_mini_site_config_from_settings(business.settings)
         existing_bucket = config.template_media.get(template, {})
         existing_entry = existing_bucket.get(slot) if isinstance(existing_bucket, dict) else None
-        existing_url = existing_entry.get("url") if isinstance(existing_entry, dict) else None
-        delete_mini_site_upload_file_if_owned(business.id, existing_url if isinstance(existing_url, str) else None)
+        delete_mini_site_media_files_if_owned(
+            business.id,
+            existing_entry if isinstance(existing_entry, dict) else None,
+        )
 
-        destination.write_bytes(content)
+        optimized = optimize_mini_site_image(business.id, content=content)
 
         media = MiniSiteImageMedia(
             kind="image",
-            url=build_mini_site_image_public_url(business.id, stored_filename),
+            url=optimized.web_url,
+            thumbnail_url=optimized.thumbnail_url,
             alt=(alt or "").replace("<", "").replace(">", "").strip(),
             filename=sanitize_original_filename(original_filename),
-            content_type=content_type,
-            size=len(content),
+            content_type=optimized.content_type,
+            size=optimized.size,
+            original_size=optimized.original_size,
+            width=optimized.width,
+            height=optimized.height,
         )
 
         template_media = dict(config.template_media)
@@ -154,8 +156,10 @@ class BusinessService:
         template_media = dict(config.template_media)
         bucket = dict(template_media.get(template, {}))
         existing_entry = bucket.pop(slot, None)
-        existing_url = existing_entry.get("url") if isinstance(existing_entry, dict) else None
-        delete_mini_site_upload_file_if_owned(business.id, existing_url if isinstance(existing_url, str) else None)
+        delete_mini_site_media_files_if_owned(
+            business.id,
+            existing_entry if isinstance(existing_entry, dict) else None,
+        )
 
         if bucket:
             template_media[template] = bucket

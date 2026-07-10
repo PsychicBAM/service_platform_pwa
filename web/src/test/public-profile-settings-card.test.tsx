@@ -45,10 +45,14 @@ describe("PublicProfileSettingsCard", () => {
       media: {
         kind: "image",
         url: "/uploads/mini_site/test/hero.webp",
+        thumbnailUrl: "/uploads/mini_site/test/hero_thumb.webp",
         alt: "",
         filename: "hero.webp",
         contentType: "image/webp",
         size: 100,
+        originalSize: 5000,
+        width: 1600,
+        height: 900,
       },
     });
     vi.mocked(miniSiteMediaApi.removeMiniSiteMedia).mockResolvedValue(undefined);
@@ -280,10 +284,14 @@ describe("PublicProfileSettingsCard", () => {
           heroImage: {
             kind: "image",
             url: "/uploads/mini_site/test/hero.webp",
+            thumbnailUrl: "/uploads/mini_site/test/hero_thumb.webp",
             alt: "Clinic hero",
             filename: "hero.webp",
             contentType: "image/webp",
             size: 100,
+            originalSize: 5000,
+            width: 1600,
+            height: 900,
           },
         },
       },

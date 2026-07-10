@@ -14,10 +14,14 @@ class MiniSiteImageMedia(BaseModel):
 
     kind: Literal["image"] = "image"
     url: str
+    thumbnail_url: str = ""
     alt: str = ""
     filename: str = ""
     content_type: str = ""
     size: int = 0
+    original_size: int = 0
+    width: int = 0
+    height: int = 0
 
 
 class MiniSiteMediaUploadResponse(BaseModel):

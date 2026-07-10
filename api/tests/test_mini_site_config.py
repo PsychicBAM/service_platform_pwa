@@ -456,3 +456,4 @@ def test_normalize_preserves_structured_template_media_metadata() -> None:
     )
     assert config.template_media["clinic"]["heroImage"]["url"] == "/uploads/mini_site/1/abc.webp"
     assert config.template_media["clinic"]["heroImage"]["content_type"] == "image/webp"
+    assert config.template_media["clinic"]["heroImage"]["thumbnail_url"] == ""

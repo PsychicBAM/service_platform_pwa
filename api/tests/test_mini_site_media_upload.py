@@ -6,11 +6,13 @@ import io
 
 import pytest
 from httpx import AsyncClient
+from PIL import Image
 from sqlalchemy import select
 
 from app.config import get_settings
 from app.models.business import Business
-from app.utils.mini_site_config import read_mini_site_config_from_settings
+from app.services.mini_site_media_storage import parse_mini_site_upload_url, resolve_mini_site_upload_path
+from app.utils.mini_site_config import normalize_mini_site_config, read_mini_site_config_from_settings
 from app.utils.mini_site_media_slots import (
     MINI_SITE_IMAGE_MAX_BYTES,
     MINI_SITE_IMAGE_MAX_SIZE_MESSAGE,
@@ -18,6 +20,16 @@ from app.utils.mini_site_media_slots import (
     is_allowed_mini_site_image_slot,
 )
 from tests.conftest import activate_business, register_and_get_context
+
+
+def _make_test_image_bytes(
+    image_format: str = "JPEG",
+    size: tuple[int, int] = (800, 600),
+) -> bytes:
+    image = Image.new("RGB", size, color=(20, 120, 200))
+    buffer = io.BytesIO()
+    image.save(buffer, format=image_format)
+    return buffer.getvalue()
 
 
 @pytest.fixture
@@ -50,7 +62,7 @@ async def test_upload_rejects_unauthenticated_user(
     response = await async_client.post(
         _upload_path(ctx["business_id"]),
         data={"template": "clinic", "slot": "heroImage"},
-        files={"file": ("hero.jpg", io.BytesIO(b"fakejpeg"), "image/jpeg")},
+        files={"file": ("hero.jpg", io.BytesIO(_make_test_image_bytes()), "image/jpeg")},
     )
 
     assert response.status_code == 401
@@ -69,7 +81,7 @@ async def test_upload_rejects_invalid_slot(
         _upload_path(ctx["business_id"]),
         headers=ctx["headers"],
         data={"template": "clinic", "slot": "notARealSlot"},
-        files={"file": ("hero.jpg", io.BytesIO(b"fakejpeg"), "image/jpeg")},
+        files={"file": ("hero.jpg", io.BytesIO(_make_test_image_bytes()), "image/jpeg")},
     )
 
     assert response.status_code == 400
@@ -95,38 +107,57 @@ async def test_upload_rejects_non_image_content_type(
 
 
 @pytest.mark.asyncio
-async def test_upload_accepts_webp_and_stores_metadata(
+async def test_upload_creates_optimized_webp_with_thumbnail_metadata(
     async_client: AsyncClient,
     db_session,
     mini_site_upload_root,
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-media-upload-ok")
     await activate_business(db_session, ctx["slug"])
+    original_bytes = _make_test_image_bytes("PNG", (2000, 1200))
 
     response = await async_client.post(
         _upload_path(ctx["business_id"]),
         headers=ctx["headers"],
         data={"template": "clinic", "slot": "heroImage", "alt": "Clinic hero"},
-        files={"file": ("hero.webp", io.BytesIO(b"webp-bytes"), "image/webp")},
+        files={"file": ("hero.png", io.BytesIO(original_bytes), "image/png")},
     )
 
     assert response.status_code == 200
     body = response.json()
+    media = body["media"]
     assert body["template"] == "clinic"
     assert body["slot"] == "heroImage"
-    assert body["media"]["kind"] == "image"
-    assert body["media"]["url"].startswith("/uploads/mini_site/")
-    assert body["media"]["alt"] == "Clinic hero"
-    assert body["media"]["content_type"] == "image/webp"
+    assert media["kind"] == "image"
+    assert media["url"].startswith("/uploads/mini_site/")
+    assert media["url"].endswith(".webp")
+    assert media["thumbnail_url"].startswith("/uploads/mini_site/")
+    assert media["thumbnail_url"].endswith("_thumb.webp")
+    assert media["alt"] == "Clinic hero"
+    assert media["content_type"] == "image/webp"
+    assert media["original_size"] == len(original_bytes)
+    assert media["width"] == 1600
+    assert media["height"] == 960
+    assert media["size"] > 0
 
     result = await db_session.execute(select(Business).where(Business.slug == ctx["slug"]))
     business = result.scalar_one()
     config = read_mini_site_config_from_settings(business.settings)
-    assert config.template_media["clinic"]["heroImage"]["url"] == body["media"]["url"]
+    stored = config.template_media["clinic"]["heroImage"]
+    assert stored["url"] == media["url"]
+    assert stored["thumbnail_url"] == media["thumbnail_url"]
+
+    parsed = parse_mini_site_upload_url(media["url"])
+    assert parsed is not None
+    business_id, web_filename = parsed
+    web_path = resolve_mini_site_upload_path(business_id, web_filename)
+    thumb_path = resolve_mini_site_upload_path(business_id, web_filename.replace(".webp", "_thumb.webp"))
+    assert web_path.is_file()
+    assert thumb_path.is_file()
 
 
 @pytest.mark.asyncio
-async def test_remove_clears_slot_and_deletes_file(
+async def test_remove_clears_slot_and_deletes_optimized_files(
     async_client: AsyncClient,
     db_session,
     mini_site_upload_root,
@@ -138,9 +169,15 @@ async def test_remove_clears_slot_and_deletes_file(
         _upload_path(ctx["business_id"]),
         headers=ctx["headers"],
         data={"template": "portfolio", "slot": "heroVisual"},
-        files={"file": ("hero.png", io.BytesIO(b"png-bytes"), "image/png")},
+        files={"file": ("hero.png", io.BytesIO(_make_test_image_bytes()), "image/png")},
     )
     assert upload_response.status_code == 200
+    media = upload_response.json()["media"]
+    parsed = parse_mini_site_upload_url(media["url"])
+    assert parsed is not None
+    business_id, web_filename = parsed
+    web_path = resolve_mini_site_upload_path(business_id, web_filename)
+    thumb_path = resolve_mini_site_upload_path(business_id, web_filename.replace(".webp", "_thumb.webp"))
 
     remove_response = await async_client.delete(
         _remove_path(ctx["business_id"], "portfolio", "heroVisual"),
@@ -152,6 +189,8 @@ async def test_remove_clears_slot_and_deletes_file(
     business = result.scalar_one()
     config = read_mini_site_config_from_settings(business.settings)
     assert "portfolio" not in config.template_media or "heroVisual" not in config.template_media.get("portfolio", {})
+    assert not web_path.is_file()
+    assert not thumb_path.is_file()
 
 
 @pytest.mark.asyncio
@@ -185,6 +224,26 @@ def test_mini_site_slot_allowlist_includes_service_and_booking_slots() -> None:
     assert "servicesImage" in MINI_SITE_IMAGE_MEDIA_SLOTS["teacher"]
 
 
+def test_normalize_legacy_media_without_thumbnail_url() -> None:
+    config = normalize_mini_site_config(
+        {
+            "template_media": {
+                "clinic": {
+                    "heroImage": {
+                        "kind": "image",
+                        "url": "/uploads/mini_site/1/legacy.webp",
+                        "alt": "Legacy",
+                    }
+                }
+            }
+        }
+    )
+    media = config.template_media["clinic"]["heroImage"]
+    assert media["url"] == "/uploads/mini_site/1/legacy.webp"
+    assert media["thumbnail_url"] == ""
+    assert media["original_size"] == 0
+
+
 @pytest.mark.asyncio
 async def test_upload_rejects_oversized_image_with_clear_message(
     async_client: AsyncClient,
@@ -207,7 +266,26 @@ async def test_upload_rejects_oversized_image_with_clear_message(
 
 
 @pytest.mark.asyncio
-async def test_upload_accepts_jpeg_and_png_under_limit(
+async def test_upload_rejects_invalid_image_bytes(
+    async_client: AsyncClient,
+    db_session,
+    mini_site_upload_root,
+) -> None:
+    ctx = await register_and_get_context(async_client, "mini-site-media-invalid-bytes")
+    await activate_business(db_session, ctx["slug"])
+
+    response = await async_client.post(
+        _upload_path(ctx["business_id"]),
+        headers=ctx["headers"],
+        data={"template": "clinic", "slot": "heroImage"},
+        files={"file": ("hero.jpg", io.BytesIO(b"not-a-real-image"), "image/jpeg")},
+    )
+
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_upload_accepts_jpeg_and_png_under_limit_and_optimizes_to_webp(
     async_client: AsyncClient,
     db_session,
     mini_site_upload_root,
@@ -215,12 +293,23 @@ async def test_upload_accepts_jpeg_and_png_under_limit(
     ctx = await register_and_get_context(async_client, "mini-site-media-jpeg-png")
     await activate_business(db_session, ctx["slug"])
 
-    for filename, content_type in (("photo.jpg", "image/jpeg"), ("photo.png", "image/png")):
+    for filename, content_type, image_format in (
+        ("photo.jpg", "image/jpeg", "JPEG"),
+        ("photo.png", "image/png", "PNG"),
+    ):
         response = await async_client.post(
             _upload_path(ctx["business_id"]),
             headers=ctx["headers"],
             data={"template": "clinic", "slot": "servicesImage"},
-            files={"file": (filename, io.BytesIO(b"image-bytes"), content_type)},
+            files={
+                "file": (
+                    filename,
+                    io.BytesIO(_make_test_image_bytes(image_format)),
+                    content_type,
+                )
+            },
         )
         assert response.status_code == 200
-        assert response.json()["media"]["content_type"] == content_type
+        media = response.json()["media"]
+        assert media["content_type"] == "image/webp"
+        assert media["thumbnail_url"].endswith("_thumb.webp")

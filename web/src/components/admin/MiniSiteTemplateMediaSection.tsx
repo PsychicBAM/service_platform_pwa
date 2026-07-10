@@ -11,7 +11,7 @@ import {
   MINI_SITE_IMAGE_UPLOAD_HINT,
   MINI_SITE_IMAGE_MAX_BYTES,
   normalizeMiniSiteImageMedia,
-  resolveMiniSiteMediaUrl,
+  resolveMiniSiteMediaEditorPreviewUrl,
   updateTemplateMediaAlt,
   updateTemplateMediaSlot,
   type MiniSiteImageMedia,
@@ -154,7 +154,7 @@ export function MiniSiteTemplateMediaSection({
               {media ? (
                 <div className="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white">
                   <img
-                    src={resolveMiniSiteMediaUrl(media.url)}
+                    src={resolveMiniSiteMediaEditorPreviewUrl(media)}
                     alt={media.alt || slot.label}
                     className="h-28 w-full object-cover"
                     data-testid={`mini-site-media-preview-${slot.id}`}

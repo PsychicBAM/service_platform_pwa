@@ -3,19 +3,27 @@ import type { MiniSiteTemplate } from "@/types/miniSite";
 export type MiniSiteImageMedia = {
   kind: "image";
   url: string;
+  thumbnailUrl: string;
   alt: string;
   filename: string;
   contentType: string;
   size: number;
+  originalSize: number;
+  width: number;
+  height: number;
 };
 
 export type MiniSiteImageMediaWire = {
   kind: "image";
   url: string;
+  thumbnail_url?: string;
   alt?: string;
   filename?: string;
   content_type?: string;
   size?: number;
+  original_size?: number;
+  width?: number;
+  height?: number;
 };
 
 const ALLOWED_IMAGE_CONTENT_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -41,6 +49,10 @@ export function isAllowedMiniSiteImageFile(file: File): boolean {
   return ALLOWED_IMAGE_CONTENT_TYPES.has(file.type);
 }
 
+function readNonNegativeInt(value: unknown): number {
+  return typeof value === "number" && value >= 0 ? value : 0;
+}
+
 export function normalizeMiniSiteImageMedia(value: unknown): MiniSiteImageMedia | null {
   if (typeof value === "string") {
     const url = value.trim();
@@ -50,10 +62,14 @@ export function normalizeMiniSiteImageMedia(value: unknown): MiniSiteImageMedia 
     return {
       kind: "image",
       url,
+      thumbnailUrl: "",
       alt: "",
       filename: "",
       contentType: "",
       size: 0,
+      originalSize: 0,
+      width: 0,
+      height: 0,
     };
   }
 
@@ -75,16 +91,20 @@ export function normalizeMiniSiteImageMedia(value: unknown): MiniSiteImageMedia 
     return null;
   }
 
-  const size = source.size;
   const contentTypeRaw = source.contentType ?? source.content_type;
+  const thumbnailUrlRaw = source.thumbnailUrl ?? source.thumbnail_url;
 
   return {
     kind: "image",
     url,
+    thumbnailUrl: typeof thumbnailUrlRaw === "string" ? thumbnailUrlRaw.trim() : "",
     alt: typeof source.alt === "string" ? source.alt.trim() : "",
     filename: typeof source.filename === "string" ? source.filename.trim() : "",
     contentType: typeof contentTypeRaw === "string" ? contentTypeRaw.trim() : "",
-    size: typeof size === "number" && size >= 0 ? size : 0,
+    size: readNonNegativeInt(source.size),
+    originalSize: readNonNegativeInt(source.originalSize ?? source.original_size),
+    width: readNonNegativeInt(source.width),
+    height: readNonNegativeInt(source.height),
   };
 }
 
@@ -96,10 +116,14 @@ export function mapMiniSiteImageMediaToWire(media: MiniSiteImageMedia): MiniSite
   return {
     kind: "image",
     url: media.url,
+    thumbnail_url: media.thumbnailUrl || undefined,
     alt: media.alt,
     filename: media.filename,
     content_type: media.contentType,
     size: media.size,
+    original_size: media.originalSize || undefined,
+    width: media.width || undefined,
+    height: media.height || undefined,
   };
 }
 
@@ -177,6 +201,10 @@ export function resolveMiniSiteMediaUrl(url: string): string {
     return url;
   }
   return `/${url}`;
+}
+
+export function resolveMiniSiteMediaEditorPreviewUrl(media: MiniSiteImageMedia): string {
+  return resolveMiniSiteMediaUrl(media.thumbnailUrl || media.url);
 }
 
 export function updateTemplateMediaSlot(
