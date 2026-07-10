@@ -11,7 +11,10 @@ import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
-import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import {
+  MiniSiteHeroMediaCard,
+  MiniSiteTemplateVideoCard,
+} from "@/components/public/MiniSiteTemplateMediaPresentation";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import type {
   MiniSiteBackgroundStyle,
@@ -291,9 +294,12 @@ export function TeacherHeroSection({
           >
             <div className={`min-w-0 ${isPreview ? "space-y-2" : "space-y-5 md:space-y-6"}`}>
               {lessonPreviewImage ? (
-                <MiniSiteSlotImage
+                <MiniSiteHeroMediaCard
                   media={lessonPreviewImage}
-                  className={`w-full max-w-md ${isPreview ? "h-20 rounded-lg" : "h-32 rounded-xl md:h-40"}`}
+                  variant={variant}
+                  tone="teacher"
+                  align="start"
+                  className="max-w-md"
                   testId={`${testIdPrefix}-template-lessonPreviewImage`}
                 />
               ) : null}
@@ -401,11 +407,15 @@ export function TeacherHeroSection({
               <div className={isPreview ? "space-y-3 p-4" : "space-y-4 p-6 lg:p-7"}>
                 <div className="flex items-center gap-4">
                   {courseImage ? (
-                    <MiniSiteSlotImage
-                      media={courseImage}
-                      className={`shrink-0 ${isPreview ? "h-12 w-12" : "h-16 w-16"} ${buttonRadiusClass(theme.buttonStyle)}`}
-                      testId={`${testIdPrefix}-template-courseImage`}
-                    />
+                    <div
+                      className={`shrink-0 overflow-hidden ring-1 ring-slate-200/70 shadow-sm ${buttonRadiusClass(theme.buttonStyle)}`}
+                    >
+                      <MiniSiteSlotImage
+                        media={courseImage}
+                        className={`object-cover ${isPreview ? "h-12 w-12" : "h-16 w-16"}`}
+                        testId={`${testIdPrefix}-template-courseImage`}
+                      />
+                    </div>
                   ) : (
                     <div
                       className={`flex shrink-0 items-center justify-center font-bold text-white ${
@@ -536,7 +546,14 @@ export function TeacherAboutSection({
         )}
         {introVideo ? (
           <div className={`${isPreview ? "mt-2" : "mt-5"}`}>
-            <MiniSiteVideoEmbed media={introVideo} variant={variant} testId={`${testIdPrefix}-template-introVideo`} />
+            <MiniSiteTemplateVideoCard
+              media={introVideo}
+              variant={variant}
+              tone="teacher"
+              label="Course preview"
+              testId={`${testIdPrefix}-template-introVideo`}
+              maxWidthClass="w-full max-w-xl"
+            />
           </div>
         ) : null}
       </div>
@@ -609,10 +626,13 @@ export function TeacherLessonsSection({
 
         {lessonPreviewVideo ? (
           <div className={`${isPreview ? "mb-3" : "mb-6"}`}>
-            <MiniSiteVideoEmbed
+            <MiniSiteTemplateVideoCard
               media={lessonPreviewVideo}
               variant={variant}
+              tone="teacher"
+              label="Lesson preview"
               testId={`${testIdPrefix}-template-lessonPreviewVideo`}
+              maxWidthClass="w-full max-w-xl"
             />
           </div>
         ) : null}
@@ -621,6 +641,8 @@ export function TeacherLessonsSection({
           <MiniSiteSectionAccentImage
             media={servicesImage}
             variant={variant}
+            tone="teacher"
+            layout="banner"
             testId={`${testIdPrefix}-template-servicesImage`}
           />
         ) : null}
@@ -982,21 +1004,24 @@ export function TeacherBookingCtaSection({
             : `linear-gradient(135deg, #ffffff 0%, ${theme.primaryColor}08 50%, #fffbeb 100%)`,
         }}
       >
-        {bookingImage ? (
-          <MiniSiteSectionAccentImage
-            media={bookingImage}
-            variant={variant}
-            testId={`${testIdPrefix}-template-bookingImage`}
-            className={`${isPreview ? "mb-3 max-w-[8rem]" : "mb-0 max-w-xs md:max-w-sm"}`}
-          />
-        ) : null}
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className={`font-semibold ${isPreview ? "text-base" : "text-2xl md:text-3xl lg:text-4xl"}`}>Ready to start learning?</p>
           <p className={`mt-2 max-w-xl ${isPreview ? "text-[11px]" : "text-sm md:text-base lg:text-lg"} ${teacherMutedText(isDark)}`}>
             Book your first lesson or send a question — learning starts with a simple next step.
           </p>
         </div>
-        <div className={`flex w-full shrink-0 flex-col ${isPreview ? "gap-2" : "gap-3 sm:min-w-[16rem] sm:flex-row md:w-auto"}`}>
+        <div className={`flex w-full shrink-0 flex-col gap-4 ${isPreview ? "" : "md:max-w-sm"}`}>
+          {bookingImage ? (
+            <MiniSiteSectionAccentImage
+              media={bookingImage}
+              variant={variant}
+              tone="teacher"
+              layout="cta"
+              testId={`${testIdPrefix}-template-bookingImage`}
+              className="mb-0 w-full"
+            />
+          ) : null}
+          <div className={`flex w-full flex-col ${isPreview ? "gap-2" : "gap-3 sm:flex-row md:flex-col"}`}>
           {renderCtaButton({
             previewButtons,
             label: primaryLabel,
@@ -1015,6 +1040,7 @@ export function TeacherBookingCtaSection({
                 testId: previewButtons ? `${testIdPrefix}-secondary-button` : `${testIdPrefix}-request-cta`,
               })
             : null}
+          </div>
         </div>
       </div>
     </section>

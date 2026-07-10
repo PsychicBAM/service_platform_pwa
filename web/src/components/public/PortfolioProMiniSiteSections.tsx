@@ -11,7 +11,7 @@ import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
-import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import { MiniSiteTemplateVideoCard } from "@/components/public/MiniSiteTemplateMediaPresentation";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import type {
   MiniSiteBackgroundStyle,
@@ -375,7 +375,7 @@ export function PortfolioHeroSection({
             {heroVisual ? (
               <MiniSiteSlotImage
                 media={heroVisual}
-                className="absolute inset-0 h-full w-full"
+                className="absolute inset-0 h-full w-full object-cover"
                 testId={`${testIdPrefix}-template-heroVisual`}
               />
             ) : null}
@@ -396,9 +396,12 @@ export function PortfolioHeroSection({
             >
               <div className="flex items-start justify-between gap-3">
                 {featuredWorkImage && !heroVisual ? (
-                  <MiniSiteSlotImage
+                  <MiniSiteSectionAccentImage
                     media={featuredWorkImage}
-                    className={`shrink-0 ${isPreview ? "h-12 w-12" : "h-16 w-16 md:h-20 md:w-20"} ${buttonRadiusClass(theme.buttonStyle)}`}
+                    variant={variant}
+                    tone="portfolio"
+                    layout="compact"
+                    className={`mb-0 shrink-0 ${isPreview ? "w-12" : "w-16 md:w-20"}`}
                     testId={`${testIdPrefix}-template-featuredWorkImage`}
                   />
                 ) : !heroVisual ? (
@@ -618,11 +621,14 @@ export function PortfolioWorkSection({
         </div>
 
         {showreelVideo ? (
-          <div className={`${isPreview ? "mb-3" : "mb-6 md:mb-8"}`}>
-            <MiniSiteVideoEmbed
+          <div className={`mx-auto ${isPreview ? "mb-3 max-w-full" : "mb-6 max-w-3xl md:mb-8"}`}>
+            <MiniSiteTemplateVideoCard
               media={showreelVideo}
               variant={variant}
+              tone="portfolio"
+              label="Showreel"
               testId={`${testIdPrefix}-template-showreelVideo`}
+              maxWidthClass="w-full"
             />
           </div>
         ) : null}
@@ -631,6 +637,8 @@ export function PortfolioWorkSection({
           <MiniSiteSectionAccentImage
             media={servicesImage}
             variant={variant}
+            tone="portfolio"
+            layout="banner"
             testId={`${testIdPrefix}-template-servicesImage`}
           />
         ) : null}
@@ -993,8 +1001,10 @@ export function PortfolioBookingCtaSection({
             <MiniSiteSectionAccentImage
               media={collaborationImage}
               variant={variant}
+              tone="portfolio"
+              layout="inline"
               testId={`${testIdPrefix}-template-collaborationImage`}
-              className={`shrink-0 ${isPreview ? "max-w-[8rem]" : "max-w-xs md:max-w-sm"}`}
+              className={`mb-0 shrink-0 ${isPreview ? "max-w-[8rem]" : "max-w-xs md:max-w-sm"}`}
             />
           ) : null}
           <div className="min-w-0">

@@ -18,7 +18,10 @@ import type {
 import { formatDuration, serviceActionLabel } from "@/utils/format";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
-import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import {
+  MiniSiteHeroMediaCard,
+  MiniSiteTemplateVideoCard,
+} from "@/components/public/MiniSiteTemplateMediaPresentation";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 
 export type ClinicSectionVariant = "full" | "preview";
@@ -336,9 +339,12 @@ export function ClinicHeroSection({
           >
             <div className={`clinic-hero-copy flex min-w-0 flex-col justify-center ${isPreview ? "space-y-3" : "space-y-6 lg:space-y-7"}`}>
               {heroImage ? (
-                <MiniSiteSlotImage
+                <MiniSiteHeroMediaCard
                   media={heroImage}
-                  className={`w-full max-w-md ${isPreview ? "h-24 rounded-lg" : "h-36 rounded-xl"}`}
+                  variant={variant}
+                  tone="clinic"
+                  align="start"
+                  className="max-w-md"
                   testId={`${testIdPrefix}-template-heroImage`}
                 />
               ) : null}
@@ -467,11 +473,13 @@ export function ClinicHeroSection({
 
                 <div className="flex items-center gap-5">
                   {doctorOrClinicImage ? (
-                    <MiniSiteSlotImage
-                      media={doctorOrClinicImage}
-                      className={`shrink-0 ${isPreview ? "h-14 w-14 rounded-2xl" : "h-20 w-20 rounded-2xl"}`}
-                      testId={`${testIdPrefix}-template-doctorOrClinicImage`}
-                    />
+                    <div className="shrink-0 overflow-hidden rounded-2xl ring-1 ring-slate-200/70 shadow-sm">
+                      <MiniSiteSlotImage
+                        media={doctorOrClinicImage}
+                        className={`object-cover ${isPreview ? "h-14 w-14" : "h-20 w-20"}`}
+                        testId={`${testIdPrefix}-template-doctorOrClinicImage`}
+                      />
+                    </div>
                   ) : (
                   <div
                     className={`flex shrink-0 items-center justify-center rounded-2xl border-2 font-bold ${
@@ -697,8 +705,15 @@ export function ClinicAboutSection({
         </div>
       </div>
       {introVideo ? (
-        <div className={`${isPreview ? "mt-4" : "mt-8 lg:mt-10"}`}>
-          <MiniSiteVideoEmbed media={introVideo} variant={variant} testId={`${testIdPrefix}-template-introVideo`} />
+        <div className={`mx-auto ${isPreview ? "mt-4 max-w-full" : "mt-8 max-w-2xl lg:mt-10"}`}>
+          <MiniSiteTemplateVideoCard
+            media={introVideo}
+            variant={variant}
+            tone="clinic"
+            label="Clinic introduction"
+            testId={`${testIdPrefix}-template-introVideo`}
+            maxWidthClass="w-full"
+          />
         </div>
       ) : null}
     </section>
@@ -777,6 +792,8 @@ export function ClinicServicesSection({
           <MiniSiteSectionAccentImage
             media={servicesImage}
             variant={variant}
+            tone="clinic"
+            layout="banner"
             testId={`${testIdPrefix}-template-servicesImage`}
           />
         ) : null}
@@ -1138,7 +1155,7 @@ export function ClinicBookingCtaSection({
         }}
         data-testid={`${testIdPrefix}-booking-cta-panel`}
       >
-        <div className="w-full min-w-[15rem] flex-1">
+        <div className="w-full flex-1">
           <p
             className={`whitespace-normal font-semibold leading-tight ${isPreview ? "text-base" : "text-3xl md:text-4xl lg:text-[2.75rem]"}`}
             data-testid={`${testIdPrefix}-booking-cta-heading`}
@@ -1149,15 +1166,18 @@ export function ClinicBookingCtaSection({
             Ready to book an appointment? Our care team will help you take the next step.
           </p>
         </div>
-        {appointmentImage ? (
-          <MiniSiteSectionAccentImage
-            media={appointmentImage}
-            variant={variant}
-            testId={`${testIdPrefix}-template-appointmentImage`}
-            className={`w-full ${isPreview ? "mb-0" : "mb-0 lg:max-w-md lg:shrink-0"}`}
-          />
-        ) : null}
-        <div className={`flex w-full shrink-0 flex-col ${isPreview ? "gap-2" : "gap-4 sm:min-w-[20rem] sm:flex-row lg:w-auto"}`}>
+        <div className={`flex w-full shrink-0 flex-col gap-4 ${isPreview ? "" : "lg:max-w-sm"}`}>
+          {appointmentImage ? (
+            <MiniSiteSectionAccentImage
+              media={appointmentImage}
+              variant={variant}
+              tone="clinic"
+              layout="cta"
+              testId={`${testIdPrefix}-template-appointmentImage`}
+              className="mb-0 w-full"
+            />
+          ) : null}
+          <div className={`flex w-full flex-col ${isPreview ? "gap-2" : "gap-4 sm:flex-row lg:flex-col"}`}>
           {renderCtaButton({
             previewButtons,
             label: primaryLabel,
@@ -1176,6 +1196,7 @@ export function ClinicBookingCtaSection({
                 testId: previewButtons ? `${testIdPrefix}-secondary-button` : `${testIdPrefix}-request-cta`,
               })
             : null}
+          </div>
         </div>
       </div>
     </section>

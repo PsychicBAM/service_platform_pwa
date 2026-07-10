@@ -10,9 +10,11 @@ import {
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
-import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
-import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import {
+  MiniSiteHeroMediaCard,
+  MiniSiteTemplateVideoCard,
+} from "@/components/public/MiniSiteTemplateMediaPresentation";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import type {
   MiniSiteBackgroundStyle,
@@ -253,9 +255,12 @@ export function ServiceHeroSection({
       >
         <div className={`min-w-0 ${isPreview ? "space-y-1.5" : "space-y-4 md:space-y-5"}`}>
           {heroImage ? (
-            <MiniSiteSlotImage
+            <MiniSiteHeroMediaCard
               media={heroImage}
-              className={`w-full max-w-md ${isPreview ? "h-20 rounded-lg" : "h-32 rounded-xl md:h-40"}`}
+              variant={variant}
+              tone="service"
+              align="start"
+              className="max-w-md"
               testId={`${testIdPrefix}-template-heroImage`}
             />
           ) : null}
@@ -365,9 +370,12 @@ export function ServiceHeroSection({
           data-testid={`${testIdPrefix}-hero-cta-group`}
         >
           {serviceImage ? (
-            <MiniSiteSlotImage
+            <MiniSiteSectionAccentImage
               media={serviceImage}
-              className={`w-full ${isPreview ? "mb-2 h-20 rounded-md" : "mb-4 h-32 rounded-xl"}`}
+              variant={variant}
+              tone="service"
+              layout="compact"
+              className="mb-0"
               testId={`${testIdPrefix}-template-serviceImage`}
             />
           ) : null}
@@ -488,7 +496,14 @@ export function ServiceAboutSection({
         )}
         {introVideo ? (
           <div className={`${isPreview ? "mt-2" : "mt-4"}`}>
-            <MiniSiteVideoEmbed media={introVideo} variant={variant} testId={`${testIdPrefix}-template-introVideo`} />
+            <MiniSiteTemplateVideoCard
+              media={introVideo}
+              variant={variant}
+              tone="service"
+              label="See how it works"
+              testId={`${testIdPrefix}-template-introVideo`}
+              maxWidthClass="w-full max-w-xl"
+            />
           </div>
         ) : null}
       </div>
@@ -573,6 +588,8 @@ export function ServiceServicesSection({
         <MiniSiteSectionAccentImage
           media={servicesImage}
           variant={variant}
+          tone="service"
+          layout="banner"
           testId={`${testIdPrefix}-template-servicesImage`}
         />
       ) : null}
@@ -907,12 +924,14 @@ export function ServiceBookingCtaSection({
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_55%)]" aria-hidden />
       {requestImage ? (
-        <div className={`relative mx-auto max-w-md ${isPreview ? "mb-2" : "mb-4"}`}>
+        <div className={`relative mx-auto max-w-sm ${isPreview ? "mb-2" : "mb-4"}`}>
           <MiniSiteSectionAccentImage
             media={requestImage}
             variant={variant}
+            tone="service"
+            layout="inline"
             testId={`${testIdPrefix}-template-requestImage`}
-            className="border-white/30 bg-white/10"
+            className="border-white/30 bg-white/10 ring-1 ring-white/20"
           />
         </div>
       ) : null}

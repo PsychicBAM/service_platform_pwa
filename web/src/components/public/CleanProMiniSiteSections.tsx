@@ -8,9 +8,11 @@ import {
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
-import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
-import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import {
+  MiniSiteHeroMediaCard,
+  MiniSiteTemplateVideoCard,
+} from "@/components/public/MiniSiteTemplateMediaPresentation";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import type { MiniSiteBackgroundStyle, MiniSiteCopy, MiniSiteSocialLinks } from "@/types/miniSite";
 import { formatDuration, serviceActionLabel } from "@/utils/format";
@@ -187,9 +189,10 @@ export function CleanHeroSection({
         data-testid={`${testIdPrefix}-hero-content`}
       >
         {heroImage ? (
-          <MiniSiteSlotImage
+          <MiniSiteHeroMediaCard
             media={heroImage}
-            className={`w-full max-w-md ${isPreview ? "h-24 rounded-lg" : "h-36 rounded-xl md:h-44"}`}
+            variant={variant}
+            tone="clean"
             testId={`${testIdPrefix}-template-heroImage`}
           />
         ) : null}
@@ -378,11 +381,14 @@ export function CleanAboutSection({
         <p className={`text-center text-sm italic ${muted}`}>About text will appear here.</p>
       )}
       {introVideo ? (
-        <div className={`mx-auto max-w-2xl ${variant === "preview" ? "mt-2" : "mt-6"}`}>
-          <MiniSiteVideoEmbed
+        <div className={`mx-auto ${variant === "preview" ? "mt-2 max-w-full" : "mt-6 max-w-2xl"}`}>
+          <MiniSiteTemplateVideoCard
             media={introVideo}
             variant={variant}
+            tone="clean"
+            label="Watch intro"
             testId={`${testIdPrefix}-template-introVideo`}
+            maxWidthClass="w-full"
           />
         </div>
       ) : null}
@@ -456,6 +462,8 @@ export function CleanServicesSection({
         <MiniSiteSectionAccentImage
           media={servicesImage}
           variant={variant}
+          tone="clean"
+          layout="banner"
           testId={`${testIdPrefix}-template-servicesImage`}
         />
       ) : null}
@@ -761,23 +769,30 @@ export function CleanBookingCtaSection({
       data-testid="pro-mini-site-booking-cta-section"
       style={{ backgroundColor: `${theme.primaryColor}06` }}
     >
-      {ctaImage ? (
-        <div className={`mx-auto max-w-xl ${variant === "preview" ? "mb-2 px-1" : "mb-4 px-4"}`}>
+      <div
+        className={`mx-auto flex max-w-3xl flex-col items-center gap-4 ${
+          variant === "preview" ? "px-1" : "px-4 md:flex-row md:items-center md:justify-center md:gap-8"
+        }`}
+      >
+        {ctaImage ? (
           <MiniSiteSectionAccentImage
             media={ctaImage}
             variant={variant}
+            tone="clean"
+            layout="cta"
+            className="mb-0 w-full max-w-sm shrink-0"
             testId={`${testIdPrefix}-template-ctaImage`}
           />
-        </div>
-      ) : null}
-      <Link
-        to={href}
-        className={presentation.primaryButtonClass}
-        data-testid="pro-mini-site-booking-cta-link"
-        style={{ backgroundColor: theme.primaryColor }}
-      >
-        {label}
-      </Link>
+        ) : null}
+        <Link
+          to={href}
+          className={`${presentation.primaryButtonClass} shrink-0`}
+          data-testid="pro-mini-site-booking-cta-link"
+          style={{ backgroundColor: theme.primaryColor }}
+        >
+          {label}
+        </Link>
+      </div>
     </section>
   );
 }

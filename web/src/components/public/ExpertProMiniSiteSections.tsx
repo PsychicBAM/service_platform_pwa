@@ -9,9 +9,12 @@ import {
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
-import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
-import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
+import {
+  MiniSiteHeroMediaCard,
+  MiniSiteProfileMediaCard,
+  MiniSiteTemplateVideoCard,
+} from "@/components/public/MiniSiteTemplateMediaPresentation";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import type {
   MiniSiteBackgroundStyle,
@@ -243,9 +246,12 @@ export function ExpertHeroSection({
           </p>
 
           {heroImage ? (
-            <MiniSiteSlotImage
+            <MiniSiteHeroMediaCard
               media={heroImage}
-              className={`mx-auto w-full max-w-xs ${isPreview ? "h-16 rounded-lg md:mx-0" : "h-24 rounded-xl md:mx-0 md:h-32"}`}
+              variant={variant}
+              tone="expert"
+              align="start"
+              className="max-w-xs md:mx-0"
               testId={`${testIdPrefix}-template-heroImage`}
             />
           ) : null}
@@ -313,9 +319,9 @@ export function ExpertHeroSection({
           aria-hidden={false}
         >
           {profileImage ? (
-            <MiniSiteSlotImage
+            <MiniSiteProfileMediaCard
               media={profileImage}
-              className={`object-cover ${isPreview ? "h-16 w-16 rounded-full" : "h-24 w-24 rounded-full md:h-28 md:w-28"}`}
+              variant={variant}
               testId={`${testIdPrefix}-template-profileImage`}
             />
           ) : business.logo_url ? (
@@ -420,8 +426,15 @@ export function ExpertAboutSection({
           <p className={`mt-4 text-sm italic ${muted}`}>About text will appear here.</p>
         )}
         {introVideo ? (
-          <div className={`${isPreview ? "mt-2" : "mt-5"}`}>
-            <MiniSiteVideoEmbed media={introVideo} variant={variant} testId={`${testIdPrefix}-template-introVideo`} />
+          <div className={`mx-auto ${isPreview ? "mt-2 max-w-full" : "mt-5 max-w-xl"}`}>
+            <MiniSiteTemplateVideoCard
+              media={introVideo}
+              variant={variant}
+              tone="expert"
+              label="Introduction"
+              testId={`${testIdPrefix}-template-introVideo`}
+              maxWidthClass="w-full"
+            />
           </div>
         ) : null}
       </div>
@@ -496,6 +509,8 @@ export function ExpertServicesSection({
         <MiniSiteSectionAccentImage
           media={servicesImage}
           variant={variant}
+          tone="expert"
+          layout="banner"
           testId={`${testIdPrefix}-template-servicesImage`}
           className="mx-auto max-w-4xl"
         />
@@ -826,8 +841,10 @@ export function ExpertBookingCtaSection({
           <MiniSiteSectionAccentImage
             media={bookingImage}
             variant={variant}
+            tone="expert"
+            layout="cta"
             testId={`${testIdPrefix}-template-bookingImage`}
-            className="mx-auto mb-3 max-w-md"
+            className="mx-auto mb-3 max-w-sm"
           />
         ) : null}
         <p className={`font-semibold tracking-tight ${isPreview ? "text-sm" : "text-2xl md:text-3xl"} ${isDark ? "text-slate-100" : "text-slate-900"}`}>
