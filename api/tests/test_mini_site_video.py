@@ -39,17 +39,21 @@ def test_normalize_video_media_value_from_url() -> None:
 
 def test_invalid_video_media_returns_none() -> None:
     assert normalize_video_media_value({"kind": "video", "url": "https://example.com/video"}) is None
-    assert (
-        normalize_video_media_value(
-            {
-                "kind": "video",
-                "url": "https://youtube.com/watch?v=1",
-                "provider": "youtube",
-                "embed_url": "https://evil.com/embed/1",
-            },
-        )
-        is None
+
+
+def test_malicious_supplied_embed_url_is_ignored_for_valid_youtube_url() -> None:
+    normalized = normalize_video_media_value(
+        {
+            "kind": "video",
+            "url": "https://youtube.com/watch?v=1",
+            "provider": "youtube",
+            "embed_url": "https://evil.com/embed/1",
+        },
     )
+    assert normalized is not None
+    assert normalized["provider"] == "youtube"
+    assert normalized["embed_url"] == "https://www.youtube.com/embed/1"
+    assert "evil.com" not in normalized["embed_url"]
 
 
 def test_allowed_embed_url_host_check() -> None:
