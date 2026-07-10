@@ -278,13 +278,14 @@ describe("PublicProfileSettingsCard", () => {
     await screen.findByTestId("mini-site-template");
     await user.selectOptions(screen.getByTestId("mini-site-template"), "clinic");
 
+    await user.click(screen.getByTestId("mini-site-media-edit-introVideo"));
     const input = screen.getByTestId("mini-site-media-video-input-introVideo");
     await user.clear(input);
     await user.type(input, "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
     fireEvent.blur(input);
 
     await waitFor(() => {
-      expect(screen.getByTestId("mini-site-media-preview-introVideo")).toBeInTheDocument();
+      expect(screen.getByTestId("mini-site-media-preview-introVideo")).toHaveTextContent("YouTube link added");
       expect(screen.getByTestId("mini-site-preview-template-introVideo")).toBeInTheDocument();
     });
   });
@@ -296,6 +297,7 @@ describe("PublicProfileSettingsCard", () => {
     await screen.findByTestId("mini-site-template");
     await user.selectOptions(screen.getByTestId("mini-site-template"), "clinic");
 
+    await user.click(screen.getByTestId("mini-site-media-edit-introVideo"));
     const input = screen.getByTestId("mini-site-media-video-input-introVideo");
     await user.type(input, "https://example.com/video.mp4");
     fireEvent.blur(input);
@@ -327,6 +329,7 @@ describe("PublicProfileSettingsCard", () => {
     renderPublicProfileCard("pro");
 
     await screen.findByTestId("mini-site-media-preview-introVideo");
+    await user.click(screen.getByTestId("mini-site-media-edit-introVideo"));
     const input = screen.getByTestId("mini-site-media-video-input-introVideo");
     await user.clear(input);
     fireEvent.blur(input);
@@ -344,6 +347,7 @@ describe("PublicProfileSettingsCard", () => {
     await screen.findByTestId("mini-site-template");
     await user.selectOptions(screen.getByTestId("mini-site-template"), "clinic");
 
+    await user.click(screen.getByTestId("mini-site-media-edit-introVideo"));
     const input = screen.getByTestId("mini-site-media-video-input-introVideo");
     await user.type(input, "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
     fireEvent.blur(input);
@@ -382,7 +386,7 @@ describe("PublicProfileSettingsCard", () => {
 
     await waitFor(() => {
       expect(miniSiteMediaApi.uploadMiniSiteMedia).toHaveBeenCalled();
-      expect(screen.getByTestId("mini-site-media-preview-heroImage")).toBeInTheDocument();
+      expect(screen.getByTestId("mini-site-media-preview-heroImage")).toHaveTextContent("hero.webp");
       expect(screen.getByTestId("mini-site-preview-template-heroImage")).toBeInTheDocument();
     });
   });
