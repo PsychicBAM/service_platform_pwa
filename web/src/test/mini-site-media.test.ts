@@ -70,7 +70,6 @@ describe("miniSiteMedia helpers", () => {
     ).toEqual({
       kind: "image",
       url: "/uploads/mini_site/1/legacy.webp",
-      thumbnailUrl: "",
       alt: "Legacy",
       filename: "",
       contentType: "",
