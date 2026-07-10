@@ -10,6 +10,7 @@ import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresent
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
+import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -426,6 +427,7 @@ export type ExpertServicesSectionProps = ExpertSectionShell & {
   publicSlug: string;
   theme: ExpertTheme;
   isDark: boolean;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function ExpertServicesSection({
@@ -437,9 +439,11 @@ export function ExpertServicesSection({
   publicSlug,
   theme,
   isDark,
+  templateImages,
 }: ExpertServicesSectionProps) {
   const muted = expertMutedText(isDark);
   const isPreview = variant === "preview";
+  const servicesImage = templateImages?.servicesImage ?? null;
 
   return (
     <section
@@ -478,6 +482,15 @@ export function ExpertServicesSection({
           Sessions and consultations designed for focused, personal guidance.
         </p>
       </div>
+
+      {servicesImage ? (
+        <MiniSiteSectionAccentImage
+          media={servicesImage}
+          variant={variant}
+          testId={`${testIdPrefix}-template-servicesImage`}
+          className="mx-auto max-w-4xl"
+        />
+      ) : null}
 
       {services && services.length > 0 ? (
         <div className={`mx-auto grid max-w-4xl gap-4 ${isPreview ? "" : "sm:grid-cols-2 lg:gap-6"}`}>
@@ -764,6 +777,7 @@ export type ExpertBookingCtaSectionProps = ExpertSectionShell & {
   showSecondary?: boolean;
   theme: ExpertTheme;
   presentation: MiniSiteTemplatePresentation;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function ExpertBookingCtaSection({
@@ -777,10 +791,12 @@ export function ExpertBookingCtaSection({
   showSecondary = false,
   theme,
   presentation,
+  templateImages,
 }: ExpertBookingCtaSectionProps) {
   const isPreview = variant === "preview";
   const isDark = theme.backgroundStyle === "dark";
   const showSecondaryCta = showSecondary && hasMeaningfulText(secondaryLabel ?? "") && secondaryHref;
+  const bookingImage = templateImages?.bookingImage ?? null;
 
   return (
     <section
@@ -797,6 +813,14 @@ export function ExpertBookingCtaSection({
             : `linear-gradient(180deg, ${theme.primaryColor}08 0%, ${theme.accentColor}06 100%)`,
         }}
       >
+        {bookingImage ? (
+          <MiniSiteSectionAccentImage
+            media={bookingImage}
+            variant={variant}
+            testId={`${testIdPrefix}-template-bookingImage`}
+            className="mx-auto mb-3 max-w-md"
+          />
+        ) : null}
         <p className={`font-semibold tracking-tight ${isPreview ? "text-sm" : "text-2xl md:text-3xl"} ${isDark ? "text-slate-100" : "text-slate-900"}`}>
           Ready for a session?
         </p>

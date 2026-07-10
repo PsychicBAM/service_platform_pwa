@@ -10,6 +10,7 @@ import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresent
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
+import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -538,6 +539,7 @@ export type CoachProgramsSectionProps = CoachSectionShell & {
   publicSlug: string;
   theme: CoachTheme;
   isDark: boolean;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function CoachProgramsSection({
@@ -549,10 +551,12 @@ export function CoachProgramsSection({
   publicSlug,
   theme,
   isDark,
+  templateImages,
 }: CoachProgramsSectionProps) {
   const muted = coachMutedText(isDark);
   const isPreview = variant === "preview";
   const sectionTitle = title || "Coaching programs";
+  const servicesImage = templateImages?.servicesImage ?? null;
 
   return (
     <section
@@ -586,6 +590,14 @@ export function CoachProgramsSection({
             </span>
           ) : null}
         </div>
+
+        {servicesImage ? (
+          <MiniSiteSectionAccentImage
+            media={servicesImage}
+            variant={variant}
+            testId={`${testIdPrefix}-template-servicesImage`}
+          />
+        ) : null}
 
         {services && services.length > 0 ? (
           <div className={`grid gap-4 ${isPreview ? "" : "md:grid-cols-2 md:gap-6"}`}>
@@ -896,6 +908,7 @@ export type CoachBookingCtaSectionProps = CoachSectionShell & {
   showSecondary?: boolean;
   theme: CoachTheme;
   presentation: MiniSiteTemplatePresentation;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function CoachBookingCtaSection({
@@ -909,10 +922,12 @@ export function CoachBookingCtaSection({
   showSecondary = false,
   theme,
   presentation,
+  templateImages,
 }: CoachBookingCtaSectionProps) {
   const isPreview = variant === "preview";
   const isDark = theme.backgroundStyle === "dark";
   const showSecondaryCta = showSecondary && hasMeaningfulText(secondaryLabel ?? "") && secondaryHref;
+  const bookingImage = templateImages?.bookingImage ?? null;
 
   return (
     <section className={`${COACH_CONTAINER} ${isPreview ? "py-4" : "py-10 md:py-14"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
@@ -926,6 +941,14 @@ export function CoachBookingCtaSection({
             : `linear-gradient(135deg, ${theme.primaryColor} 0%, ${theme.accentColor}dd 100%)`,
         }}
       >
+        {bookingImage ? (
+          <MiniSiteSectionAccentImage
+            media={bookingImage}
+            variant={variant}
+            testId={`${testIdPrefix}-template-bookingImage`}
+            className={`shrink-0 border-white/30 bg-white/10 ${isPreview ? "max-w-[8rem]" : "max-w-xs md:max-w-sm"}`}
+          />
+        ) : null}
         <div className="min-w-0 text-white">
           <p className={`font-bold leading-tight ${isPreview ? "text-base" : "text-2xl md:text-3xl lg:text-4xl"}`}>
             Start your coaching journey

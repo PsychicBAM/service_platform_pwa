@@ -485,6 +485,7 @@ export function ProMiniSiteLayout({
             theme={clinicTheme}
             isDark={isDark}
             primaryCtaLabel={primaryCtaLabel}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -534,6 +535,7 @@ export function ProMiniSiteLayout({
             showSecondary={ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel)}
             theme={clinicTheme}
             presentation={presentation}
+            templateImages={templateImages}
           />
         );
       case "gallery":
@@ -606,6 +608,7 @@ export function ProMiniSiteLayout({
             publicSlug={publicSlug}
             theme={portfolioTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -654,6 +657,7 @@ export function ProMiniSiteLayout({
             showSecondary={ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel)}
             theme={portfolioTheme}
             presentation={presentation}
+            templateImages={templateImages}
           />
         );
       case "gallery":
@@ -726,6 +730,7 @@ export function ProMiniSiteLayout({
             publicSlug={publicSlug}
             theme={teacherTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -775,6 +780,7 @@ export function ProMiniSiteLayout({
             showSecondary={ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel)}
             theme={teacherTheme}
             presentation={presentation}
+            templateImages={templateImages}
           />
         );
       case "gallery":
@@ -847,6 +853,7 @@ export function ProMiniSiteLayout({
             publicSlug={publicSlug}
             theme={coachTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -896,6 +903,7 @@ export function ProMiniSiteLayout({
             showSecondary={ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel)}
             theme={coachTheme}
             presentation={presentation}
+            templateImages={templateImages}
           />
         );
       case "gallery":
@@ -967,6 +975,7 @@ export function ProMiniSiteLayout({
             publicSlug={publicSlug}
             theme={expertTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -1014,6 +1023,7 @@ export function ProMiniSiteLayout({
             showSecondary={ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel)}
             theme={expertTheme}
             presentation={presentation}
+            templateImages={templateImages}
           />
         );
       case "gallery":
@@ -1087,6 +1097,7 @@ export function ProMiniSiteLayout({
             publicSlug={publicSlug}
             theme={serviceTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -1136,6 +1147,7 @@ export function ProMiniSiteLayout({
             showSecondary={ctas.showRequestCta && hasMeaningfulText(secondaryCtaLabel)}
             theme={serviceTheme}
             presentation={presentation}
+            templateImages={templateImages}
           />
         );
       case "gallery":
@@ -1208,6 +1220,7 @@ export function ProMiniSiteLayout({
             publicSlug={publicSlug}
             theme={cleanTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust": {
@@ -1255,6 +1268,7 @@ export function ProMiniSiteLayout({
             href={primaryBookingHref}
             theme={cleanTheme}
             presentation={presentation}
+            templateImages={templateImages}
           />
         );
       case "gallery":

@@ -9,6 +9,7 @@ import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresent
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
+import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import type { MiniSiteBackgroundStyle, MiniSiteCopy, MiniSiteSocialLinks } from "@/types/miniSite";
 import { formatDuration, serviceActionLabel } from "@/utils/format";
 
@@ -383,6 +384,7 @@ export type CleanServicesSectionProps = CleanSectionShell & {
   publicSlug: string;
   theme: CleanTheme;
   isDark: boolean;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function CleanServicesSection({
@@ -394,11 +396,13 @@ export function CleanServicesSection({
   publicSlug,
   theme,
   isDark,
+  templateImages,
 }: CleanServicesSectionProps) {
   const muted = cleanMutedText(isDark);
   const panelClass = isDark
     ? "border-slate-700/60 bg-slate-900/25"
     : "border-slate-200/55 bg-white/75 shadow-sm shadow-slate-900/[0.03] backdrop-blur-sm";
+  const servicesImage = templateImages?.servicesImage ?? null;
 
   return (
     <section
@@ -434,6 +438,14 @@ export function CleanServicesSection({
           </span>
         ) : null}
       </div>
+
+      {servicesImage ? (
+        <MiniSiteSectionAccentImage
+          media={servicesImage}
+          variant={variant}
+          testId={`${testIdPrefix}-template-servicesImage`}
+        />
+      ) : null}
 
       {services && services.length > 0 ? (
         <div className={`divide-y ${cleanDivider(isDark)} overflow-hidden rounded-2xl border ${panelClass}`}>
@@ -716,21 +728,35 @@ export type CleanBookingCtaSectionProps = CleanSectionShell & {
   href: string;
   theme: CleanTheme;
   presentation: MiniSiteTemplatePresentation;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function CleanBookingCtaSection({
   variant = "full",
+  testIdPrefix = "pro-mini-site",
   label,
   href,
   theme,
   presentation,
+  templateImages,
 }: CleanBookingCtaSectionProps) {
+  const ctaImage = templateImages?.ctaImage ?? null;
+
   return (
     <section
       className={`border-t border-slate-200/60 py-10 text-center ${variant === "preview" ? "py-4" : "md:py-14"}`}
       data-testid="pro-mini-site-booking-cta-section"
       style={{ backgroundColor: `${theme.primaryColor}06` }}
     >
+      {ctaImage ? (
+        <div className={`mx-auto max-w-xl ${variant === "preview" ? "mb-2 px-1" : "mb-4 px-4"}`}>
+          <MiniSiteSectionAccentImage
+            media={ctaImage}
+            variant={variant}
+            testId={`${testIdPrefix}-template-ctaImage`}
+          />
+        </div>
+      ) : null}
       <Link
         to={href}
         className={presentation.primaryButtonClass}

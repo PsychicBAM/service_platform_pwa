@@ -20,6 +20,15 @@ export type MiniSiteImageMediaWire = {
 
 const ALLOWED_IMAGE_CONTENT_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
+export const MINI_SITE_IMAGE_MAX_BYTES = 12 * 1024 * 1024;
+export const MINI_SITE_IMAGE_MAX_MB = 12;
+export const MINI_SITE_IMAGE_ACCEPT = "image/jpeg,image/png,image/webp";
+export const MINI_SITE_IMAGE_TYPES_LABEL = "JPG, PNG, or WebP";
+export const MINI_SITE_IMAGE_SIZE_LABEL = `up to ${MINI_SITE_IMAGE_MAX_MB} MB`;
+export const MINI_SITE_IMAGE_UPLOAD_HINT = `${MINI_SITE_IMAGE_TYPES_LABEL} ${MINI_SITE_IMAGE_SIZE_LABEL}`;
+export const MINI_SITE_IMAGE_TOO_LARGE_MESSAGE = `Image is too large. Maximum size is ${MINI_SITE_IMAGE_MAX_MB} MB.`;
+export const MINI_SITE_IMAGE_INVALID_TYPE_MESSAGE = `Only ${MINI_SITE_IMAGE_UPLOAD_HINT} are supported.`;
+
 export type MiniSiteTemplateImages = Partial<Record<string, MiniSiteImageMedia>>;
 
 /** Per-template media bucket keyed by slot id (e.g. heroImage). */

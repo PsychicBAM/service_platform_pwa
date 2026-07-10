@@ -17,6 +17,7 @@ import type {
 } from "@/types/miniSite";
 import { formatDuration, serviceActionLabel } from "@/utils/format";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
+import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 
 export type ClinicSectionVariant = "full" | "preview";
 
@@ -703,6 +704,7 @@ export type ClinicServicesSectionProps = ClinicSectionShell & {
   theme: ClinicTheme;
   isDark: boolean;
   primaryCtaLabel: string;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function ClinicServicesSection({
@@ -715,10 +717,12 @@ export function ClinicServicesSection({
   theme,
   isDark,
   primaryCtaLabel,
+  templateImages,
 }: ClinicServicesSectionProps) {
   const muted = clinicMutedText(isDark);
   const isPreview = variant === "preview";
   const sectionTitle = title || "Our services";
+  const servicesImage = templateImages?.servicesImage ?? null;
 
   return (
     <section
@@ -759,6 +763,14 @@ export function ClinicServicesSection({
             </span>
           ) : null}
         </div>
+
+        {servicesImage ? (
+          <MiniSiteSectionAccentImage
+            media={servicesImage}
+            variant={variant}
+            testId={`${testIdPrefix}-template-servicesImage`}
+          />
+        ) : null}
 
         {services && services.length > 0 ? (
           <div className={`grid gap-5 ${isPreview ? "" : "md:grid-cols-2 md:gap-8 lg:gap-10"}`}>
@@ -1083,6 +1095,7 @@ export type ClinicBookingCtaSectionProps = ClinicSectionShell & {
   showSecondary?: boolean;
   theme: ClinicTheme;
   presentation: MiniSiteTemplatePresentation;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function ClinicBookingCtaSection({
@@ -1096,10 +1109,12 @@ export function ClinicBookingCtaSection({
   showSecondary = false,
   theme,
   presentation,
+  templateImages,
 }: ClinicBookingCtaSectionProps) {
   const isPreview = variant === "preview";
   const isDark = theme.backgroundStyle === "dark";
   const showSecondaryCta = showSecondary && hasMeaningfulText(secondaryLabel ?? "") && secondaryHref;
+  const appointmentImage = templateImages?.appointmentImage ?? null;
 
   return (
     <section className={`${clinicContainerClass(isPreview)} ${isPreview ? "py-4" : "py-12 lg:py-16"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
@@ -1113,6 +1128,14 @@ export function ClinicBookingCtaSection({
             : `linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, ${theme.primaryColor}05 100%)`,
         }}
       >
+        {appointmentImage ? (
+          <MiniSiteSectionAccentImage
+            media={appointmentImage}
+            variant={variant}
+            testId={`${testIdPrefix}-template-appointmentImage`}
+            className={`${isPreview ? "mb-3" : "mb-6"} max-w-md`}
+          />
+        ) : null}
         <div className="min-w-0 flex-1">
           <p className={`font-semibold leading-tight ${isPreview ? "text-base" : "text-3xl md:text-4xl lg:text-[2.75rem]"}`}>Schedule your visit</p>
           <p className={`mt-3 max-w-2xl leading-relaxed ${isPreview ? "text-xs" : "text-lg md:text-xl"} ${clinicMutedText(isDark)}`}>

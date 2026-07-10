@@ -344,6 +344,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             publicSlug=""
             theme={cleanTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -442,6 +443,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             publicSlug=""
             theme={expertTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -544,6 +546,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             theme={clinicTheme}
             isDark={isDark}
             primaryCtaLabel={primaryCtaLabel}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -645,6 +648,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             publicSlug=""
             theme={serviceTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -745,6 +749,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             publicSlug=""
             theme={portfolioTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -844,6 +849,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             publicSlug=""
             theme={teacherTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":
@@ -944,6 +950,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             publicSlug=""
             theme={coachTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "trust":

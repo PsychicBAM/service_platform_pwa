@@ -11,6 +11,7 @@ import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresent
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
+import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -493,6 +494,7 @@ export type ServiceServicesSectionProps = ServiceSectionShell & {
   publicSlug: string;
   theme: ServiceTheme;
   isDark: boolean;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function ServiceServicesSection({
@@ -504,9 +506,11 @@ export function ServiceServicesSection({
   publicSlug,
   theme,
   isDark,
+  templateImages,
 }: ServiceServicesSectionProps) {
   const muted = serviceMutedText(isDark);
   const isPreview = variant === "preview";
+  const servicesImage = templateImages?.servicesImage ?? null;
 
   return (
     <section
@@ -555,6 +559,14 @@ export function ServiceServicesSection({
           Choose a service below and book online or request a quote in minutes.
         </p>
       </div>
+
+      {servicesImage ? (
+        <MiniSiteSectionAccentImage
+          media={servicesImage}
+          variant={variant}
+          testId={`${testIdPrefix}-template-servicesImage`}
+        />
+      ) : null}
 
       {services && services.length > 0 ? (
         <div className={`grid gap-4 ${isPreview ? "" : "sm:grid-cols-2 lg:gap-6"}`}>
@@ -856,6 +868,7 @@ export type ServiceBookingCtaSectionProps = ServiceSectionShell & {
   showSecondary?: boolean;
   theme: ServiceTheme;
   presentation: MiniSiteTemplatePresentation;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function ServiceBookingCtaSection({
@@ -869,9 +882,11 @@ export function ServiceBookingCtaSection({
   showSecondary = false,
   theme,
   presentation,
+  templateImages,
 }: ServiceBookingCtaSectionProps) {
   const isPreview = variant === "preview";
   const showSecondaryCta = showSecondary && hasMeaningfulText(secondaryLabel ?? "") && secondaryHref;
+  const requestImage = templateImages?.requestImage ?? null;
 
   return (
     <section
@@ -882,6 +897,16 @@ export function ServiceBookingCtaSection({
       data-testid={`${testIdPrefix}-booking-cta-section`}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_55%)]" aria-hidden />
+      {requestImage ? (
+        <div className={`relative mx-auto max-w-md ${isPreview ? "mb-2" : "mb-4"}`}>
+          <MiniSiteSectionAccentImage
+            media={requestImage}
+            variant={variant}
+            testId={`${testIdPrefix}-template-requestImage`}
+            className="border-white/30 bg-white/10"
+          />
+        </div>
+      ) : null}
       <p className={`relative font-black text-white ${isPreview ? "text-sm" : "text-2xl md:text-3xl"}`}>
         Ready to get started?
       </p>

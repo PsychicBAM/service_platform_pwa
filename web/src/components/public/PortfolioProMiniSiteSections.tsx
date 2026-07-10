@@ -10,6 +10,7 @@ import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresent
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
+import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -558,6 +559,7 @@ export type PortfolioWorkSectionProps = PortfolioSectionShell & {
   publicSlug: string;
   theme: PortfolioTheme;
   isDark: boolean;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function PortfolioWorkSection({
@@ -569,10 +571,12 @@ export function PortfolioWorkSection({
   publicSlug,
   theme,
   isDark,
+  templateImages,
 }: PortfolioWorkSectionProps) {
   const muted = portfolioMutedText(isDark);
   const isPreview = variant === "preview";
   const sectionTitle = title || "Work & services";
+  const servicesImage = templateImages?.servicesImage ?? null;
 
   return (
     <section
@@ -608,6 +612,14 @@ export function PortfolioWorkSection({
             </span>
           ) : null}
         </div>
+
+        {servicesImage ? (
+          <MiniSiteSectionAccentImage
+            media={servicesImage}
+            variant={variant}
+            testId={`${testIdPrefix}-template-servicesImage`}
+          />
+        ) : null}
 
         {services && services.length > 0 ? (
           <div className={`grid gap-4 ${isPreview ? "" : "md:grid-cols-2 md:gap-8 lg:gap-10"}`}>
@@ -929,6 +941,7 @@ export type PortfolioBookingCtaSectionProps = PortfolioSectionShell & {
   showSecondary?: boolean;
   theme: PortfolioTheme;
   presentation: MiniSiteTemplatePresentation;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function PortfolioBookingCtaSection({
@@ -942,10 +955,12 @@ export function PortfolioBookingCtaSection({
   showSecondary = false,
   theme,
   presentation,
+  templateImages,
 }: PortfolioBookingCtaSectionProps) {
   const isPreview = variant === "preview";
   const isDark = theme.backgroundStyle === "dark";
   const showSecondaryCta = showSecondary && hasMeaningfulText(secondaryLabel ?? "") && secondaryHref;
+  const collaborationImage = templateImages?.collaborationImage ?? null;
 
   return (
     <section className={`${PORTFOLIO_CONTAINER} ${isPreview ? "py-4" : "py-12 md:py-16 lg:py-20"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
@@ -960,6 +975,14 @@ export function PortfolioBookingCtaSection({
           aria-hidden
         />
         <div className={`relative flex flex-col justify-between gap-6 ${isPreview ? "" : "md:flex-row md:items-center md:gap-10"}`}>
+          {collaborationImage ? (
+            <MiniSiteSectionAccentImage
+              media={collaborationImage}
+              variant={variant}
+              testId={`${testIdPrefix}-template-collaborationImage`}
+              className={`shrink-0 ${isPreview ? "max-w-[8rem]" : "max-w-xs md:max-w-sm"}`}
+            />
+          ) : null}
           <div className="min-w-0">
             <p className={`font-black uppercase leading-tight tracking-tight ${isPreview ? "text-base" : "text-3xl md:text-4xl lg:text-5xl"}`}>
               Ready to create?

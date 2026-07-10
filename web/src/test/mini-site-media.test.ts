@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   mapMiniSiteImageMediaFromWire,
   mapMiniSiteImageMediaToWire,
+  MINI_SITE_IMAGE_MAX_BYTES,
+  MINI_SITE_IMAGE_TOO_LARGE_MESSAGE,
+  MINI_SITE_IMAGE_UPLOAD_HINT,
   normalizeMiniSiteImageMedia,
   normalizeTemplateMediaMap,
   updateTemplateMediaSlot,
@@ -105,5 +108,11 @@ describe("miniSiteMedia helpers", () => {
         clinic: {},
       }),
     ).toEqual({ clinic: {} });
+  });
+
+  it("exposes twelve megabyte upload limit constants", () => {
+    expect(MINI_SITE_IMAGE_MAX_BYTES).toBe(12 * 1024 * 1024);
+    expect(MINI_SITE_IMAGE_UPLOAD_HINT).toContain("12 MB");
+    expect(MINI_SITE_IMAGE_TOO_LARGE_MESSAGE).toContain("12 MB");
   });
 });

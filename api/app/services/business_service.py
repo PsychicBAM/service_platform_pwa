@@ -36,6 +36,7 @@ from app.services.mini_site_media_storage import (
 )
 from app.utils.mini_site_media_slots import (
     MINI_SITE_IMAGE_MAX_BYTES,
+    MINI_SITE_IMAGE_MAX_SIZE_MESSAGE,
     is_allowed_mini_site_image_slot,
 )
 
@@ -102,7 +103,7 @@ class BusinessService:
         if not content:
             raise ValidationAppError("Image file is required.")
         if len(content) > MINI_SITE_IMAGE_MAX_BYTES:
-            raise ValidationAppError("Image file exceeds the 5 MB limit.")
+            raise ValidationAppError(MINI_SITE_IMAGE_MAX_SIZE_MESSAGE)
 
         extension = extension_for_content_type(content_type)
         stored_filename = f"{uuid.uuid4().hex}{extension}"

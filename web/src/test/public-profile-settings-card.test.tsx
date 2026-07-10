@@ -207,8 +207,11 @@ describe("PublicProfileSettingsCard", () => {
     renderPublicProfileCard("pro");
 
     expect(await screen.findByTestId("mini-site-template-media-section")).toBeInTheDocument();
-    expect(screen.getByTestId("mini-site-template-media-scope")).toHaveTextContent(/Images for Clean/i);
+    expect(screen.getByTestId("mini-site-template-media-helper")).toHaveTextContent(/12 MB/i);
+    expect(screen.getByTestId("mini-site-template-media-helper")).toHaveTextContent(/JPG, PNG, or WebP/i);
     expect(screen.getByTestId("mini-site-media-slot-heroImage")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-media-slot-servicesImage")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-media-slot-ctaImage")).toBeInTheDocument();
   });
 
   it("shows clinic image slots when clinic template is selected", async () => {
@@ -222,7 +225,19 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("mini-site-media-slot-doctorOrClinicImage")).toHaveTextContent(
       "Doctor / clinic image",
     );
+    expect(screen.getByTestId("mini-site-media-slot-servicesImage")).toHaveTextContent("Services image");
+    expect(screen.getByTestId("mini-site-media-slot-appointmentImage")).toHaveTextContent("Appointment image");
     expect(screen.queryByTestId("mini-site-media-slot-heroVisual")).not.toBeInTheDocument();
+  });
+
+  it("shows service request image slot when service template is selected", async () => {
+    const user = userEvent.setup();
+    renderPublicProfileCard("pro");
+
+    await screen.findByTestId("mini-site-template");
+    await user.selectOptions(screen.getByTestId("mini-site-template"), "service");
+
+    expect(screen.getByTestId("mini-site-media-slot-requestImage")).toHaveTextContent("Request / booking image");
   });
 
   it("shows portfolio image slots and hides clinic slots when portfolio is selected", async () => {
@@ -233,6 +248,7 @@ describe("PublicProfileSettingsCard", () => {
     await user.selectOptions(screen.getByTestId("mini-site-template"), "portfolio");
 
     expect(screen.getByTestId("mini-site-media-slot-heroVisual")).toHaveTextContent("Hero visual");
+    expect(screen.getByTestId("mini-site-media-slot-collaborationImage")).toHaveTextContent("Collaboration image");
     expect(screen.queryByTestId("mini-site-media-slot-doctorOrClinicImage")).not.toBeInTheDocument();
   });
 

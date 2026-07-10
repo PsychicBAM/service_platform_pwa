@@ -5,6 +5,11 @@ import {
 } from "@/lib/miniSiteTemplateEditorRegistry";
 import {
   isAllowedMiniSiteImageFile,
+  MINI_SITE_IMAGE_ACCEPT,
+  MINI_SITE_IMAGE_INVALID_TYPE_MESSAGE,
+  MINI_SITE_IMAGE_TOO_LARGE_MESSAGE,
+  MINI_SITE_IMAGE_UPLOAD_HINT,
+  MINI_SITE_IMAGE_MAX_BYTES,
   normalizeMiniSiteImageMedia,
   resolveMiniSiteMediaUrl,
   updateTemplateMediaAlt,
@@ -51,15 +56,15 @@ export function MiniSiteTemplateMediaSection({
     if (!isAllowedMiniSiteImageFile(file)) {
       setSlotErrors((current) => ({
         ...current,
-        [slotId]: "Only JPEG, PNG, and WebP images up to 5 MB are supported.",
+        [slotId]: MINI_SITE_IMAGE_INVALID_TYPE_MESSAGE,
       }));
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MINI_SITE_IMAGE_MAX_BYTES) {
       setSlotErrors((current) => ({
         ...current,
-        [slotId]: "Image must be 5 MB or smaller.",
+        [slotId]: MINI_SITE_IMAGE_TOO_LARGE_MESSAGE,
       }));
       return;
     }
@@ -124,8 +129,9 @@ export function MiniSiteTemplateMediaSection({
     <section className="space-y-3" data-testid="mini-site-template-media-section">
       <div>
         <h4 className="text-sm font-semibold text-slate-800">Media</h4>
-        <p className="text-xs text-slate-500" data-testid="mini-site-template-media-scope">
-          Images for {definition.label}.
+        <p className="text-xs text-slate-500" data-testid="mini-site-template-media-helper">
+          Upload images for this template. {MINI_SITE_IMAGE_UPLOAD_HINT}. Images are shown only on the
+          selected template. Pick a file from your device — no URL needed.
         </p>
       </div>
 
@@ -142,6 +148,8 @@ export function MiniSiteTemplateMediaSection({
               data-testid={`mini-site-media-slot-${slot.id}`}
             >
               <p className="text-sm font-medium text-slate-800">{slot.label}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{slot.description}</p>
+              <p className="text-[11px] text-slate-400">{slot.ratioHint}</p>
 
               {media ? (
                 <div className="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white">
@@ -182,7 +190,7 @@ export function MiniSiteTemplateMediaSection({
                   fileInputRefs.current[slot.id] = element;
                 }}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept={MINI_SITE_IMAGE_ACCEPT}
                 className="hidden"
                 disabled={disabled || isUploading}
                 data-testid={`mini-site-media-file-${slot.id}`}
@@ -197,7 +205,7 @@ export function MiniSiteTemplateMediaSection({
                 type="text"
                 value={media?.alt ?? ""}
                 disabled={disabled || !media}
-                placeholder="Describe this image"
+                placeholder="Describe this image for accessibility"
                 onChange={(event) =>
                   onTemplateMediaChange(
                     updateTemplateMediaAlt(templateMedia, template, slot.id, event.target.value),

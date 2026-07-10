@@ -20,6 +20,8 @@ export interface MiniSiteFutureMediaSlotDefinition {
 export interface MiniSiteImageMediaSlotDefinition {
   id: string;
   label: string;
+  description: string;
+  ratioHint: string;
 }
 
 export interface MiniSiteVideoMediaSlotDefinition {
@@ -56,7 +58,26 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
     futureMediaSlots: [
       { id: "heroImage", label: "Hero image", type: "image", status: "coming_soon" },
     ],
-    imageMediaSlots: [{ id: "heroImage", label: "Hero image" }],
+    imageMediaSlots: [
+      {
+        id: "heroImage",
+        label: "Hero image",
+        description: "Appears in the top hero area.",
+        ratioHint: "Recommended 1600×900 or wider.",
+      },
+      {
+        id: "servicesImage",
+        label: "Services image",
+        description: "Appears near the services and offers section.",
+        ratioHint: "Recommended 1200×800 or wider.",
+      },
+      {
+        id: "ctaImage",
+        label: "Booking / contact image",
+        description: "Appears near booking, request, or contact call-to-action areas.",
+        ratioHint: "Recommended 1200×600 or wider.",
+      },
+    ],
     videoMediaSlots: [],
   },
   service: {
@@ -78,8 +99,24 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       { id: "introVideo", label: "Intro video", type: "video", status: "coming_soon" },
     ],
     imageMediaSlots: [
-      { id: "heroImage", label: "Hero image" },
-      { id: "serviceImage", label: "Service image" },
+      {
+        id: "heroImage",
+        label: "Hero image",
+        description: "Appears in the top hero area.",
+        ratioHint: "Recommended 1600×900 or wider.",
+      },
+      {
+        id: "serviceImage",
+        label: "Service image",
+        description: "Appears in the hero area alongside your headline.",
+        ratioHint: "Recommended 800×600 or wider.",
+      },
+      {
+        id: "requestImage",
+        label: "Request / booking image",
+        description: "Appears near booking, request, or quote call-to-action areas.",
+        ratioHint: "Recommended 1200×600 or wider.",
+      },
     ],
     videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
   },
@@ -102,8 +139,30 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       { id: "introVideo", label: "Intro video", type: "video", status: "coming_soon" },
     ],
     imageMediaSlots: [
-      { id: "profileImage", label: "Profile image" },
-      { id: "heroImage", label: "Hero image" },
+      {
+        id: "profileImage",
+        label: "Profile image",
+        description: "Appears in your expert profile area.",
+        ratioHint: "Recommended 600×600 square or 800×1000 portrait.",
+      },
+      {
+        id: "heroImage",
+        label: "Hero image",
+        description: "Appears in the top hero area.",
+        ratioHint: "Recommended 1600×900 or wider.",
+      },
+      {
+        id: "servicesImage",
+        label: "Services image",
+        description: "Appears near sessions and offers.",
+        ratioHint: "Recommended 1200×800 or wider.",
+      },
+      {
+        id: "bookingImage",
+        label: "Booking image",
+        description: "Appears near session booking or request areas.",
+        ratioHint: "Recommended 1200×600 or wider.",
+      },
     ],
     videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
   },
@@ -128,8 +187,30 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       { id: "introVideo", label: "Intro video", type: "video", status: "coming_soon" },
     ],
     imageMediaSlots: [
-      { id: "heroImage", label: "Hero image" },
-      { id: "doctorOrClinicImage", label: "Doctor / clinic image" },
+      {
+        id: "heroImage",
+        label: "Hero image",
+        description: "Appears in the top hero area.",
+        ratioHint: "Recommended 1600×900 or wider.",
+      },
+      {
+        id: "doctorOrClinicImage",
+        label: "Doctor / clinic image",
+        description: "Appears in the hero or clinic overview area.",
+        ratioHint: "Recommended 800×600 or wider.",
+      },
+      {
+        id: "servicesImage",
+        label: "Services image",
+        description: "Appears near specialties and treatments.",
+        ratioHint: "Recommended 1200×800 or wider.",
+      },
+      {
+        id: "appointmentImage",
+        label: "Appointment image",
+        description: "Appears near appointment or schedule call-to-action areas.",
+        ratioHint: "Recommended 1200×600 or wider.",
+      },
     ],
     videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
   },
@@ -153,8 +234,30 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       { id: "showreel", label: "Showreel video", type: "video", status: "coming_soon" },
     ],
     imageMediaSlots: [
-      { id: "heroVisual", label: "Hero visual" },
-      { id: "featuredWorkImage", label: "Featured work image" },
+      {
+        id: "heroVisual",
+        label: "Hero visual",
+        description: "Appears in the creative hero area.",
+        ratioHint: "Recommended 1600×900 or wider.",
+      },
+      {
+        id: "featuredWorkImage",
+        label: "Featured work image",
+        description: "Appears as a featured work visual in the hero.",
+        ratioHint: "Recommended 1200×900 or wider.",
+      },
+      {
+        id: "servicesImage",
+        label: "Services image",
+        description: "Appears near work and services.",
+        ratioHint: "Recommended 1200×800 or wider.",
+      },
+      {
+        id: "collaborationImage",
+        label: "Collaboration image",
+        description: "Appears near project inquiry or collaboration areas.",
+        ratioHint: "Recommended 1200×600 or wider.",
+      },
     ],
     videoMediaSlots: [{ id: "showreel", label: "Showreel video", status: "coming_soon" }],
   },
@@ -179,8 +282,30 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       { id: "introVideo", label: "Intro video", type: "video", status: "coming_soon" },
     ],
     imageMediaSlots: [
-      { id: "courseImage", label: "Course image" },
-      { id: "lessonPreviewImage", label: "Lesson preview image" },
+      {
+        id: "courseImage",
+        label: "Course image",
+        description: "Appears in the learning hero area.",
+        ratioHint: "Recommended 1200×800 or wider.",
+      },
+      {
+        id: "lessonPreviewImage",
+        label: "Lesson preview image",
+        description: "Appears in the lesson overview panel.",
+        ratioHint: "Recommended 800×600 or wider.",
+      },
+      {
+        id: "servicesImage",
+        label: "Services image",
+        description: "Appears near lessons and courses.",
+        ratioHint: "Recommended 1200×800 or wider.",
+      },
+      {
+        id: "bookingImage",
+        label: "Booking image",
+        description: "Appears near lesson booking call-to-action areas.",
+        ratioHint: "Recommended 1200×600 or wider.",
+      },
     ],
     videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
   },
@@ -205,8 +330,30 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       { id: "introVideo", label: "Intro video", type: "video", status: "coming_soon" },
     ],
     imageMediaSlots: [
-      { id: "heroImage", label: "Hero image" },
-      { id: "programImage", label: "Program image" },
+      {
+        id: "heroImage",
+        label: "Hero image",
+        description: "Appears in the top hero area.",
+        ratioHint: "Recommended 1600×900 or wider.",
+      },
+      {
+        id: "programImage",
+        label: "Program image",
+        description: "Appears in the coaching program panel.",
+        ratioHint: "Recommended 800×600 or wider.",
+      },
+      {
+        id: "servicesImage",
+        label: "Services image",
+        description: "Appears near programs and sessions.",
+        ratioHint: "Recommended 1200×800 or wider.",
+      },
+      {
+        id: "bookingImage",
+        label: "Booking image",
+        description: "Appears near coaching booking call-to-action areas.",
+        ratioHint: "Recommended 1200×600 or wider.",
+      },
     ],
     videoMediaSlots: [{ id: "introVideo", label: "Intro video", status: "coming_soon" }],
   },

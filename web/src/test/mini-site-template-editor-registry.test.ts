@@ -23,9 +23,34 @@ describe("miniSiteTemplateEditorRegistry", () => {
   });
 
   it("defines active image media slots per template", () => {
+    const clean = getMiniSiteTemplateEditorDefinition("clean");
+    expect(clean.imageMediaSlots.map((slot) => slot.id)).toEqual([
+      "heroImage",
+      "servicesImage",
+      "ctaImage",
+    ]);
+
+    const service = getMiniSiteTemplateEditorDefinition("service");
+    expect(service.imageMediaSlots.map((slot) => slot.id)).toEqual([
+      "heroImage",
+      "serviceImage",
+      "requestImage",
+    ]);
+
     const clinic = getMiniSiteTemplateEditorDefinition("clinic");
-    expect(clinic.imageMediaSlots.map((slot) => slot.id)).toEqual(["heroImage", "doctorOrClinicImage"]);
+    expect(clinic.imageMediaSlots.map((slot) => slot.id)).toEqual([
+      "heroImage",
+      "doctorOrClinicImage",
+      "servicesImage",
+      "appointmentImage",
+    ]);
+
     const portfolio = getMiniSiteTemplateEditorDefinition("portfolio");
-    expect(portfolio.imageMediaSlots.map((slot) => slot.id)).toEqual(["heroVisual", "featuredWorkImage"]);
+    expect(portfolio.imageMediaSlots.map((slot) => slot.id)).toEqual([
+      "heroVisual",
+      "featuredWorkImage",
+      "servicesImage",
+      "collaborationImage",
+    ]);
   });
 });

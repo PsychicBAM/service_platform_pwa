@@ -10,6 +10,7 @@ import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresent
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
+import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteButtonStyle,
@@ -541,6 +542,7 @@ export type TeacherLessonsSectionProps = TeacherSectionShell & {
   publicSlug: string;
   theme: TeacherTheme;
   isDark: boolean;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function TeacherLessonsSection({
@@ -552,10 +554,12 @@ export function TeacherLessonsSection({
   publicSlug,
   theme,
   isDark,
+  templateImages,
 }: TeacherLessonsSectionProps) {
   const muted = teacherMutedText(isDark);
   const isPreview = variant === "preview";
   const sectionTitle = title || "Lessons & courses";
+  const servicesImage = templateImages?.servicesImage ?? null;
 
   return (
     <section
@@ -591,6 +595,14 @@ export function TeacherLessonsSection({
             </span>
           ) : null}
         </div>
+
+        {servicesImage ? (
+          <MiniSiteSectionAccentImage
+            media={servicesImage}
+            variant={variant}
+            testId={`${testIdPrefix}-template-servicesImage`}
+          />
+        ) : null}
 
         {services && services.length > 0 ? (
           <div className={`grid gap-4 ${isPreview ? "" : "md:grid-cols-2 md:gap-6 lg:gap-8"}`}>
@@ -916,6 +928,7 @@ export type TeacherBookingCtaSectionProps = TeacherSectionShell & {
   showSecondary?: boolean;
   theme: TeacherTheme;
   presentation: MiniSiteTemplatePresentation;
+  templateImages?: MiniSiteTemplateImages;
 };
 
 export function TeacherBookingCtaSection({
@@ -929,10 +942,12 @@ export function TeacherBookingCtaSection({
   showSecondary = false,
   theme,
   presentation,
+  templateImages,
 }: TeacherBookingCtaSectionProps) {
   const isPreview = variant === "preview";
   const isDark = theme.backgroundStyle === "dark";
   const showSecondaryCta = showSecondary && hasMeaningfulText(secondaryLabel ?? "") && secondaryHref;
+  const bookingImage = templateImages?.bookingImage ?? null;
 
   return (
     <section className={`${TEACHER_CONTAINER} ${isPreview ? "py-4" : "py-10 md:py-14 lg:py-16"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
@@ -946,6 +961,14 @@ export function TeacherBookingCtaSection({
             : `linear-gradient(135deg, #ffffff 0%, ${theme.primaryColor}08 50%, #fffbeb 100%)`,
         }}
       >
+        {bookingImage ? (
+          <MiniSiteSectionAccentImage
+            media={bookingImage}
+            variant={variant}
+            testId={`${testIdPrefix}-template-bookingImage`}
+            className={`${isPreview ? "mb-3 max-w-[8rem]" : "mb-0 max-w-xs md:max-w-sm"}`}
+          />
+        ) : null}
         <div className="min-w-0">
           <p className={`font-semibold ${isPreview ? "text-base" : "text-2xl md:text-3xl lg:text-4xl"}`}>Ready to start learning?</p>
           <p className={`mt-2 max-w-xl ${isPreview ? "text-[11px]" : "text-sm md:text-base lg:text-lg"} ${teacherMutedText(isDark)}`}>

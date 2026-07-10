@@ -11,6 +11,12 @@ from sqlalchemy import select
 from app.config import get_settings
 from app.models.business import Business
 from app.utils.mini_site_config import read_mini_site_config_from_settings
+from app.utils.mini_site_media_slots import (
+    MINI_SITE_IMAGE_MAX_BYTES,
+    MINI_SITE_IMAGE_MAX_SIZE_MESSAGE,
+    MINI_SITE_IMAGE_MEDIA_SLOTS,
+    is_allowed_mini_site_image_slot,
+)
 from tests.conftest import activate_business, register_and_get_context
 
 
@@ -164,3 +170,57 @@ async def test_legacy_config_without_template_media_normalizes_safely(
     assert response.status_code == 200
     body = response.json()
     assert body["template_media"] == {}
+
+
+def test_mini_site_image_max_bytes_is_twelve_mb() -> None:
+    assert MINI_SITE_IMAGE_MAX_BYTES == 12 * 1024 * 1024
+
+
+def test_mini_site_slot_allowlist_includes_service_and_booking_slots() -> None:
+    assert is_allowed_mini_site_image_slot("clinic", "servicesImage")
+    assert is_allowed_mini_site_image_slot("clinic", "appointmentImage")
+    assert is_allowed_mini_site_image_slot("service", "requestImage")
+    assert is_allowed_mini_site_image_slot("portfolio", "collaborationImage")
+    assert is_allowed_mini_site_image_slot("clean", "ctaImage")
+    assert "servicesImage" in MINI_SITE_IMAGE_MEDIA_SLOTS["teacher"]
+
+
+@pytest.mark.asyncio
+async def test_upload_rejects_oversized_image_with_clear_message(
+    async_client: AsyncClient,
+    db_session,
+    mini_site_upload_root,
+) -> None:
+    ctx = await register_and_get_context(async_client, "mini-site-media-oversized")
+    await activate_business(db_session, ctx["slug"])
+
+    oversized = b"x" * (MINI_SITE_IMAGE_MAX_BYTES + 1)
+    response = await async_client.post(
+        _upload_path(ctx["business_id"]),
+        headers=ctx["headers"],
+        data={"template": "clinic", "slot": "heroImage"},
+        files={"file": ("big.jpg", io.BytesIO(oversized), "image/jpeg")},
+    )
+
+    assert response.status_code == 400
+    assert MINI_SITE_IMAGE_MAX_SIZE_MESSAGE in response.json()["error"]["message"]
+
+
+@pytest.mark.asyncio
+async def test_upload_accepts_jpeg_and_png_under_limit(
+    async_client: AsyncClient,
+    db_session,
+    mini_site_upload_root,
+) -> None:
+    ctx = await register_and_get_context(async_client, "mini-site-media-jpeg-png")
+    await activate_business(db_session, ctx["slug"])
+
+    for filename, content_type in (("photo.jpg", "image/jpeg"), ("photo.png", "image/png")):
+        response = await async_client.post(
+            _upload_path(ctx["business_id"]),
+            headers=ctx["headers"],
+            data={"template": "clinic", "slot": "servicesImage"},
+            files={"file": (filename, io.BytesIO(b"image-bytes"), content_type)},
+        )
+        assert response.status_code == 200
+        assert response.json()["media"]["content_type"] == content_type
