@@ -1,9 +1,7 @@
 import { apiClient } from "@/api/client";
 import { normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
 import {
-  mapMiniSiteImageMediaToWire,
   mapMiniSiteMediaToWire,
-  normalizeMiniSiteImageMedia,
   normalizeTemplateMediaSlotValue,
   type MiniSiteMediaWire,
   type MiniSiteTemplateMediaMap,
