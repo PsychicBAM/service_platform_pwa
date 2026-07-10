@@ -1,9 +1,7 @@
 import { useRef, useState } from "react";
 import { removeMiniSiteMedia, uploadMiniSiteMedia } from "@/api/miniSiteMediaApi";
 import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
-import {
-  getMiniSiteTemplateEditorDefinition,
-} from "@/lib/miniSiteTemplateEditorRegistry";
+import { getMiniSiteTemplateEditorDefinition } from "@/lib/miniSiteTemplateEditorRegistry";
 import {
   isAllowedMiniSiteImageFile,
   MINI_SITE_IMAGE_ACCEPT,
@@ -34,6 +32,14 @@ type MiniSiteTemplateMediaSectionProps = {
   disabled?: boolean;
   onTemplateMediaChange: (templateMedia: MiniSiteTemplateMediaMap) => void;
 };
+
+const COMPACT_BUTTON_CLASS =
+  "rounded-md border px-2 py-1 text-[11px] font-medium disabled:cursor-not-allowed disabled:opacity-60";
+const COMPACT_INPUT_CLASS =
+  "w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs disabled:opacity-60";
+const SLOT_GRID_CLASS =
+  "grid gap-3 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1.35fr)_auto] md:items-start md:gap-4";
+const SLOT_CARD_CLASS = "rounded-lg border border-slate-200 bg-white p-3 shadow-sm";
 
 function getImageSlotMedia(
   templateMedia: MiniSiteTemplateMediaMap,
@@ -204,16 +210,16 @@ export function MiniSiteTemplateMediaSection({
   }
 
   return (
-    <section className="space-y-3" data-testid="mini-site-template-media-section">
+    <section className="space-y-2" data-testid="mini-site-template-media-section">
       <div>
         <h4 className="text-sm font-semibold text-slate-800">Media</h4>
         <p className="text-xs text-slate-500" data-testid="mini-site-template-media-helper">
-          Upload images directly. Add YouTube or Vimeo links for videos. {MINI_SITE_IMAGE_UPLOAD_HINT}.
-          Media is shown only on the selected template.
+          Upload images directly. Add YouTube or Vimeo links for videos. {MINI_SITE_IMAGE_UPLOAD_HINT}. Shown on the
+          selected template only.
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {definition.imageMediaSlots.map((slot) => {
           const media = getImageSlotMedia(templateMedia, template, slot.id);
           const isUploading = uploadingSlot === slot.id;
@@ -222,82 +228,96 @@ export function MiniSiteTemplateMediaSection({
           return (
             <div
               key={slot.id}
-              className="rounded-xl border border-slate-200 bg-slate-50/70 p-3"
+              className={SLOT_CARD_CLASS}
               data-testid={`mini-site-media-slot-${slot.id}`}
             >
-              <p className="text-sm font-medium text-slate-800">{slot.label}</p>
-              <p className="mt-0.5 text-xs text-slate-500">{slot.description}</p>
-              <p className="text-[11px] text-slate-400">{slot.ratioHint}</p>
-
-              {media ? (
-                <div className="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white">
-                  <img
-                    src={resolveMiniSiteMediaEditorPreviewUrl(media)}
-                    alt={media.alt || slot.label}
-                    className="h-28 w-full object-cover"
-                    data-testid={`mini-site-media-preview-${slot.id}`}
-                  />
+              <div className={SLOT_GRID_CLASS}>
+                <div className="min-w-[12rem] space-y-0.5">
+                  <p className="text-sm font-medium text-slate-800">{slot.label}</p>
+                  <p className="text-xs leading-snug text-slate-500">{slot.description}</p>
+                  <p className="text-[11px] text-slate-400">{slot.ratioHint}</p>
                 </div>
-              ) : null}
 
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  disabled={disabled || isUploading}
-                  onClick={() => fileInputRefs.current[slot.id]?.click()}
-                  className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                  data-testid={`mini-site-media-upload-${slot.id}`}
-                >
-                  {isUploading ? "Uploading…" : media ? "Replace image" : "Upload image"}
-                </button>
-                {media ? (
-                  <button
-                    type="button"
+                <div className="min-w-0 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={disabled || isUploading}
+                      onClick={() => fileInputRefs.current[slot.id]?.click()}
+                      className={`${COMPACT_BUTTON_CLASS} border-slate-300 bg-white text-slate-700 hover:bg-slate-50`}
+                      data-testid={`mini-site-media-upload-${slot.id}`}
+                    >
+                      {isUploading ? "Uploading…" : media ? "Replace" : "Upload"}
+                    </button>
+                  </div>
+
+                  <input
+                    ref={(element) => {
+                      fileInputRefs.current[slot.id] = element;
+                    }}
+                    type="file"
+                    accept={MINI_SITE_IMAGE_ACCEPT}
+                    className="hidden"
                     disabled={disabled || isUploading}
-                    onClick={() => void handleImageRemove(slot.id)}
-                    className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
-                    data-testid={`mini-site-media-remove-${slot.id}`}
-                  >
-                    Remove image
-                  </button>
-                ) : null}
+                    data-testid={`mini-site-media-file-${slot.id}`}
+                    onChange={(event) => void handleFileSelected(slot.id, event.target.files?.[0])}
+                  />
+
+                  <label htmlFor={`mini-site-media-alt-${slot.id}`} className="block text-[11px] font-medium text-slate-600">
+                    Alt text
+                  </label>
+                  <input
+                    id={`mini-site-media-alt-${slot.id}`}
+                    type="text"
+                    value={media?.alt ?? ""}
+                    disabled={disabled || !media}
+                    placeholder="Describe this image"
+                    onChange={(event) =>
+                      onTemplateMediaChange(
+                        updateTemplateMediaAlt(templateMedia, template, slot.id, event.target.value),
+                      )
+                    }
+                    className={COMPACT_INPUT_CLASS}
+                    data-testid={`mini-site-media-alt-${slot.id}`}
+                  />
+
+                  {error ? (
+                    <p className="text-[11px] text-rose-600" data-testid={`mini-site-media-error-${slot.id}`}>
+                      {error}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="flex w-full shrink-0 flex-col gap-2 md:w-32 lg:w-36">
+                  {media ? (
+                    <div
+                      className="overflow-hidden rounded-md border border-slate-200 bg-slate-50"
+                      data-testid={`mini-site-media-preview-${slot.id}`}
+                    >
+                      <img
+                        src={resolveMiniSiteMediaEditorPreviewUrl(media)}
+                        alt={media.alt || slot.label}
+                        className="h-20 w-full object-cover md:h-24"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50 text-[10px] text-slate-400 md:h-24">
+                      No image
+                    </div>
+                  )}
+                  {media ? (
+                    <button
+                      type="button"
+                      disabled={disabled || isUploading}
+                      onClick={() => void handleImageRemove(slot.id)}
+                      className={`${COMPACT_BUTTON_CLASS} border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100`}
+                      data-testid={`mini-site-media-remove-${slot.id}`}
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
               </div>
-
-              <input
-                ref={(element) => {
-                  fileInputRefs.current[slot.id] = element;
-                }}
-                type="file"
-                accept={MINI_SITE_IMAGE_ACCEPT}
-                className="hidden"
-                disabled={disabled || isUploading}
-                data-testid={`mini-site-media-file-${slot.id}`}
-                onChange={(event) => void handleFileSelected(slot.id, event.target.files?.[0])}
-              />
-
-              <label htmlFor={`mini-site-media-alt-${slot.id}`} className="mt-2 block text-xs font-medium text-slate-600">
-                Alt text
-              </label>
-              <input
-                id={`mini-site-media-alt-${slot.id}`}
-                type="text"
-                value={media?.alt ?? ""}
-                disabled={disabled || !media}
-                placeholder="Describe this image for accessibility"
-                onChange={(event) =>
-                  onTemplateMediaChange(
-                    updateTemplateMediaAlt(templateMedia, template, slot.id, event.target.value),
-                  )
-                }
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
-                data-testid={`mini-site-media-alt-${slot.id}`}
-              />
-
-              {error ? (
-                <p className="mt-2 text-xs text-rose-600" data-testid={`mini-site-media-error-${slot.id}`}>
-                  {error}
-                </p>
-              ) : null}
             </div>
           );
         })}
@@ -310,56 +330,63 @@ export function MiniSiteTemplateMediaSection({
           return (
             <div
               key={slot.id}
-              className="rounded-xl border border-slate-200 bg-slate-50/70 p-3"
+              className={SLOT_CARD_CLASS}
               data-testid={`mini-site-media-slot-${slot.id}`}
             >
-              <p className="text-sm font-medium text-slate-800">{slot.label}</p>
-              <p className="mt-0.5 text-xs text-slate-500">{slot.description}</p>
-
-              <label htmlFor={`mini-site-media-video-${slot.id}`} className="mt-2 block text-xs font-medium text-slate-600">
-                Video link
-              </label>
-              <input
-                id={`mini-site-media-video-${slot.id}`}
-                type="url"
-                value={draft}
-                disabled={disabled}
-                placeholder="https://www.youtube.com/watch?v=..."
-                onChange={(event) => handleVideoDraftChange(slot.id, event.target.value)}
-                onBlur={() => commitVideoUrl(slot.id)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
-                data-testid={`mini-site-media-video-input-${slot.id}`}
-              />
-
-              {media ? (
-                <div className="mt-2">
-                  <MiniSiteVideoEmbed
-                    media={media}
-                    variant="preview"
-                    testId={`mini-site-media-preview-${slot.id}`}
-                  />
+              <div className={SLOT_GRID_CLASS}>
+                <div className="min-w-[12rem] space-y-0.5">
+                  <p className="text-sm font-medium text-slate-800">{slot.label}</p>
+                  <p className="text-xs leading-snug text-slate-500">{slot.description}</p>
                 </div>
-              ) : null}
 
-              {media ? (
-                <div className="mt-2">
-                  <button
-                    type="button"
+                <div className="min-w-0 space-y-1.5">
+                  <label htmlFor={`mini-site-media-video-${slot.id}`} className="block text-[11px] font-medium text-slate-600">
+                    Video link
+                  </label>
+                  <input
+                    id={`mini-site-media-video-${slot.id}`}
+                    type="url"
+                    value={draft}
                     disabled={disabled}
-                    onClick={() => handleVideoRemove(slot.id)}
-                    className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
-                    data-testid={`mini-site-media-remove-${slot.id}`}
-                  >
-                    Remove video
-                  </button>
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    onChange={(event) => handleVideoDraftChange(slot.id, event.target.value)}
+                    onBlur={() => commitVideoUrl(slot.id)}
+                    className={COMPACT_INPUT_CLASS}
+                    data-testid={`mini-site-media-video-input-${slot.id}`}
+                  />
+                  {error ? (
+                    <p className="text-[11px] text-rose-600" data-testid={`mini-site-media-error-${slot.id}`}>
+                      {error}
+                    </p>
+                  ) : null}
                 </div>
-              ) : null}
 
-              {error ? (
-                <p className="mt-2 text-xs text-rose-600" data-testid={`mini-site-media-error-${slot.id}`}>
-                  {error}
-                </p>
-              ) : null}
+                <div className="flex w-full shrink-0 flex-col gap-2 md:w-40 lg:w-44">
+                  {media ? (
+                    <MiniSiteVideoEmbed
+                      media={media}
+                      variant="preview"
+                      testId={`mini-site-media-preview-${slot.id}`}
+                      className="w-full max-w-[11rem] md:max-w-none"
+                    />
+                  ) : (
+                    <div className="flex aspect-video items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50 text-[10px] text-slate-400">
+                      No video
+                    </div>
+                  )}
+                  {media ? (
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => handleVideoRemove(slot.id)}
+                      className={`${COMPACT_BUTTON_CLASS} border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100`}
+                      data-testid={`mini-site-media-remove-${slot.id}`}
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+              </div>
             </div>
           );
         })}
