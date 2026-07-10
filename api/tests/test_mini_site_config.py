@@ -406,7 +406,13 @@ def test_normalize_preserves_template_foundation_buckets() -> None:
     )
     assert config.template_content["clinic"] == {"hero_headline": "Care first"}
     assert config.template_content["portfolio"] == {"studio_tagline": "Bold work"}
-    assert config.template_media["clinic"] == {"hero_image": "https://example.com/clinic.jpg"}
+    clinic_hero = config.template_media["clinic"]["hero_image"]
+    assert clinic_hero["kind"] == "image"
+    assert clinic_hero["url"] == "https://example.com/clinic.jpg"
+    assert clinic_hero["alt"] == ""
+    assert clinic_hero["filename"] == ""
+    assert clinic_hero["content_type"] == ""
+    assert clinic_hero["size"] == 0
     assert "portfolio" not in config.template_media
 
 
