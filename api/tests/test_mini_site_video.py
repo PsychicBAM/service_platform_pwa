@@ -12,7 +12,7 @@ def test_parse_youtube_watch_url() -> None:
     parsed = parse_mini_site_video_url("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
     assert parsed is not None
     assert parsed["provider"] == "youtube"
-    assert parsed["embed_url"] == "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    assert parsed["embed_url"] == "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"
 
 
 def test_parse_vimeo_url() -> None:
@@ -33,7 +33,7 @@ def test_normalize_video_media_value_from_url() -> None:
     assert normalized is not None
     assert normalized["kind"] == "video"
     assert normalized["provider"] == "youtube"
-    assert normalized["embed_url"] == "https://www.youtube.com/embed/abc123XYZ12"
+    assert normalized["embed_url"] == "https://www.youtube-nocookie.com/embed/abc123XYZ12"
     assert normalized["title"] == "Intro"
 
 
@@ -52,12 +52,13 @@ def test_malicious_supplied_embed_url_is_ignored_for_valid_youtube_url() -> None
     )
     assert normalized is not None
     assert normalized["provider"] == "youtube"
-    assert normalized["embed_url"] == "https://www.youtube.com/embed/1"
+    assert normalized["embed_url"] == "https://www.youtube-nocookie.com/embed/1"
     assert "evil.com" not in normalized["embed_url"]
 
 
 def test_allowed_embed_url_host_check() -> None:
     assert is_allowed_mini_site_video_embed_url("https://www.youtube.com/embed/abc") is True
+    assert is_allowed_mini_site_video_embed_url("https://www.youtube-nocookie.com/embed/abc") is True
     assert is_allowed_mini_site_video_embed_url("https://player.vimeo.com/video/123") is True
     assert is_allowed_mini_site_video_embed_url("https://evil.com/embed/abc") is False
 
@@ -84,7 +85,7 @@ def test_normalize_config_preserves_valid_video_media() -> None:
     intro = config.template_media["clinic"]["intro_video"]
     assert intro["kind"] == "video"
     assert intro["provider"] == "youtube"
-    assert intro["embed_url"] == "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    assert intro["embed_url"] == "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"
 
     hero = config.template_media["clinic"]["hero_image"]
     assert hero["kind"] == "image"

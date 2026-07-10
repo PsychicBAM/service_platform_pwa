@@ -1128,7 +1128,7 @@ export function ClinicBookingCtaSection({
   return (
     <section className={`${clinicContainerClass(isPreview)} ${isPreview ? "py-4" : "py-12 lg:py-16"}`} data-testid={`${testIdPrefix}-booking-cta-section`}>
       <div
-        className={`flex flex-col justify-between gap-8 ${isPreview ? "rounded-xl p-4" : "rounded-[2rem] p-8 md:flex-row md:items-center md:gap-10 lg:p-12"} ${
+        className={`flex flex-col justify-between gap-6 ${isPreview ? "rounded-xl p-4" : "rounded-[2rem] p-8 lg:flex-row lg:items-center lg:gap-10 lg:p-12"} ${
           clinicPanel(isDark)
         } ${isDark ? "ring-1 ring-slate-700/50" : "shadow-xl ring-1 ring-slate-200/60"}`}
         style={{
@@ -1136,22 +1136,28 @@ export function ClinicBookingCtaSection({
             ? undefined
             : `linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, ${theme.primaryColor}05 100%)`,
         }}
+        data-testid={`${testIdPrefix}-booking-cta-panel`}
       >
+        <div className="w-full min-w-[15rem] flex-1">
+          <p
+            className={`whitespace-normal font-semibold leading-tight ${isPreview ? "text-base" : "text-3xl md:text-4xl lg:text-[2.75rem]"}`}
+            data-testid={`${testIdPrefix}-booking-cta-heading`}
+          >
+            Schedule your visit
+          </p>
+          <p className={`mt-3 max-w-2xl whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-lg md:text-xl"} ${clinicMutedText(isDark)}`}>
+            Ready to book an appointment? Our care team will help you take the next step.
+          </p>
+        </div>
         {appointmentImage ? (
           <MiniSiteSectionAccentImage
             media={appointmentImage}
             variant={variant}
             testId={`${testIdPrefix}-template-appointmentImage`}
-            className={`${isPreview ? "mb-3" : "mb-6"} max-w-md`}
+            className={`w-full ${isPreview ? "mb-0" : "mb-0 lg:max-w-md lg:shrink-0"}`}
           />
         ) : null}
-        <div className="min-w-0 flex-1">
-          <p className={`font-semibold leading-tight ${isPreview ? "text-base" : "text-3xl md:text-4xl lg:text-[2.75rem]"}`}>Schedule your visit</p>
-          <p className={`mt-3 max-w-2xl leading-relaxed ${isPreview ? "text-xs" : "text-lg md:text-xl"} ${clinicMutedText(isDark)}`}>
-            Ready to book an appointment? Our care team will help you take the next step.
-          </p>
-        </div>
-        <div className={`flex w-full shrink-0 flex-col ${isPreview ? "gap-2" : "gap-4 sm:min-w-[20rem] sm:flex-row md:w-auto"}`}>
+        <div className={`flex w-full shrink-0 flex-col ${isPreview ? "gap-2" : "gap-4 sm:min-w-[20rem] sm:flex-row lg:w-auto"}`}>
           {renderCtaButton({
             previewButtons,
             label: primaryLabel,

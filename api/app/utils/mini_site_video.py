@@ -8,7 +8,15 @@ from urllib.parse import parse_qs, urlparse
 
 MiniSiteVideoProvider = Literal["youtube", "vimeo"]
 
-_ALLOWED_EMBED_HOSTS = frozenset({"www.youtube.com", "youtube.com", "player.vimeo.com"})
+_ALLOWED_EMBED_HOSTS = frozenset({
+    "www.youtube.com",
+    "youtube.com",
+    "www.youtube-nocookie.com",
+    "youtube-nocookie.com",
+    "player.vimeo.com",
+})
+
+YOUTUBE_EMBED_ORIGIN = "https://www.youtube-nocookie.com"
 
 
 def _sanitize_text(value: object) -> str:
@@ -33,23 +41,23 @@ def parse_mini_site_video_url(input_value: str) -> dict[str, str] | None:
     host = (parsed.hostname or "").lower()
     path = parsed.path or ""
 
-    if host in {"www.youtube.com", "youtube.com"}:
+    if host in {"www.youtube.com", "youtube.com", "www.youtube-nocookie.com", "youtube-nocookie.com"}:
         if path.startswith("/embed/"):
             video_id = path.removeprefix("/embed/").split("/")[0].split("?")[0]
             if video_id:
-                return _video_result("youtube", raw, f"https://www.youtube.com/embed/{video_id}")
+                return _video_result("youtube", raw, f"{YOUTUBE_EMBED_ORIGIN}/embed/{video_id}")
         if path == "/watch" or path.startswith("/watch/"):
             query = parse_qs(parsed.query)
             video_ids = query.get("v")
             if video_ids and video_ids[0]:
                 video_id = video_ids[0].split("&")[0]
                 if video_id:
-                    return _video_result("youtube", raw, f"https://www.youtube.com/embed/{video_id}")
+                    return _video_result("youtube", raw, f"{YOUTUBE_EMBED_ORIGIN}/embed/{video_id}")
 
     if host == "youtu.be":
         video_id = path.strip("/").split("/")[0].split("?")[0]
         if video_id:
-            return _video_result("youtube", raw, f"https://www.youtube.com/embed/{video_id}")
+            return _video_result("youtube", raw, f"{YOUTUBE_EMBED_ORIGIN}/embed/{video_id}")
 
     if host in {"www.vimeo.com", "vimeo.com"}:
         match = re.match(r"^/(\d+)", path)
@@ -78,7 +86,7 @@ def is_allowed_mini_site_video_embed_url(embed_url: str) -> bool:
     host = (parsed.hostname or "").lower()
     if host not in _ALLOWED_EMBED_HOSTS:
         return False
-    if host in {"www.youtube.com", "youtube.com"}:
+    if host in {"www.youtube.com", "youtube.com", "www.youtube-nocookie.com", "youtube-nocookie.com"}:
         return parsed.path.startswith("/embed/")
     if host == "player.vimeo.com":
         return parsed.path.startswith("/video/")

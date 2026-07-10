@@ -20,7 +20,15 @@ export type MiniSiteVideoMediaWire = {
 
 export const MINI_SITE_VIDEO_INVALID_URL_MESSAGE = "Use a YouTube or Vimeo link.";
 
-const ALLOWED_EMBED_HOSTS = new Set(["www.youtube.com", "youtube.com", "player.vimeo.com"]);
+const ALLOWED_EMBED_HOSTS = new Set([
+  "www.youtube.com",
+  "youtube.com",
+  "www.youtube-nocookie.com",
+  "youtube-nocookie.com",
+  "player.vimeo.com",
+]);
+
+const YOUTUBE_EMBED_ORIGIN = "https://www.youtube-nocookie.com";
 
 export type MiniSiteTemplateVideos = Partial<Record<string, MiniSiteVideoMedia>>;
 
@@ -44,7 +52,7 @@ export function parseMiniSiteVideoUrl(input: string): Omit<MiniSiteVideoMedia, "
   const host = parsed.hostname.toLowerCase();
   const path = parsed.pathname;
 
-  if (host === "www.youtube.com" || host === "youtube.com") {
+  if (host === "www.youtube.com" || host === "youtube.com" || host === "www.youtube-nocookie.com" || host === "youtube-nocookie.com") {
     if (path.startsWith("/embed/")) {
       const videoId = path.slice("/embed/".length).split("/")[0]?.split("?")[0];
       if (videoId) {
@@ -84,7 +92,7 @@ function youtubeResult(url: string, videoId: string): Omit<MiniSiteVideoMedia, "
   return {
     provider: "youtube",
     url,
-    embedUrl: `https://www.youtube.com/embed/${videoId}`,
+    embedUrl: `${YOUTUBE_EMBED_ORIGIN}/embed/${videoId}`,
   };
 }
 
@@ -98,7 +106,7 @@ export function isAllowedMiniSiteVideoEmbedUrl(embedUrl: string): boolean {
     if (!ALLOWED_EMBED_HOSTS.has(host)) {
       return false;
     }
-    if (host === "www.youtube.com" || host === "youtube.com") {
+    if (host === "www.youtube.com" || host === "youtube.com" || host === "www.youtube-nocookie.com" || host === "youtube-nocookie.com") {
       return parsed.pathname.startsWith("/embed/");
     }
     if (host === "player.vimeo.com") {

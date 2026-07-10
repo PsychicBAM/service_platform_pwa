@@ -317,7 +317,7 @@ describe("PublicProfileSettingsCard", () => {
             kind: "video",
             url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
             provider: "youtube",
-            embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            embedUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
             title: "",
           },
         },
@@ -360,7 +360,7 @@ describe("PublicProfileSettingsCard", () => {
               introVideo: expect.objectContaining({
                 kind: "video",
                 provider: "youtube",
-                embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                embedUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
               }),
             }),
           }),

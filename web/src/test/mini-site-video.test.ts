@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   buildMiniSiteVideoMediaFromUrl,
   getTemplateVideoSlots,
@@ -9,11 +11,18 @@ import {
 } from "@/lib/miniSiteVideo";
 
 describe("miniSiteVideo helpers", () => {
+  it("allows safe video iframe providers in nginx CSP", () => {
+    const nginxConfig = readFileSync(resolve(process.cwd(), "nginx.conf"), "utf8");
+    expect(nginxConfig).toContain("frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com");
+    expect(nginxConfig).toContain("child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com");
+    expect(nginxConfig).not.toContain("frame-src 'none'");
+  });
+
   it("parses YouTube watch links", () => {
     expect(parseMiniSiteVideoUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")).toEqual({
       provider: "youtube",
       url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      embedUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
     });
   });
 
@@ -21,7 +30,7 @@ describe("miniSiteVideo helpers", () => {
     expect(parseMiniSiteVideoUrl("https://youtu.be/dQw4w9WgXcQ")).toEqual({
       provider: "youtube",
       url: "https://youtu.be/dQw4w9WgXcQ",
-      embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      embedUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
     });
   });
 
@@ -29,7 +38,7 @@ describe("miniSiteVideo helpers", () => {
     expect(parseMiniSiteVideoUrl("https://www.youtube.com/embed/dQw4w9WgXcQ")).toEqual({
       provider: "youtube",
       url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      embedUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
     });
   });
 
@@ -60,7 +69,7 @@ describe("miniSiteVideo helpers", () => {
       kind: "video",
       url: "https://youtu.be/abc123XYZ12",
       provider: "youtube",
-      embedUrl: "https://www.youtube.com/embed/abc123XYZ12",
+      embedUrl: "https://www.youtube-nocookie.com/embed/abc123XYZ12",
       title: "Intro",
     });
   });
@@ -75,6 +84,7 @@ describe("miniSiteVideo helpers", () => {
       }),
     ).toBeNull();
     expect(isAllowedMiniSiteVideoEmbedUrl("https://evil.com/embed/1")).toBe(false);
+    expect(isAllowedMiniSiteVideoEmbedUrl("https://www.youtube-nocookie.com/embed/abc")).toBe(true);
   });
 
   it("getTemplateVideoSlots returns only valid video media", () => {
@@ -109,7 +119,7 @@ describe("miniSiteVideo helpers", () => {
       "clinic",
     );
 
-    expect(slots.introVideo?.embedUrl).toBe("https://www.youtube.com/embed/dQw4w9WgXcQ");
+    expect(slots.introVideo?.embedUrl).toBe("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
     expect(slots.heroImage).toBeUndefined();
     expect(slots.brokenVideo).toBeUndefined();
   });

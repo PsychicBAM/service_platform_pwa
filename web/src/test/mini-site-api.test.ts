@@ -282,7 +282,7 @@ describe("miniSiteApi", () => {
             kind: "video",
             url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
             provider: "youtube",
-            embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            embedUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
             title: "Intro",
           },
         },
@@ -293,7 +293,7 @@ describe("miniSiteApi", () => {
       kind: "video",
       url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       provider: "youtube",
-      embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      embed_url: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
       title: "Intro",
     });
   });

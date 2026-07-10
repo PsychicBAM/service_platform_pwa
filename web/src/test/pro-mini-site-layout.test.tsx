@@ -560,7 +560,7 @@ describe("ProMiniSiteLayout", () => {
             kind: "video",
             url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
             provider: "youtube",
-            embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            embedUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
             title: "",
           },
         },
@@ -572,7 +572,7 @@ describe("ProMiniSiteLayout", () => {
     const embed = screen.getByTestId("pro-mini-site-template-introVideo");
     expect(embed).toBeInTheDocument();
     const iframe = within(embed).getByTitle("Embedded video");
-    expect(iframe).toHaveAttribute("src", "https://www.youtube.com/embed/dQw4w9WgXcQ");
+    expect(iframe).toHaveAttribute("src", "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
     expect(iframe).toHaveAttribute("loading", "lazy");
   });
 
@@ -580,6 +580,44 @@ describe("ProMiniSiteLayout", () => {
     renderProMiniSiteLayout({ config: createSavedMiniSiteConfig({ template: "clean" }) });
 
     expect(screen.queryByTestId("pro-mini-site-template-introVideo")).not.toBeInTheDocument();
+  });
+
+  it("renders clinic booking CTA heading normally when appointment image is present", () => {
+    const base = createSavedMiniSiteConfig({ template: "clinic" });
+    const config = normalizeMiniSiteConfig({
+      ...base,
+      sections: base.sections.map((section) =>
+        section.type === "booking_cta" ? { ...section, enabled: true } : section,
+      ),
+      copy: {
+        ...base.copy,
+        primaryCtaLabel: "Book visit",
+      },
+      templateMedia: {
+        clinic: {
+          appointmentImage: {
+            kind: "image",
+            url: "/uploads/mini_site/test/appointment.webp",
+            thumbnailUrl: "/uploads/mini_site/test/appointment_thumb.webp",
+            alt: "Appointment",
+            filename: "appointment.webp",
+            contentType: "image/webp",
+            size: 100,
+            originalSize: 5000,
+            width: 1600,
+            height: 900,
+          },
+        },
+      },
+    });
+
+    renderProMiniSiteLayout({ config });
+
+    const heading = screen.getByTestId("pro-mini-site-booking-cta-heading");
+    expect(heading).toHaveTextContent("Schedule your visit");
+    expect(heading.className).toContain("whitespace-normal");
+    expect(heading.className).not.toContain("min-w-0");
+    expect(screen.getByTestId("pro-mini-site-booking-cta-panel").className).not.toContain("md:flex-row");
   });
 });
 
