@@ -476,6 +476,7 @@ export function ProMiniSiteLayout({
             businessName={business.name}
             copy={copy}
             introVideo={templateVideos.introVideo ?? null}
+            templateImages={templateImages}
           />
         );
       case "services":
@@ -488,6 +489,7 @@ export function ProMiniSiteLayout({
             theme={clinicTheme}
             isDark={isDark}
             primaryCtaLabel={primaryCtaLabel}
+            copy={copy}
             templateImages={templateImages}
           />
         );
@@ -500,6 +502,10 @@ export function ProMiniSiteLayout({
             showTrustStats={presentation.showTrustStats}
             showBenefitsStrip={presentation.showBenefitsStrip}
             benefitsSectionEnabled={benefitsSectionEnabled}
+            primaryCtaLabel={primaryCtaLabel}
+            primaryBookingHref={primaryBookingHref}
+            showBookingCta={ctas.showBookingCta}
+            templateImages={templateImages}
           />
         );
       case "faq":
@@ -523,6 +529,7 @@ export function ProMiniSiteLayout({
             socialLinks={socialLinks}
             theme={clinicTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       case "booking_cta":

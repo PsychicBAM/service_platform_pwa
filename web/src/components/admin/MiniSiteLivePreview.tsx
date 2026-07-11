@@ -538,6 +538,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             businessName={businessName}
             copy={copy}
             introVideo={templateVideos.introVideo ?? null}
+            templateImages={templateImages}
           />
         );
       case "services":
@@ -551,6 +552,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             theme={clinicTheme}
             isDark={isDark}
             primaryCtaLabel={primaryCtaLabel}
+            copy={copy}
             templateImages={templateImages}
           />
         );
@@ -564,6 +566,9 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             showTrustStats={presentation.showTrustStats}
             showBenefitsStrip={presentation.showBenefitsStrip}
             benefitsSectionEnabled={benefitsSectionEnabled}
+            primaryCtaLabel={primaryCtaLabel}
+            showBookingCta={hasMeaningfulText(primaryCtaLabel)}
+            templateImages={templateImages}
           />
         );
       case "faq":
@@ -592,6 +597,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             socialLinks={socialLinks}
             theme={clinicTheme}
             isDark={isDark}
+            templateImages={templateImages}
           />
         );
       default:
