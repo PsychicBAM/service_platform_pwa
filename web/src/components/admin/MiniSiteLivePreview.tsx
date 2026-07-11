@@ -749,6 +749,9 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             fallbackBody={null}
             theme={portfolioTheme}
             isDark={isDark}
+            services={undefined}
+            copy={copy}
+            templateImages={templateImages}
           />
         );
       case "services":

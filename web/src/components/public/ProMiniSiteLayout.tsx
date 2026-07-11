@@ -607,6 +607,9 @@ export function ProMiniSiteLayout({
             fallbackBody={business.description}
             theme={portfolioTheme}
             isDark={isDark}
+            services={services}
+            copy={copy}
+            templateImages={templateImages}
           />
         );
       case "services":
@@ -653,6 +656,9 @@ export function ProMiniSiteLayout({
             socialLinks={socialLinks}
             theme={portfolioTheme}
             isDark={isDark}
+            primaryCtaLabel={primaryCtaLabel}
+            primaryBookingHref={primaryBookingHref}
+            showBookingCta={ctas.showBookingCta}
           />
         );
       case "booking_cta":
