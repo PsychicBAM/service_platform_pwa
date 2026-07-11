@@ -39,6 +39,16 @@ type PortfolioTheme = {
 
 const PORTFOLIO_CONTAINER = "mx-auto w-full max-w-5xl px-4 sm:px-6 md:px-8";
 
+function portfolioCardImageAspect(isPreview: boolean): string {
+  return isPreview ? "aspect-[5/3]" : "aspect-[4/3]";
+}
+
+function portfolioCardShell(isPreview: boolean): string {
+  return `flex h-full flex-col overflow-hidden bg-white shadow-xl ${
+    isPreview ? "rounded-xl" : "rounded-[1.75rem] md:rounded-[2rem]"
+  }`;
+}
+
 function portfolioContainerClass(isPreview: boolean): string {
   return isPreview ? "mx-auto w-full max-w-none px-3" : PORTFOLIO_CONTAINER;
 }
@@ -156,46 +166,49 @@ function PortfolioShowreelCard({
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const isPreview = variant === "preview";
+  const imageAspect = portfolioCardImageAspect(isPreview);
+  const muted = portfolioMutedText(isDark);
 
   if (!media.embedUrl || !isAllowedMiniSiteVideoEmbedUrl(media.embedUrl)) {
     return null;
   }
 
   return (
-    <article
-      className={`overflow-hidden bg-white shadow-xl ${isPreview ? "rounded-xl" : "rounded-[1.75rem] md:rounded-[2rem]"}`}
-      data-testid="service-card"
-    >
-      {isPlaying ? (
-        <div className={isPreview ? "p-2" : "p-3"}>
-          <p className={`mb-2 text-center font-bold uppercase ${isPreview ? "text-[10px]" : "text-sm"}`} style={{ color: primaryColor }}>
-            Showreel
-          </p>
-          <MiniSiteVideoEmbed media={media} variant={variant} testId={testId} className="overflow-hidden rounded-xl" />
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setIsPlaying(true)}
-          className={`flex w-full flex-col items-center justify-center text-center transition hover:brightness-105 ${
-            isPreview ? "gap-2 px-4 py-8" : "gap-3 px-6 py-14 md:py-16"
-          }`}
-          data-testid={testId}
-          style={{ background: `linear-gradient(135deg, ${primaryColor}18, #e0e7ff)` }}
-        >
-          <span
-            className={`flex items-center justify-center rounded-full text-white ${isPreview ? "h-10 w-10 text-xs" : "h-14 w-14 text-base"}`}
-            style={{ backgroundColor: primaryColor }}
-            aria-hidden
+    <article className={portfolioCardShell(isPreview)} data-testid="service-card">
+      <div className={`relative w-full shrink-0 overflow-hidden ${imageAspect}`}>
+        {isPlaying ? (
+          <MiniSiteVideoEmbed media={media} variant={variant} testId={testId} className="h-full w-full" />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsPlaying(true)}
+            className="flex h-full w-full flex-col items-center justify-center gap-2 text-center transition hover:brightness-105"
+            data-testid={testId}
+            style={{ background: `linear-gradient(135deg, ${primaryColor}18, #e0e7ff)` }}
           >
-            ▶
-          </span>
-          <span className={`font-bold uppercase tracking-wide ${isPreview ? "text-xs" : "text-base md:text-lg"} ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-            Showreel
-          </span>
-          <span className={`${isPreview ? "text-[10px]" : "text-sm"} ${portfolioMutedText(isDark)}`}>Play showreel</span>
-        </button>
-      )}
+            <span
+              className={`flex items-center justify-center rounded-full text-white ${isPreview ? "h-10 w-10 text-xs" : "h-14 w-14 text-base"}`}
+              style={{ backgroundColor: primaryColor }}
+              aria-hidden
+            >
+              ▶
+            </span>
+            <span className={`font-bold uppercase tracking-wide ${isPreview ? "text-[10px]" : "text-sm"} ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+              Play showreel
+            </span>
+          </button>
+        )}
+      </div>
+      <div className={`flex flex-1 flex-col text-center ${isPreview ? "gap-1 p-3" : "gap-2 p-5 md:p-6"}`}>
+        <h3
+          className={`whitespace-normal font-bold uppercase tracking-wide ${isPreview ? "text-xs" : "text-sm md:text-base"} ${
+            isDark ? "text-slate-100" : "text-slate-900"
+          }`}
+        >
+          Showreel
+        </h3>
+        <p className={`italic ${isPreview ? "text-[10px]" : "text-xs md:text-sm"} ${muted}`}>Video showcase</p>
+      </div>
     </article>
   );
 }
@@ -221,44 +234,62 @@ function PortfolioProjectCard({
   const muted = portfolioMutedText(isDark);
   const duration = service.type === "booking" ? formatDuration(service.duration_minutes) : null;
   const pink = portfolioPink(theme);
+  const imageAspect = portfolioCardImageAspect(isPreview);
+  const monogram = service.name.charAt(0).toUpperCase();
 
   return (
-    <article
-      className={`overflow-hidden bg-white shadow-xl ${isPreview ? "rounded-xl" : "rounded-[1.75rem] md:rounded-[2rem]"}`}
-      data-testid="service-card"
-    >
-      {showcaseImage && imageTestId ? (
-        <MiniSiteSlotImage
-          media={showcaseImage}
-          testId={imageTestId}
-          className={`w-full object-cover ${isPreview ? "h-28" : "h-44 md:h-52"}`}
-        />
-      ) : (
-        <div
-          className={`w-full ${isPreview ? "h-28" : "h-44 md:h-52"}`}
-          style={{ background: `linear-gradient(135deg, ${pink}22, #c7d2fe)` }}
-          aria-hidden
-        />
-      )}
-      <div className={`text-center ${isPreview ? "space-y-1.5 p-3" : "space-y-2 p-5 md:p-6"}`}>
+    <article className={portfolioCardShell(isPreview)} data-testid="service-card">
+      <div className={`relative w-full shrink-0 overflow-hidden ${imageAspect}`}>
+        {showcaseImage && imageTestId ? (
+          <MiniSiteSlotImage
+            media={showcaseImage}
+            testId={imageTestId}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div
+            className="flex h-full w-full flex-col items-center justify-center gap-2"
+            style={{ background: `linear-gradient(145deg, ${pink}20 0%, #c7d2fe 55%, ${pink}12 100%)` }}
+            aria-hidden
+          >
+            <span
+              className={`flex items-center justify-center rounded-2xl font-black text-white shadow-md ${
+                isPreview ? "h-10 w-10 text-sm" : "h-14 w-14 text-xl"
+              }`}
+              style={{ backgroundColor: `${pink}cc` }}
+            >
+              {monogram}
+            </span>
+            <span className={`font-bold uppercase tracking-[0.2em] ${isPreview ? "text-[8px]" : "text-[10px]"} ${muted}`}>
+              {serviceCategoryLabel(service)}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className={`flex flex-1 flex-col text-center ${isPreview ? "gap-1.5 p-3" : "gap-2 p-5 md:p-6"}`}>
         <h3
-          className={`whitespace-normal font-bold uppercase tracking-wide ${isPreview ? "text-xs" : "text-sm md:text-base"} ${
-            isDark ? "text-slate-100" : "text-slate-900"
-          }`}
+          className={`min-h-[2.5em] whitespace-normal font-bold uppercase tracking-wide ${
+            isPreview ? "text-xs leading-snug" : "text-sm leading-snug md:text-base"
+          } ${isDark ? "text-slate-100" : "text-slate-900"}`}
         >
           {service.name}
         </h3>
         <p className={`italic ${isPreview ? "text-[10px]" : "text-xs md:text-sm"} ${muted}`}>{serviceCategoryLabel(service)}</p>
         {service.description ? (
-          <p className={`line-clamp-2 whitespace-normal ${isPreview ? "text-[10px]" : "text-xs"} ${muted}`}>{service.description}</p>
-        ) : null}
+          <p className={`line-clamp-2 min-h-[2.5em] whitespace-normal ${isPreview ? "text-[10px]" : "text-xs"} ${muted}`}>
+            {service.description}
+          </p>
+        ) : (
+          <div className={isPreview ? "min-h-[2em]" : "min-h-[2.5em]"} aria-hidden />
+        )}
         <div className={`flex flex-wrap items-center justify-center gap-2 ${isPreview ? "text-[9px]" : "text-xs"} ${muted}`}>
           <PriceLabel service={service} />
           {duration ? <span>{duration}</span> : null}
         </div>
         <Link
           to={`/b/${slug}/services/${service.id}`}
-          className={`inline-flex items-center justify-center rounded-full font-bold text-white transition hover:brightness-110 ${
+          className={`mt-auto inline-flex w-full items-center justify-center rounded-full font-bold text-white transition hover:brightness-110 ${
             isPreview ? "px-4 py-1.5 text-[10px]" : "px-6 py-2.5 text-xs md:text-sm"
           }`}
           style={{ backgroundColor: pink }}
@@ -342,8 +373,12 @@ export function PortfolioHeroSection({
             }`}
             data-testid={`${testIdPrefix}-portfolio-hero-visual`}
           >
-            <div className={`grid items-center ${isPreview ? "gap-4" : "gap-8 md:grid-cols-[1.1fr_0.9fr] md:gap-10"}`}>
-              <div className={`min-w-0 ${isPreview ? "space-y-2" : "space-y-4 md:space-y-5"}`}>
+            <div
+              className={`grid ${heroVisual ? (isPreview ? "gap-4" : "gap-8 md:grid-cols-2 md:items-center md:gap-10") : ""} ${
+                isPreview ? "gap-3" : "gap-5"
+              }`}
+            >
+              <div className={`flex min-w-0 flex-col justify-center ${isPreview ? "gap-2" : "gap-4 md:gap-5"}`}>
                 <p
                   className={`font-semibold uppercase tracking-[0.25em] ${isPreview ? "text-[9px]" : "text-[10px] md:text-xs"} ${muted}`}
                   data-testid={`${testIdPrefix}-hero-badge`}
@@ -382,7 +417,7 @@ export function PortfolioHeroSection({
                 ) : null}
 
                 <div
-                  className={`flex flex-wrap ${isPreview ? "gap-2" : "gap-3"}`}
+                  className={`flex flex-wrap items-center ${isPreview ? "gap-2 pt-1" : "gap-3 pt-2"}`}
                   data-testid={`${testIdPrefix}-hero-cta-group`}
                 >
                   {showBookingCta && hasMeaningfulText(primaryCtaLabel)
@@ -415,12 +450,16 @@ export function PortfolioHeroSection({
               </div>
 
               {heroVisual ? (
-                <div className={`overflow-hidden ${isPreview ? "rounded-lg" : "rounded-2xl md:rounded-3xl"}`}>
-                  <MiniSiteSlotImage
-                    media={heroVisual}
-                    testId={`${testIdPrefix}-template-heroVisual`}
-                    className={`w-full object-cover ${isPreview ? "max-h-32" : "max-h-72 md:max-h-80"}`}
-                  />
+                <div className={`flex w-full items-center justify-center ${isPreview ? "" : "md:justify-end"}`}>
+                  <div
+                    className={`w-full overflow-hidden ${isPreview ? "max-w-[12rem] rounded-lg" : "max-w-md rounded-2xl md:max-w-none md:rounded-3xl"} aspect-[4/3]`}
+                  >
+                    <MiniSiteSlotImage
+                      media={heroVisual}
+                      testId={`${testIdPrefix}-template-heroVisual`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -468,10 +507,10 @@ export function PortfolioAboutSection({
 
   return (
     <section
-      className={`${portfolioContainerClass(isPreview)} bg-white ${isDark ? "bg-slate-950" : ""} ${isPreview ? "py-4" : "py-10 md:py-14"}`}
+      className={`${portfolioContainerClass(isPreview)} bg-white ${isDark ? "bg-slate-950" : ""} ${isPreview ? "py-4" : "py-10 md:py-12"}`}
       data-testid={`${testIdPrefix}-about`}
     >
-      <div className={`text-center ${isPreview ? "mb-4" : "mb-8"}`}>
+      <div className={`text-center ${isPreview ? "mb-3" : "mb-6 md:mb-8"}`}>
         <h2
           className={`whitespace-normal font-black ${isPreview ? "text-base" : "text-2xl md:text-4xl"}`}
           style={{ color: pink }}
@@ -481,7 +520,7 @@ export function PortfolioAboutSection({
         </h2>
         {content ? (
           <p
-            className={`mx-auto mt-3 max-w-2xl whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-sm md:text-base"} ${muted}`}
+            className={`mx-auto mt-2 max-w-2xl whitespace-normal leading-relaxed ${isPreview ? "text-xs" : "text-sm md:text-base"} ${muted}`}
             data-testid={`${testIdPrefix}-about-body`}
           >
             {content}
@@ -489,37 +528,47 @@ export function PortfolioAboutSection({
         ) : null}
       </div>
 
-      {whatWeDoItems.length > 0 ? (
-        <div
-          className={`grid grid-cols-2 ${isPreview ? "gap-2" : "gap-4 md:gap-6"}`}
-          data-testid={`${testIdPrefix}-portfolio-capabilities`}
-        >
-          {whatWeDoItems.map((item) => (
-            <div key={item.key} className={`flex items-start gap-2 ${isPreview ? "gap-1.5" : "gap-3"}`}>
-              <span
-                className={`mt-0.5 flex shrink-0 items-center justify-center rounded-full border-2 ${isPreview ? "h-5 w-5 text-[8px]" : "h-7 w-7 text-xs"}`}
-                style={{ borderColor: pink, color: pink }}
-                aria-hidden
-              >
-                ✦
-              </span>
-              <p className={`min-w-0 whitespace-normal font-semibold ${isPreview ? "text-[11px]" : "text-sm md:text-base"} ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-                {item.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      ) : null}
+      <div
+        className={`grid items-start ${isPreview ? "gap-3" : "gap-6 md:grid-cols-[1fr_auto] md:gap-8"}`}
+      >
+        {whatWeDoItems.length > 0 ? (
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-2 ${isPreview ? "gap-x-3 gap-y-2" : "gap-x-6 gap-y-3 md:gap-x-8 md:gap-y-4"}`}
+            data-testid={`${testIdPrefix}-portfolio-capabilities`}
+          >
+            {whatWeDoItems.map((item) => (
+              <div key={item.key} className={`flex items-center ${isPreview ? "gap-2" : "gap-3"}`}>
+                <span
+                  className={`flex shrink-0 items-center justify-center rounded-full border-2 ${isPreview ? "h-5 w-5 text-[8px]" : "h-7 w-7 text-xs"}`}
+                  style={{ borderColor: pink, color: pink }}
+                  aria-hidden
+                >
+                  ✦
+                </span>
+                <p
+                  className={`min-w-0 whitespace-normal font-semibold leading-snug ${
+                    isPreview ? "text-[11px]" : "text-sm md:text-base"
+                  } ${isDark ? "text-slate-100" : "text-slate-900"}`}
+                >
+                  {item.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div />
+        )}
 
-      {servicesImage ? (
-        <div className={`mx-auto ${isPreview ? "mt-3 max-w-[8rem]" : "mt-8 max-w-xs"}`}>
-          <MiniSiteSlotImage
-            media={servicesImage}
-            testId={`${testIdPrefix}-template-servicesImage`}
-            className={`w-full rounded-2xl object-cover shadow-lg ${isPreview ? "max-h-20" : "max-h-36"}`}
-          />
-        </div>
-      ) : null}
+        {servicesImage ? (
+          <div className={`mx-auto shrink-0 self-center ${isPreview ? "w-20" : "w-28 md:w-32"}`}>
+            <MiniSiteSlotImage
+              media={servicesImage}
+              testId={`${testIdPrefix}-template-servicesImage`}
+              className={`aspect-square w-full rounded-2xl object-cover shadow-md ${isPreview ? "rounded-xl" : ""}`}
+            />
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -597,7 +646,7 @@ export function PortfolioWorkSection({
           </p>
         </div>
 
-        <div className={`grid gap-4 ${isPreview ? "" : "md:grid-cols-2 md:gap-6 lg:gap-8"}`}>
+        <div className={`grid items-stretch ${isPreview ? "gap-3" : "gap-4 md:grid-cols-2 md:gap-6 lg:gap-8"}`}>
           {showreelVideo ? (
             <PortfolioShowreelCard
               media={showreelVideo}
@@ -610,9 +659,8 @@ export function PortfolioWorkSection({
 
           {services && services.length > 0
             ? services.map((service, index) => {
-                const imageIndex = showreelVideo ? index : index;
-                const showcaseImage = projectImages[imageIndex] ?? null;
-                const imageTestId = showcaseImage ? imageTestIds[imageIndex] : undefined;
+                const showcaseImage = projectImages[index] ?? null;
+                const imageTestId = showcaseImage ? imageTestIds[index] : undefined;
 
                 return (
                   <PortfolioProjectCard
