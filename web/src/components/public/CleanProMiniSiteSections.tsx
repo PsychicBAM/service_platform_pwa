@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { PriceLabel } from "@/components/PriceLabel";
 import {
@@ -11,8 +11,9 @@ import type { MiniSiteImageMedia, MiniSiteTemplateImages } from "@/lib/miniSiteM
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
-import { MiniSiteTemplateVideoCard } from "@/components/public/MiniSiteTemplateMediaPresentation";
+import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
+import { isAllowedMiniSiteVideoEmbedUrl } from "@/lib/miniSiteVideo";
 import type { MiniSiteBackgroundStyle, MiniSiteCopy, MiniSiteSocialLinks } from "@/types/miniSite";
 import { formatDuration, serviceActionLabel } from "@/utils/format";
 
@@ -176,6 +177,96 @@ function CleanHeroImageShell({
   );
 }
 
+function CleanIntroVideoCard({
+  media,
+  variant,
+  testId,
+  isDark,
+  primaryColor,
+}: {
+  media: MiniSiteVideoMedia;
+  variant: CleanSectionVariant;
+  testId: string;
+  isDark: boolean;
+  primaryColor: string;
+}) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const isPreview = variant === "preview";
+
+  if (!media.embedUrl || !isAllowedMiniSiteVideoEmbedUrl(media.embedUrl)) {
+    return null;
+  }
+
+  return (
+    <div
+      className={`${cleanCardShell(isDark, isPreview)} ${
+        isPreview ? "p-3" : "p-4 md:p-5"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <span
+          className={`inline-flex items-center justify-center rounded-full text-white ${
+            isPreview ? "h-6 w-6 text-[10px]" : "h-7 w-7 text-xs"
+          }`}
+          style={{ backgroundColor: primaryColor }}
+          aria-hidden
+        >
+          ▶
+        </span>
+        <p
+          className={`font-semibold uppercase tracking-[0.18em] ${
+            isPreview ? "text-[9px]" : "text-[10px]"
+          } ${cleanMutedText(isDark)}`}
+        >
+          Watch intro
+        </p>
+      </div>
+
+      {isPlaying ? (
+        <div className={`${isPreview ? "mt-2" : "mt-3"} max-w-[220px]`}>
+          <MiniSiteVideoEmbed
+            media={media}
+            variant={variant}
+            testId={testId}
+            className={`overflow-hidden rounded-xl border ${cleanBorder(isDark)} bg-black/5`}
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsPlaying(true)}
+          className={`group mt-2 flex w-full max-w-[220px] items-center gap-3 rounded-xl border text-left transition ${
+            isDark
+              ? "border-slate-700/60 bg-slate-800/40 hover:bg-slate-800/60"
+              : "border-slate-200/80 bg-sky-50/60 hover:bg-sky-50"
+          } ${isPreview ? "px-2.5 py-2" : "px-3 py-2.5"}`}
+          data-testid={testId}
+        >
+          <span
+            className={`flex shrink-0 items-center justify-center rounded-full text-white transition group-hover:scale-105 ${
+              isPreview ? "h-8 w-8 text-xs" : "h-9 w-9 text-sm"
+            }`}
+            style={{ backgroundColor: primaryColor }}
+            aria-hidden
+          >
+            ▶
+          </span>
+          <span className="min-w-0">
+            <span
+              className={`block font-semibold ${isPreview ? "text-[11px]" : "text-sm"} ${cleanHeadingText(isDark)}`}
+            >
+              Play intro video
+            </span>
+            <span className={`block ${isPreview ? "text-[10px]" : "text-xs"} ${cleanMutedText(isDark)}`}>
+              Short overview of our service
+            </span>
+          </span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 function cleanServiceButtonClass(variant: CleanSectionVariant): string {
   return `inline-flex w-full items-center justify-center font-semibold text-white shadow-sm transition hover:brightness-[1.02] ${
     variant === "preview" ? "rounded-full px-3 py-2 text-[11px]" : "rounded-full px-5 py-2.5 text-sm"
@@ -209,30 +300,42 @@ function CleanServiceCard({
   return (
     <article
       className={`flex h-full flex-col ${cleanCardShell(isDark, isPreview)} ${
-        isPreview ? "gap-2 p-3" : "gap-4 p-5 md:p-6"
+        isPreview ? "gap-2.5 p-3" : "gap-5 p-6 md:p-7"
       } transition hover:-translate-y-0.5 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]`}
       data-testid="service-card"
     >
-      <span
-        className={`font-semibold tabular-nums ${isPreview ? "text-[10px]" : "text-xs"} ${muted}`}
-      >
-        {String(index + 1).padStart(2, "0")}
-      </span>
+      <div className="flex items-start justify-between gap-3">
+        <span
+          className={`inline-flex rounded-full px-2 py-0.5 font-bold tabular-nums ${
+            isPreview ? "text-[10px]" : "text-xs"
+          } ${isDark ? "bg-slate-800/70 text-slate-300" : "bg-sky-100 text-sky-700"}`}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+      </div>
       <h3
         className={`whitespace-normal font-bold tracking-tight ${
-          isPreview ? "text-xs" : "text-lg md:text-xl"
+          isPreview ? "text-sm" : "text-xl md:text-2xl"
         } ${cleanHeadingText(isDark)}`}
       >
         {service.name}
       </h3>
       {descriptionPreview ? (
-        <p className={`flex-1 whitespace-normal leading-relaxed ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}>
+        <p
+          className={`flex-1 whitespace-normal leading-relaxed ${
+            isPreview ? "text-[11px]" : "text-sm md:text-base"
+          } ${muted}`}
+        >
           {descriptionPreview}
         </p>
       ) : (
         <div className="flex-1" />
       )}
-      <div className={`flex flex-wrap items-center gap-2 ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>
+      <div
+        className={`flex flex-wrap items-center gap-2.5 ${
+          isPreview ? "text-[10px]" : "text-sm md:text-base"
+        } ${muted}`}
+      >
         <PriceLabel service={service} />
         {duration ? (
           <span
@@ -300,7 +403,7 @@ export function CleanHeroSection({
   const isPreview = variant === "preview";
   const heroImage = templateImages?.heroImage ?? null;
   const heroStat = copy.trustCards[0] ?? null;
-  const heroChips = copy.benefitsItems.filter(Boolean).slice(0, 3);
+  const heroTrustStats = copy.trustCards.slice(0, 3);
 
   return (
     <header
@@ -315,7 +418,7 @@ export function CleanHeroSection({
         }`}
       >
         <div
-          className={`flex min-w-0 flex-col ${isPreview ? "gap-2" : "gap-4 md:gap-5"}`}
+          className={`flex min-w-0 flex-col ${isPreview ? "gap-2" : "gap-5 md:gap-6"}`}
           data-testid={`${testIdPrefix}-hero-content`}
         >
           <div className="flex items-center gap-3">
@@ -347,6 +450,14 @@ export function CleanHeroSection({
               {heroBadgeText}
             </p>
           </div>
+
+          <p
+            className={`max-w-xl whitespace-normal font-semibold ${
+              isPreview ? "text-[11px]" : "text-sm md:text-base"
+            } ${isDark ? "text-slate-200" : "text-slate-800"}`}
+          >
+            {business.name}
+          </p>
 
           <h1
             className={`${presentation.heroTitleClass} whitespace-normal ${cleanHeadingText(isDark)}`}
@@ -382,7 +493,7 @@ export function CleanHeroSection({
           ) : null}
 
           <div
-            className={`flex w-full flex-col sm:flex-row ${isPreview ? "gap-1.5" : "gap-3"}`}
+            className={`flex w-full flex-col sm:flex-row ${isPreview ? "gap-1.5" : "gap-3 md:pt-1"}`}
             data-testid={`${testIdPrefix}-hero-cta-group`}
           >
             {showBookingCta && hasMeaningfulText(primaryCtaLabel) ? (
@@ -431,20 +542,48 @@ export function CleanHeroSection({
             ) : null}
           </div>
 
-          {showHeroTrustStrip && heroChips.length > 0 ? (
+          {showHeroTrustStrip && heroTrustStats.length > 0 ? (
             <div
-              className={`flex flex-wrap ${isPreview ? "gap-1.5" : "gap-2"}`}
+              className={`grid grid-cols-3 ${isPreview ? "gap-1.5" : "gap-2 md:gap-3"}`}
               data-testid={`${testIdPrefix}-hero-trust-strip`}
             >
-              {heroChips.map((chip) => (
+              {heroTrustStats.map((stat) => (
+                <div
+                  key={stat.subtitle}
+                  className={`min-w-0 text-center ${cleanCardShell(isDark, isPreview)} ${
+                    isPreview ? "px-2 py-2" : "px-3 py-3 md:px-4 md:py-4"
+                  }`}
+                >
+                  <p
+                    className={`whitespace-normal font-bold leading-none ${
+                      isPreview ? "text-xs" : "text-base md:text-xl"
+                    }`}
+                    style={{ color: theme.primaryColor }}
+                  >
+                    {stat.title}
+                  </p>
+                  <p
+                    className={`mt-1 whitespace-normal leading-tight ${
+                      isPreview ? "text-[9px]" : "text-[10px] md:text-xs"
+                    } ${muted}`}
+                  >
+                    {stat.subtitle}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {!isPreview && copy.benefitsItems.filter(Boolean).length > 0 ? (
+            <div className={`flex flex-wrap ${isPreview ? "gap-1.5" : "gap-2"}`}>
+              {copy.benefitsItems.filter(Boolean).slice(0, 3).map((chip) => (
                 <span
                   key={chip}
-                  className={`inline-flex items-center gap-1.5 whitespace-normal ${cleanCardShell(
-                    isDark,
-                    isPreview,
-                  )} ${isPreview ? "px-2 py-1 text-[10px]" : "px-3 py-1.5 text-xs"} ${
-                    isDark ? "text-slate-200" : "text-slate-700"
-                  }`}
+                  className={`inline-flex items-center gap-1.5 whitespace-normal rounded-full border px-3 py-1 ${
+                    isDark
+                      ? "border-slate-700/60 bg-slate-900/40 text-slate-200"
+                      : "border-slate-200/80 bg-white/80 text-slate-700"
+                  } ${isPreview ? "text-[10px]" : "text-xs"}`}
                 >
                   <CleanCheckIcon color={theme.primaryColor} size="sm" />
                   {chip}
@@ -592,17 +731,13 @@ export function CleanAboutSection({
 
         <div className={`flex flex-col ${isPreview ? "gap-2" : "gap-4"}`}>
           {introVideo ? (
-            <div className={`${cleanCardShell(isDark, isPreview)} ${isPreview ? "p-3" : "p-4 md:p-5"}`}>
-              <MiniSiteTemplateVideoCard
-                media={introVideo}
-                variant={variant}
-                tone="clean"
-                label="Watch intro"
-                testId={`${testIdPrefix}-template-introVideo`}
-                maxWidthClass="w-full"
-                className="max-w-none"
-              />
-            </div>
+            <CleanIntroVideoCard
+              media={introVideo}
+              variant={variant}
+              testId={`${testIdPrefix}-template-introVideo`}
+              isDark={isDark}
+              primaryColor={theme.primaryColor}
+            />
           ) : null}
 
           {proofPoint ? (
@@ -694,16 +829,11 @@ export function CleanServicesSection({
           ) : null}
         </div>
 
-        <div
-          className={`grid gap-4 ${
-            servicesImage && !isPreview ? "lg:grid-cols-[minmax(0,1fr)_200px] lg:gap-6" : ""
-          }`}
-        >
-          <div>
+        <div className="grid gap-4 md:gap-5">
             {services && services.length > 0 ? (
               <div
                 className={`grid ${
-                  isPreview ? "grid-cols-1 gap-2" : "gap-4 sm:grid-cols-2 xl:grid-cols-3"
+                  isPreview ? "grid-cols-1 gap-2" : "gap-5 sm:grid-cols-2"
                 }`}
               >
                 {services.map((service, index) => (
@@ -717,6 +847,28 @@ export function CleanServicesSection({
                     variant={variant}
                   />
                 ))}
+
+                {servicesImage ? (
+                  <div
+                    className={`flex h-full flex-col ${cleanCardShell(isDark, isPreview)} ${
+                      isPreview ? "gap-2 p-3" : "gap-3 p-5 md:p-6"
+                    }`}
+                  >
+                    <CleanSectionEyebrow color={theme.accentColor} variant={variant}>
+                      Our work
+                    </CleanSectionEyebrow>
+                    <div className="flex flex-1 items-end">
+                      <MiniSiteSectionAccentImage
+                        media={servicesImage}
+                        variant={variant}
+                        tone="clean"
+                        layout="inline"
+                        className="mb-0 w-full overflow-hidden rounded-2xl"
+                        testId={`${testIdPrefix}-template-servicesImage`}
+                      />
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : variant === "preview" ? (
               <div className={`${cleanCardShell(isDark, isPreview)} p-3`}>
@@ -737,20 +889,6 @@ export function CleanServicesSection({
                 </Link>
               </p>
             )}
-          </div>
-
-          {servicesImage ? (
-            <aside className={`${isPreview ? "mt-2" : "lg:mt-0"}`}>
-              <MiniSiteSectionAccentImage
-                media={servicesImage}
-                variant={variant}
-                tone="clean"
-                layout="compact"
-                className="h-full"
-                testId={`${testIdPrefix}-template-servicesImage`}
-              />
-            </aside>
-          ) : null}
         </div>
       </div>
     </section>
@@ -1056,8 +1194,8 @@ export function CleanBookingCtaSection({
   theme,
   presentation,
   templateImages,
-  headline = "Ready to get started?",
-  subtext = "Book your service today and experience professional care tailored to you.",
+  headline = "Take the next step with confidence",
+  subtext = "Book your service today and get professional care from a trusted local team.",
   secondaryLabel,
   secondaryHref,
   previewButtons = false,
@@ -1078,84 +1216,105 @@ export function CleanBookingCtaSection({
     >
       <div className={sectionContainer(variant)}>
         <div
-          className={`grid items-center ${cleanCardShell(isDark, isPreview)} ${
-            isPreview
-              ? "gap-3 p-4"
-              : "gap-6 p-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-10 md:p-8 lg:p-10"
+          className={`relative overflow-hidden ${cleanCardShell(isDark, isPreview)} ${
+            isPreview ? "p-4" : "p-6 md:p-8 lg:p-10"
           }`}
           data-testid="pro-mini-site-booking-cta-panel"
         >
-          <div className={`min-w-0 ${ctaImage && !isPreview ? "md:col-span-1" : ""}`}>
-            <h2
-              className={`whitespace-normal font-bold tracking-tight ${
-                isPreview ? "text-sm" : "text-xl md:text-2xl lg:text-3xl"
-              } ${cleanHeadingText(isDark)}`}
-              data-testid="pro-mini-site-booking-cta-heading"
-            >
-              {headline}
-            </h2>
-            <p
-              className={`mt-2 whitespace-normal leading-relaxed ${
-                isPreview ? "text-[11px]" : "text-sm md:text-base"
-              } ${muted}`}
-            >
-              {subtext}
-            </p>
-            <div className={`mt-4 flex flex-col sm:flex-row ${isPreview ? "gap-1.5" : "gap-3"}`}>
-              {previewButtons ? (
-                <button
-                  type="button"
-                  disabled
-                  className={presentation.primaryButtonClass}
-                  style={{ backgroundColor: theme.primaryColor }}
-                >
-                  {label}
-                </button>
-              ) : (
-                <Link
-                  to={href}
-                  className={presentation.primaryButtonClass}
-                  data-testid="pro-mini-site-booking-cta-link"
-                  style={{ backgroundColor: theme.primaryColor }}
-                >
-                  {label}
-                </Link>
-              )}
-              {showSecondary ? (
-                previewButtons ? (
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-1.5"
+            style={{ backgroundColor: theme.primaryColor }}
+            aria-hidden
+          />
+
+          <div
+            className={`grid items-center ${
+              isPreview ? "gap-3" : "gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-8"
+            }`}
+          >
+            {ctaImage ? (
+              <div
+                className={`order-first shrink-0 md:order-last ${
+                  isPreview ? "w-full max-w-[140px]" : "w-full max-w-[180px] justify-self-center md:justify-self-end"
+                }`}
+              >
+                <MiniSiteSectionAccentImage
+                  media={ctaImage}
+                  variant={variant}
+                  tone="clean"
+                  layout="cta"
+                  className="mb-0 overflow-hidden rounded-2xl"
+                  testId={`${testIdPrefix}-template-ctaImage`}
+                />
+              </div>
+            ) : null}
+
+            <div className="min-w-0">
+              <CleanSectionEyebrow color={theme.accentColor} variant={variant} className="mb-2">
+                Get started
+              </CleanSectionEyebrow>
+              <h2
+                className={`whitespace-normal font-bold tracking-tight ${
+                  isPreview ? "text-base" : "text-2xl md:text-3xl lg:text-4xl"
+                } ${cleanHeadingText(isDark)}`}
+                data-testid="pro-mini-site-booking-cta-heading"
+              >
+                {headline}
+              </h2>
+              <p
+                className={`mt-2 max-w-xl whitespace-normal leading-relaxed ${
+                  isPreview ? "text-[11px]" : "text-sm md:text-base"
+                } ${muted}`}
+              >
+                {subtext}
+              </p>
+              <div
+                className={`mt-5 flex flex-col sm:flex-row sm:items-center ${
+                  isPreview ? "gap-1.5" : "gap-3"
+                }`}
+              >
+                {previewButtons ? (
                   <button
                     type="button"
                     disabled
-                    className={presentation.secondaryButtonClass}
-                    style={{ borderColor: theme.accentColor, color: theme.accentColor }}
+                    className={`${presentation.primaryButtonClass} sm:w-auto`}
+                    style={{ backgroundColor: theme.primaryColor }}
                   >
-                    {secondaryLabel}
+                    {label}
                   </button>
                 ) : (
                   <Link
-                    to={secondaryHref}
-                    className={presentation.secondaryButtonClass}
-                    style={{ borderColor: theme.accentColor, color: theme.accentColor }}
+                    to={href}
+                    className={`${presentation.primaryButtonClass} sm:w-auto`}
+                    data-testid="pro-mini-site-booking-cta-link"
+                    style={{ backgroundColor: theme.primaryColor }}
                   >
-                    {secondaryLabel}
+                    {label}
                   </Link>
-                )
-              ) : null}
+                )}
+                {showSecondary ? (
+                  previewButtons ? (
+                    <button
+                      type="button"
+                      disabled
+                      className={`${presentation.secondaryButtonClass} sm:w-auto`}
+                      style={{ borderColor: theme.accentColor, color: theme.accentColor }}
+                    >
+                      {secondaryLabel}
+                    </button>
+                  ) : (
+                    <Link
+                      to={secondaryHref}
+                      className={`${presentation.secondaryButtonClass} sm:w-auto`}
+                      style={{ borderColor: theme.accentColor, color: theme.accentColor }}
+                    >
+                      {secondaryLabel}
+                    </Link>
+                  )
+                ) : null}
+              </div>
             </div>
           </div>
-
-          {ctaImage ? (
-            <div className={`shrink-0 ${isPreview ? "w-full" : "w-full max-w-[200px] justify-self-end"}`}>
-              <MiniSiteSectionAccentImage
-                media={ctaImage}
-                variant={variant}
-                tone="clean"
-                layout="cta"
-                className="mb-0"
-                testId={`${testIdPrefix}-template-ctaImage`}
-              />
-            </div>
-          ) : null}
         </div>
       </div>
     </section>

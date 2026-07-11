@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type React from "react";
 import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { ProMiniSiteLayout, getProMiniSiteCtas } from "@/components/public/ProMiniSiteLayout";
@@ -551,7 +552,8 @@ describe("ProMiniSiteLayout", () => {
     expect(source).not.toContain("dangerouslySetInnerHTML");
   });
 
-  it("renders safe video embed when valid intro video is configured", () => {
+  it("renders safe video embed when valid intro video is configured", async () => {
+    const user = userEvent.setup();
     const config = normalizeMiniSiteConfig({
       ...createSavedMiniSiteConfig({ template: "clean" }),
       templateMedia: {
@@ -568,6 +570,10 @@ describe("ProMiniSiteLayout", () => {
     });
 
     renderProMiniSiteLayout({ config });
+
+    const playButton = screen.getByTestId("pro-mini-site-template-introVideo");
+    expect(playButton).toBeInTheDocument();
+    await user.click(playButton);
 
     const embed = screen.getByTestId("pro-mini-site-template-introVideo");
     expect(embed).toBeInTheDocument();
