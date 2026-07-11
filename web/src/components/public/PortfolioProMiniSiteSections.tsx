@@ -975,7 +975,7 @@ export function PortfolioContactSection({
                   href: primaryBookingHref,
                   className: `w-full rounded-full py-2.5 font-bold text-white ${isPreview ? "text-xs" : "text-sm"}`,
                   style: { backgroundColor: pink },
-                  testId: previewButtons ? `${testIdPrefix}-primary-button` : `${testIdPrefix}-book-cta`,
+                  testId: previewButtons ? `${testIdPrefix}-primary-button` : `${testIdPrefix}-portfolio-contact-cta`,
                 })
               : (
                   <div
@@ -1077,7 +1077,7 @@ export function PortfolioBookingCtaSection({
                   href: secondaryHref!,
                   className: `${presentation.secondaryButtonClass} rounded-full`,
                   style: { borderColor: pink, color: pink, backgroundColor: "transparent" },
-                  testId: previewButtons ? `${testIdPrefix}-secondary-button` : `${testIdPrefix}-request-cta`,
+                  testId: previewButtons ? `${testIdPrefix}-secondary-button` : `${testIdPrefix}-portfolio-request-cta`,
                 })
               : null}
           </div>
