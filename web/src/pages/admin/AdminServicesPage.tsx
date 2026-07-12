@@ -2,12 +2,15 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createAdminService,
+  createServiceSlotCapacityOverride,
   deleteAdminService,
+  getBusiness,
   listAdminServices,
   updateAdminService,
 } from "@/api/adminApi";
 import { uploadServiceImage } from "@/api/serviceImageApi";
 import { AdminServiceForm } from "@/components/admin/AdminServiceForm";
+import type { PendingSlotCapacityOverride } from "@/components/admin/AdminServiceSlotCapacitySection";
 import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
 import { normalizeServiceImageMedia, serviceImageStatusText } from "@/lib/serviceImage";
 import { EmptyState } from "@/components/EmptyState";
@@ -23,7 +26,7 @@ import type {
   ServiceUpdatePayload,
 } from "@/types/api";
 import { getAdminServiceErrorMessage, getMeErrorMessage } from "@/utils/errors";
-import { formatDuration, serviceTypeIcon } from "@/utils/format";
+import { formatDuration, serviceTypeIcon, businessLocalDateTimeToIso } from "@/utils/format";
 
 type TypeFilter = "all" | ServiceType;
 type StatusFilter = "all" | "active" | "inactive";
@@ -182,6 +185,9 @@ export function AdminServicesPage() {
   const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
   const [editingService, setEditingService] = useState<AdminServiceRead | null>(null);
   const [pendingCreateImageFile, setPendingCreateImageFile] = useState<File | null>(null);
+  const [pendingCreateOverrides, setPendingCreateOverrides] = useState<PendingSlotCapacityOverride[]>(
+    [],
+  );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -195,29 +201,64 @@ export function AdminServicesPage() {
     mutationFn: async ({
       payload,
       pendingImageFile,
+      pendingSlotCapacityOverrides,
     }: {
       payload: ServiceCreatePayload;
       pendingImageFile: File | null;
+      pendingSlotCapacityOverrides: PendingSlotCapacityOverride[];
     }) => {
       const created = await createAdminService(businessId!, payload);
-      if (!pendingImageFile) {
-        return { created, uploadFailed: false as const };
+      let uploadFailed = false;
+      let overrideUploadFailed = false;
+
+      if (pendingImageFile) {
+        try {
+          await uploadServiceImage(businessId!, created.id, pendingImageFile);
+        } catch {
+          uploadFailed = true;
+        }
       }
-      try {
-        await uploadServiceImage(businessId!, created.id, pendingImageFile);
-        return { created, uploadFailed: false as const };
-      } catch {
-        return { created, uploadFailed: true as const };
+
+      if (pendingSlotCapacityOverrides.length > 0) {
+        const business = await getBusiness(businessId!);
+        for (const pending of pendingSlotCapacityOverrides) {
+          try {
+            await createServiceSlotCapacityOverride(businessId!, created.id, {
+              starts_at: businessLocalDateTimeToIso(
+                pending.date,
+                pending.time,
+                business.timezone,
+              ),
+              capacity: pending.capacity,
+              note: pending.note,
+            });
+          } catch {
+            overrideUploadFailed = true;
+          }
+        }
       }
+
+      return { created, uploadFailed, overrideUploadFailed };
     },
     onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey: ["admin-services", businessId] });
       setFormMode(null);
       setPendingCreateImageFile(null);
-      if (result.uploadFailed) {
+      setPendingCreateOverrides([]);
+      if (result.uploadFailed && result.overrideUploadFailed) {
+        setSuccessMessage("Service created.");
+        setActionError(
+          "Service created, but image upload and one or more group time slots could not be saved. Edit the service and try again.",
+        );
+      } else if (result.uploadFailed) {
         setSuccessMessage("Service created.");
         setActionError(
           "Service created, but image upload failed. Edit the service and try uploading again.",
+        );
+      } else if (result.overrideUploadFailed) {
+        setSuccessMessage("Service created.");
+        setActionError(
+          "Service created, but one or more group time slots could not be saved. Edit the service and try again.",
         );
       } else {
         setSuccessMessage("Service created.");
@@ -292,6 +333,7 @@ export function AdminServicesPage() {
     setFormMode("create");
     setEditingService(null);
     setPendingCreateImageFile(null);
+    setPendingCreateOverrides([]);
     setSuccessMessage(null);
     setActionError(null);
   }
@@ -398,17 +440,21 @@ export function AdminServicesPage() {
           businessId={businessId ?? undefined}
           pendingImageFile={pendingCreateImageFile}
           onPendingImageFileChange={setPendingCreateImageFile}
+          pendingSlotCapacityOverrides={pendingCreateOverrides}
+          onPendingSlotCapacityOverridesChange={setPendingCreateOverrides}
           submitting={createMutation.isPending}
           submitError={formSubmitError}
           onCancel={() => {
             setFormMode(null);
             setPendingCreateImageFile(null);
+            setPendingCreateOverrides([]);
           }}
           onSubmit={(payload, options) => {
             createMutation.mutate(
               {
                 payload: payload as ServiceCreatePayload,
                 pendingImageFile: options?.pendingImageFile ?? null,
+                pendingSlotCapacityOverrides: options?.pendingSlotCapacityOverrides ?? [],
               },
               {
                 onError: () => undefined,

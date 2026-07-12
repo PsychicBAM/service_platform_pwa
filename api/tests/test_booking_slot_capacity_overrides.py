@@ -26,6 +26,11 @@ from tests.test_bookings_availability_blocking import (
 
 SLOT_11_START = datetime(2026, 6, 23, 11, 0, tzinfo=ZoneInfo("America/New_York"))
 SLOT_11_END = datetime(2026, 6, 23, 11, 30, tzinfo=ZoneInfo("America/New_York"))
+SLOT_9_START = datetime(2026, 7, 13, 9, 0, tzinfo=ZoneInfo("America/New_York"))
+SLOT_930_START = datetime(2026, 7, 13, 9, 30, tzinfo=ZoneInfo("America/New_York"))
+SLOT_10_JULY_START = datetime(2026, 7, 13, 10, 0, tzinfo=ZoneInfo("America/New_York"))
+JULY_13 = date(2026, 7, 13)
+FIXED_NOW_JULY_13 = datetime(2026, 7, 13, 6, 0, tzinfo=ZoneInfo("America/New_York"))
 FUTURE_SLOT_START = datetime(2026, 6, 25, 10, 0, tzinfo=ZoneInfo("America/New_York"))
 FUTURE_SLOT_11_START = datetime(2026, 6, 25, 11, 0, tzinfo=ZoneInfo("America/New_York"))
 FUTURE_TARGET_DATE = date(2026, 6, 25)
@@ -335,3 +340,80 @@ async def test_reschedule_uses_override_capacity(
     )
     assert reschedule_full.status_code == 409
     assert reschedule_full.json()["error"]["message"] == SLOT_FULLY_BOOKED_MESSAGE
+
+
+def _slot_at_time(slots: list[dict], target: datetime) -> dict | None:
+    for slot in slots:
+        if datetime.fromisoformat(slot["starts_at"]) == target:
+            return slot
+    return None
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW_JULY_13)
+async def test_override_at_nine_am_appears_in_admin_list(
+    _mock_now,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx = await _setup_booking_business(async_client, db_session, "override-9-list")
+    created = await _create_override(async_client, ctx, starts_at=SLOT_9_START, capacity=5)
+
+    assert datetime.fromisoformat(created["starts_at"]) == SLOT_9_START
+
+    list_resp = await async_client.get(
+        f"/api/v1/businesses/{ctx['business_id']}/services/{ctx['service_id']}/slot-capacity-overrides",
+        headers=ctx["headers"],
+    )
+    assert list_resp.status_code == 200
+    assert len(list_resp.json()["data"]) == 1
+    assert datetime.fromisoformat(list_resp.json()["data"][0]["starts_at"]) == SLOT_9_START
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW_JULY_13)
+async def test_default_capacity_one_override_nine_am_only_shows_spots_on_exact_slot(
+    _mock_now,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx = await _setup_booking_business(async_client, db_session, "override-9-spots")
+    await _create_override(async_client, ctx, starts_at=SLOT_9_START, capacity=5)
+
+    response = await async_client.get(
+        f"/api/v1/public/b/{ctx['slug']}/availability",
+        params={"service_id": ctx["service_id"], "date": JULY_13.isoformat()},
+    )
+    assert response.status_code == 200
+    slots = response.json()["slots"]
+
+    slot_9 = _slot_at_time(slots, SLOT_9_START)
+    slot_930 = _slot_at_time(slots, SLOT_930_START)
+    slot_10 = _slot_at_time(slots, SLOT_10_JULY_START)
+
+    assert slot_9 is not None
+    assert slot_9["spots_remaining"] == 5
+    assert slot_930 is not None
+    assert slot_930.get("spots_remaining") is None
+    assert slot_10 is not None
+    assert slot_10.get("spots_remaining") is None
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW_JULY_13)
+async def test_invalid_override_slot_time_returns_validation_error(
+    _mock_now,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx = await _setup_booking_business(async_client, db_session, "override-invalid")
+    invalid_start = datetime(2026, 7, 13, 9, 17, tzinfo=ZoneInfo("America/New_York"))
+
+    response = await async_client.post(
+        f"/api/v1/businesses/{ctx['business_id']}/services/{ctx['service_id']}/slot-capacity-overrides",
+        json=override_payload(invalid_start, capacity=5),
+        headers=ctx["headers"],
+    )
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+    assert "valid bookable slot" in response.json()["error"]["message"].lower()

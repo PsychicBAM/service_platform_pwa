@@ -1,15 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
+import * as adminApi from "@/api/adminApi";
 import { AdminServiceForm } from "@/components/admin/AdminServiceForm";
-import { mockAdminServices, ORDER_SERVICE_ID } from "@/test/mock-fixtures";
+import { mockAdminBusiness, mockAdminServices, ORDER_SERVICE_ID } from "@/test/mock-fixtures";
 import { renderRoute } from "@/test/test-utils";
+
+vi.mock("@/api/adminApi", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/api/adminApi")>();
+  return {
+    ...actual,
+    getBusiness: vi.fn(),
+    listServiceSlotCapacityOverrides: vi.fn().mockResolvedValue({ data: [] }),
+  };
+});
 
 describe("AdminServiceForm capacity", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(adminApi.getBusiness).mockResolvedValue(mockAdminBusiness);
   });
 
-  it("shows capacity field for booking services in create mode with default 1", () => {
+  it("shows default capacity field for booking services in create mode with default 1", () => {
     renderRoute(
       <AdminServiceForm
         mode="create"
@@ -20,9 +31,11 @@ describe("AdminServiceForm capacity", () => {
     );
 
     expect(screen.getByTestId("admin-service-capacity")).toHaveValue(1);
-    expect(screen.getByLabelText("Capacity per time slot")).toBeInTheDocument();
+    expect(screen.getByLabelText("Default capacity per time slot")).toBeInTheDocument();
     expect(
-      screen.getByText("How many clients can book the same time slot."),
+      screen.getByText(
+        "Applies to every normal time slot. Use 1 for individual bookings. Add special group time slots below for one-off group sessions.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -54,6 +67,7 @@ describe("AdminServiceForm capacity", () => {
     );
 
     expect(screen.getByTestId("admin-service-capacity")).toHaveValue(5);
+    expect(screen.getByLabelText("Default capacity per time slot")).toBeInTheDocument();
   });
 
   it("does not show capacity field when editing a request service", () => {

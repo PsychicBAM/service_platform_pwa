@@ -120,3 +120,69 @@ export function datetimeLocalToIso(value: string): string {
   const date = new Date(year, month - 1, day, hour, minute, 0, 0);
   return date.toISOString();
 }
+
+/** Convert a wall-clock date/time in a business IANA timezone to UTC ISO. */
+export function businessLocalDateTimeToIso(
+  date: string,
+  time: string,
+  timeZone: string,
+): string {
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  let candidate = Date.UTC(year, month - 1, day, hour, minute, 0);
+
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const desired = Date.UTC(year, month - 1, day, hour, minute, 0);
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const parts = Object.fromEntries(
+      formatter
+        .formatToParts(new Date(candidate))
+        .filter((part) => part.type !== "literal")
+        .map((part) => [part.type, part.value]),
+    );
+    let actualHour = Number(parts.hour);
+    if (actualHour === 24) {
+      actualHour = 0;
+    }
+    const actual = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      actualHour,
+      Number(parts.minute),
+    );
+    const diff = desired - actual;
+    if (diff === 0) {
+      break;
+    }
+    candidate += diff;
+  }
+
+  return new Date(candidate).toISOString();
+}
+
+export function formatSlotOverrideListLabel(iso: string, timeZone?: string): string {
+  const date = new Date(iso);
+  const datePart = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone,
+  }).format(date);
+  const timePart = new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone,
+  }).format(date);
+  return `${datePart}, ${timePart}`;
+}

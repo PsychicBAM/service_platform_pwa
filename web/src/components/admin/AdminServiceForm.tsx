@@ -3,6 +3,7 @@ import { FormField } from "@/components/FormField";
 import { TextAreaField } from "@/components/TextAreaField";
 import { AdminServiceImageSection } from "@/components/admin/AdminServiceImageSection";
 import { AdminServiceSlotCapacitySection } from "@/components/admin/AdminServiceSlotCapacitySection";
+import type { PendingSlotCapacityOverride } from "@/components/admin/AdminServiceSlotCapacitySection";
 import type { ServiceImageMedia } from "@/lib/serviceImage";
 import type {
   AdminServiceRead,
@@ -24,9 +25,14 @@ type AdminServiceFormProps = {
   submitError?: string | null;
   pendingImageFile?: File | null;
   onPendingImageFileChange?: (file: File | null) => void;
+  pendingSlotCapacityOverrides?: PendingSlotCapacityOverride[];
+  onPendingSlotCapacityOverridesChange?: (overrides: PendingSlotCapacityOverride[]) => void;
   onSubmit: (
     payload: ServiceCreatePayload | ServiceUpdatePayload,
-    options?: { pendingImageFile?: File | null },
+    options?: {
+      pendingImageFile?: File | null;
+      pendingSlotCapacityOverrides?: PendingSlotCapacityOverride[];
+    },
   ) => void;
   onCancel: () => void;
   onServiceImageChange?: (image: ServiceImageMedia | null) => void;
@@ -169,6 +175,8 @@ export function AdminServiceForm({
   submitError,
   pendingImageFile = null,
   onPendingImageFileChange,
+  pendingSlotCapacityOverrides = [],
+  onPendingSlotCapacityOverridesChange,
   onSubmit,
   onCancel,
   onServiceImageChange,
@@ -194,7 +202,10 @@ export function AdminServiceForm({
     }
 
     if (mode === "create") {
-      onSubmit(buildCreatePayload(form), { pendingImageFile });
+      onSubmit(buildCreatePayload(form), {
+        pendingImageFile,
+        pendingSlotCapacityOverrides,
+      });
     } else {
       onSubmit(buildUpdatePayload(form, effectiveType));
     }
@@ -281,14 +292,14 @@ export function AdminServiceForm({
       {isBooking ? (
         <FormField
           name="capacity"
-          label="Capacity per time slot"
+          label="Default capacity per time slot"
           type="number"
           min={1}
           required
           value={form.capacity}
           onChange={(event) => setForm((prev) => ({ ...prev, capacity: event.target.value }))}
           error={fieldErrors.capacity}
-          hint="How many clients can book the same time slot."
+          hint="Applies to every normal time slot. Use 1 for individual bookings. Add special group time slots below for one-off group sessions."
           disabled={submitting}
           data-testid="admin-service-capacity"
         />
@@ -300,6 +311,10 @@ export function AdminServiceForm({
           serviceId={mode === "edit" ? initial?.id : undefined}
           serviceType={effectiveType}
           disabled={submitting}
+          pendingOverrides={mode === "create" ? pendingSlotCapacityOverrides : undefined}
+          onPendingOverridesChange={
+            mode === "create" ? onPendingSlotCapacityOverridesChange : undefined
+          }
         />
       ) : null}
 
