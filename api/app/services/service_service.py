@@ -143,6 +143,7 @@ class ServiceService:
             require_payment=payload.require_payment,
             is_active=payload.is_active,
             sort_order=payload.sort_order,
+            capacity=payload.capacity if payload.type == ServiceType.booking else 1,
             metadata_=payload.metadata,
         )
         await self.repo.create(service)
@@ -164,6 +165,7 @@ class ServiceService:
 
         if service.type == ServiceType.order:
             data["duration_minutes"] = None
+            data.pop("capacity", None)
         elif "duration_minutes" in data and data["duration_minutes"] is None:
             raise ValidationAppError(
                 "duration_minutes is required for booking services"

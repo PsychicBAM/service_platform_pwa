@@ -54,7 +54,16 @@ function SlotButton({
           : "border-slate-300 bg-white text-slate-800 hover:bg-slate-50"
       }`}
     >
-      {formatTimeLabel(slot.starts_at)}
+      <span className="block">{formatTimeLabel(slot.starts_at)}</span>
+      {slot.spots_remaining != null && slot.spots_remaining > 0 ? (
+        <span
+          className={`mt-0.5 block text-[10px] font-normal ${
+            selected ? "text-white/90" : "text-slate-500"
+          }`}
+        >
+          {slot.spots_remaining} {slot.spots_remaining === 1 ? "spot" : "spots"} left
+        </span>
+      ) : null}
     </button>
   );
 }

@@ -44,6 +44,7 @@ export interface PublicService {
 export interface AvailabilitySlot {
   starts_at: string;
   ends_at: string;
+  spots_remaining?: number | null;
 }
 
 export interface AvailabilityResponse {
@@ -452,6 +453,7 @@ export interface AdminServiceRead {
   require_payment: boolean;
   is_active: boolean;
   sort_order: number;
+  capacity?: number;
   metadata: Record<string, unknown>;
   image?: import("@/lib/serviceImage").ServiceImageMedia | null;
   created_at: string;
@@ -474,6 +476,7 @@ export interface ServiceCreatePayload {
   require_payment?: boolean;
   is_active?: boolean;
   sort_order?: number;
+  capacity?: number;
   metadata?: Record<string, unknown>;
 }
 
@@ -487,6 +490,7 @@ export interface ServiceUpdatePayload {
   require_payment?: boolean;
   is_active?: boolean;
   sort_order?: number;
+  capacity?: number;
   metadata?: Record<string, unknown>;
 }
 

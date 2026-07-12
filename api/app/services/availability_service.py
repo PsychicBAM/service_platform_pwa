@@ -13,6 +13,7 @@ from app.repositories.booking_repository import BookingRepository
 from app.repositories.schedule_repository import ScheduleRepository
 from app.repositories.service_repository import ServiceRepository
 from app.schemas.schedule import AvailabilityResponse, AvailabilitySlot
+from app.utils.booking_slots import service_booking_capacity, slot_starts_match
 
 
 def spec_day_of_week(target_date: date) -> int:
@@ -94,11 +95,13 @@ class AvailabilityService:
             day_start,
             day_end,
         )
-        blocking_bookings = await self.booking_repo.list_overlapping_bookings(
+        blocking_bookings = await self.booking_repo.list_blocking_bookings_for_service_range(
             business.id,
+            service.id,
             day_start,
             day_end,
         )
+        capacity = service_booking_capacity(service)
 
         slots: list[AvailabilitySlot] = []
         cursor = day_open
@@ -107,8 +110,16 @@ class AvailabilityService:
             if cursor >= earliest:
                 if not self._overlaps_break(cursor, slot_end, target_date, tz, applicable_breaks):
                     if not self._overlaps_unavailable(cursor, slot_end, unavailable):
-                        if not self._overlaps_booking(cursor, slot_end, blocking_bookings):
-                            slots.append(AvailabilitySlot(starts_at=cursor, ends_at=slot_end))
+                        booked_count = self._count_bookings_for_slot(cursor, blocking_bookings)
+                        if booked_count < capacity:
+                            remaining = capacity - booked_count
+                            slots.append(
+                                AvailabilitySlot(
+                                    starts_at=cursor,
+                                    ends_at=slot_end,
+                                    spots_remaining=remaining if capacity > 1 else None,
+                                )
+                            )
             cursor += step
 
         return AvailabilityResponse(
@@ -164,13 +175,11 @@ class AvailabilityService:
                 return True
         return False
 
-    def _overlaps_booking(
+    def _count_bookings_for_slot(
         self,
         slot_start: datetime,
-        slot_end: datetime,
         bookings,
-    ) -> bool:
-        for booking in bookings:
-            if intervals_overlap(slot_start, slot_end, booking.starts_at, booking.ends_at):
-                return True
-        return False
+    ) -> int:
+        return sum(
+            1 for booking in bookings if slot_starts_match(slot_start, booking.starts_at)
+        )

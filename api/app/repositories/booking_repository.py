@@ -280,6 +280,46 @@ class BookingRepository:
         )
         return len(overlapping) > 0
 
+    async def list_blocking_bookings_for_service_range(
+        self,
+        business_id: uuid.UUID,
+        service_id: uuid.UUID,
+        range_start: datetime,
+        range_end: datetime,
+    ) -> list[Booking]:
+        stmt = select(Booking).where(
+            Booking.business_id == business_id,
+            Booking.service_id == service_id,
+            Booking.status.in_(BLOCKING_BOOKING_STATUSES),
+            Booking.starts_at >= range_start,
+            Booking.starts_at < range_end,
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_blocking_bookings_for_slot(
+        self,
+        business_id: uuid.UUID,
+        service_id: uuid.UUID,
+        starts_at: datetime,
+        *,
+        exclude_booking_id: uuid.UUID | None = None,
+    ) -> int:
+        stmt = (
+            select(func.count())
+            .select_from(Booking)
+            .where(
+                Booking.business_id == business_id,
+                Booking.service_id == service_id,
+                Booking.starts_at == starts_at,
+                Booking.status.in_(BLOCKING_BOOKING_STATUSES),
+            )
+        )
+        if exclude_booking_id is not None:
+            stmt = stmt.where(Booking.id != exclude_booking_id)
+        result = await self.session.execute(stmt)
+        return int(result.scalar_one())
+
     async def count_for_business_year(
         self,
         business_id: uuid.UUID,

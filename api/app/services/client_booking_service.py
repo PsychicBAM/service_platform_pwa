@@ -30,7 +30,8 @@ from app.schemas.booking import (
     MyBookingServiceSummary,
 )
 from app.services.availability_service import AvailabilityService
-from app.services.booking_service import normalize_starts_at, slot_starts_match
+from app.services.booking_capacity import assert_slot_has_capacity
+from app.utils.booking_slots import normalize_starts_at, slot_starts_match
 
 CLIENT_CANCELLABLE_STATUSES = {
     BookingStatus.pending,
@@ -184,13 +185,13 @@ class ClientBookingService:
         if not slot_found:
             raise SlotUnavailableError()
 
-        if await self.repo.exists_overlap(
-            booking.business_id,
-            new_starts_at,
-            new_ends_at,
+        await assert_slot_has_capacity(
+            self.repo,
+            business_id=booking.business_id,
+            service=booking.service,
+            starts_at=new_starts_at,
             exclude_booking_id=booking.id,
-        ):
-            raise SlotUnavailableError()
+        )
 
         # TODO: send reschedule notification when notification service exists.
         await self.repo.reschedule_by_client(

@@ -21,19 +21,17 @@ from app.repositories.client_repository import ClientRepository
 from app.repositories.service_repository import ServiceRepository
 from app.schemas.booking import PublicBookingCreate
 from app.services.availability_service import AvailabilityService
+from app.services.booking_capacity import (
+    SLOT_FULLY_BOOKED_MESSAGE,
+    assert_slot_has_capacity,
+)
 from app.services.email_notification_service import EmailNotificationService
 from app.services.legal_consent_service import LegalConsentService
+from app.utils.booking_slots import normalize_starts_at, service_booking_capacity, slot_starts_match
 from app.utils.references import generate_booking_reference
 
-
-def normalize_starts_at(starts_at: datetime, tz: ZoneInfo) -> datetime:
-    if starts_at.tzinfo is None:
-        return starts_at.replace(tzinfo=tz)
-    return starts_at.astimezone(tz)
-
-
-def slot_starts_match(requested: datetime, slot_start: datetime) -> bool:
-    return int(requested.timestamp()) == int(slot_start.timestamp())
+# Re-export for existing imports.
+__all__ = ["BookingService", "normalize_starts_at", "slot_starts_match"]
 
 
 class BookingService:
@@ -94,8 +92,12 @@ class BookingService:
             starts_at.year,
         )
 
-        if await self.booking_repo.exists_overlap(business.id, starts_at, ends_at):
-            raise SlotUnavailableError()
+        await assert_slot_has_capacity(
+            self.booking_repo,
+            business_id=business.id,
+            service=service,
+            starts_at=starts_at,
+        )
 
         booking = Booking(
             business_id=business.id,
@@ -139,7 +141,18 @@ class BookingService:
             for slot in availability.slots
         )
         if not slot_found:
+            booked_count = await self.booking_repo.count_blocking_bookings_for_slot(
+                business.id,
+                service.id,
+                starts_at,
+            )
+            if booked_count >= service_booking_capacity(service):
+                raise SlotUnavailableError(SLOT_FULLY_BOOKED_MESSAGE)
             raise SlotUnavailableError()
 
-        if await self.booking_repo.exists_overlap(business.id, starts_at, ends_at):
-            raise SlotUnavailableError()
+        await assert_slot_has_capacity(
+            self.booking_repo,
+            business_id=business.id,
+            service=service,
+            starts_at=starts_at,
+        )

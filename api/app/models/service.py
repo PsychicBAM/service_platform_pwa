@@ -67,6 +67,12 @@ class Service(Base, TimestampMixin):
         default=0,
         server_default="0",
     )
+    capacity: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=1,
+        server_default="1",
+    )
     metadata_: Mapped[dict[str, Any]] = mapped_column(
         "metadata",
         JSONB,

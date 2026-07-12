@@ -36,6 +36,7 @@ type FormState = {
   description: string;
   type: ServiceType;
   durationMinutes: string;
+  capacity: string;
   priceType: PriceType;
   priceCents: string;
   currency: string;
@@ -51,6 +52,7 @@ function defaultFormState(initial?: AdminServiceRead): FormState {
     type: initial?.type ?? "booking",
     durationMinutes:
       initial?.duration_minutes != null ? String(initial.duration_minutes) : "30",
+    capacity: initial?.capacity != null ? String(initial.capacity) : "1",
     priceType: initial?.price_type ?? "fixed",
     priceCents: initial?.price_cents != null ? String(initial.price_cents) : "",
     currency: initial?.currency ?? "USD",
@@ -78,6 +80,13 @@ function validateForm(state: FormState, mode: FormMode, serviceType: ServiceType
       errors.durationMinutes = "Duration is required for booking services.";
     } else if (duration < 15 || duration > 480) {
       errors.durationMinutes = "Duration must be between 15 and 480 minutes.";
+    }
+
+    const capacity = Number(state.capacity);
+    if (!state.capacity.trim() || Number.isNaN(capacity)) {
+      errors.capacity = "Capacity is required for booking services.";
+    } else if (capacity < 1) {
+      errors.capacity = "Capacity must be at least 1.";
     }
   }
 
@@ -116,6 +125,7 @@ function buildCreatePayload(state: FormState): ServiceCreatePayload {
 
   if (state.type === "booking") {
     payload.duration_minutes = Number(state.durationMinutes);
+    payload.capacity = Number(state.capacity);
   }
 
   if (state.priceType === "fixed") {
@@ -138,6 +148,7 @@ function buildUpdatePayload(state: FormState, serviceType: ServiceType): Service
 
   if (serviceType === "booking") {
     payload.duration_minutes = Number(state.durationMinutes);
+    payload.capacity = Number(state.capacity);
   }
 
   if (state.priceType === "fixed") {
@@ -263,6 +274,22 @@ export function AdminServiceForm({
           error={fieldErrors.durationMinutes}
           hint="15–480 minutes"
           disabled={submitting}
+        />
+      ) : null}
+
+      {isBooking ? (
+        <FormField
+          name="capacity"
+          label="Capacity per time slot"
+          type="number"
+          min={1}
+          required
+          value={form.capacity}
+          onChange={(event) => setForm((prev) => ({ ...prev, capacity: event.target.value }))}
+          error={fieldErrors.capacity}
+          hint="How many clients can book the same time slot."
+          disabled={submitting}
+          data-testid="admin-service-capacity"
         />
       ) : null}
 

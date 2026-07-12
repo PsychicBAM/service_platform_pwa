@@ -166,6 +166,7 @@ class ScheduleRead(BaseModel):
 class AvailabilitySlot(BaseModel):
     starts_at: datetime
     ends_at: datetime
+    spots_remaining: int | None = None
 
 
 class AvailabilityResponse(BaseModel):

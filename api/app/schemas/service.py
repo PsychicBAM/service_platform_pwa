@@ -23,6 +23,7 @@ class ServiceRead(BaseModel):
     require_payment: bool
     is_active: bool
     sort_order: int
+    capacity: int = 1
     metadata: dict[str, Any]
     image: ServiceImageMedia | None = None
     created_at: datetime
@@ -48,6 +49,7 @@ class ServiceRead(BaseModel):
             require_payment=service.require_payment,
             is_active=service.is_active,
             sort_order=service.sort_order,
+            capacity=service.capacity,
             metadata=service.metadata_,
             image=read_service_image(service.image_),
             created_at=service.created_at,
@@ -66,6 +68,7 @@ class PublicServiceRead(BaseModel):
     price_type: PriceType
     require_payment: bool
     sort_order: int
+    capacity: int | None = None
     image: ServiceImageMedia | None = None
 
     @classmethod
@@ -78,6 +81,7 @@ class PublicServiceRead(BaseModel):
             if service.type == ServiceType.booking
             else None
         )
+        capacity = service.capacity if service.type == ServiceType.booking else None
         return cls(
             id=service.id,
             name=service.name,
@@ -89,6 +93,7 @@ class PublicServiceRead(BaseModel):
             price_type=service.price_type,
             require_payment=service.require_payment,
             sort_order=service.sort_order,
+            capacity=capacity,
             image=read_service_image(service.image_),
         )
 
@@ -104,7 +109,15 @@ class ServiceCreate(BaseModel):
     require_payment: bool = False
     is_active: bool = True
     sort_order: int = 0
+    capacity: int = 1
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("capacity")
+    @classmethod
+    def capacity_minimum(cls, value: int) -> int:
+        if value < 1:
+            raise ValueError("capacity must be at least 1")
+        return value
 
     @field_validator("name")
     @classmethod
@@ -138,6 +151,8 @@ class ServiceCreate(BaseModel):
     def validate_booking_duration(self) -> "ServiceCreate":
         if self.type == ServiceType.booking and self.duration_minutes is None:
             raise ValueError("duration_minutes is required for booking services")
+        if self.type == ServiceType.order:
+            self.capacity = 1
         return self
 
     @model_validator(mode="after")
@@ -160,7 +175,15 @@ class ServiceUpdate(BaseModel):
     require_payment: bool | None = None
     is_active: bool | None = None
     sort_order: int | None = None
+    capacity: int | None = None
     metadata: dict[str, Any] | None = None
+
+    @field_validator("capacity")
+    @classmethod
+    def capacity_minimum(cls, value: int | None) -> int | None:
+        if value is not None and value < 1:
+            raise ValueError("capacity must be at least 1")
+        return value
 
     @field_validator("name")
     @classmethod
