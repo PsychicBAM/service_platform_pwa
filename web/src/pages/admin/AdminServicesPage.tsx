@@ -8,6 +8,8 @@ import {
 } from "@/api/adminApi";
 import { uploadServiceImage } from "@/api/serviceImageApi";
 import { AdminServiceForm } from "@/components/admin/AdminServiceForm";
+import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
+import { serviceImageStatusText } from "@/lib/serviceImage";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -324,6 +326,13 @@ export function AdminServicesPage() {
                 key={service.id}
                 className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
               >
+                <div className="flex items-start gap-3">
+                  <ServiceImageDisplay
+                    image={service.image}
+                    variant="thumb"
+                    testId={`admin-service-list-thumb-${service.id}`}
+                  />
+                  <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold text-slate-900">{service.name}</h3>
                   <TypeBadge type={service.type} />
@@ -337,6 +346,9 @@ export function AdminServicesPage() {
                     {service.is_active ? "Active" : "Inactive"}
                   </span>
                 </div>
+                <p className="mt-1 text-xs text-slate-500" data-testid={`admin-service-list-image-status-${service.id}`}>
+                  {serviceImageStatusText(service.image ?? null)}
+                </p>
                 {service.description ? (
                   <p className="mt-2 text-sm text-slate-600">{service.description}</p>
                 ) : null}
@@ -374,6 +386,8 @@ export function AdminServicesPage() {
                   >
                     Delete
                   </button>
+                </div>
+                  </div>
                 </div>
               </article>
             );

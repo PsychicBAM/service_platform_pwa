@@ -9,7 +9,7 @@ import {
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import { normalizeServiceImageMedia } from "@/lib/serviceImage";
-import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
+import { ServiceCardImageArea } from "@/components/ServiceImageDisplay";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
@@ -210,18 +210,11 @@ function CleanServiceCard({
       data-testid="service-card"
     >
       {hasServiceImage ? (
-        <div
-          className={`relative w-full overflow-hidden ${
-            isPreview ? "aspect-[16/10]" : "aspect-[16/10]"
-          }`}
-        >
-          <ServiceImageDisplay
-            image={service.image}
-            variant="card"
-            alt={service.name}
-            testId="service-card-image"
-          />
-        </div>
+        <ServiceCardImageArea
+          image={service.image}
+          alt={service.name}
+          testId="service-card-image"
+        />
       ) : null}
       <div className={isPreview ? "flex flex-1 flex-col gap-2 p-3" : "flex flex-1 flex-col gap-4 p-6 md:p-7"}>
         <span

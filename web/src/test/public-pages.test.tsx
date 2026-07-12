@@ -210,6 +210,35 @@ describe("public pages smoke", () => {
     expect(screen.getByRole("heading", { name: mockOrderService.name })).toBeInTheDocument();
   });
 
+  it("B2. renders service image inside public service card with CTA", async () => {
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([
+      {
+        ...mockBookingService,
+        image: {
+          kind: "image" as const,
+          url: "/uploads/services/biz-1/svc-1/abc.webp",
+          thumbnailUrl: "/uploads/services/biz-1/svc-1/abc_thumb.webp",
+          alt: "",
+          filename: "photo.jpg",
+          contentType: "image/webp",
+          size: 1200,
+          originalSize: 4500,
+          width: 1200,
+          height: 800,
+        },
+      },
+    ]);
+
+    renderRoute(<ServicesPage />, {
+      route: `/b/${DEMO_SLUG}/services`,
+      path: "/b/:slug/services",
+    });
+
+    expect(await screen.findByTestId("service-card-image-area")).toBeInTheDocument();
+    expect(screen.getByTestId("service-card-cta")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: mockBookingService.name })).toBeInTheDocument();
+  });
+
   it("C. shows booking CTA for booking service detail", async () => {
     vi.mocked(publicApi.getPublicService).mockResolvedValue(mockBookingService);
 

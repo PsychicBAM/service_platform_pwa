@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 import { PriceLabel } from "@/components/PriceLabel";
-import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
+import {
+  hasServiceImage,
+  ServiceCardImageArea,
+} from "@/components/ServiceImageDisplay";
 import { TypeBadge } from "@/components/TypeBadge";
 import { getThemedServiceCardPresentation } from "@/lib/miniSiteTemplatePresentation";
 import type { PublicService } from "@/types/api";
@@ -25,6 +28,10 @@ type ServiceCardProps = {
   miniSiteTheme?: MiniSiteServiceCardTheme;
 };
 
+function stripPaddingClasses(className: string): string {
+  return className.replace(/\bp-\S+/g, "").replace(/\s+/g, " ").trim();
+}
+
 export function ServiceCard({ slug, service, miniSiteTheme }: ServiceCardProps) {
   const duration = service.type === "booking" ? formatDuration(service.duration_minutes) : null;
   const descriptionPreview = service.description
@@ -41,13 +48,16 @@ export function ServiceCard({ slug, service, miniSiteTheme }: ServiceCardProps) 
       )
     : null;
 
-  const cardClass = themed?.cardClass ?? "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm";
+  const shellClass = themed
+    ? stripPaddingClasses(themed.cardClass)
+    : "rounded-2xl border border-slate-200 bg-white shadow-sm";
+  const contentClass = themed ? "p-4" : "p-4";
   const titleClass = themed?.titleClass ?? "text-base font-semibold text-slate-900 break-words";
   const descriptionClass = themed?.descriptionClass ?? "mt-1 text-sm text-slate-600";
   const metaClass = themed?.metaClass ?? "text-sm text-slate-500";
   const buttonClass =
     themed?.buttonClass ??
-    "mt-4 block rounded-xl bg-brand-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-brand-700";
+    "block rounded-xl bg-brand-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-brand-700";
   const iconWrapClass = themed?.iconWrapClass ?? "";
 
   const cardStyle = miniSiteTheme
@@ -76,38 +86,41 @@ export function ServiceCard({ slug, service, miniSiteTheme }: ServiceCardProps) 
     : undefined;
 
   return (
-    <article className={`overflow-hidden ${cardClass}`} style={cardStyle} data-testid="service-card">
-      <ServiceImageDisplay
-        image={service.image}
-        variant="card"
-        alt={service.name}
-        className="aspect-[16/10] w-full"
-        testId="service-card-image"
-      />
-      <div className="p-4">
-      <div className="flex items-start gap-3">
-        <span className={`text-2xl ${iconWrapClass}`} aria-hidden>
-          {serviceTypeIcon(service.type)}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className={titleClass}>{service.name}</h2>
-            <TypeBadge type={service.type} />
-          </div>
-          {descriptionPreview ? <p className={descriptionClass}>{descriptionPreview}</p> : null}
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <PriceLabel service={service} />
-            {duration ? <span className={metaClass}>{duration}</span> : null}
+    <article
+      className={`flex h-full flex-col overflow-hidden ${shellClass}`}
+      style={cardStyle}
+      data-testid="service-card"
+    >
+      <ServiceCardImageArea image={service.image} alt={service.name} />
+
+      <div className={`flex flex-1 flex-col ${contentClass}`}>
+        <div className="flex items-start gap-3">
+          {!hasServiceImage(service.image) ? (
+            <span className={`text-2xl ${iconWrapClass}`} aria-hidden>
+              {serviceTypeIcon(service.type)}
+            </span>
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className={titleClass}>{service.name}</h2>
+              <TypeBadge type={service.type} />
+            </div>
+            {descriptionPreview ? <p className={descriptionClass}>{descriptionPreview}</p> : null}
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <PriceLabel service={service} />
+              {duration ? <span className={metaClass}>{duration}</span> : null}
+            </div>
           </div>
         </div>
-      </div>
-      <Link
-        to={`/b/${slug}/services/${service.id}`}
-        className={`mt-4 block ${buttonClass}`}
-        style={buttonStyle}
-      >
-        {serviceActionLabel(service.type)}
-      </Link>
+
+        <Link
+          to={`/b/${slug}/services/${service.id}`}
+          className={`mt-auto pt-4 ${buttonClass}`}
+          style={buttonStyle}
+          data-testid="service-card-cta"
+        >
+          {serviceActionLabel(service.type)}
+        </Link>
       </div>
     </article>
   );

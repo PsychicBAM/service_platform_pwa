@@ -101,7 +101,7 @@ export function ServicesPage() {
               description="Try another filter to see more services."
             />
           ) : (
-            <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 xl:grid-cols-3">
+            <div className="grid items-stretch gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
               {filteredServices.map((service) => (
                 <ServiceCard key={service.id} slug={slug} service={service} />
               ))}

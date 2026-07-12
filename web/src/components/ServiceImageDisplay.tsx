@@ -16,8 +16,8 @@ type ServiceImageDisplayProps = {
 
 const variantClassName: Record<NonNullable<ServiceImageDisplayProps["variant"]>, string> = {
   thumb: "h-10 w-10 shrink-0 rounded object-cover",
-  card: "h-full w-full object-cover",
-  detail: "w-full rounded-xl object-cover aspect-[16/10]",
+  card: "block h-full w-full object-cover",
+  detail: "block h-full w-full object-cover",
 };
 
 export function ServiceImageDisplay({
@@ -53,4 +53,35 @@ export function ServiceImageDisplay({
       onError={() => setFailed(true)}
     />
   );
+}
+
+export function ServiceCardImageArea({
+  image,
+  alt = "",
+  testId = "service-card-image",
+  aspectClassName = "aspect-[16/10]",
+}: {
+  image: ServiceImageMedia | unknown | null | undefined;
+  alt?: string;
+  testId?: string;
+  aspectClassName?: string;
+}) {
+  if (!normalizeServiceImageMedia(image)) {
+    return null;
+  }
+
+  return (
+    <div
+      className={`${aspectClassName} w-full shrink-0 overflow-hidden bg-slate-100`}
+      data-testid="service-card-image-area"
+    >
+      <ServiceImageDisplay image={image} variant="card" alt={alt} testId={testId} />
+    </div>
+  );
+}
+
+export function hasServiceImage(
+  image: ServiceImageMedia | unknown | null | undefined,
+): boolean {
+  return Boolean(normalizeServiceImageMedia(image));
 }

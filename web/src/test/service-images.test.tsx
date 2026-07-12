@@ -172,8 +172,11 @@ describe("public service image rendering", () => {
   it("renders service image on standard public service card", () => {
     renderRoute(<ServiceCard slug={DEMO_SLUG} service={serviceWithImage} />);
 
+    expect(screen.getByTestId("service-card-image-area")).toBeInTheDocument();
     const image = screen.getByTestId("service-card-image");
     expect(image).toHaveAttribute("src", "/uploads/services/biz-1/svc-1/abc.webp");
+    expect(screen.getByRole("heading", { name: serviceWithImage.name })).toBeInTheDocument();
+    expect(screen.getByTestId("service-card-cta")).toBeInTheDocument();
   });
 
   it("renders service image on public service detail page", async () => {
@@ -230,6 +233,7 @@ describe("CleanServicesSection per-service images", () => {
       />,
     );
 
+    expect(screen.getByTestId("service-card-image-area")).toBeInTheDocument();
     expect(screen.getByTestId("service-card-image")).toHaveAttribute(
       "src",
       "/uploads/services/biz-1/svc-1/abc.webp",
