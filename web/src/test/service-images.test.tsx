@@ -7,6 +7,10 @@ import { ServiceDetailPage } from "@/pages/ServiceDetailPage";
 import * as serviceImageApi from "@/api/serviceImageApi";
 import * as publicApi from "@/api/publicApi";
 import { CleanServicesSection } from "@/components/public/CleanProMiniSiteSections";
+import { ClinicServicesSection } from "@/components/public/ClinicProMiniSiteSections";
+import { PortfolioWorkSection } from "@/components/public/PortfolioProMiniSiteSections";
+import { ExpertServicesSection } from "@/components/public/ExpertProMiniSiteSections";
+import { DEFAULT_MINI_SITE_CONFIG } from "@/lib/miniSiteConfig";
 import {
   resolveServiceImageCardUrl,
   resolveServiceImagePreviewUrl,
@@ -282,5 +286,189 @@ describe("CleanServicesSection per-service images", () => {
     expect(screen.getAllByTestId("service-card")).toHaveLength(1);
     expect(screen.queryByTestId("service-card-image")).not.toBeInTheDocument();
     expect(screen.getByTestId("service-card-no-image-area")).toBeInTheDocument();
+  });
+});
+
+const clinicTheme = {
+  primaryColor: "#f97316",
+  accentColor: "#fb7185",
+  backgroundStyle: "light" as const,
+  buttonStyle: "pill" as const,
+};
+
+const portfolioTheme = {
+  primaryColor: "#6366f1",
+  accentColor: "#a855f7",
+  backgroundStyle: "light" as const,
+  buttonStyle: "pill" as const,
+};
+
+const expertTheme = {
+  primaryColor: "#1d4ed8",
+  accentColor: "#2563eb",
+  backgroundStyle: "light" as const,
+  buttonStyle: "rounded" as const,
+};
+
+const templateFallbackImage = {
+  kind: "image" as const,
+  url: "/uploads/mini_site/biz-1/template.webp",
+  thumbnailUrl: "/uploads/mini_site/biz-1/template_thumb.webp",
+  alt: "Template accent",
+  filename: "template.webp",
+  contentType: "image/webp",
+  size: 1000,
+  originalSize: 2000,
+  width: 1200,
+  height: 800,
+};
+
+describe("Clinic per-service images", () => {
+  it("renders per-service image on treatment card when present", () => {
+    renderRoute(
+      <ClinicServicesSection
+        title="Treatments"
+        badgeText={null}
+        services={[{ ...mockBookingService, image: mockImage }]}
+        publicSlug={DEMO_SLUG}
+        theme={clinicTheme}
+        isDark={false}
+        primaryCtaLabel="Book now"
+        copy={DEFAULT_MINI_SITE_CONFIG.copy}
+        templateImages={{ servicesImage: templateFallbackImage }}
+      />,
+    );
+
+    expect(screen.getByTestId("service-card-image")).toHaveAttribute(
+      "src",
+      "/uploads/services/biz-1/svc-1/abc.webp",
+    );
+    expect(screen.queryByTestId("pro-mini-site-template-servicesImage")).not.toBeInTheDocument();
+  });
+
+  it("keeps clean treatment card without broken image when service has no image", () => {
+    renderRoute(
+      <ClinicServicesSection
+        title="Treatments"
+        badgeText={null}
+        services={[mockBookingService]}
+        publicSlug={DEMO_SLUG}
+        theme={clinicTheme}
+        isDark={false}
+        primaryCtaLabel="Book now"
+        copy={DEFAULT_MINI_SITE_CONFIG.copy}
+      />,
+    );
+
+    expect(screen.queryByTestId("service-card-image")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: mockBookingService.name })).toBeInTheDocument();
+  });
+});
+
+describe("Portfolio per-service images", () => {
+  it("renders per-service image on project card when present", () => {
+    renderRoute(
+      <PortfolioWorkSection
+        title="Our work"
+        badgeText={null}
+        services={[{ ...mockBookingService, image: mockImage }]}
+        publicSlug={DEMO_SLUG}
+        theme={portfolioTheme}
+        isDark={false}
+        templateImages={{ featuredWorkImage: templateFallbackImage }}
+      />,
+    );
+
+    expect(screen.getByTestId("service-card-image")).toHaveAttribute(
+      "src",
+      "/uploads/services/biz-1/svc-1/abc.webp",
+    );
+    expect(screen.queryByTestId("pro-mini-site-template-featuredWorkImage")).not.toBeInTheDocument();
+  });
+
+  it("uses template fallback on project card when service has no image", () => {
+    renderRoute(
+      <PortfolioWorkSection
+        title="Our work"
+        badgeText={null}
+        services={[mockBookingService]}
+        publicSlug={DEMO_SLUG}
+        theme={portfolioTheme}
+        isDark={false}
+        templateImages={{ featuredWorkImage: templateFallbackImage }}
+      />,
+    );
+
+    expect(screen.queryByTestId("service-card-image")).not.toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-template-featuredWorkImage")).toHaveAttribute(
+      "src",
+      "/uploads/mini_site/biz-1/template.webp",
+    );
+  });
+
+  it("keeps showreel click-to-play when video is configured", async () => {
+    const user = userEvent.setup();
+
+    renderRoute(
+      <PortfolioWorkSection
+        title="Our work"
+        badgeText={null}
+        services={[mockBookingService]}
+        publicSlug={DEMO_SLUG}
+        theme={portfolioTheme}
+        isDark={false}
+        showreelVideo={{
+          kind: "video",
+          provider: "youtube",
+          url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+          title: "Showreel",
+        }}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /play showreel/i }));
+    expect(document.querySelector("iframe")).toBeInTheDocument();
+  });
+});
+
+describe("Expert per-service images", () => {
+  it("renders per-service image on offer card when present", () => {
+    renderRoute(
+      <ExpertServicesSection
+        title="Sessions"
+        badgeText={null}
+        services={[{ ...mockBookingService, image: mockImage }]}
+        publicSlug={DEMO_SLUG}
+        theme={expertTheme}
+        isDark={false}
+        copy={DEFAULT_MINI_SITE_CONFIG.copy}
+      />,
+    );
+
+    expect(screen.getByTestId("service-card-image-area")).toBeInTheDocument();
+    expect(screen.getByTestId("service-card-image")).toHaveAttribute(
+      "src",
+      "/uploads/services/biz-1/svc-1/abc.webp",
+    );
+  });
+
+  it("keeps clean offer card without broken image when service has no image", () => {
+    renderRoute(
+      <ExpertServicesSection
+        title="Sessions"
+        badgeText={null}
+        services={[mockBookingService]}
+        publicSlug={DEMO_SLUG}
+        theme={expertTheme}
+        isDark={false}
+        copy={DEFAULT_MINI_SITE_CONFIG.copy}
+      />,
+    );
+
+    expect(screen.queryByTestId("service-card-image-area")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: mockBookingService.name })).toBeInTheDocument();
   });
 });

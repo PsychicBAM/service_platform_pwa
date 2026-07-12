@@ -11,6 +11,8 @@ import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresent
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
+import { ServiceCardImageArea } from "@/components/ServiceImageDisplay";
+import { normalizeServiceImageMedia } from "@/lib/serviceImage";
 import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import { isAllowedMiniSiteVideoEmbedUrl } from "@/lib/miniSiteVideo";
@@ -213,6 +215,7 @@ function ExpertOfferCard({
   const radius = buttonRadiusClass(theme.buttonStyle);
   const isPreview = variant === "preview";
   const accent = expertAccent(theme);
+  const hasPerServiceImage = Boolean(normalizeServiceImageMedia(service.image));
 
   return (
     <article
@@ -221,6 +224,13 @@ function ExpertOfferCard({
       } ${isDark ? "border-slate-700 bg-slate-900/50" : ""}`}
       data-testid="service-card"
     >
+      {hasPerServiceImage ? (
+        <ServiceCardImageArea
+          image={service.image}
+          alt={service.name}
+          aspectClassName={isPreview ? "aspect-[16/10]" : "aspect-[16/10]"}
+        />
+      ) : null}
       <div className={isPreview ? "p-3" : "p-5 md:p-6"}>
         <p
           className={`font-semibold uppercase tracking-[0.14em] ${isPreview ? "text-[9px]" : "text-[11px]"}`}

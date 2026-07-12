@@ -11,6 +11,8 @@ import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresent
 import type { MiniSiteImageMedia, MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
+import { ServiceCardImageArea } from "@/components/ServiceImageDisplay";
+import { normalizeServiceImageMedia } from "@/lib/serviceImage";
 import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import { isAllowedMiniSiteVideoEmbedUrl } from "@/lib/miniSiteVideo";
@@ -236,9 +238,17 @@ function PortfolioProjectCard({
   const pink = portfolioPink(theme);
   const imageAspect = portfolioCardImageAspect(isPreview);
   const monogram = service.name.charAt(0).toUpperCase();
+  const hasPerServiceImage = Boolean(normalizeServiceImageMedia(service.image));
 
   return (
     <article className={portfolioCardShell(isPreview)} data-testid="service-card">
+      {hasPerServiceImage ? (
+        <ServiceCardImageArea
+          image={service.image}
+          alt={service.name}
+          aspectClassName={imageAspect}
+        />
+      ) : (
       <div className={`relative w-full shrink-0 overflow-hidden ${imageAspect}`}>
         {showcaseImage && imageTestId ? (
           <MiniSiteSlotImage
@@ -266,6 +276,7 @@ function PortfolioProjectCard({
           </div>
         )}
       </div>
+      )}
 
       <div className={`flex flex-1 flex-col text-center ${isPreview ? "gap-1.5 p-3" : "gap-2 p-5 md:p-6"}`}>
         <h3

@@ -17,6 +17,8 @@ import type {
   MiniSiteSocialLinks,
 } from "@/types/miniSite";
 import { formatDuration, serviceActionLabel } from "@/utils/format";
+import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
+import { normalizeServiceImageMedia } from "@/lib/serviceImage";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
 import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
@@ -271,6 +273,8 @@ function ClinicTreatmentCard({
         ? primaryCtaLabel
         : "Book now"
       : serviceActionLabel(service.type);
+  const hasPerServiceImage = Boolean(normalizeServiceImageMedia(service.image));
+  const imageHeightClass = isPreview ? "h-24" : "h-44 md:h-52";
 
   return (
     <article
@@ -280,15 +284,28 @@ function ClinicTreatmentCard({
       data-testid="service-card"
     >
       <div className="relative overflow-hidden">
-        {showcaseImage && imageTestId ? (
+        {hasPerServiceImage ? (
+          <div
+            className={`w-full overflow-hidden ${imageHeightClass}`}
+            data-testid="service-card-image-area"
+          >
+            <ServiceImageDisplay
+              image={service.image}
+              variant="card"
+              alt={service.name}
+              testId="service-card-image"
+              className="h-full w-full"
+            />
+          </div>
+        ) : showcaseImage && imageTestId ? (
           <MiniSiteSlotImage
             media={showcaseImage}
             testId={imageTestId}
-            className={`w-full object-cover ${isPreview ? "h-24" : "h-44 md:h-52"}`}
+            className={`w-full object-cover ${imageHeightClass}`}
           />
         ) : (
           <div
-            className={`w-full ${isPreview ? "h-24" : "h-44 md:h-52"}`}
+            className={`w-full ${imageHeightClass}`}
             style={{ background: `linear-gradient(135deg, ${theme.primaryColor}22, ${theme.accentColor}18)` }}
             aria-hidden
           />
@@ -773,7 +790,11 @@ export function ClinicServicesSection({
           data-testid={`${testIdPrefix}-clinic-specialties`}
         >
           {treatmentServices.length > 0
-            ? treatmentServices.map((service, index) => (
+            ? treatmentServices.map((service, index) => {
+                const templateFallback =
+                  !normalizeServiceImageMedia(service.image) && index === 0 ? servicesImage : null;
+
+                return (
                 <ClinicTreatmentCard
                   key={service.id}
                   slug={publicSlug}
@@ -782,10 +803,11 @@ export function ClinicServicesSection({
                   isDark={isDark}
                   variant={variant}
                   primaryCtaLabel={primaryCtaLabel}
-                  showcaseImage={index === 0 ? servicesImage : null}
-                  imageTestId={index === 0 && servicesImage ? `${testIdPrefix}-template-servicesImage` : undefined}
+                  showcaseImage={templateFallback}
+                  imageTestId={templateFallback ? `${testIdPrefix}-template-servicesImage` : undefined}
                 />
-              ))
+                );
+              })
             : isPreview
               ? (
                   <ClinicTreatmentCard
