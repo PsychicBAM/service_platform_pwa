@@ -320,11 +320,12 @@ Registry/helpers: `api/app/utils/mini_site_media_slots.py`, `web/src/lib/miniSit
 - **Test id rule:** only **hero** primary CTA uses `data-testid="pro-mini-site-book-cta"`. Non-hero Portfolio CTAs use unique ids (e.g. `pro-mini-site-portfolio-contact-cta`, `pro-mini-site-portfolio-request-cta`).
 - **Do not redo** unless user asks.
 
-### Expert — **recently rebuilt; confirm with user**
+### Expert — **accepted / closed / CI green**
 
 - Reference: [We are experts in business solutions](https://nicepage.com/website-templates/preview/we-are-experts-in-business-solutions-1287209)
 - Direction: consultant landing — light hero + profile image, 4 expertise cards, authority accent band, services split, 01/02/03 process cards, problem-solving list, about/proof, booking CTA.
-- Latest commit on `main`: `f8756e9` (rebuild). **Ask user for screenshot approval** before further Expert changes.
+- Rebuild commit: `f8756e9`. **User confirmed acceptable (closed).**
+- **Do not redo** unless user provides a new reference and explicitly asks.
 
 ### Service — **acceptable**
 
@@ -515,7 +516,7 @@ When opening this project:
 | Area | Guidance |
 |------|----------|
 | Clean / Clinic / Portfolio | **Do not touch** unless user explicitly asks with a new reference. |
-| Expert | Rebuilt on `main` (`f8756e9`). Confirm with user via **screenshots** before more Expert work. |
+| Expert | **Accepted / closed** — do not touch unless user explicitly asks with a new reference. |
 | Teacher | **Wait** for strong education/course reference; do not ad-hoc polish. |
 | Service / Coach | Stable enough; leave alone unless user asks. |
 | Product — per-service images | Logical next **product** slice (admin service CRUD + public cards). |
