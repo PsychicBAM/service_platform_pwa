@@ -22,6 +22,19 @@ from app.models.service import Service
 from app.models.user import User
 from app.repositories.business_repository import BusinessRepository
 from app.schemas.service import ServiceCreate, ServiceUpdate
+from app.schemas.service_image import (
+    ServiceImageMedia,
+    ServiceImageRemoveResponse,
+    ServiceImageUploadResponse,
+)
+from app.services.service_image_optimizer import optimize_service_image
+from app.services.service_image_storage import (
+    delete_service_image_files_if_owned,
+    extension_for_content_type,
+    sanitize_original_filename,
+    service_upload_dir,
+)
+from app.utils.service_image import SERVICE_IMAGE_MAX_BYTES, SERVICE_IMAGE_MAX_SIZE_MESSAGE
 
 FREE_PLAN_MAX_SERVICES = 3
 
@@ -175,6 +188,67 @@ class ServiceService:
         await self.session.commit()
         await self.session.refresh(service)
         return service
+
+    async def upload_image(
+        self,
+        business: Business,
+        service_id: uuid.UUID,
+        *,
+        content: bytes,
+        content_type: str,
+        original_filename: str,
+        alt: str | None = None,
+    ) -> ServiceImageUploadResponse:
+        service = await self.get_for_business(business, service_id)
+        if not content:
+            raise ValidationAppError("Image file is required.")
+        if len(content) > SERVICE_IMAGE_MAX_BYTES:
+            raise ValidationAppError(SERVICE_IMAGE_MAX_SIZE_MESSAGE)
+
+        extension_for_content_type(content_type)
+        service_upload_dir(business.id, service.id)
+
+        delete_service_image_files_if_owned(business.id, service.id, service.image_)
+
+        optimized = optimize_service_image(
+            business.id,
+            service.id,
+            content=content,
+        )
+
+        image = ServiceImageMedia(
+            kind="image",
+            url=optimized.web_url,
+            thumbnail_url=optimized.thumbnail_url,
+            alt=(alt or "").replace("<", "").replace(">", "").strip(),
+            filename=sanitize_original_filename(original_filename),
+            content_type=optimized.content_type,
+            size=optimized.size,
+            original_size=optimized.original_size,
+            width=optimized.width,
+            height=optimized.height,
+        )
+
+        await self.repo.update(service, {"image_": image.model_dump()})
+        await self.session.commit()
+        await self.session.refresh(service)
+
+        return ServiceImageUploadResponse(
+            service_id=str(service.id),
+            image=image,
+        )
+
+    async def remove_image(
+        self,
+        business: Business,
+        service_id: uuid.UUID,
+    ) -> ServiceImageRemoveResponse:
+        service = await self.get_for_business(business, service_id)
+        delete_service_image_files_if_owned(business.id, service.id, service.image_)
+        await self.repo.update(service, {"image_": None})
+        await self.session.commit()
+        await self.session.refresh(service)
+        return ServiceImageRemoveResponse(service_id=str(service.id), removed=True)
 
     async def list_public(
         self,

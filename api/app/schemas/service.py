@@ -6,6 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from app.models.enums import PriceType, ServiceType
 from app.models.service import Service
+from app.schemas.service_image import ServiceImageMedia
+from app.utils.service_image import read_service_image
 
 
 class ServiceRead(BaseModel):
@@ -22,6 +24,7 @@ class ServiceRead(BaseModel):
     is_active: bool
     sort_order: int
     metadata: dict[str, Any]
+    image: ServiceImageMedia | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -46,6 +49,7 @@ class ServiceRead(BaseModel):
             is_active=service.is_active,
             sort_order=service.sort_order,
             metadata=service.metadata_,
+            image=read_service_image(service.image_),
             created_at=service.created_at,
             updated_at=service.updated_at,
         )
@@ -62,6 +66,7 @@ class PublicServiceRead(BaseModel):
     price_type: PriceType
     require_payment: bool
     sort_order: int
+    image: ServiceImageMedia | None = None
 
     @classmethod
     def from_service(cls, service: Service) -> "PublicServiceRead":
@@ -84,6 +89,7 @@ class PublicServiceRead(BaseModel):
             price_type=service.price_type,
             require_payment=service.require_payment,
             sort_order=service.sort_order,
+            image=read_service_image(service.image_),
         )
 
 

@@ -228,6 +228,7 @@ export function AdminServicesPage() {
       {formMode === "create" ? (
         <AdminServiceForm
           mode="create"
+          businessId={businessId ?? undefined}
           submitting={createMutation.isPending}
           submitError={formSubmitError}
           onCancel={() => setFormMode(null)}
@@ -242,12 +243,17 @@ export function AdminServicesPage() {
       {formMode === "edit" && editingService ? (
         <AdminServiceForm
           mode="edit"
+          businessId={businessId ?? undefined}
           initial={editingService}
           submitting={updateMutation.isPending}
           submitError={formSubmitError}
           onCancel={() => {
             setFormMode(null);
             setEditingService(null);
+          }}
+          onServiceImageChange={(image) => {
+            setEditingService((current) => (current ? { ...current, image } : current));
+            void queryClient.invalidateQueries({ queryKey: ["admin-services", businessId] });
           }}
           onSubmit={(payload) => {
             updateMutation.mutate(

@@ -38,6 +38,7 @@ export interface PublicService {
   price_type: PriceType;
   require_payment: boolean;
   sort_order: number;
+  image?: import("@/lib/serviceImage").ServiceImageMedia | null;
 }
 
 export interface AvailabilitySlot {
@@ -452,6 +453,7 @@ export interface AdminServiceRead {
   is_active: boolean;
   sort_order: number;
   metadata: Record<string, unknown>;
+  image?: import("@/lib/serviceImage").ServiceImageMedia | null;
   created_at: string;
   updated_at: string;
 }

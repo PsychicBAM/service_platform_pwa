@@ -73,6 +73,11 @@ class Service(Base, TimestampMixin):
         nullable=False,
         server_default=text("'{}'::jsonb"),
     )
+    image_: Mapped[dict[str, Any] | None] = mapped_column(
+        "image",
+        JSONB,
+        nullable=True,
+    )
 
     business: Mapped["Business"] = relationship(back_populates="services")
     bookings: Mapped[list["Booking"]] = relationship(back_populates="service")

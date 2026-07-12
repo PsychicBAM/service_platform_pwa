@@ -8,6 +8,7 @@ import {
 } from "@/lib/miniSiteConfig";
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
+import { normalizeServiceImageMedia, resolveServiceImageUrl } from "@/lib/serviceImage";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
@@ -200,12 +201,28 @@ function CleanServiceCard({
       ? `${service.description.slice(0, isPreview ? 80 : 130).trim()}…`
       : service.description
     : null;
+  const serviceImage = normalizeServiceImageMedia(service.image);
 
   return (
     <article
       className={`flex h-full flex-col overflow-hidden ${cleanWhiteCard(isDark, isPreview)}`}
       data-testid="service-card"
     >
+      {serviceImage ? (
+        <div
+          className={`relative w-full overflow-hidden ${
+            isPreview ? "aspect-[16/10]" : "aspect-[16/10]"
+          }`}
+        >
+          <img
+            src={resolveServiceImageUrl(serviceImage.url)}
+            alt={serviceImage.alt || service.name}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            data-testid="service-card-image"
+          />
+        </div>
+      ) : null}
       <div className={isPreview ? "flex flex-1 flex-col gap-2 p-3" : "flex flex-1 flex-col gap-4 p-6 md:p-7"}>
         <span
           className={`font-bold tabular-nums ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}

@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -14,6 +14,7 @@ from app.schemas.service import (
     ServiceRead,
     ServiceUpdate,
 )
+from app.schemas.service_image import ServiceImageRemoveResponse, ServiceImageUploadResponse
 from app.services.service_service import ServiceService
 
 router = APIRouter(prefix="/businesses", tags=["services"])
@@ -100,3 +101,44 @@ async def delete_service(
         raise ValueError("business mismatch")  # pragma: no cover
     service = await ServiceService(db).soft_delete(business, service_id)
     return ServiceRead.from_service(service)
+
+
+@router.post(
+    "/{business_id}/services/{service_id}/image",
+    response_model=ServiceImageUploadResponse,
+)
+async def upload_service_image(
+    business_id: uuid.UUID,
+    service_id: uuid.UUID,
+    file: UploadFile = File(...),
+    alt: str | None = Form(default=None),
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> ServiceImageUploadResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    content = await file.read()
+    content_type = file.content_type or ""
+    return await ServiceService(db).upload_image(
+        business,
+        service_id,
+        content=content,
+        content_type=content_type,
+        original_filename=file.filename or "upload",
+        alt=alt,
+    )
+
+
+@router.delete(
+    "/{business_id}/services/{service_id}/image",
+    response_model=ServiceImageRemoveResponse,
+)
+async def remove_service_image(
+    business_id: uuid.UUID,
+    service_id: uuid.UUID,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> ServiceImageRemoveResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    return await ServiceService(db).remove_image(business, service_id)

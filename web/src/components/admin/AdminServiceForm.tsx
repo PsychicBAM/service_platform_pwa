@@ -1,6 +1,8 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { FormField } from "@/components/FormField";
 import { TextAreaField } from "@/components/TextAreaField";
+import { AdminServiceImageSection } from "@/components/admin/AdminServiceImageSection";
+import type { ServiceImageMedia } from "@/lib/serviceImage";
 import type {
   AdminServiceRead,
   PriceType,
@@ -15,11 +17,13 @@ type FieldErrors = Record<string, string>;
 
 type AdminServiceFormProps = {
   mode: FormMode;
+  businessId?: string;
   initial?: AdminServiceRead;
   submitting?: boolean;
   submitError?: string | null;
   onSubmit: (payload: ServiceCreatePayload | ServiceUpdatePayload) => void;
   onCancel: () => void;
+  onServiceImageChange?: (image: ServiceImageMedia | null) => void;
 };
 
 type FormState = {
@@ -142,11 +146,13 @@ function buildUpdatePayload(state: FormState, serviceType: ServiceType): Service
 
 export function AdminServiceForm({
   mode,
+  businessId,
   initial,
   submitting = false,
   submitError,
   onSubmit,
   onCancel,
+  onServiceImageChange,
 }: AdminServiceFormProps) {
   const serviceType = initial?.type ?? undefined;
   const [form, setForm] = useState<FormState>(() => defaultFormState(initial));
@@ -326,6 +332,16 @@ export function AdminServiceForm({
         onChange={(event) => setForm((prev) => ({ ...prev, sortOrder: event.target.value }))}
         disabled={submitting}
       />
+
+      {businessId ? (
+        <AdminServiceImageSection
+          businessId={businessId}
+          serviceId={mode === "edit" ? initial?.id : undefined}
+          image={initial?.image ?? null}
+          disabled={submitting}
+          onImageChange={(nextImage) => onServiceImageChange?.(nextImage)}
+        />
+      ) : null}
 
       {submitError ? (
         <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
