@@ -24,3 +24,14 @@ def service_booking_capacity(service: Service) -> int:
     if capacity is None:
         return 1
     return max(1, int(capacity))
+
+
+def effective_slot_capacity(
+    service: Service,
+    slot_start: datetime,
+    overrides: list,
+) -> int:
+    for override in overrides:
+        if slot_starts_match(slot_start, override.starts_at):
+            return max(1, int(override.capacity))
+    return service_booking_capacity(service)

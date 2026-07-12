@@ -465,6 +465,27 @@ export interface AdminServiceListResponse {
   meta: ListMeta;
 }
 
+export interface ServiceSlotCapacityOverrideRead {
+  id: string;
+  business_id: string;
+  service_id: string;
+  starts_at: string;
+  capacity: number;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ServiceSlotCapacityOverrideListResponse {
+  data: ServiceSlotCapacityOverrideRead[];
+}
+
+export interface ServiceSlotCapacityOverrideCreatePayload {
+  starts_at: string;
+  capacity: number;
+  note?: string | null;
+}
+
 export interface ServiceCreatePayload {
   name: string;
   description?: string | null;

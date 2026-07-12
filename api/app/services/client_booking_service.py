@@ -30,7 +30,11 @@ from app.schemas.booking import (
     MyBookingServiceSummary,
 )
 from app.services.availability_service import AvailabilityService
-from app.services.booking_capacity import assert_slot_has_capacity
+from app.services.booking_capacity import (
+    SLOT_FULLY_BOOKED_MESSAGE,
+    SlotCapacityResolver,
+    assert_slot_has_capacity,
+)
 from app.utils.booking_slots import normalize_starts_at, slot_starts_match
 
 CLIENT_CANCELLABLE_STATUSES = {
@@ -88,6 +92,7 @@ class ClientBookingService:
         self.repo = BookingRepository(session)
         self.business_repo = BusinessRepository(session)
         self.availability_service = AvailabilityService(session)
+        self.capacity_resolver = SlotCapacityResolver(session)
 
     async def list_my_bookings(
         self,
@@ -183,10 +188,24 @@ class ClientBookingService:
             for slot in availability.slots
         )
         if not slot_found:
+            booked_count = await self.repo.count_blocking_bookings_for_slot(
+                booking.business_id,
+                booking.service.id,
+                new_starts_at,
+                exclude_booking_id=booking.id,
+            )
+            capacity = await self.capacity_resolver.effective_capacity(
+                booking.business_id,
+                booking.service,
+                new_starts_at,
+            )
+            if booked_count >= capacity:
+                raise SlotUnavailableError(SLOT_FULLY_BOOKED_MESSAGE)
             raise SlotUnavailableError()
 
         await assert_slot_has_capacity(
             self.repo,
+            self.capacity_resolver,
             business_id=booking.business_id,
             service=booking.service,
             starts_at=new_starts_at,

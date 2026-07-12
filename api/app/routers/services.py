@@ -15,7 +15,13 @@ from app.schemas.service import (
     ServiceUpdate,
 )
 from app.schemas.service_image import ServiceImageRemoveResponse, ServiceImageUploadResponse
+from app.schemas.service_slot_capacity_override import (
+    ServiceSlotCapacityOverrideCreate,
+    ServiceSlotCapacityOverrideListResponse,
+    ServiceSlotCapacityOverrideRead,
+)
 from app.services.service_service import ServiceService
+from app.services.service_slot_capacity_override_service import ServiceSlotCapacityOverrideService
 
 router = APIRouter(prefix="/businesses", tags=["services"])
 
@@ -142,3 +148,55 @@ async def remove_service_image(
     if business.id != business_id:
         raise ValueError("business mismatch")  # pragma: no cover
     return await ServiceService(db).remove_image(business, service_id)
+
+
+@router.get(
+    "/{business_id}/services/{service_id}/slot-capacity-overrides",
+    response_model=ServiceSlotCapacityOverrideListResponse,
+)
+async def list_slot_capacity_overrides(
+    business_id: uuid.UUID,
+    service_id: uuid.UUID,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> ServiceSlotCapacityOverrideListResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    overrides = await ServiceSlotCapacityOverrideService(db).list_for_service(
+        business,
+        service_id,
+    )
+    return ServiceSlotCapacityOverrideListResponse(data=overrides)
+
+
+@router.post(
+    "/{business_id}/services/{service_id}/slot-capacity-overrides",
+    response_model=ServiceSlotCapacityOverrideRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_slot_capacity_override(
+    business_id: uuid.UUID,
+    service_id: uuid.UUID,
+    payload: ServiceSlotCapacityOverrideCreate,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> ServiceSlotCapacityOverrideRead:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    return await ServiceSlotCapacityOverrideService(db).create(business, service_id, payload)
+
+
+@router.delete(
+    "/{business_id}/services/{service_id}/slot-capacity-overrides/{override_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_slot_capacity_override(
+    business_id: uuid.UUID,
+    service_id: uuid.UUID,
+    override_id: uuid.UUID,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    await ServiceSlotCapacityOverrideService(db).delete(business, service_id, override_id)

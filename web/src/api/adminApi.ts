@@ -23,6 +23,9 @@ import type {
   OrderMessageRead,
   ScheduleRead,
   ServiceCreatePayload,
+  ServiceSlotCapacityOverrideCreatePayload,
+  ServiceSlotCapacityOverrideListResponse,
+  ServiceSlotCapacityOverrideRead,
   ServiceUpdatePayload,
   UnavailableTimeCreatePayload,
   UnavailableTimeRead,
@@ -321,5 +324,32 @@ export function getBusinessLegalConsents(
 ) {
   return apiClient.get<LegalConsentRecordListResponse>(
     `/businesses/${encodeURIComponent(businessId)}/legal-consents${buildQuery(params)}`,
+  );
+}
+
+export function listServiceSlotCapacityOverrides(businessId: string, serviceId: string) {
+  return apiClient.get<ServiceSlotCapacityOverrideListResponse>(
+    `/businesses/${encodeURIComponent(businessId)}/services/${encodeURIComponent(serviceId)}/slot-capacity-overrides`,
+  );
+}
+
+export function createServiceSlotCapacityOverride(
+  businessId: string,
+  serviceId: string,
+  payload: ServiceSlotCapacityOverrideCreatePayload,
+) {
+  return apiClient.post<ServiceSlotCapacityOverrideRead>(
+    `/businesses/${encodeURIComponent(businessId)}/services/${encodeURIComponent(serviceId)}/slot-capacity-overrides`,
+    payload,
+  );
+}
+
+export function deleteServiceSlotCapacityOverride(
+  businessId: string,
+  serviceId: string,
+  overrideId: string,
+) {
+  return apiClient.delete<void>(
+    `/businesses/${encodeURIComponent(businessId)}/services/${encodeURIComponent(serviceId)}/slot-capacity-overrides/${encodeURIComponent(overrideId)}`,
   );
 }

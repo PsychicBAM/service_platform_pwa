@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import { FormField } from "@/components/FormField";
 import { TextAreaField } from "@/components/TextAreaField";
 import { AdminServiceImageSection } from "@/components/admin/AdminServiceImageSection";
+import { AdminServiceSlotCapacitySection } from "@/components/admin/AdminServiceSlotCapacitySection";
 import type { ServiceImageMedia } from "@/lib/serviceImage";
 import type {
   AdminServiceRead,
@@ -290,6 +291,15 @@ export function AdminServiceForm({
           hint="How many clients can book the same time slot."
           disabled={submitting}
           data-testid="admin-service-capacity"
+        />
+      ) : null}
+
+      {isBooking && businessId ? (
+        <AdminServiceSlotCapacitySection
+          businessId={businessId}
+          serviceId={mode === "edit" ? initial?.id : undefined}
+          serviceType={effectiveType}
+          disabled={submitting}
         />
       ) : null}
 

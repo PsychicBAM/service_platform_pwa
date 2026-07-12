@@ -41,6 +41,18 @@ class SlotUnavailableError(AppError):
         super().__init__(message=message, code="SLOT_UNAVAILABLE", status_code=409)
 
 
+class SlotCapacityOverrideExistsError(AppError):
+    def __init__(
+        self,
+        message: str = "A capacity override already exists for this time slot.",
+    ) -> None:
+        super().__init__(
+            message=message,
+            code="SLOT_CAPACITY_OVERRIDE_EXISTS",
+            status_code=409,
+        )
+
+
 class BookingCancelTooLateError(AppError):
     def __init__(self, message: str = "Cancellation or reschedule window has passed.") -> None:
         super().__init__(message=message, code="BOOKING_CANCEL_TOO_LATE", status_code=400)

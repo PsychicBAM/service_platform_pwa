@@ -23,11 +23,12 @@ from app.schemas.booking import PublicBookingCreate
 from app.services.availability_service import AvailabilityService
 from app.services.booking_capacity import (
     SLOT_FULLY_BOOKED_MESSAGE,
+    SlotCapacityResolver,
     assert_slot_has_capacity,
 )
 from app.services.email_notification_service import EmailNotificationService
 from app.services.legal_consent_service import LegalConsentService
-from app.utils.booking_slots import normalize_starts_at, service_booking_capacity, slot_starts_match
+from app.utils.booking_slots import normalize_starts_at, slot_starts_match
 from app.utils.references import generate_booking_reference
 
 # Re-export for existing imports.
@@ -42,6 +43,7 @@ class BookingService:
         self.client_repo = ClientRepository(session)
         self.booking_repo = BookingRepository(session)
         self.availability_service = AvailabilityService(session)
+        self.capacity_resolver = SlotCapacityResolver(session)
 
     async def create_public_booking(
         self,
@@ -94,6 +96,7 @@ class BookingService:
 
         await assert_slot_has_capacity(
             self.booking_repo,
+            self.capacity_resolver,
             business_id=business.id,
             service=service,
             starts_at=starts_at,
@@ -146,12 +149,18 @@ class BookingService:
                 service.id,
                 starts_at,
             )
-            if booked_count >= service_booking_capacity(service):
+            capacity = await self.capacity_resolver.effective_capacity(
+                business.id,
+                service,
+                starts_at,
+            )
+            if booked_count >= capacity:
                 raise SlotUnavailableError(SLOT_FULLY_BOOKED_MESSAGE)
             raise SlotUnavailableError()
 
         await assert_slot_has_capacity(
             self.booking_repo,
+            self.capacity_resolver,
             business_id=business.id,
             service=service,
             starts_at=starts_at,
