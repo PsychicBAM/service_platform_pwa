@@ -14,6 +14,7 @@ import {
   mockClientUser,
   mockOwnerUser,
   mockSchedule,
+  BOOKING_SERVICE_ID,
 } from "@/test/mock-fixtures";
 import {
   mockAuthenticatedAuth,
@@ -113,5 +114,50 @@ describe("admin pages smoke", () => {
     expect(await screen.findByRole("heading", { name: "Services" })).toBeInTheDocument();
     expect(await screen.findByText(mockAdminServices[0].name)).toBeInTheDocument();
     expect(screen.getByText(mockAdminServices[1].name)).toBeInTheDocument();
+    expect(screen.getAllByTestId("admin-service-card")).toHaveLength(mockAdminServices.length);
+    expect(
+      screen.getByTestId(`admin-service-list-thumb-placeholder-${BOOKING_SERVICE_ID}`),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId(`admin-service-list-image-status-${BOOKING_SERVICE_ID}`),
+    ).toHaveTextContent("No image");
+    expect(screen.getByTestId("admin-services-add")).toBeInTheDocument();
+  });
+
+  it("N. admin services list shows thumbnail when service has image", async () => {
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+    vi.mocked(adminApi.listAdminServices).mockResolvedValue({
+      data: [
+        {
+          ...mockAdminServices[0],
+          image: {
+            kind: "image" as const,
+            url: "/uploads/services/biz-1/svc-1/abc.webp",
+            thumbnailUrl: "/uploads/services/biz-1/svc-1/abc_thumb.webp",
+            alt: "",
+            filename: "photo.jpg",
+            contentType: "image/webp",
+            size: 1200,
+            originalSize: 4500,
+            width: 1200,
+            height: 800,
+          },
+        },
+      ],
+      meta: { page: 1, limit: 100, total: 1 },
+    });
+
+    renderAdminPage(<AdminServicesPage />);
+
+    expect(await screen.findByTestId(`admin-service-list-thumb-${BOOKING_SERVICE_ID}`)).toHaveAttribute(
+      "src",
+      "/uploads/services/biz-1/svc-1/abc_thumb.webp",
+    );
+    expect(
+      screen.getByTestId(`admin-service-list-image-status-${BOOKING_SERVICE_ID}`),
+    ).toHaveTextContent("photo.jpg");
+    expect(
+      screen.queryByTestId(`admin-service-list-thumb-placeholder-${BOOKING_SERVICE_ID}`),
+    ).not.toBeInTheDocument();
   });
 });

@@ -9,7 +9,7 @@ import {
 import { uploadServiceImage } from "@/api/serviceImageApi";
 import { AdminServiceForm } from "@/components/admin/AdminServiceForm";
 import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
-import { serviceImageStatusText } from "@/lib/serviceImage";
+import { normalizeServiceImageMedia, serviceImageStatusText } from "@/lib/serviceImage";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -23,7 +23,7 @@ import type {
   ServiceUpdatePayload,
 } from "@/types/api";
 import { getAdminServiceErrorMessage, getMeErrorMessage } from "@/utils/errors";
-import { formatDuration } from "@/utils/format";
+import { formatDuration, serviceTypeIcon } from "@/utils/format";
 
 type TypeFilter = "all" | ServiceType;
 type StatusFilter = "all" | "active" | "inactive";
@@ -41,14 +41,136 @@ function FilterButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+      className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
         active
-          ? "bg-brand-600 text-white"
+          ? "bg-brand-600 text-white shadow-sm"
           : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
       }`}
     >
       {label}
     </button>
+  );
+}
+
+function AdminServiceThumbnail({
+  service,
+}: {
+  service: AdminServiceRead;
+}) {
+  const hasImage = Boolean(normalizeServiceImageMedia(service.image));
+
+  if (hasImage) {
+    return (
+      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+        <ServiceImageDisplay
+          image={service.image}
+          variant="thumb"
+          testId={`admin-service-list-thumb-${service.id}`}
+          className="!h-16 !w-16 !rounded-lg"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 text-2xl text-slate-400"
+      data-testid={`admin-service-list-thumb-placeholder-${service.id}`}
+      aria-hidden
+    >
+      {serviceTypeIcon(service.type)}
+    </div>
+  );
+}
+
+function AdminServiceListCard({
+  service,
+  submitting,
+  onEdit,
+  onToggleActive,
+  onDelete,
+}: {
+  service: AdminServiceRead;
+  submitting: boolean;
+  onEdit: () => void;
+  onToggleActive: () => void;
+  onDelete: () => void;
+}) {
+  const duration = service.type === "booking" ? formatDuration(service.duration_minutes) : null;
+  const imageStatus = serviceImageStatusText(service.image ?? null);
+  const hasImage = Boolean(normalizeServiceImageMedia(service.image));
+
+  return (
+    <article
+      className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+      data-testid="admin-service-card"
+    >
+      <div className="flex flex-1 gap-3 p-4">
+        <AdminServiceThumbnail service={service} />
+
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate font-semibold text-slate-900">{service.name}</h3>
+
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <TypeBadge type={service.type} />
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                service.is_active
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              {service.is_active ? "Active" : "Inactive"}
+            </span>
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-700">
+            <PriceLabel service={service} />
+            {duration ? <span className="text-slate-500">{duration}</span> : null}
+          </div>
+
+          <p
+            className={`mt-1.5 text-xs ${hasImage ? "text-slate-600" : "text-slate-500"}`}
+            data-testid={`admin-service-list-image-status-${service.id}`}
+          >
+            {imageStatus}
+          </p>
+
+          {service.description ? (
+            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-600">
+              {service.description}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 border-t border-slate-100 bg-slate-50/70 px-4 py-2.5">
+        <button
+          type="button"
+          onClick={onEdit}
+          disabled={submitting}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={onToggleActive}
+          disabled={submitting}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+        >
+          {service.is_active ? "Deactivate" : "Activate"}
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={submitting}
+          className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+        >
+          Delete
+        </button>
+      </div>
+    </article>
   );
 }
 
@@ -140,8 +262,10 @@ export function AdminServicesPage() {
     },
   });
 
+  const allServices = data?.data ?? [];
+
   const filteredServices = useMemo(() => {
-    let items = data?.data ?? [];
+    let items = allServices;
     if (typeFilter !== "all") {
       items = items.filter((service) => service.type === typeFilter);
     }
@@ -151,7 +275,7 @@ export function AdminServicesPage() {
       items = items.filter((service) => !service.is_active);
     }
     return items;
-  }, [data, typeFilter, statusFilter]);
+  }, [allServices, typeFilter, statusFilter]);
 
   const submitting =
     createMutation.isPending ||
@@ -163,6 +287,14 @@ export function AdminServicesPage() {
     createMutation.error ?? updateMutation.error
       ? getAdminServiceErrorMessage(createMutation.error ?? updateMutation.error)
       : null;
+
+  function openCreateForm() {
+    setFormMode("create");
+    setEditingService(null);
+    setPendingCreateImageFile(null);
+    setSuccessMessage(null);
+    setActionError(null);
+  }
 
   async function handleToggleActive(service: AdminServiceRead) {
     setActionError(null);
@@ -198,60 +330,66 @@ export function AdminServicesPage() {
   }
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold">Services</h2>
+    <section className="space-y-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">Services</h2>
+          <p className="mt-0.5 text-sm text-slate-600">
+            Manage offerings, pricing, photos, and visibility on your public catalog.
+          </p>
+        </div>
         <button
           type="button"
-          onClick={() => {
-            setFormMode("create");
-            setEditingService(null);
-            setPendingCreateImageFile(null);
-            setSuccessMessage(null);
-            setActionError(null);
-          }}
+          onClick={openCreateForm}
           disabled={formMode === "create" || submitting}
-          className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+          className="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 disabled:opacity-60"
+          data-testid="admin-services-add"
         >
           Add service
         </button>
       </div>
 
       {successMessage ? (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           {successMessage}
         </p>
       ) : null}
 
       {actionError ? <ErrorState title="Action failed" message={actionError} /> : null}
 
-      <div className="flex flex-wrap gap-2">
-        <FilterButton active={typeFilter === "all"} label="All" onClick={() => setTypeFilter("all")} />
-        <FilterButton
-          active={typeFilter === "booking"}
-          label="Booking"
-          onClick={() => setTypeFilter("booking")}
-        />
-        <FilterButton
-          active={typeFilter === "order"}
-          label="Requests"
-          onClick={() => setTypeFilter("order")}
-        />
-        <FilterButton
-          active={statusFilter === "all"}
-          label="All status"
-          onClick={() => setStatusFilter("all")}
-        />
-        <FilterButton
-          active={statusFilter === "active"}
-          label="Active"
-          onClick={() => setStatusFilter("active")}
-        />
-        <FilterButton
-          active={statusFilter === "inactive"}
-          label="Inactive"
-          onClick={() => setStatusFilter("inactive")}
-        />
+      <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Type</span>
+          <FilterButton active={typeFilter === "all"} label="All" onClick={() => setTypeFilter("all")} />
+          <FilterButton
+            active={typeFilter === "booking"}
+            label="Booking"
+            onClick={() => setTypeFilter("booking")}
+          />
+          <FilterButton
+            active={typeFilter === "order"}
+            label="Requests"
+            onClick={() => setTypeFilter("order")}
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</span>
+          <FilterButton
+            active={statusFilter === "all"}
+            label="All status"
+            onClick={() => setStatusFilter("all")}
+          />
+          <FilterButton
+            active={statusFilter === "active"}
+            label="Active"
+            onClick={() => setStatusFilter("active")}
+          />
+          <FilterButton
+            active={statusFilter === "inactive"}
+            label="Inactive"
+            onClick={() => setStatusFilter("inactive")}
+          />
+        </div>
       </div>
 
       {formMode === "create" ? (
@@ -312,86 +450,37 @@ export function AdminServicesPage() {
         />
       ) : null}
 
-      {!isLoading && !isError && filteredServices.length === 0 ? (
-        <EmptyState title="No services match these filters" />
+      {!isLoading && !isError && allServices.length === 0 ? (
+        <EmptyState
+          title="No services yet"
+          description="Add your first service to show it on your public page and mini-site."
+        />
       ) : null}
 
-      {!isLoading && !isError ? (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {filteredServices.map((service) => {
-            const duration =
-              service.type === "booking" ? formatDuration(service.duration_minutes) : null;
-            return (
-              <article
-                key={service.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-              >
-                <div className="flex items-start gap-3">
-                  <ServiceImageDisplay
-                    image={service.image}
-                    variant="thumb"
-                    testId={`admin-service-list-thumb-${service.id}`}
-                  />
-                  <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-semibold text-slate-900">{service.name}</h3>
-                  <TypeBadge type={service.type} />
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      service.is_active
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {service.is_active ? "Active" : "Inactive"}
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-slate-500" data-testid={`admin-service-list-image-status-${service.id}`}>
-                  {serviceImageStatusText(service.image ?? null)}
-                </p>
-                {service.description ? (
-                  <p className="mt-2 text-sm text-slate-600">{service.description}</p>
-                ) : null}
-                <div className="mt-2 flex flex-wrap items-center gap-3">
-                  <PriceLabel service={service} />
-                  {duration ? <span className="text-sm text-slate-500">{duration}</span> : null}
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormMode("edit");
-                      setEditingService(service);
-                      setSuccessMessage(null);
-                      setActionError(null);
-                    }}
-                    disabled={submitting}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleToggleActive(service)}
-                    disabled={submitting}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-                  >
-                    {service.is_active ? "Deactivate" : "Activate"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(service)}
-                    disabled={submitting}
-                    className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
-                  >
-                    Delete
-                  </button>
-                </div>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
+      {!isLoading && !isError && allServices.length > 0 && filteredServices.length === 0 ? (
+        <EmptyState
+          title="No services match these filters"
+          description="Try another type or status filter."
+        />
+      ) : null}
+
+      {!isLoading && !isError && filteredServices.length > 0 ? (
+        <div className="grid items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {filteredServices.map((service) => (
+            <AdminServiceListCard
+              key={service.id}
+              service={service}
+              submitting={submitting}
+              onEdit={() => {
+                setFormMode("edit");
+                setEditingService(service);
+                setSuccessMessage(null);
+                setActionError(null);
+              }}
+              onToggleActive={() => void handleToggleActive(service)}
+              onDelete={() => void handleDelete(service)}
+            />
+          ))}
         </div>
       ) : null}
     </section>

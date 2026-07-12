@@ -158,24 +158,38 @@ export function AdminServiceImageSection({
       </div>
 
       <div
-        className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+        className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5"
         data-testid="admin-service-image-status"
       >
         {isCreateMode && pendingPreviewUrl ? (
           <img
             src={pendingPreviewUrl}
             alt=""
-            className="h-10 w-10 shrink-0 rounded object-cover"
+            className="h-14 w-14 shrink-0 rounded-md object-cover"
             data-testid="admin-service-image-pending-preview"
           />
-        ) : (
+        ) : normalizedImage ? (
           <ServiceImageDisplay
             image={normalizedImage}
             variant="thumb"
             testId="admin-service-image-thumb"
+            className="!h-14 !w-14 !rounded-md"
           />
+        ) : (
+          <div
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-white text-sm font-medium text-slate-400"
+            data-testid="admin-service-image-thumb-placeholder"
+            aria-hidden
+          >
+            Img
+          </div>
         )}
-        <span className="min-w-0 truncate text-xs text-slate-700">{statusText}</span>
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-xs text-slate-700">{statusText}</span>
+          {!isCreateMode && normalizedImage ? (
+            <span className="mt-0.5 block text-[11px] text-emerald-700">Image added</span>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">

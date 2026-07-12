@@ -191,8 +191,9 @@ export function AdminServiceForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-brand-200 bg-brand-50/40 p-4 space-y-4"
+      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-4"
       noValidate
+      data-testid="admin-service-form"
     >
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-semibold text-slate-900">{title}</h3>

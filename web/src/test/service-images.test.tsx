@@ -78,6 +78,7 @@ describe("AdminServiceImageSection", () => {
     expect(screen.getByTestId("admin-service-image-create-note")).toHaveTextContent(
       "The image uploads automatically after you create the service.",
     );
+    expect(screen.getByTestId("admin-service-image-thumb-placeholder")).toBeInTheDocument();
   });
 
   it("shows compact status and upload/remove controls for saved service", () => {
