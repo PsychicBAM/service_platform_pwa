@@ -973,6 +973,7 @@ export function ProMiniSiteLayout({
             showRequestCta={ctas.showRequestCta}
             operatingMode={business.operating_mode}
             showHeroCredibility={showExpertHeroCredibility}
+            services={services}
             templateImages={templateImages}
           />
         );
@@ -985,6 +986,9 @@ export function ProMiniSiteLayout({
             theme={expertTheme}
             isDark={isDark}
             introVideo={templateVideos.introVideo ?? null}
+            primaryCtaLabel={primaryCtaLabel}
+            primaryBookingHref={primaryBookingHref}
+            showBookingCta={ctas.showBookingCta}
           />
         );
       case "services":
@@ -996,7 +1000,12 @@ export function ProMiniSiteLayout({
             publicSlug={publicSlug}
             theme={expertTheme}
             isDark={isDark}
+            copy={copy}
+            bodyText={aboutBody || business.description}
             templateImages={templateImages}
+            primaryCtaLabel={primaryCtaLabel}
+            primaryBookingHref={primaryBookingHref}
+            showBookingCta={ctas.showBookingCta}
           />
         );
       case "trust":
@@ -1007,6 +1016,11 @@ export function ProMiniSiteLayout({
             isDark={isDark}
             showTrustStats={presentation.showTrustStats}
             benefitsSectionEnabled={benefitsSectionEnabled}
+            aboutTitle={aboutTitle}
+            aboutBody={aboutBody || business.description}
+            services={services}
+            businessName={business.name}
+            templateImages={templateImages}
           />
         );
       case "faq":
@@ -1017,6 +1031,7 @@ export function ProMiniSiteLayout({
           <ExpertFaqSection
             title={copy.faqSectionTitle}
             faqItems={faqItems}
+            theme={expertTheme}
             isDark={isDark}
           />
         );

@@ -435,6 +435,8 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             theme={expertTheme}
             isDark={isDark}
             introVideo={templateVideos.introVideo ?? null}
+            primaryCtaLabel={primaryCtaLabel}
+            showBookingCta={hasMeaningfulText(primaryCtaLabel)}
           />
         );
       case "services":
@@ -447,7 +449,10 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             publicSlug=""
             theme={expertTheme}
             isDark={isDark}
+            copy={copy}
             templateImages={templateImages}
+            primaryCtaLabel={primaryCtaLabel}
+            showBookingCta={hasMeaningfulText(primaryCtaLabel)}
           />
         );
       case "trust":
@@ -459,6 +464,10 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             isDark={isDark}
             showTrustStats={presentation.showTrustStats}
             benefitsSectionEnabled={benefitsSectionEnabled}
+            aboutTitle={aboutTitle}
+            aboutBody={aboutBody || null}
+            businessName={businessName}
+            templateImages={templateImages}
           />
         );
       case "faq":
@@ -470,6 +479,7 @@ export function MiniSiteLivePreview({ config, businessName = "Your business" }: 
             {...shell}
             title={copy.faqSectionTitle}
             faqItems={faqItems}
+            theme={expertTheme}
             isDark={isDark}
           />
         );
