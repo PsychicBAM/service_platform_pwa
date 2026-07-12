@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
+import type { CSSProperties } from "react";
 import { PriceLabel } from "@/components/PriceLabel";
 import {
   hasServiceImage,
   ServiceCardImageArea,
+  ServiceCardNoImageArea,
 } from "@/components/ServiceImageDisplay";
 import { TypeBadge } from "@/components/TypeBadge";
 import { getThemedServiceCardPresentation } from "@/lib/miniSiteTemplatePresentation";
@@ -85,37 +87,49 @@ export function ServiceCard({ slug, service, miniSiteTheme }: ServiceCardProps) 
       : { backgroundColor: miniSiteTheme.primaryColor, borderColor: miniSiteTheme.primaryColor }
     : undefined;
 
+  const hasImage = hasServiceImage(service.image);
+
+  const noImageAreaStyle: CSSProperties | undefined = miniSiteTheme
+    ? {
+        background: `linear-gradient(135deg, ${miniSiteTheme.primaryColor}10, ${miniSiteTheme.accentColor}18)`,
+      }
+    : undefined;
+
   return (
     <article
       className={`flex h-full flex-col overflow-hidden ${shellClass}`}
       style={cardStyle}
       data-testid="service-card"
     >
-      <ServiceCardImageArea image={service.image} alt={service.name} />
+      {hasImage ? (
+        <ServiceCardImageArea image={service.image} alt={service.name} />
+      ) : (
+        <ServiceCardNoImageArea style={noImageAreaStyle}>
+          <span className={`text-4xl opacity-50 ${iconWrapClass}`} aria-hidden>
+            {serviceTypeIcon(service.type)}
+          </span>
+        </ServiceCardNoImageArea>
+      )}
 
-      <div className={`flex flex-1 flex-col ${contentClass}`}>
-        <div className="flex items-start gap-3">
-          {!hasServiceImage(service.image) ? (
-            <span className={`text-2xl ${iconWrapClass}`} aria-hidden>
-              {serviceTypeIcon(service.type)}
-            </span>
-          ) : null}
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className={titleClass}>{service.name}</h2>
-              <TypeBadge type={service.type} />
-            </div>
-            {descriptionPreview ? <p className={descriptionClass}>{descriptionPreview}</p> : null}
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <PriceLabel service={service} />
-              {duration ? <span className={metaClass}>{duration}</span> : null}
-            </div>
+      <div className={`flex min-h-0 flex-1 flex-col ${contentClass}`}>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className={titleClass}>{service.name}</h2>
+            <TypeBadge type={service.type} />
           </div>
+          {descriptionPreview ? <p className={descriptionClass}>{descriptionPreview}</p> : null}
         </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <PriceLabel service={service} />
+          {duration ? <span className={metaClass}>{duration}</span> : null}
+        </div>
+
+        <div className="min-h-6 flex-1" aria-hidden="true" />
 
         <Link
           to={`/b/${slug}/services/${service.id}`}
-          className={`mt-auto pt-4 ${buttonClass}`}
+          className={`mt-auto pt-6 ${buttonClass}`}
           style={buttonStyle}
           data-testid="service-card-cta"
         >

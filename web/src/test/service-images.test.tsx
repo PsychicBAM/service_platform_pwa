@@ -173,9 +173,20 @@ describe("public service image rendering", () => {
     renderRoute(<ServiceCard slug={DEMO_SLUG} service={serviceWithImage} />);
 
     expect(screen.getByTestId("service-card-image-area")).toBeInTheDocument();
+    expect(screen.queryByTestId("service-card-no-image-area")).not.toBeInTheDocument();
     const image = screen.getByTestId("service-card-image");
     expect(image).toHaveAttribute("src", "/uploads/services/biz-1/svc-1/abc.webp");
     expect(screen.getByRole("heading", { name: serviceWithImage.name })).toBeInTheDocument();
+    expect(screen.getByTestId("service-card-cta")).toBeInTheDocument();
+  });
+
+  it("renders polished no-image service card with title, price, and CTA", () => {
+    renderRoute(<ServiceCard slug={DEMO_SLUG} service={mockBookingService} />);
+
+    expect(screen.getByTestId("service-card-no-image-area")).toBeInTheDocument();
+    expect(screen.queryByTestId("service-card-image-area")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: mockBookingService.name })).toBeInTheDocument();
     expect(screen.getByTestId("service-card-cta")).toBeInTheDocument();
   });
 
@@ -270,5 +281,6 @@ describe("CleanServicesSection per-service images", () => {
     expect(screen.getByTestId("pro-mini-site-template-servicesImage")).toBeInTheDocument();
     expect(screen.getAllByTestId("service-card")).toHaveLength(1);
     expect(screen.queryByTestId("service-card-image")).not.toBeInTheDocument();
+    expect(screen.getByTestId("service-card-no-image-area")).toBeInTheDocument();
   });
 });

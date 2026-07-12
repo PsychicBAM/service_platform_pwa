@@ -9,7 +9,7 @@ import {
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
 import { normalizeServiceImageMedia } from "@/lib/serviceImage";
-import { ServiceCardImageArea } from "@/components/ServiceImageDisplay";
+import { ServiceCardImageArea, ServiceCardNoImageArea } from "@/components/ServiceImageDisplay";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
@@ -17,7 +17,7 @@ import { MiniSiteVideoEmbed } from "@/components/public/MiniSiteVideoEmbed";
 import type { MiniSiteVideoMedia } from "@/lib/miniSiteVideo";
 import { isAllowedMiniSiteVideoEmbedUrl } from "@/lib/miniSiteVideo";
 import type { MiniSiteBackgroundStyle, MiniSiteCopy, MiniSiteSocialLinks } from "@/types/miniSite";
-import { formatDuration, serviceActionLabel } from "@/utils/format";
+import { formatDuration, serviceActionLabel, serviceTypeIcon } from "@/utils/format";
 
 export type CleanSectionVariant = "full" | "preview";
 
@@ -215,8 +215,20 @@ function CleanServiceCard({
           alt={service.name}
           testId="service-card-image"
         />
-      ) : null}
-      <div className={isPreview ? "flex flex-1 flex-col gap-2 p-3" : "flex flex-1 flex-col gap-4 p-6 md:p-7"}>
+      ) : (
+        <ServiceCardNoImageArea
+          style={
+            isDark
+              ? { background: "linear-gradient(135deg, rgb(30 41 59), rgb(15 23 42))" }
+              : undefined
+          }
+        >
+          <span className={`text-3xl opacity-40 ${isPreview ? "text-2xl" : "text-4xl"}`} aria-hidden>
+            {serviceTypeIcon(service.type)}
+          </span>
+        </ServiceCardNoImageArea>
+      )}
+      <div className={isPreview ? "flex min-h-0 flex-1 flex-col gap-2 p-3" : "flex min-h-0 flex-1 flex-col gap-4 p-6 md:p-7"}>
         <span
           className={`font-bold tabular-nums ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}
         >
@@ -230,20 +242,19 @@ function CleanServiceCard({
           {service.name}
         </h3>
         {descriptionPreview ? (
-          <p className={`flex-1 whitespace-normal leading-relaxed ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}>
+          <p className={`whitespace-normal leading-relaxed ${isPreview ? "text-[11px]" : "text-sm"} ${muted}`}>
             {descriptionPreview}
           </p>
-        ) : (
-          <div className="flex-1" />
-        )}
-        <div className={`flex flex-wrap items-center gap-2 ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>
+        ) : null}
+        <div className={`mt-1 flex flex-wrap items-center gap-2 ${isPreview ? "text-[10px]" : "text-sm"} ${muted}`}>
           <PriceLabel service={service} />
           {duration ? <span className="rounded-full bg-slate-100 px-2 py-0.5">{duration}</span> : null}
         </div>
+        <div className="min-h-4 flex-1" aria-hidden="true" />
         <Link
           to={`/b/${slug}/services/${service.id}`}
-          className={`inline-flex w-full items-center justify-center rounded-full font-bold text-white shadow-sm transition hover:brightness-105 ${
-            isPreview ? "px-3 py-2 text-[11px]" : "px-5 py-3 text-sm"
+          className={`mt-auto inline-flex w-full items-center justify-center rounded-full font-bold text-white shadow-sm transition hover:brightness-105 ${
+            isPreview ? "px-3 py-2 pt-4 text-[11px]" : "px-5 py-3 pt-6 text-sm"
           }`}
           style={{ backgroundColor: primaryColor }}
         >

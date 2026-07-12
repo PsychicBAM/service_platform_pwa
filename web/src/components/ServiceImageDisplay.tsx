@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import {
   normalizeServiceImageMedia,
   resolveServiceImageCardUrl,
@@ -76,6 +76,30 @@ export function ServiceCardImageArea({
       data-testid="service-card-image-area"
     >
       <ServiceImageDisplay image={image} variant="card" alt={alt} testId={testId} />
+    </div>
+  );
+}
+
+export function ServiceCardNoImageArea({
+  children,
+  aspectClassName = "aspect-[16/10]",
+  testId = "service-card-no-image-area",
+  className = "",
+  style,
+}: {
+  children: ReactNode;
+  aspectClassName?: string;
+  testId?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <div
+      className={`${aspectClassName} flex w-full shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 ${className}`.trim()}
+      data-testid={testId}
+      style={style}
+    >
+      {children}
     </div>
   );
 }
