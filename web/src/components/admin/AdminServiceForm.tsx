@@ -21,7 +21,12 @@ type AdminServiceFormProps = {
   initial?: AdminServiceRead;
   submitting?: boolean;
   submitError?: string | null;
-  onSubmit: (payload: ServiceCreatePayload | ServiceUpdatePayload) => void;
+  pendingImageFile?: File | null;
+  onPendingImageFileChange?: (file: File | null) => void;
+  onSubmit: (
+    payload: ServiceCreatePayload | ServiceUpdatePayload,
+    options?: { pendingImageFile?: File | null },
+  ) => void;
   onCancel: () => void;
   onServiceImageChange?: (image: ServiceImageMedia | null) => void;
 };
@@ -150,6 +155,8 @@ export function AdminServiceForm({
   initial,
   submitting = false,
   submitError,
+  pendingImageFile = null,
+  onPendingImageFileChange,
   onSubmit,
   onCancel,
   onServiceImageChange,
@@ -175,7 +182,7 @@ export function AdminServiceForm({
     }
 
     if (mode === "create") {
-      onSubmit(buildCreatePayload(form));
+      onSubmit(buildCreatePayload(form), { pendingImageFile });
     } else {
       onSubmit(buildUpdatePayload(form, effectiveType));
     }
@@ -338,6 +345,8 @@ export function AdminServiceForm({
           businessId={businessId}
           serviceId={mode === "edit" ? initial?.id : undefined}
           image={initial?.image ?? null}
+          pendingFile={mode === "create" ? pendingImageFile : null}
+          onPendingFileChange={mode === "create" ? onPendingImageFileChange : undefined}
           disabled={submitting}
           onImageChange={(nextImage) => onServiceImageChange?.(nextImage)}
         />

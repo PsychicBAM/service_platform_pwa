@@ -5,6 +5,7 @@ import { FormPageShell } from "@/components/FormPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { PriceLabel } from "@/components/PriceLabel";
+import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
 import { TypeBadge } from "@/components/TypeBadge";
 import { formatDuration, serviceTypeIcon } from "@/utils/format";
 import { getApiErrorMessage, isNotFoundError } from "@/utils/errors";
@@ -44,8 +45,14 @@ export function ServiceDetailPage() {
 
       {!isLoading && !isError && data ? (
         <>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-start gap-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm overflow-hidden">
+            <ServiceImageDisplay
+              image={data.image}
+              variant="detail"
+              alt={data.name}
+              testId="service-detail-image"
+            />
+            <div className="flex items-start gap-3 mt-4">
               <span className="text-3xl" aria-hidden>
                 {serviceTypeIcon(data.type)}
               </span>

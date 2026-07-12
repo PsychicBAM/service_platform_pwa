@@ -1,5 +1,8 @@
 import { MINI_SITE_TEMPLATES, type MiniSiteTemplate } from "@/types/miniSite";
 
+const SERVICE_SECTION_ACCENT_DESCRIPTION =
+  "Section accent image only. Individual service photos are managed in Admin > Services.";
+
 export type MiniSiteFutureMediaSlotStatus = "coming_soon";
 
 export type MiniSiteFutureMediaSlotType = "image" | "video";
@@ -67,8 +70,8 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       },
       {
         id: "servicesImage",
-        label: "Services image",
-        description: "Appears near the services and offers section.",
+        label: "Services section image",
+        description: SERVICE_SECTION_ACCENT_DESCRIPTION,
         ratioHint: "Recommended 1200×800 or wider.",
       },
       {
@@ -113,8 +116,8 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       },
       {
         id: "serviceImage",
-        label: "Service image",
-        description: "Appears in the hero area alongside your headline.",
+        label: "Hero section image",
+        description: `Appears in the hero area alongside your headline. ${SERVICE_SECTION_ACCENT_DESCRIPTION}`,
         ratioHint: "Recommended 800×600 or wider.",
       },
       {
@@ -165,8 +168,8 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       },
       {
         id: "servicesImage",
-        label: "Services image",
-        description: "Appears near sessions and offers.",
+        label: "Services section image",
+        description: SERVICE_SECTION_ACCENT_DESCRIPTION,
         ratioHint: "Recommended 1200×800 or wider.",
       },
       {
@@ -219,8 +222,8 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       },
       {
         id: "servicesImage",
-        label: "Services image",
-        description: "Appears near specialties and treatments.",
+        label: "Services section image",
+        description: SERVICE_SECTION_ACCENT_DESCRIPTION,
         ratioHint: "Recommended 1200×800 or wider.",
       },
       {
@@ -272,8 +275,8 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       },
       {
         id: "servicesImage",
-        label: "Services image",
-        description: "Appears near work and services.",
+        label: "Services section image",
+        description: SERVICE_SECTION_ACCENT_DESCRIPTION,
         ratioHint: "Recommended 1200×800 or wider.",
       },
       {
@@ -326,8 +329,8 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       },
       {
         id: "servicesImage",
-        label: "Services image",
-        description: "Appears near lessons and courses.",
+        label: "Services section image",
+        description: SERVICE_SECTION_ACCENT_DESCRIPTION,
         ratioHint: "Recommended 1200×800 or wider.",
       },
       {
@@ -385,8 +388,8 @@ const MINI_SITE_TEMPLATE_EDITOR_REGISTRY: Record<MiniSiteTemplate, MiniSiteTempl
       },
       {
         id: "servicesImage",
-        label: "Services image",
-        description: "Appears near programs and sessions.",
+        label: "Services section image",
+        description: SERVICE_SECTION_ACCENT_DESCRIPTION,
         ratioHint: "Recommended 1200×800 or wider.",
       },
       {

@@ -76,8 +76,10 @@ async def test_upload_valid_service_image(
     assert body["service_id"] == service_id
     assert image["kind"] == "image"
     assert image["url"].startswith(f"/uploads/services/{ctx['business_id']}/{service_id}/")
+    assert image["thumbnail_url"].startswith(f"/uploads/services/{ctx['business_id']}/{service_id}/")
     assert image["url"].endswith(".webp")
     assert image["thumbnail_url"].endswith("_thumb.webp")
+    assert "/api/v1/uploads/" not in image["url"]
     assert image["content_type"] == "image/webp"
     assert image["original_size"] == len(original_bytes)
     assert image["width"] == 1600

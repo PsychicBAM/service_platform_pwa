@@ -230,7 +230,9 @@ describe("PublicProfileSettingsCard", () => {
     expect(screen.getByTestId("mini-site-media-slot-doctorOrClinicImage")).toHaveTextContent(
       "Doctor / clinic image",
     );
-    expect(screen.getByTestId("mini-site-media-slot-servicesImage")).toHaveTextContent("Services image");
+    expect(screen.getByTestId("mini-site-media-slot-servicesImage")).toHaveTextContent(
+      "Services section image",
+    );
     expect(screen.getByTestId("mini-site-media-slot-appointmentImage")).toHaveTextContent("Appointment image");
     expect(screen.queryByTestId("mini-site-media-slot-heroVisual")).not.toBeInTheDocument();
   });

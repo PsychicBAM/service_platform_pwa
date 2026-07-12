@@ -2,14 +2,27 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AdminServiceImageSection } from "@/components/admin/AdminServiceImageSection";
+import { ServiceCard } from "@/components/ServiceCard";
+import { ServiceDetailPage } from "@/pages/ServiceDetailPage";
 import * as serviceImageApi from "@/api/serviceImageApi";
+import * as publicApi from "@/api/publicApi";
 import { CleanServicesSection } from "@/components/public/CleanProMiniSiteSections";
+import {
+  resolveServiceImageCardUrl,
+  resolveServiceImagePreviewUrl,
+  resolveServiceImageUrl,
+} from "@/lib/serviceImage";
 import type { PublicService } from "@/types/api";
+import { DEMO_SLUG, mockBookingService, BOOKING_SERVICE_ID } from "@/test/mock-fixtures";
 import { renderRoute } from "@/test/test-utils";
 
 vi.mock("@/api/serviceImageApi", () => ({
   uploadServiceImage: vi.fn(),
   removeServiceImage: vi.fn(),
+}));
+
+vi.mock("@/api/publicApi", () => ({
+  getPublicService: vi.fn(),
 }));
 
 const mockImage = {
@@ -25,24 +38,41 @@ const mockImage = {
   height: 800,
 };
 
+describe("serviceImage URL helpers", () => {
+  it("keeps upload paths root-relative for nginx and vite proxy", () => {
+    expect(resolveServiceImageUrl("/uploads/services/biz/svc/file.webp")).toBe(
+      "/uploads/services/biz/svc/file.webp",
+    );
+    expect(resolveServiceImagePreviewUrl(mockImage)).toBe(
+      "/uploads/services/biz-1/svc-1/abc_thumb.webp",
+    );
+    expect(resolveServiceImageCardUrl(mockImage)).toBe(
+      "/uploads/services/biz-1/svc-1/abc.webp",
+    );
+  });
+});
+
 describe("AdminServiceImageSection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("shows save-first helper when service is not saved yet", () => {
+  it("allows choosing a pending image while creating a service", () => {
     renderRoute(
       <AdminServiceImageSection
         businessId="biz-1"
         image={null}
+        pendingFile={null}
+        onPendingFileChange={() => undefined}
         onImageChange={() => undefined}
       />,
     );
 
     expect(screen.getByText("Service image")).toBeInTheDocument();
     expect(screen.getByText("JPG, PNG, or WebP up to 12 MB.")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-service-image-save-first")).toHaveTextContent(
-      "Save the service first, then upload an image.",
+    expect(screen.getByTestId("admin-service-image-upload")).toHaveTextContent("Choose image");
+    expect(screen.getByTestId("admin-service-image-create-note")).toHaveTextContent(
+      "The image uploads automatically after you create the service.",
     );
   });
 
@@ -59,6 +89,32 @@ describe("AdminServiceImageSection", () => {
     expect(screen.getByTestId("admin-service-image-status")).toHaveTextContent("photo.jpg");
     expect(screen.getByTestId("admin-service-image-upload")).toHaveTextContent("Replace");
     expect(screen.getByTestId("admin-service-image-remove")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-service-image-thumb")).toHaveAttribute(
+      "src",
+      "/uploads/services/biz-1/svc-1/abc_thumb.webp",
+    );
+  });
+
+  it("stores pending file selection in create mode", async () => {
+    const user = userEvent.setup();
+    const onPendingFileChange = vi.fn();
+
+    renderRoute(
+      <AdminServiceImageSection
+        businessId="biz-1"
+        image={null}
+        pendingFile={null}
+        onPendingFileChange={onPendingFileChange}
+        onImageChange={() => undefined}
+      />,
+    );
+
+    const file = new File(["image"], "photo.jpg", { type: "image/jpeg" });
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, file);
+
+    expect(onPendingFileChange).toHaveBeenCalledWith(file);
+    expect(serviceImageApi.uploadServiceImage).not.toHaveBeenCalled();
   });
 
   it("upload success updates service image UI via callback", async () => {
@@ -107,21 +163,35 @@ describe("AdminServiceImageSection", () => {
   });
 });
 
-describe("CleanServicesSection per-service images", () => {
+describe("public service image rendering", () => {
   const serviceWithImage: PublicService = {
-    id: "svc-with-image",
-    name: "Deep Clean",
-    description: "Full home cleaning.",
-    type: "booking",
-    duration_minutes: 60,
-    price_cents: 5000,
-    currency: "USD",
-    price_type: "fixed",
-    require_payment: false,
-    sort_order: 1,
+    ...mockBookingService,
     image: mockImage,
   };
 
+  it("renders service image on standard public service card", () => {
+    renderRoute(<ServiceCard slug={DEMO_SLUG} service={serviceWithImage} />);
+
+    const image = screen.getByTestId("service-card-image");
+    expect(image).toHaveAttribute("src", "/uploads/services/biz-1/svc-1/abc.webp");
+  });
+
+  it("renders service image on public service detail page", async () => {
+    vi.mocked(publicApi.getPublicService).mockResolvedValue(serviceWithImage);
+
+    renderRoute(<ServiceDetailPage />, {
+      route: `/b/${DEMO_SLUG}/services/${BOOKING_SERVICE_ID}`,
+      path: "/b/:slug/services/:serviceId",
+    });
+
+    expect(await screen.findByTestId("service-detail-image")).toHaveAttribute(
+      "src",
+      "/uploads/services/biz-1/svc-1/abc.webp",
+    );
+  });
+});
+
+describe("CleanServicesSection per-service images", () => {
   const serviceWithoutImage: PublicService = {
     id: "svc-no-image",
     name: "Standard Clean",
@@ -147,14 +217,23 @@ describe("CleanServicesSection per-service images", () => {
       <CleanServicesSection
         title="Our services"
         badgeText={null}
-        services={[serviceWithImage, serviceWithoutImage]}
+        services={[
+          {
+            ...mockBookingService,
+            image: mockImage,
+          },
+          serviceWithoutImage,
+        ]}
         publicSlug="demo-business"
         theme={cleanTheme}
         isDark={false}
       />,
     );
 
-    expect(screen.getByTestId("service-card-image")).toBeInTheDocument();
+    expect(screen.getByTestId("service-card-image")).toHaveAttribute(
+      "src",
+      "/uploads/services/biz-1/svc-1/abc.webp",
+    );
     expect(screen.getAllByTestId("service-card")).toHaveLength(2);
   });
 

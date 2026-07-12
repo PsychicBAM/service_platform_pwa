@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { PriceLabel } from "@/components/PriceLabel";
+import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
 import { TypeBadge } from "@/components/TypeBadge";
 import { getThemedServiceCardPresentation } from "@/lib/miniSiteTemplatePresentation";
 import type { PublicService } from "@/types/api";
@@ -75,7 +76,15 @@ export function ServiceCard({ slug, service, miniSiteTheme }: ServiceCardProps) 
     : undefined;
 
   return (
-    <article className={cardClass} style={cardStyle} data-testid="service-card">
+    <article className={`overflow-hidden ${cardClass}`} style={cardStyle} data-testid="service-card">
+      <ServiceImageDisplay
+        image={service.image}
+        variant="card"
+        alt={service.name}
+        className="aspect-[16/10] w-full"
+        testId="service-card-image"
+      />
+      <div className="p-4">
       <div className="flex items-start gap-3">
         <span className={`text-2xl ${iconWrapClass}`} aria-hidden>
           {serviceTypeIcon(service.type)}
@@ -94,11 +103,12 @@ export function ServiceCard({ slug, service, miniSiteTheme }: ServiceCardProps) 
       </div>
       <Link
         to={`/b/${slug}/services/${service.id}`}
-        className={buttonClass}
+        className={`mt-4 block ${buttonClass}`}
         style={buttonStyle}
       >
         {serviceActionLabel(service.type)}
       </Link>
+      </div>
     </article>
   );
 }

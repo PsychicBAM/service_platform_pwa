@@ -112,11 +112,18 @@ export function resolveServiceImageUrl(url: string): string {
   if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
     return url;
   }
-  const apiBase = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? "";
   if (url.startsWith("/")) {
-    return `${apiBase}${url}`;
+    return url;
   }
-  return `${apiBase}/${url}`;
+  return `/${url}`;
+}
+
+export function resolveServiceImagePreviewUrl(media: ServiceImageMedia): string {
+  return resolveServiceImageUrl(media.thumbnailUrl || media.url);
+}
+
+export function resolveServiceImageCardUrl(media: ServiceImageMedia): string {
+  return resolveServiceImageUrl(media.url);
 }
 
 export function serviceImageStatusText(image: ServiceImageMedia | null): string {

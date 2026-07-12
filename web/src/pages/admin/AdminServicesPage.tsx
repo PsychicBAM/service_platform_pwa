@@ -6,6 +6,7 @@ import {
   listAdminServices,
   updateAdminService,
 } from "@/api/adminApi";
+import { uploadServiceImage } from "@/api/serviceImageApi";
 import { AdminServiceForm } from "@/components/admin/AdminServiceForm";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -56,6 +57,7 @@ export function AdminServicesPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
   const [editingService, setEditingService] = useState<AdminServiceRead | null>(null);
+  const [pendingCreateImageFile, setPendingCreateImageFile] = useState<File | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -66,13 +68,37 @@ export function AdminServicesPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (payload: ServiceCreatePayload) =>
-      createAdminService(businessId!, payload),
-    onSuccess: async () => {
+    mutationFn: async ({
+      payload,
+      pendingImageFile,
+    }: {
+      payload: ServiceCreatePayload;
+      pendingImageFile: File | null;
+    }) => {
+      const created = await createAdminService(businessId!, payload);
+      if (!pendingImageFile) {
+        return { created, uploadFailed: false as const };
+      }
+      try {
+        await uploadServiceImage(businessId!, created.id, pendingImageFile);
+        return { created, uploadFailed: false as const };
+      } catch {
+        return { created, uploadFailed: true as const };
+      }
+    },
+    onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey: ["admin-services", businessId] });
       setFormMode(null);
-      setSuccessMessage("Service created.");
-      setActionError(null);
+      setPendingCreateImageFile(null);
+      if (result.uploadFailed) {
+        setSuccessMessage("Service created.");
+        setActionError(
+          "Service created, but image upload failed. Edit the service and try uploading again.",
+        );
+      } else {
+        setSuccessMessage("Service created.");
+        setActionError(null);
+      }
     },
   });
 
@@ -178,6 +204,7 @@ export function AdminServicesPage() {
           onClick={() => {
             setFormMode("create");
             setEditingService(null);
+            setPendingCreateImageFile(null);
             setSuccessMessage(null);
             setActionError(null);
           }}
@@ -229,13 +256,24 @@ export function AdminServicesPage() {
         <AdminServiceForm
           mode="create"
           businessId={businessId ?? undefined}
+          pendingImageFile={pendingCreateImageFile}
+          onPendingImageFileChange={setPendingCreateImageFile}
           submitting={createMutation.isPending}
           submitError={formSubmitError}
-          onCancel={() => setFormMode(null)}
-          onSubmit={(payload) => {
-            createMutation.mutate(payload as ServiceCreatePayload, {
-              onError: () => undefined,
-            });
+          onCancel={() => {
+            setFormMode(null);
+            setPendingCreateImageFile(null);
+          }}
+          onSubmit={(payload, options) => {
+            createMutation.mutate(
+              {
+                payload: payload as ServiceCreatePayload,
+                pendingImageFile: options?.pendingImageFile ?? null,
+              },
+              {
+                onError: () => undefined,
+              },
+            );
           }}
         />
       ) : null}

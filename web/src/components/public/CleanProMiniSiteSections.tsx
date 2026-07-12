@@ -8,7 +8,8 @@ import {
 } from "@/lib/miniSiteConfig";
 import type { MiniSiteTemplatePresentation } from "@/lib/miniSiteTemplatePresentation";
 import type { MiniSiteTemplateImages } from "@/lib/miniSiteMedia";
-import { normalizeServiceImageMedia, resolveServiceImageUrl } from "@/lib/serviceImage";
+import { normalizeServiceImageMedia } from "@/lib/serviceImage";
+import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
 import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
 import { MiniSiteSectionAccentImage } from "@/components/public/MiniSiteSectionAccentImage";
 import { MiniSiteSlotImage } from "@/components/public/MiniSiteSlotImage";
@@ -201,25 +202,24 @@ function CleanServiceCard({
       ? `${service.description.slice(0, isPreview ? 80 : 130).trim()}…`
       : service.description
     : null;
-  const serviceImage = normalizeServiceImageMedia(service.image);
+  const hasServiceImage = Boolean(normalizeServiceImageMedia(service.image));
 
   return (
     <article
       className={`flex h-full flex-col overflow-hidden ${cleanWhiteCard(isDark, isPreview)}`}
       data-testid="service-card"
     >
-      {serviceImage ? (
+      {hasServiceImage ? (
         <div
           className={`relative w-full overflow-hidden ${
             isPreview ? "aspect-[16/10]" : "aspect-[16/10]"
           }`}
         >
-          <img
-            src={resolveServiceImageUrl(serviceImage.url)}
-            alt={serviceImage.alt || service.name}
-            className="h-full w-full object-cover"
-            loading="lazy"
-            data-testid="service-card-image"
+          <ServiceImageDisplay
+            image={service.image}
+            variant="card"
+            alt={service.name}
+            testId="service-card-image"
           />
         </div>
       ) : null}
