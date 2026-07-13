@@ -239,11 +239,15 @@ async def test_public_business_returns_safe_fields_only(
         "operating_mode",
         "contact_phone",
         "address",
+        "average_rating",
+        "review_count",
         "public_page_variant",
         "mini_site_config",
     }
     assert body["mini_site_config"] is None
     assert body["name"] == "Joe's Salon"
+    assert body["review_count"] == 0
+    assert body["average_rating"] is None
 
 
 @pytest.mark.asyncio
