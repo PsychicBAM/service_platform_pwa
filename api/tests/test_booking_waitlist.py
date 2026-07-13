@@ -17,6 +17,7 @@ from tests.test_bookings_availability_blocking import (
     _setup_booking_business,
 )
 from app.models.enums import BookingStatus
+from app.services.booking_capacity import SLOT_FULLY_BOOKED_MESSAGE
 
 SLOT_11_START = datetime(2026, 6, 23, 11, 0, tzinfo=ZoneInfo("America/New_York"))
 SLOT_12_START = datetime(2026, 6, 23, 12, 0, tzinfo=ZoneInfo("America/New_York"))
@@ -60,12 +61,55 @@ async def _book_slot(
     *,
     starts_at: datetime = SLOT_START,
     email: str = "booked@example.com",
-) -> None:
+) -> dict:
     response = await async_client.post(
         f"/api/v1/public/b/{ctx['slug']}/bookings",
         json=booking_payload(ctx["service_id"], starts_at=starts_at, email=email),
     )
     assert response.status_code == 201, response.text
+    return response.json()
+
+
+async def _join_waitlist(
+    async_client: AsyncClient,
+    ctx: dict,
+    *,
+    starts_at: datetime = SLOT_START,
+    **customer,
+) -> dict:
+    response = await async_client.post(
+        f"/api/v1/public/b/{ctx['slug']}/waitlist",
+        json=waitlist_payload(ctx["service_id"], starts_at=starts_at, **customer),
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+async def _promote_waitlist(
+    async_client: AsyncClient,
+    ctx: dict,
+    entry_id: str,
+    *,
+    headers: dict | None = None,
+) -> object:
+    return await async_client.post(
+        f"/api/v1/businesses/{ctx['business_id']}/waitlist/{entry_id}/promote",
+        headers=headers or ctx["headers"],
+    )
+
+
+async def _setup_full_slot_with_waitlist(
+    async_client: AsyncClient,
+    db_session,
+    suffix: str,
+    *,
+    customer_email: str = "wait@example.com",
+) -> tuple[dict, dict, dict]:
+    ctx = await _setup_booking_business(async_client, db_session, suffix)
+    await _enable_waitlist(async_client, ctx)
+    booking = await _book_slot(async_client, ctx)
+    waitlist_entry = await _join_waitlist(async_client, ctx, email=customer_email)
+    return ctx, booking, waitlist_entry
 
 
 @pytest.mark.asyncio
@@ -343,3 +387,231 @@ async def test_duplicate_active_waitlist_entry_is_prevented(
     )
     assert second.status_code == 409
     assert second.json()["error"]["code"] == "WAITLIST_DUPLICATE"
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW)
+async def test_admin_can_promote_waiting_entry_when_capacity_available(
+    _mock_now,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx, booking, waitlist_entry = await _setup_full_slot_with_waitlist(
+        async_client,
+        db_session,
+        "waitlist-promote-success",
+    )
+    cancel = await async_client.post(
+        f"/api/v1/businesses/{ctx['business_id']}/bookings/{booking['id']}/cancel",
+        json={"reason": "Cancelled to free slot"},
+        headers=ctx["headers"],
+    )
+    assert cancel.status_code == 200
+
+    response = await _promote_waitlist(async_client, ctx, waitlist_entry["id"])
+    assert response.status_code == 200
+    body = response.json()
+    assert body["waitlist_entry"]["status"] == "resolved"
+    assert body["booking"]["starts_at"] == waitlist_entry["starts_at"]
+    assert body["booking"]["client"]["full_name"] == "Waitlist Guest"
+    assert body["booking"]["client"]["email"] == "wait@example.com"
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW)
+async def test_promotion_marks_waitlist_entry_resolved(
+    _mock_now,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx, booking, waitlist_entry = await _setup_full_slot_with_waitlist(
+        async_client,
+        db_session,
+        "waitlist-promote-resolved",
+    )
+    await async_client.post(
+        f"/api/v1/businesses/{ctx['business_id']}/bookings/{booking['id']}/cancel",
+        json={},
+        headers=ctx["headers"],
+    )
+    response = await _promote_waitlist(async_client, ctx, waitlist_entry["id"])
+    assert response.status_code == 200
+
+    list_resp = await async_client.get(
+        f"/api/v1/businesses/{ctx['business_id']}/waitlist",
+        params={"service_id": ctx["service_id"]},
+        headers=ctx["headers"],
+    )
+    assert list_resp.json()["data"][0]["status"] == "resolved"
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW)
+async def test_contacted_waitlist_entry_can_be_promoted(
+    _mock_now,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx, booking, waitlist_entry = await _setup_full_slot_with_waitlist(
+        async_client,
+        db_session,
+        "waitlist-promote-contacted",
+    )
+    await async_client.patch(
+        f"/api/v1/businesses/{ctx['business_id']}/waitlist/{waitlist_entry['id']}",
+        json={"status": "contacted"},
+        headers=ctx["headers"],
+    )
+    await async_client.post(
+        f"/api/v1/businesses/{ctx['business_id']}/bookings/{booking['id']}/cancel",
+        json={},
+        headers=ctx["headers"],
+    )
+    response = await _promote_waitlist(async_client, ctx, waitlist_entry["id"])
+    assert response.status_code == 200
+    assert response.json()["waitlist_entry"]["status"] == "resolved"
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW)
+@pytest.mark.parametrize("status", ["cancelled", "resolved"])
+async def test_cancelled_or_resolved_waitlist_entry_cannot_be_promoted(
+    _mock_now,
+    status: str,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx, booking, waitlist_entry = await _setup_full_slot_with_waitlist(
+        async_client,
+        db_session,
+        f"waitlist-promote-{status}",
+    )
+    await async_client.patch(
+        f"/api/v1/businesses/{ctx['business_id']}/waitlist/{waitlist_entry['id']}",
+        json={"status": status},
+        headers=ctx["headers"],
+    )
+    await async_client.post(
+        f"/api/v1/businesses/{ctx['business_id']}/bookings/{booking['id']}/cancel",
+        json={},
+        headers=ctx["headers"],
+    )
+    response = await _promote_waitlist(async_client, ctx, waitlist_entry["id"])
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "WAITLIST_NOT_PROMOTABLE"
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW)
+async def test_promotion_fails_when_slot_still_fully_booked(
+    _mock_now,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx, _booking, waitlist_entry = await _setup_full_slot_with_waitlist(
+        async_client,
+        db_session,
+        "waitlist-promote-full",
+    )
+    response = await _promote_waitlist(async_client, ctx, waitlist_entry["id"])
+    assert response.status_code == 409
+    assert response.json()["error"]["message"] == SLOT_FULLY_BOOKED_MESSAGE
+
+    list_resp = await async_client.get(
+        f"/api/v1/businesses/{ctx['business_id']}/waitlist",
+        params={"service_id": ctx["service_id"]},
+        headers=ctx["headers"],
+    )
+    assert list_resp.json()["data"][0]["status"] == "waiting"
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW)
+async def test_promotion_respects_group_slot_capacity(
+    _mock_now,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx = await _setup_booking_business(async_client, db_session, "waitlist-promote-group")
+    await _enable_waitlist(async_client, ctx)
+    await async_client.post(
+        f"/api/v1/businesses/{ctx['business_id']}/services/{ctx['service_id']}/slot-capacity-overrides",
+        json={
+            "starts_at": SLOT_START.isoformat(),
+            "capacity": 3,
+            "note": "Group",
+        },
+        headers=ctx["headers"],
+    )
+    bookings = [
+        await _book_slot(async_client, ctx, email=f"g{i}@example.com")
+        for i in range(3)
+    ]
+    waitlist_entry = await _join_waitlist(async_client, ctx, email="wait3@example.com")
+    await async_client.post(
+        f"/api/v1/businesses/{ctx['business_id']}/bookings/{bookings[0]['id']}/cancel",
+        json={},
+        headers=ctx["headers"],
+    )
+
+    response = await _promote_waitlist(async_client, ctx, waitlist_entry["id"])
+    assert response.status_code == 200
+    assert response.json()["waitlist_entry"]["status"] == "resolved"
+
+    still_full = await _promote_waitlist(async_client, ctx, waitlist_entry["id"])
+    assert still_full.status_code == 400
+    assert still_full.json()["error"]["code"] == "WAITLIST_NOT_PROMOTABLE"
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW)
+async def test_promotion_respects_cutoff_rules(
+    _mock_now,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx, booking, waitlist_entry = await _setup_full_slot_with_waitlist(
+        async_client,
+        db_session,
+        "waitlist-promote-cutoff",
+    )
+    await async_client.patch(
+        f"/api/v1/businesses/{ctx['business_id']}/services/{ctx['service_id']}",
+        json={"booking_min_notice_minutes": 240},
+        headers=ctx["headers"],
+    )
+    await async_client.post(
+        f"/api/v1/businesses/{ctx['business_id']}/bookings/{booking['id']}/cancel",
+        json={},
+        headers=ctx["headers"],
+    )
+    response = await _promote_waitlist(async_client, ctx, waitlist_entry["id"])
+    assert response.status_code == 409
+    assert response.json()["error"]["message"] == SLOT_TOO_SOON_MESSAGE
+
+
+@pytest.mark.asyncio
+@patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW)
+async def test_promotion_fails_for_wrong_business_admin(
+    _mock_now,
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx_a, booking, waitlist_entry = await _setup_full_slot_with_waitlist(
+        async_client,
+        db_session,
+        "waitlist-promote-a",
+    )
+    ctx_b = await _setup_booking_business(async_client, db_session, "waitlist-promote-b")
+    await async_client.post(
+        f"/api/v1/businesses/{ctx_a['business_id']}/bookings/{booking['id']}/cancel",
+        json={},
+        headers=ctx_a["headers"],
+    )
+    response = await _promote_waitlist(
+        async_client,
+        ctx_a,
+        waitlist_entry["id"],
+        headers=ctx_b["headers"],
+    )
+    assert response.status_code == 403

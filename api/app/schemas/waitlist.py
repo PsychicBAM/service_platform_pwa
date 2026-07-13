@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from app.models.booking_waitlist_entry import BookingWaitlistEntry
 from app.models.enums import WaitlistStatus
+from app.schemas.booking import AdminBookingRead
 
 
 class PublicWaitlistCreate(BaseModel):
@@ -115,3 +116,8 @@ class WaitlistStatusUpdate(BaseModel):
         }:
             raise ValueError("Invalid waitlist status")
         return value
+
+
+class WaitlistPromoteResponse(BaseModel):
+    booking: AdminBookingRead
+    waitlist_entry: WaitlistEntryRead

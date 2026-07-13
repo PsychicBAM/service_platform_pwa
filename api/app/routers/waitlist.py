@@ -10,6 +10,7 @@ from app.models.enums import WaitlistStatus
 from app.schemas.waitlist import (
     WaitlistEntryRead,
     WaitlistListResponse,
+    WaitlistPromoteResponse,
     WaitlistStatusUpdate,
 )
 from app.services.waitlist_service import WaitlistService
@@ -53,3 +54,18 @@ async def update_waitlist_entry_status(
         entry_id,
         payload.status,
     )
+
+
+@router.post(
+    "/{business_id}/waitlist/{entry_id}/promote",
+    response_model=WaitlistPromoteResponse,
+)
+async def promote_waitlist_entry(
+    business_id: uuid.UUID,
+    entry_id: uuid.UUID,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> WaitlistPromoteResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    return await WaitlistService(db).promote_to_booking(business, entry_id)

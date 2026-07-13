@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { listWaitlistEntries, updateWaitlistEntryStatus } from "@/api/adminApi";
+import {
+  listWaitlistEntries,
+  promoteWaitlistEntry,
+  updateWaitlistEntryStatus,
+} from "@/api/adminApi";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -20,6 +24,8 @@ const FILTERS: Array<{ value: StatusFilter; label: string }> = [
 ];
 
 const STATUS_OPTIONS: WaitlistStatus[] = ["waiting", "contacted", "cancelled", "resolved"];
+
+const PROMOTABLE_STATUSES: WaitlistStatus[] = ["waiting", "contacted"];
 
 function FilterButton({
   active,
@@ -57,6 +63,8 @@ export function AdminWaitlistView({ businessId }: AdminWaitlistViewProps) {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [actionError, setActionError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [promotingEntryId, setPromotingEntryId] = useState<string | null>(null);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["admin-waitlist", businessId, statusFilter],
@@ -77,10 +85,40 @@ export function AdminWaitlistView({ businessId }: AdminWaitlistViewProps) {
     },
     onError: (err) => {
       setActionError(getAdminServiceErrorMessage(err, "Could not update waitlist status."));
+      setSuccessMessage(null);
+    },
+  });
+
+  const promoteMutation = useMutation({
+    mutationFn: (entryId: string) => promoteWaitlistEntry(businessId, entryId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin-waitlist", businessId] });
+      await queryClient.invalidateQueries({ queryKey: ["admin-bookings", businessId] });
+      setActionError(null);
+      setSuccessMessage("Booking created from waitlist.");
+      setPromotingEntryId(null);
+    },
+    onError: (err) => {
+      setActionError(
+        getAdminServiceErrorMessage(err, "Could not promote waitlist entry to booking."),
+      );
+      setSuccessMessage(null);
+      setPromotingEntryId(null);
     },
   });
 
   const entries = data?.data ?? [];
+
+  async function handlePromote(entryId: string) {
+    const confirmed = window.confirm("Create a booking from this waitlist entry?");
+    if (!confirmed) {
+      return;
+    }
+    setActionError(null);
+    setSuccessMessage(null);
+    setPromotingEntryId(entryId);
+    promoteMutation.mutate(entryId);
+  }
 
   return (
     <div className="space-y-4" data-testid="admin-waitlist-view">
@@ -89,8 +127,15 @@ export function AdminWaitlistView({ businessId }: AdminWaitlistViewProps) {
         automatically create a booking from the waitlist yet.
       </p>
       <p className="text-sm text-slate-600">
-        Changing status does not create a booking.
+        Use Promote when a spot opens up. Promotion creates a booking only if the slot
+        still has capacity.
       </p>
+
+      {successMessage ? (
+        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          {successMessage}
+        </p>
+      ) : null}
 
       {actionError ? <ErrorState title="Action failed" message={actionError} /> : null}
 
@@ -103,6 +148,7 @@ export function AdminWaitlistView({ businessId }: AdminWaitlistViewProps) {
             onClick={() => {
               setStatusFilter(filter.value);
               setActionError(null);
+              setSuccessMessage(null);
             }}
           />
         ))}
@@ -122,56 +168,72 @@ export function AdminWaitlistView({ businessId }: AdminWaitlistViewProps) {
 
       {!isLoading && !isError && entries.length > 0 ? (
         <div className="grid gap-3 lg:grid-cols-2">
-          {entries.map((entry) => (
-            <article
-              key={entry.id}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-              data-testid="waitlist-entry-card"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <p className="font-semibold text-slate-900">{entry.customer_name}</p>
-                <StatusBadge status={entry.status} kind="waitlist" />
-              </div>
-              <p className="mt-2 text-sm text-slate-800">{entry.service_name}</p>
-              <p className="mt-1 text-sm text-slate-500">
-                {formatDateTimeLabel(entry.starts_at)}
-              </p>
-              {entry.customer_email || entry.customer_phone ? (
-                <p className="mt-1 text-sm text-slate-600">
-                  {[entry.customer_email, entry.customer_phone].filter(Boolean).join(" · ")}
+          {entries.map((entry) => {
+            const canPromote = PROMOTABLE_STATUSES.includes(entry.status);
+            const isPromoting = promotingEntryId === entry.id && promoteMutation.isPending;
+
+            return (
+              <article
+                key={entry.id}
+                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                data-testid="waitlist-entry-card"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <p className="font-semibold text-slate-900">{entry.customer_name}</p>
+                  <StatusBadge status={entry.status} kind="waitlist" />
+                </div>
+                <p className="mt-2 text-sm text-slate-800">{entry.service_name}</p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {formatDateTimeLabel(entry.starts_at)}
                 </p>
-              ) : null}
-              {entry.note ? (
-                <p className="mt-2 text-sm text-slate-600">
-                  <span className="font-medium text-slate-700">Note:</span> {entry.note}
+                {entry.customer_email || entry.customer_phone ? (
+                  <p className="mt-1 text-sm text-slate-600">
+                    {[entry.customer_email, entry.customer_phone].filter(Boolean).join(" · ")}
+                  </p>
+                ) : null}
+                {entry.note ? (
+                  <p className="mt-2 text-sm text-slate-600">
+                    <span className="font-medium text-slate-700">Note:</span> {entry.note}
+                  </p>
+                ) : null}
+                <p className="mt-2 text-xs text-slate-500">
+                  Joined {formatDateTimeLabel(entry.created_at)}
                 </p>
-              ) : null}
-              <p className="mt-2 text-xs text-slate-500">
-                Joined {formatDateTimeLabel(entry.created_at)}
-              </p>
-              <label className="mt-4 block text-sm text-slate-700">
-                <span className="font-medium">Update status</span>
-                <select
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm"
-                  value={entry.status}
-                  disabled={updateMutation.isPending}
-                  data-testid={`waitlist-status-select-${entry.id}`}
-                  onChange={(event) =>
-                    updateMutation.mutate({
-                      entryId: entry.id,
-                      status: event.target.value as WaitlistStatus,
-                    })
-                  }
-                >
-                  {STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>
-                      {statusLabel(status)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </article>
-          ))}
+                {canPromote ? (
+                  <button
+                    type="button"
+                    onClick={() => void handlePromote(entry.id)}
+                    disabled={isPromoting || updateMutation.isPending}
+                    className="mt-4 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+                    data-testid={`waitlist-promote-${entry.id}`}
+                  >
+                    {isPromoting ? "Promoting…" : "Promote to booking"}
+                  </button>
+                ) : null}
+                <label className="mt-4 block text-sm text-slate-700">
+                  <span className="font-medium">Update status</span>
+                  <select
+                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm"
+                    value={entry.status}
+                    disabled={updateMutation.isPending || isPromoting}
+                    data-testid={`waitlist-status-select-${entry.id}`}
+                    onChange={(event) =>
+                      updateMutation.mutate({
+                        entryId: entry.id,
+                        status: event.target.value as WaitlistStatus,
+                      })
+                    }
+                  >
+                    {STATUS_OPTIONS.map((status) => (
+                      <option key={status} value={status}>
+                        {statusLabel(status)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </article>
+            );
+          })}
         </div>
       ) : null}
     </div>

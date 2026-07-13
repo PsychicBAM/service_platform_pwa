@@ -381,3 +381,10 @@ export function updateWaitlistEntryStatus(
     { status },
   );
 }
+
+export function promoteWaitlistEntry(businessId: string, entryId: string) {
+  return apiClient.post<import("@/types/api").WaitlistPromoteResponse>(
+    `/businesses/${encodeURIComponent(businessId)}/waitlist/${encodeURIComponent(entryId)}/promote`,
+    {},
+  );
+}

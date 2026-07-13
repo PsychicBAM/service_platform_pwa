@@ -5,6 +5,7 @@ import { AdminBookingsPage } from "@/pages/admin/AdminBookingsPage";
 import { AdminBusinessProvider } from "@/hooks/useAdminBusiness";
 import { useAuth } from "@/hooks/useAuth";
 import * as adminApi from "@/api/adminApi";
+import { ApiClientError } from "@/api/client";
 import {
   emptyListMeta,
   mockOwnerUser,
@@ -22,6 +23,7 @@ vi.mock("@/api/adminApi", async (importOriginal) => {
     listAdminBookings: vi.fn(),
     listWaitlistEntries: vi.fn(),
     updateWaitlistEntryStatus: vi.fn(),
+    promoteWaitlistEntry: vi.fn(),
     getAdminBooking: vi.fn(),
   };
 });
@@ -60,6 +62,40 @@ describe("AdminBookingsPage waitlist", () => {
       ...mockWaitlistEntries[0],
       status: "contacted",
     });
+    vi.mocked(adminApi.promoteWaitlistEntry).mockResolvedValue({
+      booking: {
+        id: "booking-promoted-1",
+        business_id: BUSINESS_ID,
+        reference: "BK-PROMO",
+        status: "pending",
+        starts_at: mockWaitlistEntries[0].starts_at,
+        ends_at: "2026-06-23T11:00:00-04:00",
+        client_notes: "Promoted from waitlist",
+        admin_notes: "Promoted from waitlist",
+        cancelled_at: null,
+        cancelled_by: null,
+        cancellation_reason: null,
+        service: {
+          id: mockWaitlistEntries[0].service_id,
+          name: "Arabic Lesson",
+          type: "booking",
+          duration_minutes: 60,
+        },
+        client: {
+          id: "client-1",
+          full_name: "Jane Waitlist",
+          email: "jane@example.com",
+          phone: "+15551234567",
+        },
+        created_at: "2026-06-20T08:00:00Z",
+        updated_at: "2026-06-20T08:00:00Z",
+      },
+      waitlist_entry: {
+        ...mockWaitlistEntries[0],
+        status: "resolved",
+      },
+    });
+    vi.spyOn(window, "confirm").mockReturnValue(true);
   });
 
   it("shows main tabs Bookings and Waitlist", async () => {
@@ -129,5 +165,58 @@ describe("AdminBookingsPage waitlist", () => {
 
     expect(await screen.findByTestId("admin-waitlist-view")).toBeInTheDocument();
     expect(await screen.findByText("Jane Waitlist")).toBeInTheDocument();
+  });
+
+  it("shows Promote button for waiting and contacted entries", async () => {
+    const user = userEvent.setup();
+    renderBookingsPage();
+
+    await user.click(screen.getByTestId("admin-bookings-tab-waitlist"));
+    expect(await screen.findByTestId(`waitlist-promote-${WAITLIST_ENTRY_ID}`)).toBeInTheDocument();
+  });
+
+  it("hides Promote button for cancelled and resolved entries", async () => {
+    vi.mocked(adminApi.listWaitlistEntries).mockResolvedValue({
+      data: [
+        { ...mockWaitlistEntries[0], id: "wait-cancelled", status: "cancelled" },
+        { ...mockWaitlistEntries[0], id: "wait-resolved", status: "resolved" },
+      ],
+    });
+    const user = userEvent.setup();
+    renderBookingsPage();
+
+    await user.click(screen.getByTestId("admin-bookings-tab-waitlist"));
+    expect(await screen.findByTestId("admin-waitlist-view")).toBeInTheDocument();
+    expect(screen.queryByTestId("waitlist-promote-wait-cancelled")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("waitlist-promote-wait-resolved")).not.toBeInTheDocument();
+  });
+
+  it("calls promote API and shows success message", async () => {
+    const user = userEvent.setup();
+    renderBookingsPage();
+
+    await user.click(screen.getByTestId("admin-bookings-tab-waitlist"));
+    await user.click(await screen.findByTestId(`waitlist-promote-${WAITLIST_ENTRY_ID}`));
+
+    await waitFor(() => {
+      expect(adminApi.promoteWaitlistEntry).toHaveBeenCalledWith(
+        BUSINESS_ID,
+        WAITLIST_ENTRY_ID,
+      );
+    });
+    expect(await screen.findByText("Booking created from waitlist.")).toBeInTheDocument();
+  });
+
+  it("shows visible error when promote fails", async () => {
+    vi.mocked(adminApi.promoteWaitlistEntry).mockRejectedValue(
+      new ApiClientError(409, "SLOT_UNAVAILABLE", "This time slot is fully booked."),
+    );
+    const user = userEvent.setup();
+    renderBookingsPage();
+
+    await user.click(screen.getByTestId("admin-bookings-tab-waitlist"));
+    await user.click(await screen.findByTestId(`waitlist-promote-${WAITLIST_ENTRY_ID}`));
+
+    expect(await screen.findByText("This time slot is fully booked.")).toBeInTheDocument();
   });
 });

@@ -107,6 +107,11 @@ export interface WaitlistListResponse {
   data: WaitlistEntryRead[];
 }
 
+export interface WaitlistPromoteResponse {
+  booking: AdminBookingRead;
+  waitlist_entry: WaitlistEntryRead;
+}
+
 export type BookingStatus =
   | "pending"
   | "pending_payment"
