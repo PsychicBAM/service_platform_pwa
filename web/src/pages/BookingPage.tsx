@@ -1,7 +1,12 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createPublicBooking, createPublicWaitlistEntry, getAvailability, getPublicService } from "@/api/publicApi";
+import {
+  createPublicBooking,
+  createPublicWaitlistEntry,
+  getAvailability,
+  getPublicService,
+} from "@/api/publicApi";
 import { ApiClientError } from "@/api/client";
 import type { AvailabilitySlot } from "@/types/api";
 import { FormPageShell } from "@/components/FormPageShell";
@@ -34,6 +39,8 @@ type FieldErrors = {
   note?: string;
   legalConsent?: string;
 };
+
+type SuccessView = "waitlist" | "booking" | null;
 
 function validateForm(
   fullName: string,
@@ -70,6 +77,10 @@ function descriptionPreview(description: string | null): string | null {
   return `${description.slice(0, 160).trim()}…`;
 }
 
+function slotKey(slot: AvailabilitySlot): string {
+  return `${slot.starts_at}-${slot.waitlist_available ? "waitlist" : "bookable"}`;
+}
+
 export function BookingPage() {
   const { slug = "", serviceId = "" } = useParams<{ slug: string; serviceId: string }>();
   const queryClient = useQueryClient();
@@ -84,9 +95,7 @@ export function BookingPage() {
   const [legalConsent, setLegalConsent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
-
-  const isWaitlistSlot = Boolean(selectedSlot?.waitlist_available);
+  const [successView, setSuccessView] = useState<SuccessView>(null);
 
   const serviceQuery = useQuery({
     queryKey: ["public-service", slug, serviceId],
@@ -98,6 +107,7 @@ export function BookingPage() {
     queryKey: ["availability", slug, serviceId, selectedDate],
     queryFn: () => getAvailability(slug, serviceId, selectedDate!),
     enabled: Boolean(slug && serviceId && selectedDate),
+    placeholderData: (previousData) => previousData,
   });
 
   const bookingMutation = useMutation({
@@ -113,6 +123,9 @@ export function BookingPage() {
           phone: phone.trim() || null,
         },
       }),
+    onSuccess: () => {
+      setSuccessView("booking");
+    },
   });
 
   const waitlistMutation = useMutation({
@@ -125,18 +138,39 @@ export function BookingPage() {
         customer_phone: phone.trim() || null,
         note: note.trim() || null,
       }),
+    onSuccess: async () => {
+      setSuccessView("waitlist");
+      await queryClient.invalidateQueries({
+        queryKey: ["availability", slug, serviceId, selectedDate],
+      });
+    },
   });
+
+  const isWaitlistSlot = Boolean(selectedSlot?.waitlist_available);
+  const isSubmitting = bookingMutation.isPending || waitlistMutation.isPending;
+
+  useEffect(() => {
+    const slots = availabilityQuery.data?.slots;
+    if (!slots || !selectedSlot) {
+      return;
+    }
+    const stillExists = slots.some((slot) => slotKey(slot) === slotKey(selectedSlot));
+    if (!stillExists) {
+      setSelectedSlot(null);
+    }
+  }, [availabilityQuery.data, selectedSlot]);
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
     setSelectedSlot(null);
     setSubmitError(null);
+    setSuccessView(null);
   };
 
   const handleSlotSelect = (slot: AvailabilitySlot) => {
     setSelectedSlot(slot);
     setSubmitError(null);
-    setWaitlistSuccess(false);
+    setSuccessView(null);
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -149,10 +183,8 @@ export function BookingPage() {
     }
 
     const errors = validateForm(fullName, email, phone, note);
-    if (!isWaitlistSlot) {
-      if (!legalConsent) {
-        errors.legalConsent = LEGAL_CONSENT_ERROR_MESSAGE;
-      }
+    if (!isWaitlistSlot && !legalConsent) {
+      errors.legalConsent = LEGAL_CONSENT_ERROR_MESSAGE;
     }
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -162,10 +194,6 @@ export function BookingPage() {
     try {
       if (isWaitlistSlot) {
         await waitlistMutation.mutateAsync();
-        setWaitlistSuccess(true);
-        await queryClient.invalidateQueries({
-          queryKey: ["availability", slug, serviceId, selectedDate],
-        });
         return;
       }
 
@@ -219,7 +247,7 @@ export function BookingPage() {
     );
   }
 
-  if (waitlistSuccess) {
+  if (successView === "waitlist") {
     return (
       <FormPageShell>
         <SuccessCard
@@ -244,7 +272,7 @@ export function BookingPage() {
     );
   }
 
-  if (bookingMutation.isSuccess && bookingMutation.data) {
+  if (successView === "booking" && bookingMutation.data) {
     const booking = bookingMutation.data;
     return (
       <FormPageShell>
@@ -271,6 +299,9 @@ export function BookingPage() {
 
   const duration = formatDuration(service.duration_minutes);
   const preview = descriptionPreview(service.description);
+  const availabilitySlots = availabilityQuery.data?.slots ?? [];
+  const showInitialAvailabilityLoading =
+    availabilityQuery.isLoading && availabilitySlots.length === 0;
 
   return (
     <FormPageShell className="space-y-5">
@@ -294,125 +325,140 @@ export function BookingPage() {
       <DateSelector selectedDate={selectedDate} onSelect={handleDateSelect} />
 
       {selectedDate ? (
-        <div className="space-y-3">
+        <div className="space-y-3" data-testid="booking-time-section">
           <h2 className="text-sm font-medium text-slate-700">Choose a time</h2>
 
-          {availabilityQuery.isLoading ? (
-            <LoadingState message="Loading available times…" />
-          ) : null}
+          <div className="min-h-[4.5rem]">
+            {showInitialAvailabilityLoading ? (
+              <LoadingState message="Loading available times…" />
+            ) : null}
 
-          {availabilityQuery.isError ? (
-            <ErrorState
-              title="Could not load times"
-              message={getApiErrorMessage(availabilityQuery.error, "Unable to load availability")}
-            />
-          ) : null}
+            {availabilityQuery.isError ? (
+              <ErrorState
+                title="Could not load times"
+                message={getApiErrorMessage(availabilityQuery.error, "Unable to load availability")}
+              />
+            ) : null}
 
-          {!availabilityQuery.isLoading &&
-          !availabilityQuery.isError &&
-          availabilityQuery.data &&
-          availabilityQuery.data.slots.length === 0 ? (
-            <EmptyState title="No available times for this date." />
-          ) : null}
+            {!showInitialAvailabilityLoading &&
+            !availabilityQuery.isError &&
+            availabilitySlots.length === 0 ? (
+              <EmptyState title="No available times for this date." />
+            ) : null}
 
-          {!availabilityQuery.isLoading &&
-          !availabilityQuery.isError &&
-          availabilityQuery.data &&
-          availabilityQuery.data.slots.length > 0 ? (
-            <TimeSlotGrid
-              slots={availabilityQuery.data.slots}
-              selectedStartsAt={selectedSlot?.starts_at ?? null}
-              onSelect={handleSlotSelect}
-            />
-          ) : null}
+            {!availabilityQuery.isError && availabilitySlots.length > 0 ? (
+              <TimeSlotGrid
+                slots={availabilitySlots}
+                selectedStartsAt={selectedSlot?.starts_at ?? null}
+                selectedWaitlist={selectedSlot?.waitlist_available ?? false}
+                onSelect={handleSlotSelect}
+              />
+            ) : null}
+          </div>
         </div>
       ) : null}
 
-      {selectedSlot ? (
-        <form onSubmit={handleSubmit} className="space-y-4 border-t border-slate-200 pt-4" noValidate>
-          <h2 className="text-sm font-medium text-slate-700">Your details</h2>
-          <p className="text-sm text-slate-600">
-            Selected: {formatDateTimeLabel(selectedSlot.starts_at)}
-            {isWaitlistSlot ? " (full — waitlist)" : ""}
-          </p>
+      <form
+        key="booking-details-form"
+        onSubmit={handleSubmit}
+        className="space-y-4 border-t border-slate-200 pt-4"
+        noValidate
+        data-testid="booking-details-form"
+      >
+        <h2 className="text-sm font-medium text-slate-700">Your details</h2>
 
-          <FormField
-            name="fullName"
-            label="Full name"
-            required
-            autoComplete="name"
-            value={fullName}
-            onChange={(event) => setFullName(event.target.value)}
-            error={fieldErrors.fullName}
-            disabled={bookingMutation.isPending || waitlistMutation.isPending}
+        <p className="text-sm text-slate-600">
+          {selectedSlot ? (
+            <>
+              <span>Selected: </span>
+              <span>{formatDateTimeLabel(selectedSlot.starts_at)}</span>
+              {isWaitlistSlot ? (
+                <span className="text-amber-700"> (full — waitlist)</span>
+              ) : null}
+            </>
+          ) : (
+            <span>Choose a time slot above to continue.</span>
+          )}
+        </p>
+
+        <FormField
+          name="fullName"
+          label="Full name"
+          required
+          autoComplete="name"
+          value={fullName}
+          onChange={(event) => setFullName(event.target.value)}
+          error={fieldErrors.fullName}
+          disabled={!selectedSlot || isSubmitting}
+        />
+
+        <FormField
+          name="email"
+          type="email"
+          label="Email"
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          hint="Email or phone is required."
+          disabled={!selectedSlot || isSubmitting}
+        />
+
+        <FormField
+          name="phone"
+          type="tel"
+          label="Phone"
+          autoComplete="tel"
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          error={fieldErrors.contact}
+          disabled={!selectedSlot || isSubmitting}
+        />
+
+        <TextAreaField
+          name="note"
+          label="Note (optional)"
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          error={fieldErrors.note}
+          maxLength={NOTE_MAX_LENGTH}
+          hint={`Up to ${NOTE_MAX_LENGTH} characters.`}
+          disabled={!selectedSlot || isSubmitting}
+        />
+
+        <div className={isWaitlistSlot ? "hidden" : undefined} aria-hidden={isWaitlistSlot}>
+          <LegalConsentCheckbox
+            id="booking-legal-consent"
+            checked={legalConsent}
+            onChange={setLegalConsent}
+            error={fieldErrors.legalConsent}
+            disabled={!selectedSlot || isSubmitting}
           />
+        </div>
 
-          <FormField
-            name="email"
-            type="email"
-            label="Email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            hint="Email or phone is required."
-            disabled={bookingMutation.isPending || waitlistMutation.isPending}
-          />
-
-          <FormField
-            name="phone"
-            type="tel"
-            label="Phone"
-            autoComplete="tel"
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            error={fieldErrors.contact}
-            disabled={bookingMutation.isPending || waitlistMutation.isPending}
-          />
-
-          <TextAreaField
-            name="note"
-            label="Note (optional)"
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            error={fieldErrors.note}
-            maxLength={NOTE_MAX_LENGTH}
-            hint={`Up to ${NOTE_MAX_LENGTH} characters.`}
-            disabled={bookingMutation.isPending || waitlistMutation.isPending}
-          />
-
-          {!isWaitlistSlot ? (
-            <LegalConsentCheckbox
-              id="booking-legal-consent"
-              checked={legalConsent}
-              onChange={setLegalConsent}
-              error={fieldErrors.legalConsent}
-              disabled={bookingMutation.isPending || waitlistMutation.isPending}
-            />
-          ) : null}
-
-          {submitError ? (
-            <div
-              className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-              role="alert"
-            >
-              {submitError}
-            </div>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={bookingMutation.isPending || waitlistMutation.isPending}
-            className="w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
-            data-testid={isWaitlistSlot ? "join-waitlist-submit" : "booking-submit"}
+        {submitError ? (
+          <div
+            className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            role="alert"
           >
-            {bookingMutation.isPending || waitlistMutation.isPending
+            {submitError}
+          </div>
+        ) : null}
+
+        <button
+          type="submit"
+          disabled={!selectedSlot || isSubmitting}
+          className="w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+          data-testid={isWaitlistSlot ? "join-waitlist-submit" : "booking-submit"}
+        >
+          <span>
+            {isSubmitting
               ? "Submitting…"
               : isWaitlistSlot
                 ? "Join waitlist"
                 : "Submit booking request"}
-          </button>
-        </form>
-      ) : null}
+          </span>
+        </button>
+      </form>
     </FormPageShell>
   );
 }

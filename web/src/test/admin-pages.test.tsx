@@ -122,6 +122,13 @@ describe("admin pages smoke", () => {
       screen.getByTestId(`admin-service-list-image-status-${BOOKING_SERVICE_ID}`),
     ).toHaveTextContent("No image");
     expect(screen.getByTestId("admin-services-add")).toBeInTheDocument();
+    expect(screen.getByTestId(`admin-service-waitlist-badge-${BOOKING_SERVICE_ID}`)).toHaveTextContent(
+      "Waitlist enabled",
+    );
+    expect(screen.getByTestId(`admin-service-waitlist-hint-${BOOKING_SERVICE_ID}`)).toHaveTextContent(
+      "Open Edit to manage waitlist entries.",
+    );
+    expect(screen.getByTestId(`admin-service-view-waitlist-${BOOKING_SERVICE_ID}`)).toBeInTheDocument();
   });
 
   it("N. admin services list shows thumbnail when service has image", async () => {

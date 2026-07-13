@@ -52,11 +52,17 @@ export function AdminServiceWaitlistSection({
     <section
       className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4"
       data-testid="admin-service-waitlist"
+      id="admin-service-waitlist-entries"
     >
       <div>
-        <h3 className="text-sm font-semibold text-slate-900">Waitlist</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Waitlist entries</h3>
         <p className="mt-1 text-xs text-slate-600">
-          Recent waitlist entries for this service.
+          Customers who join the waitlist appear here. Cancelling a booking does not
+          automatically create a new booking yet.
+        </p>
+        <p className="mt-1 text-xs text-slate-600">
+          For now, contact the customer manually or change the status. Automatic promotion
+          will be added later.
         </p>
       </div>
 
@@ -95,7 +101,7 @@ export function AdminServiceWaitlistSection({
                 </span>
               </div>
               <label className="mt-2 block text-xs text-slate-600">
-                Update status
+                <span>Update status</span>
                 <select
                   className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm"
                   value={entry.status}

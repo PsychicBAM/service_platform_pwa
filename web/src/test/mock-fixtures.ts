@@ -217,6 +217,7 @@ export const mockAdminServices: AdminServiceRead[] = [
     require_payment: false,
     is_active: true,
     sort_order: 1,
+    waitlist_enabled: true,
     metadata: {},
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",

@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AdminServiceForm } from "@/components/admin/AdminServiceForm";
+import { AdminServiceWaitlistSection } from "@/components/admin/AdminServiceWaitlistSection";
 import { TimeSlotGrid } from "@/components/TimeSlotGrid";
-import { mockAdminServices, ORDER_SERVICE_ID } from "@/test/mock-fixtures";
+import { mockAdminServices, BOOKING_SERVICE_ID, ORDER_SERVICE_ID } from "@/test/mock-fixtures";
 import { renderRoute } from "@/test/test-utils";
 
 vi.mock("@/api/adminApi", async (importOriginal) => {
@@ -49,6 +50,24 @@ describe("AdminServiceForm waitlist", () => {
 
     expect(screen.queryByTestId("admin-service-waitlist-enabled")).not.toBeInTheDocument();
   });
+
+  it("shows waitlist entries section with no auto-promotion helper when enabled", async () => {
+    renderRoute(
+      <AdminServiceWaitlistSection
+        businessId="biz-1"
+        serviceId={BOOKING_SERVICE_ID}
+        serviceType="booking"
+        waitlistEnabled
+      />,
+    );
+
+    expect(screen.getByText("Waitlist entries")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Cancelling a booking does not automatically create a new booking yet/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Automatic promotion will be added later/i)).toBeInTheDocument();
+    expect(await screen.findByText("No waitlist entries yet.")).toBeInTheDocument();
+  });
 });
 
 describe("TimeSlotGrid waitlist", () => {
@@ -78,5 +97,32 @@ describe("TimeSlotGrid waitlist", () => {
 
     await userEvent.click(screen.getByTestId("waitlist-slot"));
     expect(onSelect).toHaveBeenCalled();
+  });
+
+  it("distinguishes bookable and waitlist slots with the same start time", () => {
+    const onSelect = vi.fn();
+    const sharedStart = "2026-06-23T10:00:00-04:00";
+    renderRoute(
+      <TimeSlotGrid
+        slots={[
+          {
+            starts_at: sharedStart,
+            ends_at: "2026-06-23T10:30:00-04:00",
+            is_fully_booked: true,
+            waitlist_available: true,
+          },
+          {
+            starts_at: sharedStart,
+            ends_at: "2026-06-23T10:30:00-04:00",
+          },
+        ]}
+        selectedStartsAt={sharedStart}
+        selectedWaitlist
+        onSelect={onSelect}
+      />,
+    );
+
+    expect(screen.getAllByTestId("waitlist-slot")).toHaveLength(1);
+    expect(screen.getAllByTestId("bookable-slot")).toHaveLength(1);
   });
 });

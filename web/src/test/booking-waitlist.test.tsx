@@ -16,6 +16,19 @@ vi.mock("@/api/publicApi", () => ({
   createPublicWaitlistEntry: (...args: unknown[]) => mockCreatePublicWaitlistEntry(...args),
 }));
 
+const mixedSlots = [
+  {
+    starts_at: "2026-06-23T11:00:00-04:00",
+    ends_at: "2026-06-23T11:30:00-04:00",
+  },
+  {
+    starts_at: "2026-06-23T10:00:00-04:00",
+    ends_at: "2026-06-23T10:30:00-04:00",
+    is_fully_booked: true,
+    waitlist_available: true,
+  },
+];
+
 describe("BookingPage waitlist", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -34,18 +47,7 @@ describe("BookingPage waitlist", () => {
     mockGetAvailability.mockResolvedValue({
       date: "2026-06-23",
       service_id: "svc-1",
-      slots: [
-        {
-          starts_at: "2026-06-23T11:00:00-04:00",
-          ends_at: "2026-06-23T11:30:00-04:00",
-        },
-        {
-          starts_at: "2026-06-23T10:00:00-04:00",
-          ends_at: "2026-06-23T10:30:00-04:00",
-          is_fully_booked: true,
-          waitlist_available: true,
-        },
-      ],
+      slots: mixedSlots,
     });
     mockCreatePublicWaitlistEntry.mockResolvedValue({
       id: "wl-1",
@@ -54,6 +56,28 @@ describe("BookingPage waitlist", () => {
       status: "waiting",
       message: "You have joined the waitlist for this time slot.",
     });
+  });
+
+  it("keeps a stable details form when selecting slots", async () => {
+    const user = userEvent.setup();
+    renderRoute(<BookingPage />, {
+      route: "/b/demo-salon/services/svc-1/book",
+      path: "/b/:slug/services/:serviceId/book",
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("booking-details-form")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByTestId("bookable-slot"));
+    expect(screen.getByTestId("booking-submit")).toBeInTheDocument();
+    expect(screen.queryByText(/Choose a time slot above to continue/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("waitlist-slot"));
+    expect(screen.getByTestId("join-waitlist-submit")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("bookable-slot"));
+    expect(screen.getByTestId("booking-submit")).toBeInTheDocument();
   });
 
   it("shows join waitlist submit for full waitlist slot", async () => {
@@ -110,5 +134,49 @@ describe("BookingPage waitlist", () => {
 
     await user.click(screen.getByTestId("bookable-slot"));
     expect(screen.getByTestId("booking-submit")).toBeInTheDocument();
+  });
+
+  it("keeps the slot grid mounted while a new date is loading", async () => {
+    const user = userEvent.setup();
+    let resolveRefresh: ((value: unknown) => void) | undefined;
+    mockGetAvailability
+      .mockResolvedValueOnce({
+        date: "2026-06-23",
+        service_id: "svc-1",
+        slots: mixedSlots,
+      })
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      )
+      .mockResolvedValue({
+        date: "2026-06-24",
+        service_id: "svc-1",
+        slots: mixedSlots,
+      });
+
+    renderRoute(<BookingPage />, {
+      route: "/b/demo-salon/services/svc-1/book",
+      path: "/b/:slug/services/:serviceId/book",
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("time-slot-grid")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText("Tomorrow"));
+    expect(screen.getByTestId("time-slot-grid")).toBeInTheDocument();
+
+    resolveRefresh?.({
+      date: "2026-06-24",
+      service_id: "svc-1",
+      slots: mixedSlots,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("bookable-slot")).toBeInTheDocument();
+    });
   });
 });

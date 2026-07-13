@@ -125,7 +125,24 @@ function AdminServiceListCard({
             >
               {service.is_active ? "Active" : "Inactive"}
             </span>
+            {service.type === "booking" && service.waitlist_enabled ? (
+              <span
+                className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
+                data-testid={`admin-service-waitlist-badge-${service.id}`}
+              >
+                Waitlist enabled
+              </span>
+            ) : null}
           </div>
+
+          {service.type === "booking" && service.waitlist_enabled ? (
+            <p
+              className="mt-1.5 text-xs text-amber-800"
+              data-testid={`admin-service-waitlist-hint-${service.id}`}
+            >
+              Open Edit to manage waitlist entries.
+            </p>
+          ) : null}
 
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-700">
             <PriceLabel service={service} />
@@ -156,6 +173,17 @@ function AdminServiceListCard({
         >
           Edit
         </button>
+        {service.type === "booking" && service.waitlist_enabled ? (
+          <button
+            type="button"
+            onClick={onEdit}
+            disabled={submitting}
+            className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-60"
+            data-testid={`admin-service-view-waitlist-${service.id}`}
+          >
+            View waitlist
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={onToggleActive}
