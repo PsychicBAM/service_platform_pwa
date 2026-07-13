@@ -9,6 +9,7 @@ import type {
   PublicOrderCreate,
   PublicOrderCreateResponse,
   PublicPageVariant,
+  PublicReviewsResponse,
   PublicService,
   PublicWaitlistCreate,
   PublicWaitlistCreateResponse,
@@ -28,6 +29,8 @@ export type PublicBusinessWire = {
   operating_mode: OperatingMode;
   contact_phone: string | null;
   address: string | null;
+  average_rating?: number | null;
+  review_count?: number;
   public_page_variant: PublicPageVariant;
   mini_site_config: MiniSiteConfigWire | null;
 };
@@ -42,6 +45,8 @@ export function mapPublicBusinessFromWire(wire: PublicBusinessWire): PublicBusin
     operating_mode: wire.operating_mode,
     contact_phone: wire.contact_phone,
     address: wire.address,
+    average_rating: wire.average_rating ?? null,
+    review_count: wire.review_count ?? 0,
     public_page_variant: wire.public_page_variant,
     miniSiteConfig: wire.mini_site_config
       ? mapMiniSiteConfigFromWire(wire.mini_site_config)
@@ -103,4 +108,10 @@ export function createPublicOrder(slug: string, payload: PublicOrderCreate) {
     payload,
     { auth: false },
   );
+}
+
+export function listPublicReviews(slug: string) {
+  return apiClient.get<PublicReviewsResponse>(`/public/b/${encodeSlug(slug)}/reviews`, {
+    auth: false,
+  });
 }

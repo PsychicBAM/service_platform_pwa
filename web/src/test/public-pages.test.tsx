@@ -23,6 +23,19 @@ vi.mock("@/api/publicApi");
 describe("public pages smoke", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(publicApi.listPublicReviews).mockResolvedValue({
+      summary: { average_rating: 4.8, review_count: 24 },
+      reviews: [
+        {
+          id: "rev-1",
+          customer_name: "Olga",
+          rating: 5,
+          comment: "Great service",
+          service_name: "Arabic Lesson",
+          created_at: "2026-06-20T08:00:00Z",
+        },
+      ],
+    });
   });
 
   it("A. renders business name on public business page", async () => {
@@ -35,6 +48,9 @@ describe("public pages smoke", () => {
 
     expect(await screen.findByRole("heading", { name: mockPublicBusiness.name })).toBeInTheDocument();
     expect(screen.getByTestId("standard-public-business-home")).toBeInTheDocument();
+    expect(await screen.findByTestId("public-rating-summary")).toHaveTextContent("4.8");
+    expect(screen.getByTestId("public-rating-summary")).toHaveTextContent("24 reviews");
+    expect(screen.getByTestId("public-review")).toHaveTextContent("Olga");
     expect(screen.queryByTestId("pro-mini-site-layout")).not.toBeInTheDocument();
     expect(screen.queryByText("Pro profile")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /choose service/i })).toHaveAttribute(

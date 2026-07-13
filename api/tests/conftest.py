@@ -36,6 +36,7 @@ _AUTH_TABLES = (
     "orders",
     "bookings",
     "booking_waitlist_entries",
+    "reviews",
     "service_slot_capacity_overrides",
     "clients",
     "unavailable_times",

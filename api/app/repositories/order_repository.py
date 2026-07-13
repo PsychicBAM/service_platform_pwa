@@ -114,6 +114,29 @@ class OrderRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_for_review_by_reference(
+        self,
+        business_id: uuid.UUID,
+        reference: str,
+    ) -> Order | None:
+        normalized_reference = reference.strip()
+        if not normalized_reference:
+            return None
+        stmt = (
+            select(Order)
+            .where(
+                Order.business_id == business_id,
+                Order.reference == normalized_reference,
+            )
+            .options(
+                selectinload(Order.client),
+                selectinload(Order.service),
+                selectinload(Order.business),
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def list_for_user(
         self,
         user_id: uuid.UUID,

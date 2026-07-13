@@ -23,8 +23,58 @@ export interface PublicBusiness {
   operating_mode: OperatingMode;
   contact_phone: string | null;
   address: string | null;
+  average_rating?: number | null;
+  review_count?: number;
   public_page_variant: PublicPageVariant;
   miniSiteConfig: MiniSiteConfig | null;
+}
+
+export type ReviewStatus = "published" | "hidden";
+
+export interface ReviewRead {
+  id: string;
+  business_id: string;
+  service_id: string | null;
+  service_name?: string | null;
+  booking_id: string | null;
+  booking_reference?: string | null;
+  order_id: string | null;
+  order_reference?: string | null;
+  customer_name: string;
+  rating: number;
+  comment: string | null;
+  status: ReviewStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PublicReviewCreate {
+  booking_reference?: string | null;
+  order_reference?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  rating: number;
+  comment?: string | null;
+  customer_name?: string | null;
+}
+
+export interface PublicReviewItem {
+  id: string;
+  customer_name: string;
+  rating: number;
+  comment: string | null;
+  service_name?: string | null;
+  created_at: string;
+}
+
+export interface PublicReviewSummary {
+  average_rating: number | null;
+  review_count: number;
+}
+
+export interface PublicReviewsResponse {
+  summary: PublicReviewSummary;
+  reviews: PublicReviewItem[];
 }
 
 export interface PublicService {

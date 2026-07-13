@@ -12,6 +12,7 @@ from app.models.password_reset_token import PasswordResetToken
 from app.models.enums import (
     BookingStatus,
     WaitlistStatus,
+    ReviewStatus,
     BusinessMemberRole,
     BusinessStatus,
     CancelledBy,
@@ -29,6 +30,7 @@ from app.models.enums import (
 )
 from app.models.order import Order
 from app.models.order_message import OrderMessage
+from app.models.review import Review
 from app.models.service import Service
 from app.models.service_slot_capacity_override import ServiceSlotCapacityOverride
 from app.models.subscription import Subscription
@@ -59,6 +61,8 @@ __all__ = [
     "OrderMessage",
     "OrderMessageSenderType",
     "OrderStatus",
+    "ReviewStatus",
+    "Review",
     "PriceType",
     "Service",
     "ServiceSlotCapacityOverride",

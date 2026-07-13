@@ -388,3 +388,28 @@ export function promoteWaitlistEntry(businessId: string, entryId: string) {
     {},
   );
 }
+
+export function listAdminReviews(
+  businessId: string,
+  params?: { status?: import("@/types/api").ReviewStatus },
+) {
+  const search = new URLSearchParams();
+  if (params?.status) {
+    search.set("status", params.status);
+  }
+  const query = search.toString();
+  return apiClient.get<import("@/types/api").ReviewRead[]>(
+    `/businesses/${encodeURIComponent(businessId)}/reviews${query ? `?${query}` : ""}`,
+  );
+}
+
+export function updateAdminReviewStatus(
+  businessId: string,
+  reviewId: string,
+  status: import("@/types/api").ReviewStatus,
+) {
+  return apiClient.patch<import("@/types/api").ReviewRead>(
+    `/businesses/${encodeURIComponent(businessId)}/reviews/${encodeURIComponent(reviewId)}`,
+    { status },
+  );
+}

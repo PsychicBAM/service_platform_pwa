@@ -9,6 +9,7 @@ import { AdminClientsPage } from "@/pages/admin/AdminClientsPage";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { AdminLegalConsentsPage } from "@/pages/admin/AdminLegalConsentsPage";
 import { AdminOrdersPage } from "@/pages/admin/AdminOrdersPage";
+import { AdminReviewsPage } from "@/pages/admin/AdminReviewsPage";
 import { AdminSchedulePage } from "@/pages/admin/AdminSchedulePage";
 import { AdminServicesPage } from "@/pages/admin/AdminServicesPage";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
@@ -80,6 +81,7 @@ export const router = createBrowserRouter([
           { path: "services", element: <AdminServicesPage /> },
           { path: "bookings", element: <AdminBookingsPage /> },
           { path: "orders", element: <AdminOrdersPage /> },
+          { path: "reviews", element: <AdminReviewsPage /> },
           { path: "clients", element: <AdminClientsPage /> },
           { path: "schedule", element: <AdminSchedulePage /> },
           { path: "legal-consents", element: <AdminLegalConsentsPage /> },

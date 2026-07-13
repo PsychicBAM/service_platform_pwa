@@ -95,6 +95,11 @@ class OrderStatus(str, enum.Enum):
     cancelled = "cancelled"
 
 
+class ReviewStatus(str, enum.Enum):
+    published = "published"
+    hidden = "hidden"
+
+
 class OrderMessageSenderType(str, enum.Enum):
     client = "client"
     admin = "admin"

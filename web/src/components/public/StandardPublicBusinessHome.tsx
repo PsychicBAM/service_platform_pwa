@@ -1,5 +1,8 @@
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import type { OperatingMode, PublicBusiness } from "@/types/api";
+import { listPublicReviews } from "@/api/publicApi";
+import { formatDateTimeLabel } from "@/utils/format";
 
 function modeCopy(mode: OperatingMode) {
   switch (mode) {
@@ -31,6 +34,13 @@ type StandardPublicBusinessHomeProps = {
 
 export function StandardPublicBusinessHome({ business, slug }: StandardPublicBusinessHomeProps) {
   const copy = modeCopy(business.operating_mode);
+  const reviewsQuery = useQuery({
+    queryKey: ["public-reviews", slug],
+    queryFn: () => listPublicReviews(slug),
+  });
+
+  const summary = reviewsQuery.data?.summary ?? null;
+  const recent = reviewsQuery.data?.reviews ?? [];
 
   return (
     <section className="space-y-6" data-testid="standard-public-business-home">
@@ -53,6 +63,11 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
           <div className="min-w-0 flex-1">
             <p className="text-xs uppercase tracking-wide text-slate-500">Business</p>
             <h1 className="mt-1 text-2xl font-bold text-slate-900 md:text-3xl">{business.name}</h1>
+            {summary && summary.review_count > 0 && summary.average_rating ? (
+              <p className="mt-2 text-sm font-medium text-slate-700" data-testid="public-rating-summary">
+                {summary.average_rating.toFixed(1)} ★ · {summary.review_count} reviews
+              </p>
+            ) : null}
           </div>
         </div>
         <p className="mt-4 text-sm text-slate-600 md:text-base">{copy.intro}</p>
@@ -95,6 +110,33 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
           </Link>
         ) : null}
       </div>
+
+      {recent.length > 0 ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+          <h2 className="text-base font-semibold text-slate-900">Recent reviews</h2>
+          <div className="mt-4 space-y-3">
+            {recent.map((review) => (
+              <article
+                key={review.id}
+                className="rounded-xl border border-slate-200 bg-slate-50/50 p-4"
+                data-testid="public-review"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-medium text-slate-900">{review.customer_name}</p>
+                  <p className="text-sm font-semibold text-amber-700">{review.rating} ★</p>
+                </div>
+                {review.service_name ? (
+                  <p className="mt-1 text-sm text-slate-600">{review.service_name}</p>
+                ) : null}
+                {review.comment ? (
+                  <p className="mt-2 text-sm text-slate-700">{review.comment}</p>
+                ) : null}
+                <p className="mt-2 text-xs text-slate-500">{formatDateTimeLabel(review.created_at)}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

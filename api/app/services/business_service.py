@@ -179,6 +179,11 @@ class BusinessService:
         business = await self.repo.get_public_by_slug(slug)
         if business is None:
             raise BusinessNotFoundError()
+        from app.repositories.review_repository import ReviewRepository
+
+        avg_rating, review_count = await ReviewRepository(self.session).published_summary(
+            business.id
+        )
         subscription = await self.repo.get_subscription(business.id)
         public_page_variant = resolve_public_page_variant(subscription)
         mini_site_config = (
@@ -195,6 +200,8 @@ class BusinessService:
             operating_mode=business.operating_mode,
             contact_phone=business.contact_phone,
             address=business.address,
+            average_rating=avg_rating,
+            review_count=review_count,
             public_page_variant=public_page_variant,
             mini_site_config=mini_site_config,
         )

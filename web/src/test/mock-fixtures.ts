@@ -29,6 +29,8 @@ export const mockPublicBusiness: PublicBusiness = {
   operating_mode: "both",
   contact_phone: "+10000000001",
   address: "123 Demo Street",
+  average_rating: 4.8,
+  review_count: 24,
   public_page_variant: "standard",
   miniSiteConfig: null,
 };

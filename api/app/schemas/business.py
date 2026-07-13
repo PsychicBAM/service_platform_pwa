@@ -163,5 +163,7 @@ class PublicBusinessRead(BaseModel):
     operating_mode: OperatingMode
     contact_phone: str | None
     address: str | None
+    average_rating: float | None = None
+    review_count: int = 0
     public_page_variant: PublicPageVariant
     mini_site_config: MiniSiteConfig | None = None

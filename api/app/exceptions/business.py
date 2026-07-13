@@ -159,3 +159,13 @@ class ClaimNotFoundOrMismatchError(AppError):
             code="CLAIM_NOT_FOUND_OR_MISMATCH",
             status_code=404,
         )
+
+
+class ReviewNotAllowedError(AppError):
+    def __init__(self, message: str = "Review is not allowed for this item.") -> None:
+        super().__init__(message=message, code="REVIEW_NOT_ALLOWED", status_code=400)
+
+
+class ReviewDuplicateError(AppError):
+    def __init__(self, message: str = "A review already exists for this item.") -> None:
+        super().__init__(message=message, code="REVIEW_DUPLICATE", status_code=409)

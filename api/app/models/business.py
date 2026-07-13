@@ -79,6 +79,9 @@ class Business(Base, TimestampMixin):
     orders: Mapped[list["Order"]] = relationship(
         back_populates="business",
     )
+    reviews: Mapped[list["Review"]] = relationship(
+        back_populates="business",
+    )
     order_messages: Mapped[list["OrderMessage"]] = relationship(
         back_populates="business",
     )

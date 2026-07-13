@@ -13,6 +13,7 @@ from app.schemas.business import PublicBusinessRead
 from app.schemas.order import PublicOrderCreate, PublicOrderCreateResponse
 from app.schemas.schedule import AvailabilityResponse
 from app.schemas.service import PublicServiceRead
+from app.schemas.review import PublicReviewCreate, PublicReviewsResponse, ReviewRead
 from app.schemas.waitlist import PublicWaitlistCreate, PublicWaitlistCreateResponse
 from app.services.availability_service import AvailabilityService
 from app.services.booking_service import BookingService
@@ -20,6 +21,7 @@ from app.services.business_service import BusinessService
 from app.services.order_service import OrderService
 from app.services.service_service import ServiceService
 from app.services.waitlist_service import WaitlistService
+from app.services.review_service import ReviewService
 
 router = APIRouter(prefix="/public/b", tags=["public"])
 
@@ -112,6 +114,27 @@ async def create_public_waitlist_entry(
         starts_at=entry.starts_at,
         status=entry.status,
     )
+
+
+@router.get("/{slug}/reviews", response_model=PublicReviewsResponse)
+async def list_public_reviews(
+    slug: str,
+    db: AsyncSession = Depends(get_db),
+) -> PublicReviewsResponse:
+    return await ReviewService(db).list_public_reviews(slug, limit=5)
+
+
+@router.post(
+    "/{slug}/reviews",
+    response_model=ReviewRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_public_review(
+    slug: str,
+    payload: PublicReviewCreate,
+    db: AsyncSession = Depends(get_db),
+) -> ReviewRead:
+    return await ReviewService(db).create_public_review(slug, payload)
 
 
 @router.post(

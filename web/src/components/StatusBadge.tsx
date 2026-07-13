@@ -1,9 +1,17 @@
 type StatusBadgeProps = {
   status: string;
-  kind?: "booking" | "order" | "waitlist";
+  kind?: "booking" | "order" | "waitlist" | "review";
 };
 
 function statusClasses(status: string, kind: StatusBadgeProps["kind"]): string {
+  if (kind === "review") {
+    if (status === "published") {
+      return "bg-emerald-100 text-emerald-800";
+    }
+    if (status === "hidden") {
+      return "bg-slate-100 text-slate-700";
+    }
+  }
   if (status === "cancelled" || status === "declined") {
     return "bg-red-100 text-red-800";
   }
