@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cancelMyBooking, listMyBookings } from "@/api/meApi";
 import { AuthPrompt } from "@/components/AuthPrompt";
+import { ClientLeaveReviewSection } from "@/components/ClientLeaveReviewSection";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -151,6 +152,13 @@ export function MyBookingsPage() {
                     Reschedule (coming next)
                   </button>
                 ) : null}
+                <ClientLeaveReviewSection
+                  targetType="booking"
+                  targetId={booking.id}
+                  canReview={booking.can_review}
+                  hasReview={booking.has_review}
+                  queryKeysToInvalidate={[["my-bookings"]]}
+                />
               </div>
             </article>
           ))}

@@ -34,6 +34,20 @@ class AdminReviewStatusUpdate(BaseModel):
     status: ReviewStatus
 
 
+class ClientReviewCreate(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    comment: str | None = Field(default=None, max_length=MAX_REVIEW_COMMENT_LENGTH)
+    customer_name: str | None = Field(default=None, max_length=255)
+
+    @field_validator("customer_name")
+    @classmethod
+    def normalize_customer_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip()
+        return trimmed if trimmed else None
+
+
 class PublicReviewCreate(BaseModel):
     booking_reference: str | None = None
     order_reference: str | None = None

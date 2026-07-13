@@ -15,12 +15,14 @@ from app.models.enums import (
     ReviewStatus,
 )
 from app.models.review import Review
+from app.models.user import User
 from app.repositories.booking_repository import BookingRepository
 from app.repositories.business_repository import BusinessRepository
 from app.repositories.order_repository import OrderRepository
 from app.repositories.review_repository import ReviewRepository
 from app.schemas.review import (
     AdminReviewStatusUpdate,
+    ClientReviewCreate,
     PublicReviewCreate,
     PublicReviewItem,
     PublicReviewSummary,
@@ -138,6 +140,76 @@ class ReviewService:
             return self._to_read(review)
 
         raise ReviewNotAllowedError("Invalid review target.")
+
+    async def create_user_booking_review(
+        self,
+        user: User,
+        booking_id,
+        payload: ClientReviewCreate,
+    ) -> ReviewRead:
+        booking = await self.booking_repo.get_for_user(user.id, booking_id)
+        if booking is None or booking.client is None or booking.service is None:
+            raise NotFoundError("Booking not found.")
+        if booking.status != BookingStatus.completed:
+            raise ReviewNotAllowedError("Only completed bookings can be reviewed.")
+        existing = await self.review_repo.get_for_booking_reference(
+            booking.business_id,
+            booking.reference,
+        )
+        if existing is not None:
+            raise ReviewDuplicateError()
+        review = Review(
+            business_id=booking.business_id,
+            service_id=booking.service_id,
+            booking_id=None,
+            booking_reference=booking.reference,
+            order_id=None,
+            order_reference=None,
+            customer_name=payload.customer_name or user.full_name,
+            rating=payload.rating,
+            comment=payload.comment,
+            status=ReviewStatus.published,
+        )
+        review.service = booking.service
+        review.booking = booking
+        await self.review_repo.create(review)
+        await self.session.commit()
+        return self._to_read(review)
+
+    async def create_user_order_review(
+        self,
+        user: User,
+        order_id,
+        payload: ClientReviewCreate,
+    ) -> ReviewRead:
+        order = await self.order_repo.get_for_user(user.id, order_id)
+        if order is None or order.client is None or order.service is None:
+            raise NotFoundError("Order not found.")
+        if order.status != OrderStatus.completed:
+            raise ReviewNotAllowedError("Only completed orders can be reviewed.")
+        existing = await self.review_repo.get_for_order_reference(
+            order.business_id,
+            order.reference,
+        )
+        if existing is not None:
+            raise ReviewDuplicateError()
+        review = Review(
+            business_id=order.business_id,
+            service_id=order.service_id,
+            booking_id=None,
+            booking_reference=None,
+            order_id=None,
+            order_reference=order.reference,
+            customer_name=payload.customer_name or user.full_name,
+            rating=payload.rating,
+            comment=payload.comment,
+            status=ReviewStatus.published,
+        )
+        review.service = order.service
+        review.order = order
+        await self.review_repo.create(review)
+        await self.session.commit()
+        return self._to_read(review)
 
     async def list_admin_reviews(self, business_id, *, status: ReviewStatus | None = None) -> list[ReviewRead]:
         reviews = await self.review_repo.list_for_business(business_id, status=status, limit=200)

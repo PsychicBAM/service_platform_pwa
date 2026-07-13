@@ -12,6 +12,7 @@ import type {
   MyOrderStatusFilter,
   OrderMessageListResponse,
   OrderMessageRead,
+  ReviewRead,
 } from "@/types/api";
 
 export function listMyBookings(status?: MyBookingStatusFilter) {
@@ -34,6 +35,16 @@ export function rescheduleMyBooking(id: string, startsAt: string) {
   return apiClient.post<MyBookingDetail>(
     `/me/bookings/${encodeURIComponent(id)}/reschedule`,
     { starts_at: startsAt },
+  );
+}
+
+export function createMyBookingReview(
+  id: string,
+  payload: { rating: number; comment?: string; customer_name?: string },
+) {
+  return apiClient.post<ReviewRead>(
+    `/me/bookings/${encodeURIComponent(id)}/review`,
+    payload,
   );
 }
 
@@ -63,6 +74,16 @@ export function sendOrderMessage(orderId: string, body: string) {
   return apiClient.post<OrderMessageRead>(
     `/me/orders/${encodeURIComponent(orderId)}/messages`,
     { body },
+  );
+}
+
+export function createMyOrderReview(
+  id: string,
+  payload: { rating: number; comment?: string; customer_name?: string },
+) {
+  return apiClient.post<ReviewRead>(
+    `/me/orders/${encodeURIComponent(id)}/review`,
+    payload,
   );
 }
 

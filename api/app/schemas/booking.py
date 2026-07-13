@@ -235,6 +235,8 @@ class MyBookingListItem(BaseModel):
     ends_at: datetime
     can_cancel: bool
     can_reschedule: bool
+    has_review: bool = False
+    can_review: bool = False
 
 
 class MyBookingDetail(BaseModel):
@@ -251,6 +253,8 @@ class MyBookingDetail(BaseModel):
     cancellation_reason: str | None
     can_cancel: bool
     can_reschedule: bool
+    has_review: bool = False
+    can_review: bool = False
     created_at: datetime
     updated_at: datetime
 

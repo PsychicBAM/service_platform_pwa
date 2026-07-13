@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cancelMyOrder, listMyOrders } from "@/api/meApi";
 import { AuthPrompt } from "@/components/AuthPrompt";
+import { ClientLeaveReviewSection } from "@/components/ClientLeaveReviewSection";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -149,6 +150,13 @@ export function MyOrdersPage() {
                     Cancel
                   </button>
                 ) : null}
+                <ClientLeaveReviewSection
+                  targetType="order"
+                  targetId={order.id}
+                  canReview={order.can_review}
+                  hasReview={order.has_review}
+                  queryKeysToInvalidate={[["my-orders"]]}
+                />
               </div>
             </article>
           ))}

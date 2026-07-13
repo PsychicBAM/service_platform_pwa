@@ -9,6 +9,7 @@ from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.models.user import User
 from app.repositories.order_repository import OrderRepository, UserOrderStatusFilter
+from app.repositories.review_repository import ReviewRepository
 from app.services.order_message_service import OrderMessageService
 from app.schemas.order import (
     MyOrderBusinessSummary,
@@ -34,6 +35,7 @@ class ClientOrderService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
         self.repo = OrderRepository(session)
+        self.review_repo = ReviewRepository(session)
 
     async def list_my_orders(
         self,
@@ -53,8 +55,18 @@ class ClientOrderService:
         previews = await OrderMessageService(self.session).get_last_message_previews(
             [o.id for o in orders]
         )
+        reviewed_pairs = await self.review_repo.find_existing_order_references(
+            [(o.business_id, o.reference) for o in orders],
+        )
         return MyOrderListResponse(
-            data=[self._to_list_item(o, previews.get(o.id)) for o in orders],
+            data=[
+                self._to_list_item(
+                    o,
+                    previews.get(o.id),
+                    has_review=(o.business_id, o.reference) in reviewed_pairs,
+                )
+                for o in orders
+            ],
             meta=MyOrderListMeta(page=page, limit=limit, total=total),
         )
 
@@ -66,7 +78,14 @@ class ClientOrderService:
         order = await self.repo.get_for_user(user.id, order_id)
         if order is None:
             raise NotFoundError("Order not found.")
-        return self._to_detail(order)
+        has_review = (
+            await self.review_repo.get_for_order_reference(
+                order.business_id,
+                order.reference,
+            )
+            is not None
+        )
+        return self._to_detail(order, has_review=has_review)
 
     async def cancel_my_order(
         self,
@@ -89,13 +108,23 @@ class ClientOrderService:
         await self.session.commit()
         order = await self.repo.get_for_user(user.id, order_id)
         assert order is not None
-        return self._to_detail(order)
+        has_review = (
+            await self.review_repo.get_for_order_reference(
+                order.business_id,
+                order.reference,
+            )
+            is not None
+        )
+        return self._to_detail(order, has_review=has_review)
 
     def _to_list_item(
         self,
         order: Order,
         last_message_preview: str | None = None,
+        *,
+        has_review: bool = False,
     ) -> MyOrderListItem:
+        can_review = order.status == OrderStatus.completed and not has_review
         return MyOrderListItem(
             id=order.id,
             reference=order.reference,
@@ -117,9 +146,12 @@ class ClientOrderService:
             updated_at=order.updated_at,
             last_message_preview=last_message_preview,
             can_cancel=can_client_cancel_order(order),
+            has_review=has_review,
+            can_review=can_review,
         )
 
-    def _to_detail(self, order: Order) -> MyOrderDetail:
+    def _to_detail(self, order: Order, *, has_review: bool = False) -> MyOrderDetail:
+        can_review = order.status == OrderStatus.completed and not has_review
         return MyOrderDetail(
             id=order.id,
             reference=order.reference,
@@ -145,4 +177,6 @@ class ClientOrderService:
             accepted_at=order.accepted_at,
             completed_at=order.completed_at,
             can_cancel=can_client_cancel_order(order),
+            has_review=has_review,
+            can_review=can_review,
         )

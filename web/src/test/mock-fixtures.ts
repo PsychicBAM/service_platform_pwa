@@ -4,6 +4,7 @@ import type {
   BusinessAdminRead,
   MeResponse,
   MyBookingDetail,
+  MyBookingListItem,
   MyOrderDetail,
   MyOrderListItem,
   OrderMessageRead,
@@ -119,6 +120,8 @@ export const mockMyOrder: MyOrderListItem = {
   updated_at: "2026-06-30T10:00:00Z",
   last_message_preview: "Hello from client",
   can_cancel: true,
+  has_review: false,
+  can_review: false,
 };
 
 export const mockMyBookingDetail: MyBookingDetail = {
@@ -142,8 +145,57 @@ export const mockMyBookingDetail: MyBookingDetail = {
   cancellation_reason: null,
   can_cancel: true,
   can_reschedule: true,
+  has_review: false,
+  can_review: false,
   created_at: "2026-06-30T10:00:00Z",
   updated_at: "2026-06-30T10:00:00Z",
+};
+
+export const mockCompletedBookingListItem: MyBookingListItem = {
+  id: "booking-id-completed",
+  reference: "BKG-2026-0099",
+  status: "completed",
+  business: {
+    id: BUSINESS_ID,
+    name: "Demo Service Business",
+    slug: DEMO_SLUG,
+  },
+  service: {
+    id: BOOKING_SERVICE_ID,
+    name: "Arabic Lesson",
+  },
+  starts_at: "2026-06-20T10:00:00Z",
+  ends_at: "2026-06-20T11:00:00Z",
+  can_cancel: false,
+  can_reschedule: false,
+  has_review: false,
+  can_review: true,
+};
+
+export const mockReviewedBookingListItem: MyBookingListItem = {
+  ...mockCompletedBookingListItem,
+  id: "booking-id-reviewed",
+  reference: "BKG-2026-0100",
+  has_review: true,
+  can_review: false,
+};
+
+export const mockCompletedOrder: MyOrderListItem = {
+  ...mockMyOrder,
+  id: "order-id-completed",
+  reference: "ORD-2026-0099",
+  status: "completed",
+  can_cancel: false,
+  has_review: false,
+  can_review: true,
+};
+
+export const mockReviewedOrder: MyOrderListItem = {
+  ...mockCompletedOrder,
+  id: "order-id-reviewed",
+  reference: "ORD-2026-0100",
+  has_review: true,
+  can_review: false,
 };
 
 export const mockMyOrderDetail: MyOrderDetail = {
@@ -160,6 +212,8 @@ export const mockMyOrderDetail: MyOrderDetail = {
   accepted_at: "2026-06-30T11:00:00Z",
   completed_at: null,
   can_cancel: true,
+  has_review: false,
+  can_review: false,
 };
 
 export const mockOrderMessage: OrderMessageRead = {

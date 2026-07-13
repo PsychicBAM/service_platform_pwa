@@ -20,6 +20,7 @@ from app.repositories.booking_repository import (
     UserBookingStatusFilter,
 )
 from app.repositories.business_repository import BusinessRepository
+from app.repositories.review_repository import ReviewRepository
 from app.schemas.booking import (
     ClientBookingListMeta,
     ClientBookingListResponse,
@@ -97,6 +98,7 @@ class ClientBookingService:
         self.session = session
         self.repo = BookingRepository(session)
         self.business_repo = BusinessRepository(session)
+        self.review_repo = ReviewRepository(session)
         self.availability_service = AvailabilityService(session)
         self.capacity_resolver = SlotCapacityResolver(session)
 
@@ -116,8 +118,18 @@ class ClientBookingService:
         )
         total = await self.repo.count_for_user(user.id, status_filter=status_filter)
         now = _now_utc()
+        reviewed_pairs = await self.review_repo.find_existing_booking_references(
+            [(b.business_id, b.reference) for b in bookings],
+        )
         return ClientBookingListResponse(
-            data=[self._to_list_item(b, now) for b in bookings],
+            data=[
+                self._to_list_item(
+                    b,
+                    now,
+                    has_review=(b.business_id, b.reference) in reviewed_pairs,
+                )
+                for b in bookings
+            ],
             meta=ClientBookingListMeta(page=page, limit=limit, total=total),
         )
 
@@ -129,7 +141,14 @@ class ClientBookingService:
         booking = await self.repo.get_for_user(user.id, booking_id)
         if booking is None:
             raise NotFoundError("Booking not found.")
-        return self._to_detail(booking, _now_utc())
+        has_review = (
+            await self.review_repo.get_for_booking_reference(
+                booking.business_id,
+                booking.reference,
+            )
+            is not None
+        )
+        return self._to_detail(booking, _now_utc(), has_review=has_review)
 
     async def cancel_my_booking(
         self,
@@ -158,7 +177,14 @@ class ClientBookingService:
         await self.session.commit()
         booking = await self.repo.get_for_user(user.id, booking_id)
         assert booking is not None
-        return self._to_detail(booking, _now_utc())
+        has_review = (
+            await self.review_repo.get_for_booking_reference(
+                booking.business_id,
+                booking.reference,
+            )
+            is not None
+        )
+        return self._to_detail(booking, _now_utc(), has_review=has_review)
 
     async def reschedule_my_booking(
         self,
@@ -257,7 +283,14 @@ class ClientBookingService:
         await self.session.commit()
         booking = await self.repo.get_for_user(user.id, booking_id)
         assert booking is not None
-        return self._to_detail(booking, _now_utc())
+        has_review = (
+            await self.review_repo.get_for_booking_reference(
+                booking.business_id,
+                booking.reference,
+            )
+            is not None
+        )
+        return self._to_detail(booking, _now_utc(), has_review=has_review)
 
     async def _get_booking_for_action(
         self,
@@ -269,7 +302,14 @@ class ClientBookingService:
             raise NotFoundError("Booking not found.")
         return booking
 
-    def _to_list_item(self, booking: Booking, now: datetime) -> MyBookingListItem:
+    def _to_list_item(
+        self,
+        booking: Booking,
+        now: datetime,
+        *,
+        has_review: bool = False,
+    ) -> MyBookingListItem:
+        can_review = booking.status == BookingStatus.completed and not has_review
         return MyBookingListItem(
             id=booking.id,
             reference=booking.reference,
@@ -287,9 +327,18 @@ class ClientBookingService:
             ends_at=booking.ends_at,
             can_cancel=can_client_cancel(booking, booking.business, now),
             can_reschedule=can_client_reschedule(booking, booking.business, now),
+            has_review=has_review,
+            can_review=can_review,
         )
 
-    def _to_detail(self, booking: Booking, now: datetime) -> MyBookingDetail:
+    def _to_detail(
+        self,
+        booking: Booking,
+        now: datetime,
+        *,
+        has_review: bool = False,
+    ) -> MyBookingDetail:
+        can_review = booking.status == BookingStatus.completed and not has_review
         return MyBookingDetail(
             id=booking.id,
             reference=booking.reference,
@@ -311,6 +360,8 @@ class ClientBookingService:
             cancellation_reason=booking.cancellation_reason,
             can_cancel=can_client_cancel(booking, booking.business, now),
             can_reschedule=can_client_reschedule(booking, booking.business, now),
+            has_review=has_review,
+            can_review=can_review,
             created_at=booking.created_at,
             updated_at=booking.updated_at,
         )

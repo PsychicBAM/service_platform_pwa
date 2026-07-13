@@ -352,6 +352,8 @@ class MyOrderListItem(BaseModel):
     updated_at: datetime
     last_message_preview: str | None = None
     can_cancel: bool
+    has_review: bool = False
+    can_review: bool = False
 
 
 class MyOrderDetail(BaseModel):
@@ -368,6 +370,8 @@ class MyOrderDetail(BaseModel):
     accepted_at: datetime | None
     completed_at: datetime | None
     can_cancel: bool
+    has_review: bool = False
+    can_review: bool = False
 
 
 class MyOrderListMeta(BaseModel):

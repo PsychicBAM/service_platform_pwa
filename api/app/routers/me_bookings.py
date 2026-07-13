@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -13,7 +13,9 @@ from app.schemas.booking import (
     ClientBookingRescheduleRequest,
     MyBookingDetail,
 )
+from app.schemas.review import ClientReviewCreate, ReviewRead
 from app.services.client_booking_service import ClientBookingService
+from app.services.review_service import ReviewService
 
 router = APIRouter(prefix="/me", tags=["me-bookings"])
 
@@ -65,6 +67,24 @@ async def reschedule_my_booking(
     db: AsyncSession = Depends(get_db),
 ) -> MyBookingDetail:
     return await ClientBookingService(db).reschedule_my_booking(
+        current_user,
+        booking_id,
+        payload,
+    )
+
+
+@router.post(
+    "/bookings/{booking_id}/review",
+    response_model=ReviewRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_my_booking_review(
+    booking_id: uuid.UUID,
+    payload: ClientReviewCreate,
+    current_user: User = Depends(require_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> ReviewRead:
+    return await ReviewService(db).create_user_booking_review(
         current_user,
         booking_id,
         payload,

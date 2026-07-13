@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMyOrder, listOrderMessages, sendOrderMessage } from "@/api/meApi";
 import { AuthPrompt } from "@/components/AuthPrompt";
+import { ClientLeaveReviewSection } from "@/components/ClientLeaveReviewSection";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { NewMessageNotification } from "@/components/NewMessageNotification";
@@ -167,6 +168,16 @@ export function MyOrderDetailPage() {
                 <p className="mt-1 text-sm text-red-700">{order.decline_reason}</p>
               </div>
             ) : null}
+
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <ClientLeaveReviewSection
+                targetType="order"
+                targetId={order.id}
+                canReview={order.can_review}
+                hasReview={order.has_review}
+                queryKeysToInvalidate={[["my-order", orderId], ["my-orders"]]}
+              />
+            </div>
           </div>
 
           <div className="space-y-3">

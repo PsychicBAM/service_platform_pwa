@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -129,4 +129,40 @@ class ReviewRepository:
         result = await self.session.execute(stmt)
         avg, count = result.one()
         return (float(avg) if avg is not None else None, int(count or 0))
+
+    async def find_existing_booking_references(
+        self,
+        business_references: list[tuple[uuid.UUID, str]],
+    ) -> set[tuple[uuid.UUID, str]]:
+        pairs = [
+            (business_id, reference.strip())
+            for business_id, reference in business_references
+            if reference.strip()
+        ]
+        if not pairs:
+            return set()
+        stmt = select(Review.business_id, Review.booking_reference).where(
+            tuple_(Review.business_id, Review.booking_reference).in_(pairs),
+            Review.booking_reference.isnot(None),
+        )
+        result = await self.session.execute(stmt)
+        return {(row[0], row[1]) for row in result.all()}
+
+    async def find_existing_order_references(
+        self,
+        business_references: list[tuple[uuid.UUID, str]],
+    ) -> set[tuple[uuid.UUID, str]]:
+        pairs = [
+            (business_id, reference.strip())
+            for business_id, reference in business_references
+            if reference.strip()
+        ]
+        if not pairs:
+            return set()
+        stmt = select(Review.business_id, Review.order_reference).where(
+            tuple_(Review.business_id, Review.order_reference).in_(pairs),
+            Review.order_reference.isnot(None),
+        )
+        result = await self.session.execute(stmt)
+        return {(row[0], row[1]) for row in result.all()}
 

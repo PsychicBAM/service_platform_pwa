@@ -15,8 +15,10 @@ from app.schemas.order import (
     OrderMessageListResponse,
     OrderMessageRead,
 )
+from app.schemas.review import ClientReviewCreate, ReviewRead
 from app.services.client_order_service import ClientOrderService
 from app.services.order_message_service import OrderMessageService
+from app.services.review_service import ReviewService
 
 router = APIRouter(prefix="/me", tags=["me-orders"])
 
@@ -91,4 +93,22 @@ async def send_my_order_message(
         current_user.id,
         order_id,
         payload.body,
+    )
+
+
+@router.post(
+    "/orders/{order_id}/review",
+    response_model=ReviewRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_my_order_review(
+    order_id: uuid.UUID,
+    payload: ClientReviewCreate,
+    current_user: User = Depends(require_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> ReviewRead:
+    return await ReviewService(db).create_user_order_review(
+        current_user,
+        order_id,
+        payload,
     )

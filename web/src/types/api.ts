@@ -359,6 +359,8 @@ export interface MyBookingListItem {
   ends_at: string;
   can_cancel: boolean;
   can_reschedule: boolean;
+  has_review: boolean;
+  can_review: boolean;
 }
 
 export interface MyBookingDetail {
@@ -375,6 +377,8 @@ export interface MyBookingDetail {
   cancellation_reason: string | null;
   can_cancel: boolean;
   can_reschedule: boolean;
+  has_review: boolean;
+  can_review: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -409,6 +413,8 @@ export interface MyOrderListItem {
   updated_at: string;
   last_message_preview: string | null;
   can_cancel: boolean;
+  has_review: boolean;
+  can_review: boolean;
 }
 
 export interface MyOrderDetail {
@@ -425,6 +431,8 @@ export interface MyOrderDetail {
   accepted_at: string | null;
   completed_at: string | null;
   can_cancel: boolean;
+  has_review: boolean;
+  can_review: boolean;
 }
 
 export interface MyOrderListResponse {
