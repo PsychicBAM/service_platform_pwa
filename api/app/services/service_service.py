@@ -152,6 +152,9 @@ class ServiceService:
             booking_window_days=(
                 payload.booking_window_days if payload.type == ServiceType.booking else None
             ),
+            waitlist_enabled=(
+                payload.waitlist_enabled if payload.type == ServiceType.booking else False
+            ),
             metadata_=payload.metadata,
         )
         await self.repo.create(service)
@@ -176,6 +179,7 @@ class ServiceService:
             data.pop("capacity", None)
             data.pop("booking_min_notice_minutes", None)
             data.pop("booking_window_days", None)
+            data.pop("waitlist_enabled", None)
         elif "duration_minutes" in data and data["duration_minutes"] is None:
             raise ValidationAppError(
                 "duration_minutes is required for booking services"

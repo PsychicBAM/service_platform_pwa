@@ -53,6 +53,27 @@ class SlotCapacityOverrideExistsError(AppError):
         )
 
 
+class WaitlistDisabledError(AppError):
+    def __init__(self, message: str = "Waitlist is not enabled for this service.") -> None:
+        super().__init__(message=message, code="WAITLIST_DISABLED", status_code=400)
+
+
+class SlotStillAvailableError(AppError):
+    def __init__(
+        self,
+        message: str = "This time slot is still available to book.",
+    ) -> None:
+        super().__init__(message=message, code="SLOT_STILL_AVAILABLE", status_code=409)
+
+
+class WaitlistDuplicateError(AppError):
+    def __init__(
+        self,
+        message: str = "You are already on the waitlist for this time slot.",
+    ) -> None:
+        super().__init__(message=message, code="WAITLIST_DUPLICATE", status_code=409)
+
+
 class BookingCancelTooLateError(AppError):
     def __init__(self, message: str = "Cancellation or reschedule window has passed.") -> None:
         super().__init__(message=message, code="BOOKING_CANCEL_TOO_LATE", status_code=400)

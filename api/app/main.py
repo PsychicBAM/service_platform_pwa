@@ -6,7 +6,7 @@ from pathlib import Path
 
 from app.config import get_settings
 from app.exceptions.auth import AppError
-from app.routers import auth, billing, bookings, businesses, claims, clients, health, me_bookings, me_orders, orders, public, schedule, services, superadmin
+from app.routers import auth, billing, bookings, businesses, claims, clients, health, me_bookings, me_orders, orders, public, schedule, services, superadmin, waitlist
 
 settings = get_settings()
 
@@ -47,6 +47,7 @@ app.include_router(billing.router, prefix=settings.api_v1_prefix)
 app.include_router(billing.webhook_router, prefix=settings.api_v1_prefix)
 app.include_router(schedule.router, prefix=settings.api_v1_prefix)
 app.include_router(bookings.router, prefix=settings.api_v1_prefix)
+app.include_router(waitlist.router, prefix=settings.api_v1_prefix)
 app.include_router(orders.router, prefix=settings.api_v1_prefix)
 app.include_router(clients.router, prefix=settings.api_v1_prefix)
 app.include_router(superadmin.router, prefix=settings.api_v1_prefix)

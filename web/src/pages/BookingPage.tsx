@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createPublicBooking, getAvailability, getPublicService } from "@/api/publicApi";
+import { createPublicBooking, createPublicWaitlistEntry, getAvailability, getPublicService } from "@/api/publicApi";
 import { ApiClientError } from "@/api/client";
 import type { AvailabilitySlot } from "@/types/api";
 import { FormPageShell } from "@/components/FormPageShell";
@@ -84,6 +84,9 @@ export function BookingPage() {
   const [legalConsent, setLegalConsent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
+
+  const isWaitlistSlot = Boolean(selectedSlot?.waitlist_available);
 
   const serviceQuery = useQuery({
     queryKey: ["public-service", slug, serviceId],
@@ -112,6 +115,18 @@ export function BookingPage() {
       }),
   });
 
+  const waitlistMutation = useMutation({
+    mutationFn: () =>
+      createPublicWaitlistEntry(slug, {
+        service_id: serviceId,
+        starts_at: selectedSlot!.starts_at,
+        customer_name: fullName.trim(),
+        customer_email: email.trim() || null,
+        customer_phone: phone.trim() || null,
+        note: note.trim() || null,
+      }),
+  });
+
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
     setSelectedSlot(null);
@@ -121,6 +136,7 @@ export function BookingPage() {
   const handleSlotSelect = (slot: AvailabilitySlot) => {
     setSelectedSlot(slot);
     setSubmitError(null);
+    setWaitlistSuccess(false);
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -133,8 +149,10 @@ export function BookingPage() {
     }
 
     const errors = validateForm(fullName, email, phone, note);
-    if (!legalConsent) {
-      errors.legalConsent = LEGAL_CONSENT_ERROR_MESSAGE;
+    if (!isWaitlistSlot) {
+      if (!legalConsent) {
+        errors.legalConsent = LEGAL_CONSENT_ERROR_MESSAGE;
+      }
     }
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -142,6 +160,15 @@ export function BookingPage() {
     }
 
     try {
+      if (isWaitlistSlot) {
+        await waitlistMutation.mutateAsync();
+        setWaitlistSuccess(true);
+        await queryClient.invalidateQueries({
+          queryKey: ["availability", slug, serviceId, selectedDate],
+        });
+        return;
+      }
+
       await bookingMutation.mutateAsync();
       await queryClient.invalidateQueries({
         queryKey: ["availability", slug, serviceId, selectedDate],
@@ -187,6 +214,31 @@ export function BookingPage() {
           className="block text-center text-sm text-brand-700 hover:underline"
         >
           Back to service
+        </Link>
+      </FormPageShell>
+    );
+  }
+
+  if (waitlistSuccess) {
+    return (
+      <FormPageShell>
+        <SuccessCard
+          title="Waitlist joined"
+          subtitle="Thank you!"
+          items={[
+            { label: "Service", value: service.name },
+            {
+              label: "Date & time",
+              value: selectedSlot ? formatDateTimeLabel(selectedSlot.starts_at) : "",
+            },
+          ]}
+          note="You have joined the waitlist for this time slot."
+        />
+        <Link
+          to={`/b/${slug}/services`}
+          className="block rounded-xl bg-brand-600 px-4 py-3 text-center font-medium text-white hover:bg-brand-700"
+        >
+          Back to services
         </Link>
       </FormPageShell>
     );
@@ -281,6 +333,7 @@ export function BookingPage() {
           <h2 className="text-sm font-medium text-slate-700">Your details</h2>
           <p className="text-sm text-slate-600">
             Selected: {formatDateTimeLabel(selectedSlot.starts_at)}
+            {isWaitlistSlot ? " (full — waitlist)" : ""}
           </p>
 
           <FormField
@@ -291,7 +344,7 @@ export function BookingPage() {
             value={fullName}
             onChange={(event) => setFullName(event.target.value)}
             error={fieldErrors.fullName}
-            disabled={bookingMutation.isPending}
+            disabled={bookingMutation.isPending || waitlistMutation.isPending}
           />
 
           <FormField
@@ -302,7 +355,7 @@ export function BookingPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             hint="Email or phone is required."
-            disabled={bookingMutation.isPending}
+            disabled={bookingMutation.isPending || waitlistMutation.isPending}
           />
 
           <FormField
@@ -313,7 +366,7 @@ export function BookingPage() {
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             error={fieldErrors.contact}
-            disabled={bookingMutation.isPending}
+            disabled={bookingMutation.isPending || waitlistMutation.isPending}
           />
 
           <TextAreaField
@@ -324,16 +377,18 @@ export function BookingPage() {
             error={fieldErrors.note}
             maxLength={NOTE_MAX_LENGTH}
             hint={`Up to ${NOTE_MAX_LENGTH} characters.`}
-            disabled={bookingMutation.isPending}
+            disabled={bookingMutation.isPending || waitlistMutation.isPending}
           />
 
-          <LegalConsentCheckbox
-            id="booking-legal-consent"
-            checked={legalConsent}
-            onChange={setLegalConsent}
-            error={fieldErrors.legalConsent}
-            disabled={bookingMutation.isPending}
-          />
+          {!isWaitlistSlot ? (
+            <LegalConsentCheckbox
+              id="booking-legal-consent"
+              checked={legalConsent}
+              onChange={setLegalConsent}
+              error={fieldErrors.legalConsent}
+              disabled={bookingMutation.isPending || waitlistMutation.isPending}
+            />
+          ) : null}
 
           {submitError ? (
             <div
@@ -346,10 +401,15 @@ export function BookingPage() {
 
           <button
             type="submit"
-            disabled={bookingMutation.isPending}
+            disabled={bookingMutation.isPending || waitlistMutation.isPending}
             className="w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+            data-testid={isWaitlistSlot ? "join-waitlist-submit" : "booking-submit"}
           >
-            {bookingMutation.isPending ? "Submitting…" : "Submit booking request"}
+            {bookingMutation.isPending || waitlistMutation.isPending
+              ? "Submitting…"
+              : isWaitlistSlot
+                ? "Join waitlist"
+                : "Submit booking request"}
           </button>
         </form>
       ) : null}

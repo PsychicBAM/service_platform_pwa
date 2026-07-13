@@ -45,6 +45,8 @@ export interface AvailabilitySlot {
   starts_at: string;
   ends_at: string;
   spots_remaining?: number | null;
+  is_fully_booked?: boolean;
+  waitlist_available?: boolean;
 }
 
 export interface AvailabilityResponse {
@@ -65,6 +67,44 @@ export interface PublicBookingCreate {
   client_notes?: string | null;
   client: PublicBookingClientInput;
   legal_consent_accepted: boolean;
+}
+
+export type WaitlistStatus = "waiting" | "contacted" | "cancelled" | "resolved";
+
+export interface PublicWaitlistCreate {
+  service_id: string;
+  starts_at: string;
+  customer_name: string;
+  customer_email?: string | null;
+  customer_phone?: string | null;
+  note?: string | null;
+}
+
+export interface PublicWaitlistCreateResponse {
+  id: string;
+  service_id: string;
+  starts_at: string;
+  status: WaitlistStatus;
+  message: string;
+}
+
+export interface WaitlistEntryRead {
+  id: string;
+  business_id: string;
+  service_id: string;
+  service_name: string;
+  starts_at: string;
+  customer_name: string;
+  customer_email: string | null;
+  customer_phone: string | null;
+  note: string | null;
+  status: WaitlistStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WaitlistListResponse {
+  data: WaitlistEntryRead[];
 }
 
 export type BookingStatus =
@@ -456,6 +496,7 @@ export interface AdminServiceRead {
   capacity?: number;
   booking_min_notice_minutes?: number;
   booking_window_days?: number | null;
+  waitlist_enabled?: boolean;
   metadata: Record<string, unknown>;
   image?: import("@/lib/serviceImage").ServiceImageMedia | null;
   created_at: string;
@@ -502,6 +543,7 @@ export interface ServiceCreatePayload {
   capacity?: number;
   booking_min_notice_minutes?: number;
   booking_window_days?: number | null;
+  waitlist_enabled?: boolean;
   metadata?: Record<string, unknown>;
 }
 
@@ -518,9 +560,9 @@ export interface ServiceUpdatePayload {
   capacity?: number;
   booking_min_notice_minutes?: number;
   booking_window_days?: number | null;
+  waitlist_enabled?: boolean;
   metadata?: Record<string, unknown>;
 }
-
 export interface AdminBookingListItem {
   id: string;
   reference: string;

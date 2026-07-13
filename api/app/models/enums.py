@@ -72,6 +72,13 @@ class BookingStatus(str, enum.Enum):
     no_show = "no_show"
 
 
+class WaitlistStatus(str, enum.Enum):
+    waiting = "waiting"
+    contacted = "contacted"
+    cancelled = "cancelled"
+    resolved = "resolved"
+
+
 class CancelledBy(str, enum.Enum):
     client = "client"
     admin = "admin"

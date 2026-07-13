@@ -353,3 +353,31 @@ export function deleteServiceSlotCapacityOverride(
     `/businesses/${encodeURIComponent(businessId)}/services/${encodeURIComponent(serviceId)}/slot-capacity-overrides/${encodeURIComponent(overrideId)}`,
   );
 }
+
+export function listWaitlistEntries(
+  businessId: string,
+  params?: { service_id?: string; status?: string },
+) {
+  const search = new URLSearchParams();
+  if (params?.service_id) {
+    search.set("service_id", params.service_id);
+  }
+  if (params?.status) {
+    search.set("status", params.status);
+  }
+  const query = search.toString();
+  return apiClient.get<import("@/types/api").WaitlistListResponse>(
+    `/businesses/${encodeURIComponent(businessId)}/waitlist${query ? `?${query}` : ""}`,
+  );
+}
+
+export function updateWaitlistEntryStatus(
+  businessId: string,
+  entryId: string,
+  status: import("@/types/api").WaitlistStatus,
+) {
+  return apiClient.patch<import("@/types/api").WaitlistEntryRead>(
+    `/businesses/${encodeURIComponent(businessId)}/waitlist/${encodeURIComponent(entryId)}`,
+    { status },
+  );
+}

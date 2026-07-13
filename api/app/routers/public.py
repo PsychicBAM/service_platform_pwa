@@ -13,11 +13,13 @@ from app.schemas.business import PublicBusinessRead
 from app.schemas.order import PublicOrderCreate, PublicOrderCreateResponse
 from app.schemas.schedule import AvailabilityResponse
 from app.schemas.service import PublicServiceRead
+from app.schemas.waitlist import PublicWaitlistCreate, PublicWaitlistCreateResponse
 from app.services.availability_service import AvailabilityService
 from app.services.booking_service import BookingService
 from app.services.business_service import BusinessService
 from app.services.order_service import OrderService
 from app.services.service_service import ServiceService
+from app.services.waitlist_service import WaitlistService
 
 router = APIRouter(prefix="/public/b", tags=["public"])
 
@@ -91,6 +93,25 @@ async def create_public_booking(
         payload,
     )
     return PublicBookingCreateResponse.from_entities(booking, service, client)
+
+
+@router.post(
+    "/{slug}/waitlist",
+    response_model=PublicWaitlistCreateResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_public_waitlist_entry(
+    slug: str,
+    payload: PublicWaitlistCreate,
+    db: AsyncSession = Depends(get_db),
+) -> PublicWaitlistCreateResponse:
+    entry = await WaitlistService(db).create_public_waitlist_entry(slug, payload)
+    return PublicWaitlistCreateResponse(
+        id=entry.id,
+        service_id=entry.service_id,
+        starts_at=entry.starts_at,
+        status=entry.status,
+    )
 
 
 @router.post(

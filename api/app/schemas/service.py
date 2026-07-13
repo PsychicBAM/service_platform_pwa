@@ -26,6 +26,7 @@ class ServiceRead(BaseModel):
     capacity: int = 1
     booking_min_notice_minutes: int = 0
     booking_window_days: int | None = None
+    waitlist_enabled: bool = False
     metadata: dict[str, Any]
     image: ServiceImageMedia | None = None
     created_at: datetime
@@ -54,6 +55,7 @@ class ServiceRead(BaseModel):
             capacity=service.capacity,
             booking_min_notice_minutes=service.booking_min_notice_minutes,
             booking_window_days=service.booking_window_days,
+            waitlist_enabled=service.waitlist_enabled,
             metadata=service.metadata_,
             image=read_service_image(service.image_),
             created_at=service.created_at,
@@ -116,6 +118,7 @@ class ServiceCreate(BaseModel):
     capacity: int = 1
     booking_min_notice_minutes: int = 0
     booking_window_days: int | None = None
+    waitlist_enabled: bool = False
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("booking_min_notice_minutes")
@@ -177,6 +180,7 @@ class ServiceCreate(BaseModel):
             self.capacity = 1
             self.booking_min_notice_minutes = 0
             self.booking_window_days = None
+            self.waitlist_enabled = False
         return self
 
     @model_validator(mode="after")
@@ -202,6 +206,7 @@ class ServiceUpdate(BaseModel):
     capacity: int | None = None
     booking_min_notice_minutes: int | None = None
     booking_window_days: int | None = None
+    waitlist_enabled: bool | None = None
     metadata: dict[str, Any] | None = None
 
     @field_validator("booking_min_notice_minutes")

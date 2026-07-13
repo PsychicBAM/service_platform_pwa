@@ -2,6 +2,7 @@
 
 from app.models.audit_log import AuditLog
 from app.models.booking import Booking
+from app.models.booking_waitlist_entry import BookingWaitlistEntry
 from app.models.business import Business
 from app.models.business_member import BusinessMember
 from app.models.client import Client
@@ -10,6 +11,7 @@ from app.models.legal_consent_record import LegalConsentRecord
 from app.models.password_reset_token import PasswordResetToken
 from app.models.enums import (
     BookingStatus,
+    WaitlistStatus,
     BusinessMemberRole,
     BusinessStatus,
     CancelledBy,
@@ -42,6 +44,7 @@ __all__ = [
     "AuditLog",
     "Booking",
     "BookingStatus",
+    "BookingWaitlistEntry",
     "Business",
     "BusinessMember",
     "BusinessMemberRole",
@@ -66,6 +69,7 @@ __all__ = [
     "UnavailableTime",
     "User",
     "UserRole",
+    "WaitlistStatus",
     "WorkingBreak",
     "WorkingHour",
 ]

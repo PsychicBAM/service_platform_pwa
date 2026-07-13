@@ -44,18 +44,33 @@ function SlotButton({
   selected: boolean;
   onSelect: (slot: AvailabilitySlot) => void;
 }) {
+  const isWaitlist = Boolean(slot.waitlist_available);
+
   return (
     <button
       type="button"
       onClick={() => onSelect(slot)}
       className={`rounded-xl border px-3 py-2 text-sm font-medium ${
         selected
-          ? "border-brand-600 bg-brand-600 text-white"
-          : "border-slate-300 bg-white text-slate-800 hover:bg-slate-50"
+          ? isWaitlist
+            ? "border-amber-600 bg-amber-600 text-white"
+            : "border-brand-600 bg-brand-600 text-white"
+          : isWaitlist
+            ? "border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100"
+            : "border-slate-300 bg-white text-slate-800 hover:bg-slate-50"
       }`}
+      data-testid={isWaitlist ? "waitlist-slot" : "bookable-slot"}
     >
       <span className="block">{formatTimeLabel(slot.starts_at)}</span>
-      {slot.spots_remaining != null && slot.spots_remaining > 0 ? (
+      {isWaitlist ? (
+        <span
+          className={`mt-0.5 block text-[10px] font-normal ${
+            selected ? "text-white/90" : "text-amber-700"
+          }`}
+        >
+          Full · Join waitlist
+        </span>
+      ) : slot.spots_remaining != null && slot.spots_remaining > 0 ? (
         <span
           className={`mt-0.5 block text-[10px] font-normal ${
             selected ? "text-white/90" : "text-slate-500"

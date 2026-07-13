@@ -80,6 +80,12 @@ class Service(Base, TimestampMixin):
         server_default="0",
     )
     booking_window_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    waitlist_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
     metadata_: Mapped[dict[str, Any]] = mapped_column(
         "metadata",
         JSONB,

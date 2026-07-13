@@ -142,6 +142,15 @@ class AvailabilityService:
                                     spots_remaining=remaining if capacity > 1 else None,
                                 )
                             )
+                        elif service.waitlist_enabled:
+                            slots.append(
+                                AvailabilitySlot(
+                                    starts_at=cursor,
+                                    ends_at=slot_end,
+                                    is_fully_booked=True,
+                                    waitlist_available=True,
+                                )
+                            )
             cursor += step
 
         return AvailabilityResponse(

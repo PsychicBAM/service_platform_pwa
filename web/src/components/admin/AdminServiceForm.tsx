@@ -3,6 +3,7 @@ import { FormField } from "@/components/FormField";
 import { TextAreaField } from "@/components/TextAreaField";
 import { AdminServiceImageSection } from "@/components/admin/AdminServiceImageSection";
 import { AdminServiceSlotCapacitySection } from "@/components/admin/AdminServiceSlotCapacitySection";
+import { AdminServiceWaitlistSection } from "@/components/admin/AdminServiceWaitlistSection";
 import type { PendingSlotCapacityOverride } from "@/components/admin/AdminServiceSlotCapacitySection";
 import type { ServiceImageMedia } from "@/lib/serviceImage";
 import type {
@@ -46,6 +47,7 @@ type FormState = {
   capacity: string;
   bookingMinNoticeMinutes: string;
   bookingWindowDays: string;
+  waitlistEnabled: boolean;
   priceType: PriceType;
   priceCents: string;
   currency: string;
@@ -68,6 +70,7 @@ function defaultFormState(initial?: AdminServiceRead): FormState {
         : "0",
     bookingWindowDays:
       initial?.booking_window_days != null ? String(initial.booking_window_days) : "",
+    waitlistEnabled: initial?.waitlist_enabled ?? false,
     priceType: initial?.price_type ?? "fixed",
     priceCents: initial?.price_cents != null ? String(initial.price_cents) : "",
     currency: initial?.currency ?? "USD",
@@ -159,6 +162,7 @@ function buildCreatePayload(state: FormState): ServiceCreatePayload {
     payload.booking_window_days = state.bookingWindowDays.trim()
       ? Number(state.bookingWindowDays)
       : null;
+    payload.waitlist_enabled = state.waitlistEnabled;
   }
 
   if (state.priceType === "fixed") {
@@ -188,6 +192,7 @@ function buildUpdatePayload(state: FormState, serviceType: ServiceType): Service
     payload.booking_window_days = state.bookingWindowDays.trim()
       ? Number(state.bookingWindowDays)
       : null;
+    payload.waitlist_enabled = state.waitlistEnabled;
   }
 
   if (state.priceType === "fixed") {
@@ -371,7 +376,35 @@ export function AdminServiceForm({
             disabled={submitting}
             data-testid="admin-service-booking-window"
           />
+          <label className="flex items-start gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              name="waitlistEnabled"
+              checked={form.waitlistEnabled}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, waitlistEnabled: event.target.checked }))
+              }
+              disabled={submitting}
+              data-testid="admin-service-waitlist-enabled"
+              className="mt-0.5"
+            />
+            <span>
+              <span className="font-medium text-slate-900">Enable waitlist</span>
+              <span className="mt-0.5 block text-xs text-slate-600">
+                Allow customers to join a waitlist when a time slot is fully booked.
+              </span>
+            </span>
+          </label>
         </section>
+      ) : null}
+
+      {isBooking && businessId && mode === "edit" && initial?.id ? (
+        <AdminServiceWaitlistSection
+          businessId={businessId}
+          serviceId={initial.id}
+          serviceType={effectiveType}
+          waitlistEnabled={form.waitlistEnabled}
+        />
       ) : null}
 
       {isBooking && businessId ? (

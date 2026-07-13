@@ -167,6 +167,8 @@ class AvailabilitySlot(BaseModel):
     starts_at: datetime
     ends_at: datetime
     spots_remaining: int | None = None
+    is_fully_booked: bool = False
+    waitlist_available: bool = False
 
 
 class AvailabilityResponse(BaseModel):

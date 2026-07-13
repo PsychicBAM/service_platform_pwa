@@ -10,6 +10,8 @@ import type {
   PublicOrderCreateResponse,
   PublicPageVariant,
   PublicService,
+  PublicWaitlistCreate,
+  PublicWaitlistCreateResponse,
   ServiceType,
 } from "@/types/api";
 
@@ -82,6 +84,14 @@ export function getAvailability(slug: string, serviceId: string, date: string) {
 export function createPublicBooking(slug: string, payload: PublicBookingCreate) {
   return apiClient.post<PublicBookingCreateResponse>(
     `/public/b/${encodeSlug(slug)}/bookings`,
+    payload,
+    { auth: false },
+  );
+}
+
+export function createPublicWaitlistEntry(slug: string, payload: PublicWaitlistCreate) {
+  return apiClient.post<PublicWaitlistCreateResponse>(
+    `/public/b/${encodeSlug(slug)}/waitlist`,
     payload,
     { auth: false },
   );
