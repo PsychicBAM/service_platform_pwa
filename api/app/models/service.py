@@ -73,6 +73,13 @@ class Service(Base, TimestampMixin):
         default=1,
         server_default="1",
     )
+    booking_min_notice_minutes: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+    booking_window_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
     metadata_: Mapped[dict[str, Any]] = mapped_column(
         "metadata",
         JSONB,

@@ -20,6 +20,7 @@ from app.repositories.business_repository import BusinessRepository
 from app.repositories.client_repository import ClientRepository
 from app.repositories.service_repository import ServiceRepository
 from app.schemas.booking import PublicBookingCreate
+from app.services import availability_service
 from app.services.availability_service import AvailabilityService
 from app.services.booking_capacity import (
     SLOT_FULLY_BOOKED_MESSAGE,
@@ -28,6 +29,11 @@ from app.services.booking_capacity import (
 )
 from app.services.email_notification_service import EmailNotificationService
 from app.services.legal_consent_service import LegalConsentService
+from app.utils.booking_rules import (
+    SLOT_OUTSIDE_WINDOW_MESSAGE,
+    SLOT_TOO_SOON_MESSAGE,
+    assert_slot_booking_rules,
+)
 from app.utils.booking_slots import normalize_starts_at, slot_starts_match
 from app.utils.references import generate_booking_reference
 
@@ -144,6 +150,34 @@ class BookingService:
             for slot in availability.slots
         )
         if not slot_found:
+            tz = ZoneInfo(business.timezone)
+            now = availability_service._now_in_tz(tz)
+            target_date = starts_at.astimezone(tz).date()
+            day_open = await self.availability_service.resolve_day_open(business, target_date)
+            if day_open is None:
+                raise SlotUnavailableError()
+
+            try:
+                assert_slot_booking_rules(
+                    service,
+                    business,
+                    starts_at,
+                    now=now,
+                    day_open=day_open,
+                )
+            except SlotUnavailableError as exc:
+                if exc.message in (SLOT_TOO_SOON_MESSAGE, SLOT_OUTSIDE_WINDOW_MESSAGE):
+                    raise
+                raise SlotUnavailableError() from exc
+
+            on_schedule = await self.availability_service.is_slot_on_schedule(
+                business,
+                service,
+                starts_at,
+            )
+            if not on_schedule:
+                raise SlotUnavailableError()
+
             booked_count = await self.booking_repo.count_blocking_bookings_for_slot(
                 business.id,
                 service.id,

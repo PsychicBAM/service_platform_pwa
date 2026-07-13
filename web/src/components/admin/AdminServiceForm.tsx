@@ -44,6 +44,8 @@ type FormState = {
   type: ServiceType;
   durationMinutes: string;
   capacity: string;
+  bookingMinNoticeMinutes: string;
+  bookingWindowDays: string;
   priceType: PriceType;
   priceCents: string;
   currency: string;
@@ -60,6 +62,12 @@ function defaultFormState(initial?: AdminServiceRead): FormState {
     durationMinutes:
       initial?.duration_minutes != null ? String(initial.duration_minutes) : "30",
     capacity: initial?.capacity != null ? String(initial.capacity) : "1",
+    bookingMinNoticeMinutes:
+      initial?.booking_min_notice_minutes != null
+        ? String(initial.booking_min_notice_minutes)
+        : "0",
+    bookingWindowDays:
+      initial?.booking_window_days != null ? String(initial.booking_window_days) : "",
     priceType: initial?.price_type ?? "fixed",
     priceCents: initial?.price_cents != null ? String(initial.price_cents) : "",
     currency: initial?.currency ?? "USD",
@@ -94,6 +102,18 @@ function validateForm(state: FormState, mode: FormMode, serviceType: ServiceType
       errors.capacity = "Capacity is required for booking services.";
     } else if (capacity < 1) {
       errors.capacity = "Capacity must be at least 1.";
+    }
+
+    const minNotice = Number(state.bookingMinNoticeMinutes);
+    if (state.bookingMinNoticeMinutes.trim() && (Number.isNaN(minNotice) || minNotice < 0)) {
+      errors.bookingMinNoticeMinutes = "Minimum notice must be 0 or greater.";
+    }
+
+    if (state.bookingWindowDays.trim()) {
+      const windowDays = Number(state.bookingWindowDays);
+      if (Number.isNaN(windowDays) || windowDays < 1) {
+        errors.bookingWindowDays = "Booking window must be at least 1 day when set.";
+      }
     }
   }
 
@@ -133,6 +153,12 @@ function buildCreatePayload(state: FormState): ServiceCreatePayload {
   if (state.type === "booking") {
     payload.duration_minutes = Number(state.durationMinutes);
     payload.capacity = Number(state.capacity);
+    payload.booking_min_notice_minutes = state.bookingMinNoticeMinutes.trim()
+      ? Number(state.bookingMinNoticeMinutes)
+      : 0;
+    payload.booking_window_days = state.bookingWindowDays.trim()
+      ? Number(state.bookingWindowDays)
+      : null;
   }
 
   if (state.priceType === "fixed") {
@@ -156,6 +182,12 @@ function buildUpdatePayload(state: FormState, serviceType: ServiceType): Service
   if (serviceType === "booking") {
     payload.duration_minutes = Number(state.durationMinutes);
     payload.capacity = Number(state.capacity);
+    payload.booking_min_notice_minutes = state.bookingMinNoticeMinutes.trim()
+      ? Number(state.bookingMinNoticeMinutes)
+      : 0;
+    payload.booking_window_days = state.bookingWindowDays.trim()
+      ? Number(state.bookingWindowDays)
+      : null;
   }
 
   if (state.priceType === "fixed") {
@@ -303,6 +335,43 @@ export function AdminServiceForm({
           disabled={submitting}
           data-testid="admin-service-capacity"
         />
+      ) : null}
+
+      {isBooking ? (
+        <section
+          className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4"
+          data-testid="admin-service-booking-rules"
+        >
+          <h3 className="text-sm font-semibold text-slate-900">Booking rules</h3>
+          <FormField
+            name="bookingMinNoticeMinutes"
+            label="Minimum notice (minutes)"
+            type="number"
+            min={0}
+            value={form.bookingMinNoticeMinutes}
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, bookingMinNoticeMinutes: event.target.value }))
+            }
+            error={fieldErrors.bookingMinNoticeMinutes}
+            hint="Example: 120 means customers must book at least 2 hours before the slot starts. Use 0 for no extra service-level notice."
+            disabled={submitting}
+            data-testid="admin-service-min-notice"
+          />
+          <FormField
+            name="bookingWindowDays"
+            label="Booking window (days)"
+            type="number"
+            min={1}
+            value={form.bookingWindowDays}
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, bookingWindowDays: event.target.value }))
+            }
+            error={fieldErrors.bookingWindowDays}
+            hint="Customers can only book this many days into the future. Leave empty for no service-level limit."
+            disabled={submitting}
+            data-testid="admin-service-booking-window"
+          />
+        </section>
       ) : null}
 
       {isBooking && businessId ? (

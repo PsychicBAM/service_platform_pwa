@@ -16,6 +16,13 @@ from app.repositories.service_slot_capacity_override_repository import (
     ServiceSlotCapacityOverrideRepository,
 )
 from app.schemas.schedule import AvailabilityResponse, AvailabilitySlot
+from app.utils.booking_rules import (
+    earliest_bookable_time,
+    effective_booking_window_days,
+    effective_min_notice_minutes,
+    is_slot_within_booking_rules,
+    latest_bookable_time,
+)
 from app.utils.booking_slots import effective_slot_capacity, slot_starts_match
 
 
@@ -56,12 +63,11 @@ class AvailabilityService:
         settings = business.settings or {}
         slot_interval = int(settings.get("slot_interval_minutes", 30))
         booking_buffer = int(settings.get("booking_buffer_minutes", 0))
-        min_advance_hours = int(settings.get("min_advance_booking_hours", 2))
-        max_advance_days = int(settings.get("max_advance_booking_days", 60))
+        min_notice_minutes = effective_min_notice_minutes(service, settings)
+        window_days = effective_booking_window_days(service, settings)
 
         now = _now_in_tz(tz)
-        today = now.date()
-        if target_date > today + timedelta(days=max_advance_days):
+        if window_days is not None and target_date > latest_bookable_time(now, window_days).date():
             return AvailabilityResponse(date=target_date, timezone=business.timezone, slots=[])
 
         day = spec_day_of_week(target_date)
@@ -80,7 +86,6 @@ class AvailabilityService:
 
         day_open = combine_local(target_date, working_hour.opens_at, tz)
         day_close = combine_local(target_date, working_hour.closes_at, tz)
-        earliest = now + timedelta(hours=min_advance_hours) if target_date == today else day_open
 
         step = timedelta(minutes=max(slot_interval, duration + booking_buffer))
         duration_delta = timedelta(minutes=duration)
@@ -116,7 +121,14 @@ class AvailabilityService:
         cursor = day_open
         while cursor + duration_delta <= day_close:
             slot_end = cursor + duration_delta
-            if cursor >= earliest:
+            if is_slot_within_booking_rules(
+                cursor,
+                now=now,
+                target_date=target_date,
+                day_open=day_open,
+                min_notice_minutes=min_notice_minutes,
+                window_days=window_days,
+            ):
                 if not self._overlaps_break(cursor, slot_end, target_date, tz, applicable_breaks):
                     if not self._overlaps_unavailable(cursor, slot_end, unavailable):
                         capacity = effective_slot_capacity(service, cursor, overrides)
@@ -151,12 +163,10 @@ class AvailabilityService:
         settings = business.settings or {}
         slot_interval = int(settings.get("slot_interval_minutes", 30))
         booking_buffer = int(settings.get("booking_buffer_minutes", 0))
-        min_advance_hours = int(settings.get("min_advance_booking_hours", 2))
-        max_advance_days = int(settings.get("max_advance_booking_days", 60))
+        window_days = effective_booking_window_days(service, settings)
 
         now = _now_in_tz(tz)
-        today = now.date()
-        if target_date > today + timedelta(days=max_advance_days):
+        if window_days is not None and target_date > latest_bookable_time(now, window_days).date():
             return False
 
         day = spec_day_of_week(target_date)
@@ -175,7 +185,6 @@ class AvailabilityService:
 
         day_open = combine_local(target_date, working_hour.opens_at, tz)
         day_close = combine_local(target_date, working_hour.closes_at, tz)
-        earliest = now + timedelta(hours=min_advance_hours) if target_date == today else day_open
 
         step = timedelta(minutes=max(slot_interval, duration + booking_buffer))
         duration_delta = timedelta(minutes=duration)
@@ -199,8 +208,6 @@ class AvailabilityService:
         while cursor + duration_delta <= day_close:
             slot_end = cursor + duration_delta
             if slot_starts_match(starts_at, cursor):
-                if cursor < earliest:
-                    return False
                 if self._overlaps_break(cursor, slot_end, target_date, tz, applicable_breaks):
                     return False
                 if self._overlaps_unavailable(cursor, slot_end, unavailable):
@@ -208,6 +215,22 @@ class AvailabilityService:
                 return True
             cursor += step
         return False
+
+    async def resolve_day_open(
+        self,
+        business: Business,
+        target_date: date,
+    ) -> datetime | None:
+        tz = ZoneInfo(business.timezone)
+        day = spec_day_of_week(target_date)
+        working_hour = await self.schedule_repo.get_working_hour_for_day(business.id, day)
+        if (
+            working_hour is None
+            or not working_hour.is_open
+            or working_hour.opens_at is None
+        ):
+            return None
+        return combine_local(target_date, working_hour.opens_at, tz)
 
     async def get_availability_for_service_id(
         self,

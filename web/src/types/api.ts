@@ -454,6 +454,8 @@ export interface AdminServiceRead {
   is_active: boolean;
   sort_order: number;
   capacity?: number;
+  booking_min_notice_minutes?: number;
+  booking_window_days?: number | null;
   metadata: Record<string, unknown>;
   image?: import("@/lib/serviceImage").ServiceImageMedia | null;
   created_at: string;
@@ -498,6 +500,8 @@ export interface ServiceCreatePayload {
   is_active?: boolean;
   sort_order?: number;
   capacity?: number;
+  booking_min_notice_minutes?: number;
+  booking_window_days?: number | null;
   metadata?: Record<string, unknown>;
 }
 
@@ -512,6 +516,8 @@ export interface ServiceUpdatePayload {
   is_active?: boolean;
   sort_order?: number;
   capacity?: number;
+  booking_min_notice_minutes?: number;
+  booking_window_days?: number | null;
   metadata?: Record<string, unknown>;
 }
 

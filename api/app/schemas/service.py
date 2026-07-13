@@ -24,6 +24,8 @@ class ServiceRead(BaseModel):
     is_active: bool
     sort_order: int
     capacity: int = 1
+    booking_min_notice_minutes: int = 0
+    booking_window_days: int | None = None
     metadata: dict[str, Any]
     image: ServiceImageMedia | None = None
     created_at: datetime
@@ -50,6 +52,8 @@ class ServiceRead(BaseModel):
             is_active=service.is_active,
             sort_order=service.sort_order,
             capacity=service.capacity,
+            booking_min_notice_minutes=service.booking_min_notice_minutes,
+            booking_window_days=service.booking_window_days,
             metadata=service.metadata_,
             image=read_service_image(service.image_),
             created_at=service.created_at,
@@ -110,7 +114,25 @@ class ServiceCreate(BaseModel):
     is_active: bool = True
     sort_order: int = 0
     capacity: int = 1
+    booking_min_notice_minutes: int = 0
+    booking_window_days: int | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("booking_min_notice_minutes")
+    @classmethod
+    def booking_min_notice_range(cls, value: int) -> int:
+        if value < 0:
+            raise ValueError("booking_min_notice_minutes must be >= 0")
+        if value > 43200:
+            raise ValueError("booking_min_notice_minutes must be at most 43200")
+        return value
+
+    @field_validator("booking_window_days")
+    @classmethod
+    def booking_window_minimum(cls, value: int | None) -> int | None:
+        if value is not None and value < 1:
+            raise ValueError("booking_window_days must be at least 1 when set")
+        return value
 
     @field_validator("capacity")
     @classmethod
@@ -153,6 +175,8 @@ class ServiceCreate(BaseModel):
             raise ValueError("duration_minutes is required for booking services")
         if self.type == ServiceType.order:
             self.capacity = 1
+            self.booking_min_notice_minutes = 0
+            self.booking_window_days = None
         return self
 
     @model_validator(mode="after")
@@ -176,7 +200,25 @@ class ServiceUpdate(BaseModel):
     is_active: bool | None = None
     sort_order: int | None = None
     capacity: int | None = None
+    booking_min_notice_minutes: int | None = None
+    booking_window_days: int | None = None
     metadata: dict[str, Any] | None = None
+
+    @field_validator("booking_min_notice_minutes")
+    @classmethod
+    def booking_min_notice_range(cls, value: int | None) -> int | None:
+        if value is not None and value < 0:
+            raise ValueError("booking_min_notice_minutes must be >= 0")
+        if value is not None and value > 43200:
+            raise ValueError("booking_min_notice_minutes must be at most 43200")
+        return value
+
+    @field_validator("booking_window_days")
+    @classmethod
+    def booking_window_minimum(cls, value: int | None) -> int | None:
+        if value is not None and value < 1:
+            raise ValueError("booking_window_days must be at least 1 when set")
+        return value
 
     @field_validator("capacity")
     @classmethod
