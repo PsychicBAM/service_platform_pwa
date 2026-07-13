@@ -51,22 +51,46 @@ describe("AdminServiceForm waitlist", () => {
     expect(screen.queryByTestId("admin-service-waitlist-enabled")).not.toBeInTheDocument();
   });
 
-  it("shows waitlist entries section with no auto-promotion helper when enabled", async () => {
+  it("points to Bookings waitlist instead of listing entries in edit form", async () => {
+    renderRoute(
+      <AdminServiceForm
+        mode="edit"
+        businessId="biz-1"
+        initial={mockAdminServices.find((s) => s.id === BOOKING_SERVICE_ID)}
+        onSubmit={() => undefined}
+        onCancel={() => undefined}
+      />,
+    );
+
+    expect(await screen.findByTestId("admin-service-waitlist")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Manage waitlist entries from Admin > Bookings → Waitlist/i),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("admin-service-open-waitlist")).toHaveAttribute(
+      "href",
+      "/admin/bookings?tab=waitlist",
+    );
+    expect(screen.queryByTestId("waitlist-entry")).not.toBeInTheDocument();
+    expect(screen.queryByText("No waitlist entries yet.")).not.toBeInTheDocument();
+  });
+});
+
+describe("AdminServiceWaitlistSection", () => {
+  it("shows helper and open waitlist link when enabled", () => {
     renderRoute(
       <AdminServiceWaitlistSection
-        businessId="biz-1"
         serviceId={BOOKING_SERVICE_ID}
         serviceType="booking"
         waitlistEnabled
       />,
+      { route: "/admin/services" },
     );
 
-    expect(screen.getByText("Waitlist entries")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Cancelling a booking does not automatically create a new booking yet/i),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Automatic promotion will be added later/i)).toBeInTheDocument();
-    expect(await screen.findByText("No waitlist entries yet.")).toBeInTheDocument();
+    expect(screen.getByText(/Manage waitlist entries from Admin > Bookings → Waitlist/i)).toBeInTheDocument();
+    expect(screen.getByTestId("admin-service-open-waitlist")).toHaveAttribute(
+      "href",
+      "/admin/bookings?tab=waitlist",
+    );
   });
 });
 

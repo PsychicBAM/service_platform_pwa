@@ -126,7 +126,7 @@ describe("admin pages smoke", () => {
       "Waitlist enabled",
     );
     expect(screen.getByTestId(`admin-service-waitlist-hint-${BOOKING_SERVICE_ID}`)).toHaveTextContent(
-      "Open Edit to manage waitlist entries.",
+      "Manage entries in Bookings → Waitlist.",
     );
     expect(screen.getByTestId(`admin-service-view-waitlist-${BOOKING_SERVICE_ID}`)).toBeInTheDocument();
   });

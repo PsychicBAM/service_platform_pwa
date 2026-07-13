@@ -1,17 +1,20 @@
 type StatusBadgeProps = {
   status: string;
-  kind?: "booking" | "order";
+  kind?: "booking" | "order" | "waitlist";
 };
 
 function statusClasses(status: string, kind: StatusBadgeProps["kind"]): string {
   if (status === "cancelled" || status === "declined") {
     return "bg-red-100 text-red-800";
   }
-  if (status === "completed" || status === "confirmed") {
+  if (status === "completed" || status === "confirmed" || status === "resolved") {
     return "bg-emerald-100 text-emerald-800";
   }
-  if (status === "pending" || status === "submitted" || status === "pending_payment") {
+  if (status === "pending" || status === "submitted" || status === "pending_payment" || status === "waiting") {
     return "bg-amber-100 text-amber-800";
+  }
+  if (status === "contacted") {
+    return "bg-brand-100 text-brand-800";
   }
   if (status === "in_progress" || status === "accepted") {
     return kind === "order" ? "bg-sky-100 text-sky-800" : "bg-brand-100 text-brand-800";

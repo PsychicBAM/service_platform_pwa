@@ -11,6 +11,7 @@ import type {
   PublicService,
   ScheduleRead,
   SuperadminBusinessListItem,
+  WaitlistEntryRead,
 } from "@/types/api";
 
 export const DEMO_SLUG = "demo-business";
@@ -325,3 +326,22 @@ export const mockSuperadminLegalConsentRecords = {
   })),
   meta: mockLegalConsentRecords.meta,
 };
+
+export const WAITLIST_ENTRY_ID = "waitlist-entry-001";
+
+export const mockWaitlistEntries: WaitlistEntryRead[] = [
+  {
+    id: WAITLIST_ENTRY_ID,
+    business_id: BUSINESS_ID,
+    service_id: BOOKING_SERVICE_ID,
+    service_name: "Arabic Lesson",
+    starts_at: "2026-06-23T10:00:00-04:00",
+    customer_name: "Jane Waitlist",
+    customer_email: "jane@example.com",
+    customer_phone: "+15551234567",
+    note: "Prefer morning",
+    status: "waiting",
+    created_at: "2026-06-20T08:00:00Z",
+    updated_at: "2026-06-20T08:00:00Z",
+  },
+];

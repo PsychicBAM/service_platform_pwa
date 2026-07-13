@@ -398,9 +398,8 @@ export function AdminServiceForm({
         </section>
       ) : null}
 
-      {isBooking && businessId && mode === "edit" && initial?.id ? (
+      {isBooking && mode === "edit" && initial?.id ? (
         <AdminServiceWaitlistSection
-          businessId={businessId}
           serviceId={initial.id}
           serviceType={effectiveType}
           waitlistEnabled={form.waitlistEnabled}

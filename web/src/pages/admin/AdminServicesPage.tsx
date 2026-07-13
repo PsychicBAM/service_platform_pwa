@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createAdminService,
@@ -90,12 +91,14 @@ function AdminServiceListCard({
   service,
   submitting,
   onEdit,
+  onViewWaitlist,
   onToggleActive,
   onDelete,
 }: {
   service: AdminServiceRead;
   submitting: boolean;
   onEdit: () => void;
+  onViewWaitlist: () => void;
   onToggleActive: () => void;
   onDelete: () => void;
 }) {
@@ -140,7 +143,7 @@ function AdminServiceListCard({
               className="mt-1.5 text-xs text-amber-800"
               data-testid={`admin-service-waitlist-hint-${service.id}`}
             >
-              Open Edit to manage waitlist entries.
+              Manage entries in Bookings → Waitlist.
             </p>
           ) : null}
 
@@ -176,7 +179,7 @@ function AdminServiceListCard({
         {service.type === "booking" && service.waitlist_enabled ? (
           <button
             type="button"
-            onClick={onEdit}
+            onClick={onViewWaitlist}
             disabled={submitting}
             className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-60"
             data-testid={`admin-service-view-waitlist-${service.id}`}
@@ -207,6 +210,7 @@ function AdminServiceListCard({
 
 export function AdminServicesPage() {
   const { businessId } = useAdminBusiness();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -551,6 +555,7 @@ export function AdminServicesPage() {
                 setSuccessMessage(null);
                 setActionError(null);
               }}
+              onViewWaitlist={() => navigate("/admin/bookings?tab=waitlist")}
               onToggleActive={() => void handleToggleActive(service)}
               onDelete={() => void handleDelete(service)}
             />
