@@ -35,6 +35,8 @@ _AUTH_TABLES = (
     "order_messages",
     "orders",
     "bookings",
+    "booking_waitlist_entries",
+    "service_slot_capacity_overrides",
     "clients",
     "unavailable_times",
     "working_breaks",
@@ -116,6 +118,7 @@ async def clean_auth_tables(db_engine, db_session):
     async def _reset_db_state() -> None:
         await db_session.rollback()
         db_session.expire_all()
+        db_session.expunge_all()
         async with factory() as purge_session:
             await _purge_auth_tables_on_session(purge_session)
 
