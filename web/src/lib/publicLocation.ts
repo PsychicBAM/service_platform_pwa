@@ -5,6 +5,7 @@ export interface PublicBusinessLocation {
   city: string | null;
   district_or_area: string | null;
   public_address: string | null;
+  postal_code: string | null;
   latitude: number | null;
   longitude: number | null;
   location_note: string | null;
@@ -15,6 +16,7 @@ export type PublicLocationFormState = {
   city: string;
   district_or_area: string;
   public_address: string;
+  postal_code: string;
   latitude: string;
   longitude: string;
   location_note: string;
@@ -25,6 +27,7 @@ export const EMPTY_PUBLIC_LOCATION_FORM: PublicLocationFormState = {
   city: "",
   district_or_area: "",
   public_address: "",
+  postal_code: "",
   latitude: "",
   longitude: "",
   location_note: "",
@@ -47,10 +50,21 @@ export function publicLocationFormFromApi(
     city: location.city ?? "",
     district_or_area: location.district_or_area ?? "",
     public_address: location.public_address ?? "",
+    postal_code: location.postal_code ?? "",
     latitude: location.latitude != null ? String(location.latitude) : "",
     longitude: location.longitude != null ? String(location.longitude) : "",
     location_note: location.location_note ?? "",
   };
+}
+
+export function formatPublicLocationSummary(
+  location: PublicBusinessLocation | null | undefined,
+): string | null {
+  if (!location) {
+    return null;
+  }
+
+  return formatPublicLocationDisplay({ location, address: null });
 }
 
 export function publicLocationPayloadFromForm(form: PublicLocationFormState): PublicBusinessLocation {
@@ -62,6 +76,7 @@ export function publicLocationPayloadFromForm(form: PublicLocationFormState): Pu
     city: cleanText(form.city),
     district_or_area: cleanText(form.district_or_area),
     public_address: cleanText(form.public_address),
+    postal_code: cleanText(form.postal_code),
     latitude: latitude ? Number(latitude) : null,
     longitude: longitude ? Number(longitude) : null,
     location_note: cleanText(form.location_note),

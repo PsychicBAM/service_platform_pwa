@@ -17,6 +17,7 @@ class PublicLocation(BaseModel):
     city: str | None = None
     district_or_area: str | None = None
     public_address: str | None = None
+    postal_code: str | None = None
     latitude: float | None = None
     longitude: float | None = None
     location_note: str | None = None
@@ -26,6 +27,7 @@ class PublicLocation(BaseModel):
         "city",
         "district_or_area",
         "public_address",
+        "postal_code",
         "location_note",
         mode="before",
     )

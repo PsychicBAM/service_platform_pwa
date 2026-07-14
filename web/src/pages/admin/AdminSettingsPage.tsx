@@ -4,6 +4,7 @@ import { createBillingCheckoutSession } from "@/api/billingApi";
 import { getBusiness, updateBusiness } from "@/api/adminApi";
 import { PlanFeatureComparison } from "@/components/admin/PlanFeatureComparison";
 import { AdminMarketplaceCoverSection } from "@/components/admin/AdminMarketplaceCoverSection";
+import { AdminBusinessLocationSection } from "@/components/admin/AdminBusinessLocationSection";
 import { ProToolsComingSoonCard } from "@/components/admin/ProToolsComingSoonCard";
 import { PublicProfileSettingsCard } from "@/components/admin/PublicProfileSettingsCard";
 import { ErrorState } from "@/components/ErrorState";
@@ -19,13 +20,6 @@ import type {
 import { getAdminSettingsErrorMessage, getBillingCheckoutErrorMessage } from "@/utils/errors";
 import { formatPlanLabel } from "@/utils/planManagement";
 import { normalizeServiceImageMedia, type ServiceImageMedia } from "@/lib/serviceImage";
-import {
-  EMPTY_PUBLIC_LOCATION_FORM,
-  publicLocationFormFromApi,
-  publicLocationPayloadFromForm,
-  validatePublicLocationForm,
-  type PublicLocationFormState,
-} from "@/lib/publicLocation";
 
 const CHECKOUT_PLANS: Array<{ id: CheckoutPlanId; label: string }> = [
   { id: "starter", label: "Starter" },
@@ -174,10 +168,7 @@ function validateForm(form: SettingsFormState): string | null {
   return null;
 }
 
-function buildUpdatePayload(
-  form: SettingsFormState,
-  locationForm: PublicLocationFormState,
-): BusinessUpdatePayload {
+function buildUpdatePayload(form: SettingsFormState): BusinessUpdatePayload {
   return {
     name: form.name.trim(),
     description: form.description.trim() || null,
@@ -186,7 +177,6 @@ function buildUpdatePayload(
     contact_phone: form.contact_phone.trim() || null,
     timezone: form.timezone.trim(),
     operating_mode: form.operating_mode,
-    public_location: publicLocationPayloadFromForm(locationForm),
     settings: {
       auto_confirm_bookings: form.auto_confirm_bookings,
       cancellation_hours: Number(form.cancellation_hours),
@@ -258,7 +248,6 @@ export function AdminSettingsPage() {
   const [billingMessage, setBillingMessage] = useState<string | null>(null);
   const [checkoutLoadingPlan, setCheckoutLoadingPlan] = useState<CheckoutPlanId | null>(null);
   const [marketplaceCoverImage, setMarketplaceCoverImage] = useState<ServiceImageMedia | null>(null);
-  const [locationForm, setLocationForm] = useState<PublicLocationFormState>(EMPTY_PUBLIC_LOCATION_FORM);
 
   const businessQuery = useQuery({
     queryKey: ["admin-business", businessId],
@@ -270,7 +259,6 @@ export function AdminSettingsPage() {
     if (businessQuery.data) {
       setForm(formFromBusiness(businessQuery.data));
       setMarketplaceCoverImage(normalizeServiceImageMedia(businessQuery.data.marketplace_cover_image));
-      setLocationForm(publicLocationFormFromApi(businessQuery.data.public_location));
     }
   }, [businessQuery.data]);
 
@@ -279,19 +267,11 @@ export function AdminSettingsPage() {
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ["admin-business", businessId] });
       setForm(formFromBusiness(data));
-      setLocationForm(publicLocationFormFromApi(data.public_location));
     },
   });
 
   function updateForm<K extends keyof SettingsFormState>(key: K, value: SettingsFormState[K]) {
     setForm((current) => (current ? { ...current, [key]: value } : current));
-  }
-
-  function updateLocationForm<K extends keyof PublicLocationFormState>(
-    key: K,
-    value: PublicLocationFormState[K],
-  ) {
-    setLocationForm((current) => ({ ...current, [key]: value }));
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -308,14 +288,8 @@ export function AdminSettingsPage() {
       return;
     }
 
-    const locationValidationError = validatePublicLocationForm(locationForm);
-    if (locationValidationError) {
-      setActionError(locationValidationError);
-      return;
-    }
-
     try {
-      await saveMutation.mutateAsync(buildUpdatePayload(form, locationForm));
+      await saveMutation.mutateAsync(buildUpdatePayload(form));
       setSuccessMessage("Settings saved.");
     } catch (error) {
       setActionError(getAdminSettingsErrorMessage(error, "Could not save settings."));
@@ -403,88 +377,11 @@ export function AdminSettingsPage() {
                 void queryClient.invalidateQueries({ queryKey: ["admin-business", businessId] });
               }}
             />
-            <div
-              className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3"
-              data-testid="admin-business-location-section"
-            >
-              <div>
-                <p className="text-sm font-medium text-slate-900">Business location</p>
-                <p className="mt-1 text-xs text-slate-600">
-                  Used on your public business page and marketplace listing. Map support is coming
-                  later.
-                </p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <FieldLabel htmlFor="locationCountry">Country</FieldLabel>
-                  <TextInput
-                    id="locationCountry"
-                    value={locationForm.country}
-                    disabled={saving}
-                    onChange={(value) => updateLocationForm("country", value)}
-                  />
-                </div>
-                <div>
-                  <FieldLabel htmlFor="locationCity">City</FieldLabel>
-                  <TextInput
-                    id="locationCity"
-                    value={locationForm.city}
-                    disabled={saving}
-                    onChange={(value) => updateLocationForm("city", value)}
-                  />
-                </div>
-                <div>
-                  <FieldLabel htmlFor="locationDistrict">District / area</FieldLabel>
-                  <TextInput
-                    id="locationDistrict"
-                    value={locationForm.district_or_area}
-                    disabled={saving}
-                    onChange={(value) => updateLocationForm("district_or_area", value)}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <FieldLabel htmlFor="locationPublicAddress">Public address</FieldLabel>
-                  <TextInput
-                    id="locationPublicAddress"
-                    value={locationForm.public_address}
-                    disabled={saving}
-                    onChange={(value) => updateLocationForm("public_address", value)}
-                  />
-                </div>
-                <div>
-                  <FieldLabel htmlFor="locationLatitude">Latitude</FieldLabel>
-                  <TextInput
-                    id="locationLatitude"
-                    value={locationForm.latitude}
-                    disabled={saving}
-                    placeholder="Optional"
-                    onChange={(value) => updateLocationForm("latitude", value)}
-                  />
-                  <p className="mt-1 text-xs text-slate-500">
-                    Optional. Leave empty if you do not want to set a map pin yet.
-                  </p>
-                </div>
-                <div>
-                  <FieldLabel htmlFor="locationLongitude">Longitude</FieldLabel>
-                  <TextInput
-                    id="locationLongitude"
-                    value={locationForm.longitude}
-                    disabled={saving}
-                    placeholder="Optional"
-                    onChange={(value) => updateLocationForm("longitude", value)}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <TextAreaField
-                    name="locationNote"
-                    label="Directions note"
-                    value={locationForm.location_note}
-                    disabled={saving}
-                    onChange={(event) => updateLocationForm("location_note", event.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
+            <AdminBusinessLocationSection
+              businessId={businessId!}
+              publicLocation={businessQuery.data?.public_location}
+              disabled={saving}
+            />
             <div>
               <FieldLabel htmlFor="contactEmail">Contact email</FieldLabel>
               <TextInput

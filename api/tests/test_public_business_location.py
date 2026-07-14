@@ -49,6 +49,7 @@ async def test_public_directory_returns_safe_location_fields(
         "city": "Dubai",
         "district_or_area": "Dubai Marina",
         "public_address": "Marina Walk",
+        "postal_code": None,
         "latitude": None,
         "longitude": None,
         "location_note": "Near tram stop",

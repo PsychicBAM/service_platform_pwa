@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as adminApi from "@/api/adminApi";
 import * as miniSiteApi from "@/api/miniSiteApi";
@@ -48,35 +48,64 @@ describe("admin business location settings", () => {
         city: "Dubai",
         district_or_area: "Dubai Marina",
         public_address: "Marina Walk",
-        latitude: null,
-        longitude: null,
+        postal_code: null,
+        latitude: 25.08,
+        longitude: 55.14,
         location_note: null,
       },
     });
     vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue(DEFAULT_MINI_SITE_CONFIG);
   });
 
-  it("renders business location section with helper text", async () => {
+  it("shows compact business location summary by default", async () => {
     renderSettingsPage();
 
     const section = await screen.findByTestId("admin-business-location-section");
     expect(section).toBeInTheDocument();
-    expect(screen.getByText("Business location")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-business-location-summary")).toHaveTextContent(
+      "Dubai Marina, Dubai, UAE",
+    );
+    expect(screen.getByTestId("admin-business-location-edit")).toBeInTheDocument();
+    expect(screen.queryByTestId("admin-business-location-form")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Latitude")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Longitude")).not.toBeInTheDocument();
+  });
+
+  it("shows empty summary when no public location is set", async () => {
+    vi.mocked(adminApi.getBusiness).mockResolvedValue({
+      ...mockAdminBusiness,
+      public_location: null,
+    });
+
+    renderSettingsPage();
+
+    expect(await screen.findByTestId("admin-business-location-summary")).toHaveTextContent(
+      "No public location set",
+    );
+  });
+
+  it("opens location form when Edit is clicked", async () => {
+    const user = userEvent.setup();
+    renderSettingsPage();
+
+    await user.click(await screen.findByTestId("admin-business-location-edit"));
+
+    const form = screen.getByTestId("admin-business-location-form");
+    expect(form).toBeInTheDocument();
+    expect(within(form).getByLabelText("Country")).toHaveValue("UAE");
+    expect(within(form).getByLabelText("City")).toHaveValue("Dubai");
+    expect(within(form).getByLabelText("District / area")).toHaveValue("Dubai Marina");
+    expect(within(form).getByLabelText("Street, building, office")).toHaveValue("Marina Walk");
+    expect(within(form).getByLabelText("Postal code")).toBeInTheDocument();
+    expect(within(form).getByLabelText("Directions note")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Latitude")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Longitude")).not.toBeInTheDocument();
     expect(
       screen.getByText(/used on your public business page and marketplace listing/i),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("Country")).toHaveValue("UAE");
-    expect(screen.getByLabelText("City")).toHaveValue("Dubai");
-    expect(screen.getByLabelText("District / area")).toHaveValue("Dubai Marina");
-    expect(screen.getByLabelText("Public address")).toHaveValue("Marina Walk");
-    expect(screen.getByLabelText("Latitude")).toBeInTheDocument();
-    expect(screen.getByLabelText("Longitude")).toBeInTheDocument();
-    expect(
-      screen.getByText(/optional\. leave empty if you do not want to set a map pin yet/i),
-    ).toBeInTheDocument();
   });
 
-  it("saves edited location fields via updateBusiness", async () => {
+  it("saves location via updateBusiness and collapses after success", async () => {
     const user = userEvent.setup();
     vi.mocked(adminApi.updateBusiness).mockResolvedValue({
       ...mockAdminBusiness,
@@ -85,50 +114,60 @@ describe("admin business location settings", () => {
         city: "Dubai",
         district_or_area: "Jumeirah",
         public_address: "Beach Road",
-        latitude: 25.2,
-        longitude: 55.25,
+        postal_code: "12345",
+        latitude: 25.08,
+        longitude: 55.14,
         location_note: "Near the beach",
       },
     });
 
     renderSettingsPage();
-    await screen.findByTestId("admin-business-location-section");
+    await user.click(await screen.findByTestId("admin-business-location-edit"));
 
     await user.clear(screen.getByLabelText("District / area"));
     await user.type(screen.getByLabelText("District / area"), "Jumeirah");
-    await user.clear(screen.getByLabelText("Public address"));
-    await user.type(screen.getByLabelText("Public address"), "Beach Road");
-    await user.type(screen.getByLabelText("Latitude"), "25.2");
-    await user.type(screen.getByLabelText("Longitude"), "55.25");
+    await user.clear(screen.getByLabelText("Street, building, office"));
+    await user.type(screen.getByLabelText("Street, building, office"), "Beach Road");
+    await user.type(screen.getByLabelText("Postal code"), "12345");
     await user.type(screen.getByLabelText("Directions note"), "Near the beach");
-    await user.click(screen.getByRole("button", { name: "Save settings" }));
+    await user.click(screen.getByTestId("admin-business-location-save"));
 
     await waitFor(() => {
-      expect(adminApi.updateBusiness).toHaveBeenCalled();
+      expect(adminApi.updateBusiness).toHaveBeenCalledWith(
+        mockAdminBusiness.id,
+        expect.objectContaining({
+          public_location: {
+            country: "UAE",
+            city: "Dubai",
+            district_or_area: "Jumeirah",
+            public_address: "Beach Road",
+            postal_code: "12345",
+            latitude: 25.08,
+            longitude: 55.14,
+            location_note: "Near the beach",
+          },
+        }),
+      );
     });
-    const payload = vi.mocked(adminApi.updateBusiness).mock.calls.at(-1)?.[1];
-    expect(payload?.public_location).toMatchObject({
-      country: "UAE",
-      city: "Dubai",
-      district_or_area: "Jumeirah",
-      public_address: "Beach Road",
-      latitude: 25.2,
-      longitude: 55.25,
-      location_note: "Near the beach",
-    });
+
+    expect(screen.queryByTestId("admin-business-location-form")).not.toBeInTheDocument();
+    expect(screen.getByTestId("admin-business-location-edit")).toBeInTheDocument();
   });
 
-  it("shows validation error for invalid latitude", async () => {
+  it("cancel collapses without saving changes", async () => {
     const user = userEvent.setup();
 
     renderSettingsPage();
-    await screen.findByTestId("admin-business-location-section");
+    await user.click(await screen.findByTestId("admin-business-location-edit"));
 
-    await user.clear(screen.getByLabelText("Latitude"));
-    await user.type(screen.getByLabelText("Latitude"), "999");
-    await user.click(screen.getByRole("button", { name: "Save settings" }));
+    await user.clear(screen.getByLabelText("City"));
+    await user.type(screen.getByLabelText("City"), "Abu Dhabi");
+    await user.click(screen.getByTestId("admin-business-location-cancel"));
 
-    expect(await screen.findByText(/latitude must be between -90 and 90/i)).toBeInTheDocument();
     expect(adminApi.updateBusiness).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("admin-business-location-form")).not.toBeInTheDocument();
+    expect(screen.getByTestId("admin-business-location-summary")).toHaveTextContent(
+      "Dubai Marina, Dubai, UAE",
+    );
   });
 });

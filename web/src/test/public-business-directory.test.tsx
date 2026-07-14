@@ -22,6 +22,7 @@ const mockDirectoryBusiness: PublicBusinessDirectoryItem = {
     city: "Bangalore",
     district_or_area: "Indiranagar",
     public_address: null,
+    postal_code: null,
     latitude: null,
     longitude: null,
     location_note: null,
