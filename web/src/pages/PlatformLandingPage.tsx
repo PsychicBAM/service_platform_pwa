@@ -34,10 +34,11 @@ export function PlatformLandingPage() {
 
   const featuredQuery = useQuery({
     queryKey: ["homepage-featured-businesses"],
-    queryFn: () => listPublicBusinesses({ sort: "popular", limit: 5, page: 1 }),
+    queryFn: () => listPublicBusinesses({ sort: "popular", limit: 12, page: 1 }),
   });
 
   const featuredBusinesses = featuredQuery.data?.data ?? [];
+  const featuredCards = featuredBusinesses.slice(0, 5);
   const totalBusinesses = featuredQuery.data?.meta.total ?? 0;
   const featuredReviewCount = useMemo(
     () => featuredBusinesses.reduce((sum, business) => sum + business.review_count, 0),
@@ -157,10 +158,11 @@ export function PlatformLandingPage() {
                 How it works
               </a>
               <Link
-                to="/register"
+                to="/pricing"
                 className="rounded-xl px-2 py-3 text-center text-sm font-semibold text-brand-700 hover:underline sm:ml-1"
+                data-testid="homepage-get-started"
               >
-                Get started
+                Start your business
               </Link>
             </div>
           </div>
@@ -210,18 +212,18 @@ export function PlatformLandingPage() {
 
         {featuredQuery.isLoading ? <LoadingState message="Loading featured businesses…" /> : null}
 
-        {!featuredQuery.isLoading && featuredBusinesses.length > 0 ? (
+        {!featuredQuery.isLoading && featuredCards.length > 0 ? (
           <div
             className="flex gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:overflow-visible"
             data-testid="homepage-featured-grid"
           >
-            {featuredBusinesses.map((business) => (
+            {featuredCards.map((business) => (
               <FeaturedBusinessCard key={business.slug} business={business} />
             ))}
           </div>
         ) : null}
 
-        {!featuredQuery.isLoading && featuredBusinesses.length === 0 ? (
+        {!featuredQuery.isLoading && featuredCards.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
             <p className="text-sm text-slate-600">
               Featured businesses will appear here as public pages go live.
@@ -293,10 +295,11 @@ export function PlatformLandingPage() {
               Bookings, waitlists, reviews, and your public page — all in one platform.
             </p>
             <Link
-              to="/register"
+              to="/pricing"
               className="mt-5 inline-block rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-800 hover:bg-brand-50"
+              data-testid="homepage-business-cta"
             >
-              Get started
+              Start your business
             </Link>
           </div>
         </div>

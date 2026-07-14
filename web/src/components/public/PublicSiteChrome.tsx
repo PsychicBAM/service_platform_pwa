@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-export type PublicSiteNavActive = "home" | "marketplace";
+export type PublicSiteNavActive = "home" | "marketplace" | "pricing";
 
 type PublicSiteHeaderProps = {
   active?: PublicSiteNavActive;
@@ -44,9 +44,19 @@ export function PublicSiteHeader({ active = "home" }: PublicSiteHeaderProps) {
             <Link to="/businesses" className="hover:text-brand-700">
               Reviews
             </Link>
-            <a href="#how-it-works" className="hover:text-brand-700">
+            <Link
+              to="/pricing"
+              className={
+                active === "pricing"
+                  ? "border-b-2 border-brand-700 pb-0.5 text-brand-700"
+                  : "hover:text-brand-700"
+              }
+            >
+              Pricing
+            </Link>
+            <Link to="/#how-it-works" className="hover:text-brand-700">
               How it works
-            </a>
+            </Link>
           </nav>
         </div>
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -74,7 +84,7 @@ export function PublicSiteHeader({ active = "home" }: PublicSiteHeaderProps) {
                 Sign in
               </Link>
               <Link
-                to="/register"
+                to="/pricing"
                 className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800"
               >
                 Get started
@@ -98,10 +108,13 @@ export function PublicSiteFooter() {
         <Link to="/businesses" className="hover:text-brand-700 hover:underline">
           Marketplace
         </Link>
+        <Link to="/pricing" className="hover:text-brand-700 hover:underline">
+          Pricing
+        </Link>
         <Link to="/login" className="hover:text-brand-700 hover:underline">
           Sign in
         </Link>
-        <Link to="/register" className="hover:text-brand-700 hover:underline">
+        <Link to="/pricing" className="hover:text-brand-700 hover:underline">
           Get started
         </Link>
       </nav>

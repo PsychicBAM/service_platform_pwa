@@ -44,12 +44,16 @@ import { MarketplaceShell } from "@/components/marketplace/MarketplaceShell";
 import { LandingShell } from "@/components/landing/LandingShell";
 import { BusinessDirectoryPage } from "@/pages/BusinessDirectoryPage";
 import { PlatformLandingPage } from "@/pages/PlatformLandingPage";
+import { PricingPage } from "@/pages/PricingPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <LandingShell />,
-    children: [{ index: true, element: <PlatformLandingPage /> }],
+    children: [
+      { index: true, element: <PlatformLandingPage /> },
+      { path: "pricing", element: <PricingPage /> },
+    ],
   },
   {
     path: "/businesses",

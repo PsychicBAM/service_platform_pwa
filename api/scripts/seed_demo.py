@@ -50,6 +50,12 @@ PRODUCTION_GUARD_MESSAGE = "Demo seed refused in production (local/staging only)
 SUPERADMIN_EMAIL = "superadmin@example.com"
 OWNER_EMAIL = "owner@example.com"
 BUSINESS_SLUG = "demo-business"
+COACH_OWNER_EMAIL = "coach@example.com"
+COACH_BUSINESS_SLUG = "peak-performance-coaching"
+TEACHER_OWNER_EMAIL = "teacher@example.com"
+TEACHER_BUSINESS_SLUG = "edusmart-tutors"
+CLEANING_OWNER_EMAIL = "cleaning@example.com"
+CLEANING_BUSINESS_SLUG = "sparkle-home-cleaning"
 CLIENT_EMAIL = "john.demo@example.com"
 CLIENT_NAME = "John Demo"
 LINKED_CLIENT_EMAIL = "client@example.com"
@@ -170,6 +176,7 @@ async def _ensure_service(
     duration_minutes: int | None,
     price_type: PriceType,
     price_cents: int | None,
+    description: str | None = None,
 ) -> tuple[Service, str]:
     stmt = select(Service).where(
         Service.business_id == business_id,
@@ -181,6 +188,7 @@ async def _ensure_service(
         service = Service(
             business_id=business_id,
             name=name,
+            description=description,
             type=service_type,
             duration_minutes=duration_minutes,
             price_type=price_type,
@@ -191,6 +199,7 @@ async def _ensure_service(
         session.add(service)
         await session.flush()
         return service, "created"
+    service.description = description
     service.type = service_type
     service.duration_minutes = duration_minutes
     service.price_type = price_type
@@ -199,6 +208,107 @@ async def _ensure_service(
     service.is_active = True
     await session.flush()
     return service, "updated"
+
+
+async def _ensure_marketplace_demo_business(
+    session,
+    businesses: BusinessRepository,
+    users: UserRepository,
+    schedule_repo: ScheduleRepository,
+    *,
+    summary_prefix: str,
+    owner_email: str,
+    owner_full_name: str,
+    business_name: str,
+    slug: str,
+    description: str,
+    address: str,
+    operating_mode: OperatingMode,
+    plan: SubscriptionPlan,
+    services: list[dict],
+) -> dict[str, str]:
+    actions: dict[str, str] = {}
+
+    owner, owner_action = await _ensure_user(
+        session,
+        users,
+        email=owner_email,
+        password=DEMO_PASSWORD,
+        role=UserRole.business_admin,
+        full_name=owner_full_name,
+    )
+    actions[f"{summary_prefix}_owner"] = owner_action
+
+    business = await businesses.get_by_slug(slug)
+    if business is None:
+        business = await businesses.create_business(
+            name=business_name,
+            slug=slug,
+            operating_mode=operating_mode,
+            timezone="Europe/Moscow",
+            contact_email=owner_email,
+        )
+        actions[f"{summary_prefix}_business"] = "created"
+    else:
+        actions[f"{summary_prefix}_business"] = "updated"
+
+    await businesses.update_business(
+        business,
+        {
+            "name": business_name,
+            "description": description,
+            "address": address,
+            "operating_mode": operating_mode,
+            "timezone": "Europe/Moscow",
+            "status": BusinessStatus.active,
+            "contact_email": owner_email,
+        },
+    )
+    business.status = BusinessStatus.active
+    await session.flush()
+
+    member = await businesses.get_member(business.id, owner.id)
+    if member is None:
+        await businesses.create_member(
+            business_id=business.id,
+            user_id=owner.id,
+            role=BusinessMemberRole.owner,
+        )
+        actions[f"{summary_prefix}_member"] = "created"
+    else:
+        actions[f"{summary_prefix}_member"] = "skipped"
+
+    subscription = await businesses.get_subscription(business.id)
+    if subscription is None:
+        subscription = await businesses.create_subscription(business_id=business.id)
+        actions[f"{summary_prefix}_subscription"] = "created"
+    else:
+        actions[f"{summary_prefix}_subscription"] = "updated"
+    await businesses.update_subscription(
+        subscription,
+        {
+            "plan": plan,
+            "status": SubscriptionStatus.active,
+        },
+    )
+
+    await schedule_repo.replace_working_hours(business.id, demo_working_hours())
+    actions[f"{summary_prefix}_working_hours"] = "replaced"
+
+    for service_spec in services:
+        _, service_action = await _ensure_service(
+            session,
+            business.id,
+            name=service_spec["name"],
+            description=service_spec.get("description"),
+            service_type=service_spec["type"],
+            duration_minutes=service_spec.get("duration_minutes"),
+            price_type=service_spec["price_type"],
+            price_cents=service_spec.get("price_cents"),
+        )
+        actions[f"{summary_prefix}_service_{service_spec['name'].lower().replace(' ', '_')}"] = service_action
+
+    return actions
 
 
 async def _ensure_lunch_breaks(session, business_id) -> str:
@@ -263,18 +373,20 @@ async def seed_demo() -> dict:
             )
             summary["business"] = "created"
         else:
-            await businesses.update_business(
-                business,
-                {
-                    "name": "Demo Service Business",
-                    "operating_mode": OperatingMode.both,
-                    "timezone": "Europe/Moscow",
-                    "status": BusinessStatus.active,
-                    "contact_email": OWNER_EMAIL,
-                },
-            )
             summary["business"] = "updated"
 
+        await businesses.update_business(
+            business,
+            {
+                "name": "Demo Service Business",
+                "description": "Language lessons and custom software requests for demo flows.",
+                "address": "Central District, Moscow",
+                "operating_mode": OperatingMode.both,
+                "timezone": "Europe/Moscow",
+                "status": BusinessStatus.active,
+                "contact_email": OWNER_EMAIL,
+            },
+        )
         business.status = BusinessStatus.active
         await session.flush()
 
@@ -505,6 +617,131 @@ async def seed_demo() -> dict:
         else:
             summary["linked_order_message"] = "skipped"
 
+        coach_actions = await _ensure_marketplace_demo_business(
+            session,
+            businesses,
+            users,
+            schedule_repo,
+            summary_prefix="coach",
+            owner_email=COACH_OWNER_EMAIL,
+            owner_full_name="Demo Coach",
+            business_name="Peak Performance Coaching",
+            slug=COACH_BUSINESS_SLUG,
+            description="Personal training, nutrition guidance, and online coaching programs.",
+            address="Fitness District, Moscow",
+            operating_mode=OperatingMode.both,
+            plan=SubscriptionPlan.starter,
+            services=[
+                {
+                    "name": "Personal Training",
+                    "description": "One-on-one coaching session.",
+                    "type": ServiceType.booking,
+                    "duration_minutes": 60,
+                    "price_type": PriceType.fixed,
+                    "price_cents": 7500,
+                },
+                {
+                    "name": "Nutrition Consultation",
+                    "description": "Custom nutrition plan review.",
+                    "type": ServiceType.order,
+                    "price_type": PriceType.fixed,
+                    "price_cents": 12000,
+                },
+                {
+                    "name": "Online Coaching",
+                    "description": "Remote coaching package.",
+                    "type": ServiceType.order,
+                    "price_type": PriceType.quote,
+                    "price_cents": None,
+                },
+            ],
+        )
+        summary.update(coach_actions)
+
+        teacher_actions = await _ensure_marketplace_demo_business(
+            session,
+            businesses,
+            users,
+            schedule_repo,
+            summary_prefix="teacher",
+            owner_email=TEACHER_OWNER_EMAIL,
+            owner_full_name="Demo Teacher",
+            business_name="EduSmart Tutors",
+            slug=TEACHER_BUSINESS_SLUG,
+            description="Math tutoring, exam prep, and homework support for students.",
+            address="Education Quarter, Moscow",
+            operating_mode=OperatingMode.both,
+            plan=SubscriptionPlan.starter,
+            services=[
+                {
+                    "name": "Math Lesson",
+                    "description": "Private math tutoring session.",
+                    "type": ServiceType.booking,
+                    "duration_minutes": 60,
+                    "price_type": PriceType.fixed,
+                    "price_cents": 4500,
+                },
+                {
+                    "name": "Exam Preparation",
+                    "description": "Focused exam prep session.",
+                    "type": ServiceType.booking,
+                    "duration_minutes": 90,
+                    "price_type": PriceType.fixed,
+                    "price_cents": 6500,
+                },
+                {
+                    "name": "Homework Support",
+                    "description": "Async homework help request.",
+                    "type": ServiceType.order,
+                    "price_type": PriceType.quote,
+                    "price_cents": None,
+                },
+            ],
+        )
+        summary.update(teacher_actions)
+
+        cleaning_actions = await _ensure_marketplace_demo_business(
+            session,
+            businesses,
+            users,
+            schedule_repo,
+            summary_prefix="cleaning",
+            owner_email=CLEANING_OWNER_EMAIL,
+            owner_full_name="Demo Cleaner",
+            business_name="Sparkle Home Cleaning",
+            slug=CLEANING_BUSINESS_SLUG,
+            description="Deep cleaning, regular home care, and move-in/move-out services.",
+            address="Residential Area, Moscow",
+            operating_mode=OperatingMode.both,
+            plan=SubscriptionPlan.business,
+            services=[
+                {
+                    "name": "Deep Cleaning",
+                    "description": "Full home deep clean.",
+                    "type": ServiceType.booking,
+                    "duration_minutes": 180,
+                    "price_type": PriceType.fixed,
+                    "price_cents": 18000,
+                },
+                {
+                    "name": "Regular Cleaning",
+                    "description": "Recurring home cleaning visit.",
+                    "type": ServiceType.booking,
+                    "duration_minutes": 120,
+                    "price_type": PriceType.fixed,
+                    "price_cents": 12000,
+                },
+                {
+                    "name": "Move-in/Move-out Cleaning",
+                    "description": "Detailed move cleaning package.",
+                    "type": ServiceType.order,
+                    "price_type": PriceType.quote,
+                    "price_cents": None,
+                },
+            ],
+        )
+        summary.update(cleaning_actions)
+
         await session.commit()
 
         return {
@@ -524,6 +761,9 @@ def _print_summary(result: dict) -> None:
     print("\nDemo credentials:")
     print(f"  Superadmin: {SUPERADMIN_EMAIL}")
     print(f"  Owner:      {OWNER_EMAIL}")
+    print(f"  Coach:      {COACH_OWNER_EMAIL}")
+    print(f"  Teacher:    {TEACHER_OWNER_EMAIL}")
+    print(f"  Cleaning:   {CLEANING_OWNER_EMAIL}")
     print(f"  Client:     {LINKED_CLIENT_EMAIL}")
     print(
         "  Demo users are ready. Use the documented demo password from README_BACKEND.md."
@@ -533,6 +773,9 @@ def _print_summary(result: dict) -> None:
     print("  API health:     http://localhost:8000/health")
     print("  API docs:       http://localhost:8000/docs")
     print(f"  Public business: http://localhost:8000/api/v1/public/b/{BUSINESS_SLUG}")
+    print(f"  Marketplace coach: http://localhost:8000/api/v1/public/b/{COACH_BUSINESS_SLUG}")
+    print(f"  Marketplace teacher: http://localhost:8000/api/v1/public/b/{TEACHER_BUSINESS_SLUG}")
+    print(f"  Marketplace cleaning: http://localhost:8000/api/v1/public/b/{CLEANING_BUSINESS_SLUG}")
     print(
         f"  Public services: http://localhost:8000/api/v1/public/b/{BUSINESS_SLUG}/services"
     )

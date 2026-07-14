@@ -45,13 +45,49 @@ const mockFeaturedBusiness: PublicBusinessDirectoryItem = {
   ],
 };
 
+const mockFeaturedBusinessTwo: PublicBusinessDirectoryItem = {
+  ...mockFeaturedBusiness,
+  name: "Peak Performance Coaching",
+  slug: "peak-performance-coaching",
+  cover_image_url: "/uploads/services/coach/cover.webp",
+  services_preview: [
+    {
+      name: "Personal Training",
+      type: "booking",
+      price_cents: 7500,
+      currency: "USD",
+      price_type: "fixed",
+      duration_minutes: 60,
+      image_url: "/uploads/services/coach/training.webp",
+    },
+  ],
+};
+
+const mockFeaturedBusinessThree: PublicBusinessDirectoryItem = {
+  ...mockFeaturedBusiness,
+  name: "EduSmart Tutors",
+  slug: "edusmart-tutors",
+  cover_image_url: "/uploads/services/tutor/cover.webp",
+  services_preview: [
+    {
+      name: "Math Lesson",
+      type: "booking",
+      price_cents: 4500,
+      currency: "USD",
+      price_type: "fixed",
+      duration_minutes: 60,
+      image_url: "/uploads/services/tutor/math.webp",
+    },
+  ],
+};
+
 function mockFeaturedResponse(
   data: PublicBusinessDirectoryItem[] = [mockFeaturedBusiness],
   total = data.length,
 ) {
   vi.mocked(publicApi.listPublicBusinesses).mockResolvedValue({
     data,
-    meta: { page: 1, limit: 5, total },
+    meta: { page: 1, limit: 12, total },
   });
 }
 
@@ -92,7 +128,7 @@ describe("public homepage", () => {
     expect(await screen.findByTestId("homepage-featured-grid")).toBeInTheDocument();
     expect(publicApi.listPublicBusinesses).toHaveBeenCalledWith({
       sort: "popular",
-      limit: 5,
+      limit: 12,
       page: 1,
     });
     expect(screen.getByRole("heading", { name: mockFeaturedBusiness.name })).toBeInTheDocument();
@@ -105,6 +141,29 @@ describe("public homepage", () => {
 
     const cta = await screen.findByTestId("featured-business-cta");
     expect(cta).toHaveAttribute("href", `/b/${DEMO_SLUG}`);
+  });
+
+  it("renders hero collage with multiple media tiles", async () => {
+    mockFeaturedResponse([
+      mockFeaturedBusiness,
+      mockFeaturedBusinessTwo,
+      mockFeaturedBusinessThree,
+    ]);
+
+    renderRoute(<PlatformLandingPage />, { route: "/", path: "/" });
+
+    const collage = await screen.findByTestId("homepage-hero-collage");
+    expect(collage).toBeInTheDocument();
+    expect(screen.getAllByTestId("hero-collage-tile")).toHaveLength(4);
+  });
+
+  it("links get started CTAs to /pricing", async () => {
+    mockFeaturedResponse();
+
+    renderRoute(<PlatformLandingPage />, { route: "/", path: "/" });
+
+    expect(await screen.findByTestId("homepage-get-started")).toHaveAttribute("href", "/pricing");
+    expect(screen.getByTestId("homepage-business-cta")).toHaveAttribute("href", "/pricing");
   });
 
   it("links browse businesses to /businesses", async () => {

@@ -20,7 +20,7 @@ export type PricingPlan = {
 
 /** Shown on pricing and register — checkout starts from admin settings when enabled. */
 export const MANUAL_BILLING_NOTE =
-  "Stripe checkout may be disabled in this environment. Choose a plan to register; owners can start checkout from Admin → Settings when billing is enabled.";
+  "Payments and plan upgrades are coming later. Current demo uses manual plan management in Admin → Settings when billing is enabled.";
 
 export const REGISTER_PLAN_INTENT_NOTE =
   "Selected plan is saved as your signup intent. Your account still starts on the Free plan until billing is implemented.";
@@ -34,6 +34,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     bestFor: "Testing and very small businesses",
     features: [
       "Basic booking or request page",
+      "Manual admin work",
       "Email notifications when SMTP is configured",
       "Community support",
     ],
@@ -49,12 +50,12 @@ export const PRICING_PLANS: PricingPlan[] = [
     id: "starter",
     name: "Starter",
     priceLabel: "$19/mo",
-    description: "Both booking and request flows for solo pros.",
+    description: "More services and both booking and request flows for solo professionals.",
     bestFor: "Solo professionals",
     features: [
       "Booking + request flows",
       "Client management",
-      "Email notifications",
+      "Email notifications when SMTP is configured",
       "Push notifications (when enabled)",
     ],
     limits: [
@@ -73,9 +74,9 @@ export const PRICING_PLANS: PricingPlan[] = [
     recommended: true,
     features: [
       "Team and admin workflows",
-      "Operations dashboard",
+      "Waitlists and reviews",
+      "Public marketplace presence",
       "Custom branding (logo + colors)",
-      "CSV export",
       "Priority email support",
     ],
     limits: [
@@ -92,10 +93,11 @@ export const PRICING_PLANS: PricingPlan[] = [
     description: "White-label and API for serious operations.",
     bestFor: "Serious operations",
     features: [
-      "White-label custom domain (future)",
+      "Advanced mini-site templates",
+      "Higher limits for serious operations",
       "API access",
-      "Dedicated support",
-      "Bring your own payment keys (future)",
+      "Priority setup/support placeholder",
+      "More public brand control",
     ],
     limits: [
       "Unlimited staff and clients",
