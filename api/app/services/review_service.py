@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions.business import (
@@ -7,7 +9,10 @@ from app.exceptions.business import (
     NotFoundError,
     ReviewDuplicateError,
     ReviewNotAllowedError,
+    ReviewRequestTokenInvalidError,
 )
+from app.models.booking import Booking
+from app.models.order import Order
 from app.models.enums import (
     BookingStatus,
     BusinessStatus,
@@ -28,6 +33,16 @@ from app.schemas.review import (
     PublicReviewSummary,
     PublicReviewsResponse,
     ReviewRead,
+    ReviewRequestContext,
+    ReviewRequestLinkCreate,
+    ReviewRequestLinkResponse,
+    ReviewRequestSubmit,
+)
+from app.services.review_request_token_service import (
+    ReviewRequestTokenClaims,
+    build_review_request_url,
+    create_review_request_token,
+    decode_review_request_token,
 )
 
 
@@ -44,6 +59,13 @@ def _contact_matches(email_a: str | None, phone_a: str | None, *, email: str | N
         else:
             checks.append(False)
     return any(checks)
+
+
+def _display_customer_name(full_name: str) -> str:
+    trimmed = full_name.strip()
+    if not trimmed:
+        return "Customer"
+    return trimmed.split()[0]
 
 
 class ReviewService:
@@ -203,6 +225,221 @@ class ReviewService:
             customer_name=payload.customer_name or user.full_name,
             rating=payload.rating,
             comment=payload.comment,
+            status=ReviewStatus.published,
+        )
+        review.service = order.service
+        review.order = order
+        await self.review_repo.create(review)
+        await self.session.commit()
+        return self._to_read(review)
+
+    async def create_review_request_link(
+        self,
+        business_id: uuid.UUID,
+        payload: ReviewRequestLinkCreate,
+    ) -> ReviewRequestLinkResponse:
+        if payload.booking_id is not None:
+            booking = await self.booking_repo.get_detail_for_business(
+                business_id,
+                payload.booking_id,
+            )
+            if booking is None or booking.client is None or booking.service is None:
+                raise NotFoundError("Booking not found.")
+            if booking.status != BookingStatus.completed:
+                raise ReviewNotAllowedError("Only completed bookings can receive review links.")
+            existing = await self.review_repo.get_for_booking_reference(
+                business_id,
+                booking.reference,
+            )
+            if existing is not None:
+                raise ReviewDuplicateError("Review already submitted.")
+            token, expires_at = create_review_request_token(
+                business_id=business_id,
+                target_type="booking",
+                target_id=booking.id,
+            )
+            return ReviewRequestLinkResponse(
+                review_url=build_review_request_url(token),
+                expires_at=expires_at,
+            )
+
+        assert payload.order_id is not None
+        order = await self.order_repo.get_detail_for_business(business_id, payload.order_id)
+        if order is None or order.client is None or order.service is None:
+            raise NotFoundError("Order not found.")
+        if order.status != OrderStatus.completed:
+            raise ReviewNotAllowedError("Only completed orders can receive review links.")
+        existing = await self.review_repo.get_for_order_reference(
+            business_id,
+            order.reference,
+        )
+        if existing is not None:
+            raise ReviewDuplicateError("Review already submitted.")
+        token, expires_at = create_review_request_token(
+            business_id=business_id,
+            target_type="order",
+            target_id=order.id,
+        )
+        return ReviewRequestLinkResponse(
+            review_url=build_review_request_url(token),
+            expires_at=expires_at,
+        )
+
+    async def get_review_request_context(self, token: str) -> ReviewRequestContext:
+        claims = decode_review_request_token(token)
+        booking, order = await self._load_review_request_target(claims)
+        if booking is not None:
+            client = booking.client
+            service = booking.service
+            assert client is not None and service is not None
+            business = await self.business_repo.get_by_id(booking.business_id)
+            if business is None:
+                raise ReviewRequestTokenInvalidError()
+            has_review = (
+                await self.review_repo.get_for_booking_reference(
+                    business.id,
+                    booking.reference,
+                )
+                is not None
+            )
+            return ReviewRequestContext(
+                business_name=business.name,
+                service_name=service.name,
+                customer_name=_display_customer_name(client.full_name),
+                type="booking",
+                completed_at=booking.ends_at,
+                already_reviewed=has_review,
+                expires_at=claims.expires_at,
+            )
+
+        assert order is not None
+        client = order.client
+        service = order.service
+        assert client is not None and service is not None
+        business = await self.business_repo.get_by_id(order.business_id)
+        if business is None:
+            raise ReviewRequestTokenInvalidError()
+        has_review = (
+            await self.review_repo.get_for_order_reference(
+                business.id,
+                order.reference,
+            )
+            is not None
+        )
+        return ReviewRequestContext(
+            business_name=business.name,
+            service_name=service.name,
+            customer_name=_display_customer_name(client.full_name),
+            type="order",
+            completed_at=order.completed_at,
+            already_reviewed=has_review,
+            expires_at=claims.expires_at,
+        )
+
+    async def create_review_from_request_token(
+        self,
+        token: str,
+        payload: ReviewRequestSubmit,
+    ) -> ReviewRead:
+        claims = decode_review_request_token(token)
+        booking, order = await self._load_review_request_target(claims)
+        if booking is not None:
+            if booking.status != BookingStatus.completed:
+                raise ReviewNotAllowedError("Only completed bookings can be reviewed.")
+            existing = await self.review_repo.get_for_booking_reference(
+                booking.business_id,
+                booking.reference,
+            )
+            if existing is not None:
+                raise ReviewDuplicateError("Review already submitted.")
+            return await self._persist_booking_review(
+                booking,
+                rating=payload.rating,
+                comment=payload.comment,
+                customer_name=payload.customer_name or booking.client.full_name,
+            )
+
+        assert order is not None
+        if order.status != OrderStatus.completed:
+            raise ReviewNotAllowedError("Only completed orders can be reviewed.")
+        existing = await self.review_repo.get_for_order_reference(
+            order.business_id,
+            order.reference,
+        )
+        if existing is not None:
+            raise ReviewDuplicateError("Review already submitted.")
+        return await self._persist_order_review(
+            order,
+            rating=payload.rating,
+            comment=payload.comment,
+            customer_name=payload.customer_name or order.client.full_name,
+        )
+
+    async def _load_review_request_target(
+        self,
+        claims: ReviewRequestTokenClaims,
+    ) -> tuple[Booking | None, Order | None]:
+        if claims.target_type == "booking":
+            booking = await self.booking_repo.get_detail_for_business(
+                claims.business_id,
+                claims.target_id,
+            )
+            if booking is None or booking.client is None or booking.service is None:
+                raise ReviewRequestTokenInvalidError()
+            return booking, None
+
+        order = await self.order_repo.get_detail_for_business(
+            claims.business_id,
+            claims.target_id,
+        )
+        if order is None or order.client is None or order.service is None:
+            raise ReviewRequestTokenInvalidError()
+        return None, order
+
+    async def _persist_booking_review(
+        self,
+        booking: Booking,
+        *,
+        rating: int,
+        comment: str | None,
+        customer_name: str,
+    ) -> ReviewRead:
+        review = Review(
+            business_id=booking.business_id,
+            service_id=booking.service_id,
+            booking_id=None,
+            booking_reference=booking.reference,
+            order_id=None,
+            order_reference=None,
+            customer_name=customer_name,
+            rating=rating,
+            comment=comment,
+            status=ReviewStatus.published,
+        )
+        review.service = booking.service
+        review.booking = booking
+        await self.review_repo.create(review)
+        await self.session.commit()
+        return self._to_read(review)
+
+    async def _persist_order_review(
+        self,
+        order: Order,
+        *,
+        rating: int,
+        comment: str | None,
+        customer_name: str,
+    ) -> ReviewRead:
+        review = Review(
+            business_id=order.business_id,
+            service_id=order.service_id,
+            booking_id=None,
+            booking_reference=None,
+            order_id=None,
+            order_reference=order.reference,
+            customer_name=customer_name,
+            rating=rating,
+            comment=comment,
             status=ReviewStatus.published,
         )
         review.service = order.service

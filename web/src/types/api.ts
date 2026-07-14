@@ -77,6 +77,28 @@ export interface PublicReviewsResponse {
   reviews: PublicReviewItem[];
 }
 
+export interface ReviewRequestLinkResponse {
+  review_url: string;
+  expires_at: string;
+  already_reviewed: boolean;
+}
+
+export interface ReviewRequestContext {
+  business_name: string;
+  service_name: string | null;
+  customer_name: string;
+  type: "booking" | "order";
+  completed_at: string | null;
+  already_reviewed: boolean;
+  expires_at: string;
+}
+
+export interface ReviewRequestSubmitPayload {
+  rating: number;
+  comment?: string;
+  customer_name?: string;
+}
+
 export interface PublicService {
   id: string;
   name: string;
@@ -636,6 +658,8 @@ export interface AdminBookingListItem {
   client_name: string;
   client_email: string | null;
   client_phone: string | null;
+  has_review: boolean;
+  can_review: boolean;
 }
 
 export interface AdminBookingListResponse {
@@ -673,6 +697,8 @@ export interface AdminBookingRead {
   client: AdminBookingClientSummary;
   created_at: string;
   updated_at: string;
+  has_review: boolean;
+  can_review: boolean;
 }
 
 export type AdminBookingUpdatePayload = {
@@ -694,6 +720,8 @@ export interface AdminOrderListItem {
   client_phone: string | null;
   created_at: string;
   updated_at: string;
+  has_review: boolean;
+  can_review: boolean;
 }
 
 export interface AdminOrderListResponse {

@@ -413,3 +413,13 @@ export function updateAdminReviewStatus(
     { status },
   );
 }
+
+export function createReviewRequestLink(
+  businessId: string,
+  payload: { booking_id?: string; order_id?: string },
+) {
+  return apiClient.post<import("@/types/api").ReviewRequestLinkResponse>(
+    `/businesses/${encodeURIComponent(businessId)}/reviews/request-link`,
+    payload,
+  );
+}

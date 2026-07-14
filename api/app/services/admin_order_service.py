@@ -14,6 +14,7 @@ from app.models.business import Business
 from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.repositories.order_repository import OrderRepository
+from app.repositories.review_repository import ReviewRepository
 from app.schemas.order import (
     AdminOrderAcceptRequest,
     AdminOrderDeclineRequest,
@@ -75,6 +76,7 @@ class AdminOrderService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
         self.repo = OrderRepository(session)
+        self.review_repo = ReviewRepository(session)
 
     async def list_admin_orders(
         self,
@@ -97,8 +99,17 @@ class AdminOrderService:
             status=status,
             search=search,
         )
+        reviewed_pairs = await self.review_repo.find_existing_order_references(
+            [(o.business_id, o.reference) for o in orders],
+        )
         return AdminOrderListResponse(
-            data=[AdminOrderListItem.from_order(o) for o in orders],
+            data=[
+                AdminOrderListItem.from_order(
+                    o,
+                    has_review=(o.business_id, o.reference) in reviewed_pairs,
+                )
+                for o in orders
+            ],
             meta=AdminOrderListMeta(page=page, limit=limit, total=total),
         )
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -117,4 +118,50 @@ class PublicReviewSummary(BaseModel):
 class PublicReviewsResponse(BaseModel):
     summary: PublicReviewSummary
     reviews: list[PublicReviewItem]
+
+
+class ReviewRequestLinkCreate(BaseModel):
+    booking_id: uuid.UUID | None = None
+    order_id: uuid.UUID | None = None
+
+    @model_validator(mode="after")
+    def validate_target(self) -> "ReviewRequestLinkCreate":
+        has_booking = self.booking_id is not None
+        has_order = self.order_id is not None
+        if has_booking == has_order:
+            raise ValueError("Provide either booking_id or order_id.")
+        return self
+
+
+class ReviewRequestLinkResponse(BaseModel):
+    review_url: str
+    expires_at: datetime
+    already_reviewed: bool = False
+
+
+ReviewRequestTargetType = Literal["booking", "order"]
+
+
+class ReviewRequestContext(BaseModel):
+    business_name: str
+    service_name: str | None = None
+    customer_name: str
+    type: ReviewRequestTargetType
+    completed_at: datetime | None = None
+    already_reviewed: bool = False
+    expires_at: datetime
+
+
+class ReviewRequestSubmit(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    comment: str | None = Field(default=None, max_length=MAX_REVIEW_COMMENT_LENGTH)
+    customer_name: str | None = Field(default=None, max_length=255)
+
+    @field_validator("customer_name")
+    @classmethod
+    def normalize_customer_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip()
+        return trimmed if trimmed else None
 

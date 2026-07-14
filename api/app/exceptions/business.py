@@ -169,3 +169,13 @@ class ReviewNotAllowedError(AppError):
 class ReviewDuplicateError(AppError):
     def __init__(self, message: str = "A review already exists for this item.") -> None:
         super().__init__(message=message, code="REVIEW_DUPLICATE", status_code=409)
+
+
+class ReviewRequestTokenExpiredError(AppError):
+    def __init__(self, message: str = "This review link has expired.") -> None:
+        super().__init__(message=message, code="REVIEW_REQUEST_TOKEN_EXPIRED", status_code=400)
+
+
+class ReviewRequestTokenInvalidError(AppError):
+    def __init__(self, message: str = "This review link is invalid.") -> None:
+        super().__init__(message=message, code="REVIEW_REQUEST_TOKEN_INVALID", status_code=400)

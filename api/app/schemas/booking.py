@@ -136,9 +136,12 @@ class AdminBookingRead(BaseModel):
     client: BookingClientSummary
     created_at: datetime
     updated_at: datetime
+    has_review: bool = False
+    can_review: bool = False
 
     @classmethod
-    def from_booking(cls, booking) -> "AdminBookingRead":
+    def from_booking(cls, booking, *, has_review: bool = False) -> "AdminBookingRead":
+        can_review = booking.status == BookingStatus.completed and not has_review
         return cls(
             id=booking.id,
             business_id=booking.business_id,
@@ -165,6 +168,8 @@ class AdminBookingRead(BaseModel):
             ),
             created_at=booking.created_at,
             updated_at=booking.updated_at,
+            has_review=has_review,
+            can_review=can_review,
         )
 
 
@@ -178,9 +183,12 @@ class AdminBookingListItem(BaseModel):
     client_name: str
     client_email: str | None
     client_phone: str | None
+    has_review: bool = False
+    can_review: bool = False
 
     @classmethod
-    def from_booking(cls, booking) -> "AdminBookingListItem":
+    def from_booking(cls, booking, *, has_review: bool = False) -> "AdminBookingListItem":
+        can_review = booking.status == BookingStatus.completed and not has_review
         return cls(
             id=booking.id,
             reference=booking.reference,
@@ -191,6 +199,8 @@ class AdminBookingListItem(BaseModel):
             client_name=booking.client.full_name,
             client_email=booking.client.email,
             client_phone=booking.client.phone,
+            has_review=has_review,
+            can_review=can_review,
         )
 
 

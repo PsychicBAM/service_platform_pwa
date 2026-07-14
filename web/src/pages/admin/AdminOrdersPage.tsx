@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listAdminOrders } from "@/api/adminApi";
 import { AdminOrderDetailPanel } from "@/components/admin/AdminOrderDetailPanel";
+import { AdminReviewLinkAction } from "@/components/admin/AdminReviewLinkAction";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -140,17 +141,29 @@ export function AdminOrdersPage() {
               <p className="mt-2 text-xs text-slate-500">
                 Created {formatDateTimeLabel(order.created_at)}
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedOrderId(order.id);
-                  setSuccessMessage(null);
-                  setActionError(null);
-                }}
-                className="mt-4 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                View details
-              </button>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedOrderId(order.id);
+                    setSuccessMessage(null);
+                    setActionError(null);
+                  }}
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  View details
+                </button>
+                {businessId ? (
+                  <AdminReviewLinkAction
+                    businessId={businessId}
+                    orderId={order.id}
+                    canReview={order.can_review}
+                    hasReview={order.has_review}
+                    onCopied={setSuccessMessage}
+                    onError={setActionError}
+                  />
+                ) : null}
+              </div>
             </article>
           ))}
         </div>

@@ -259,9 +259,12 @@ class AdminOrderListItem(BaseModel):
     client_phone: str | None
     created_at: datetime
     updated_at: datetime
+    has_review: bool = False
+    can_review: bool = False
 
     @classmethod
-    def from_order(cls, order) -> "AdminOrderListItem":
+    def from_order(cls, order, *, has_review: bool = False) -> "AdminOrderListItem":
+        can_review = order.status == OrderStatus.completed and not has_review
         return cls(
             id=order.id,
             reference=order.reference,
@@ -272,6 +275,8 @@ class AdminOrderListItem(BaseModel):
             client_phone=order.client.phone,
             created_at=order.created_at,
             updated_at=order.updated_at,
+            has_review=has_review,
+            can_review=can_review,
         )
 
 

@@ -53,6 +53,8 @@ describe("AdminBookingsPage waitlist", () => {
           starts_at: "2026-06-23T11:00:00-04:00",
           ends_at: "2026-06-23T12:00:00-04:00",
           status: "pending",
+          has_review: false,
+          can_review: false,
         },
       ],
       meta: emptyListMeta,
@@ -89,6 +91,8 @@ describe("AdminBookingsPage waitlist", () => {
         },
         created_at: "2026-06-20T08:00:00Z",
         updated_at: "2026-06-20T08:00:00Z",
+        has_review: false,
+        can_review: false,
       },
       waitlist_entry: {
         ...mockWaitlistEntries[0],

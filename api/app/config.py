@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     password_reset_token_expire_hours: int = 2
     password_reset_base_url: str = "http://localhost:5173/reset-password"
 
+    review_request_token_expire_days: int = 30
+    review_request_base_url: str = "http://localhost:5173/review"
+
     stripe_enabled: bool = False
     stripe_secret_key: str | None = None
     stripe_webhook_secret: str | None = None

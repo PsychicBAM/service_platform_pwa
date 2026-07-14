@@ -27,6 +27,7 @@ import { NotFoundPage } from "@/pages/NotFoundPage";
 import { OrderRequestPage } from "@/pages/OrderRequestPage";
 import { PublicHomePage } from "@/pages/PublicHomePage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { ReviewRequestPage } from "@/pages/ReviewRequestPage";
 import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 import { ServiceDetailPage } from "@/pages/ServiceDetailPage";
 import { ServicesPage } from "@/pages/ServicesPage";
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
       { path: "login", element: <LoginPage /> },
       { path: "forgot-password", element: <ForgotPasswordPage /> },
       { path: "reset-password", element: <ResetPasswordPage /> },
+      { path: "review/:token", element: <ReviewRequestPage /> },
       { path: "register", element: <RegisterPage /> },
       { path: "verify-email", element: <VerifyEmailPage /> },
       { path: "check-email", element: <CheckEmailPage /> },

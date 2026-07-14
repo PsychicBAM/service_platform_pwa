@@ -115,3 +115,21 @@ export function listPublicReviews(slug: string) {
     auth: false,
   });
 }
+
+export function getReviewRequestContext(token: string) {
+  return apiClient.get<import("@/types/api").ReviewRequestContext>(
+    `/public/reviews/request/${encodeURIComponent(token)}`,
+    { auth: false },
+  );
+}
+
+export function submitReviewRequest(
+  token: string,
+  payload: import("@/types/api").ReviewRequestSubmitPayload,
+) {
+  return apiClient.post<import("@/types/api").ReviewRead>(
+    `/public/reviews/request/${encodeURIComponent(token)}`,
+    payload,
+    { auth: false },
+  );
+}

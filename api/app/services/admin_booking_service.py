@@ -13,6 +13,7 @@ from app.models.booking import Booking
 from app.models.business import Business
 from app.models.enums import BookingStatus, CancelledBy
 from app.repositories.booking_repository import BookingRepository
+from app.repositories.review_repository import ReviewRepository
 from app.schemas.booking import (
     AdminBookingListItem,
     AdminBookingListMeta,
@@ -59,6 +60,7 @@ class AdminBookingService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
         self.repo = BookingRepository(session)
+        self.review_repo = ReviewRepository(session)
 
     async def list_admin_bookings(
         self,
@@ -87,8 +89,17 @@ class AdminBookingService:
             date_to=date_to,
             search=search,
         )
+        reviewed_pairs = await self.review_repo.find_existing_booking_references(
+            [(b.business_id, b.reference) for b in bookings],
+        )
         return AdminBookingListResponse(
-            data=[AdminBookingListItem.from_booking(b) for b in bookings],
+            data=[
+                AdminBookingListItem.from_booking(
+                    b,
+                    has_review=(b.business_id, b.reference) in reviewed_pairs,
+                )
+                for b in bookings
+            ],
             meta=AdminBookingListMeta(page=page, limit=limit, total=total),
         )
 
@@ -100,7 +111,14 @@ class AdminBookingService:
         booking = await self.repo.get_detail_for_business(business.id, booking_id)
         if booking is None:
             raise NotFoundError("Booking not found.")
-        return AdminBookingRead.from_booking(booking)
+        has_review = (
+            await self.review_repo.get_for_booking_reference(
+                business.id,
+                booking.reference,
+            )
+            is not None
+        )
+        return AdminBookingRead.from_booking(booking, has_review=has_review)
 
     async def update_admin_booking(
         self,

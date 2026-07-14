@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { listAdminBookings } from "@/api/adminApi";
 import { AdminBookingDetailPanel } from "@/components/admin/AdminBookingDetailPanel";
+import { AdminReviewLinkAction } from "@/components/admin/AdminReviewLinkAction";
 import { AdminWaitlistView } from "@/components/admin/AdminWaitlistView";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -203,17 +204,29 @@ export function AdminBookingsPage() {
                   <p className="mt-2 text-sm text-slate-500">
                     {formatDateTimeLabel(booking.starts_at)}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedBookingId(booking.id);
-                      setSuccessMessage(null);
-                      setActionError(null);
-                    }}
-                    className="mt-4 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                  >
-                    View details
-                  </button>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedBookingId(booking.id);
+                        setSuccessMessage(null);
+                        setActionError(null);
+                      }}
+                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      View details
+                    </button>
+                    {businessId ? (
+                      <AdminReviewLinkAction
+                        businessId={businessId}
+                        bookingId={booking.id}
+                        canReview={booking.can_review}
+                        hasReview={booking.has_review}
+                        onCopied={setSuccessMessage}
+                        onError={setActionError}
+                      />
+                    ) : null}
+                  </div>
                 </article>
               ))}
             </div>
