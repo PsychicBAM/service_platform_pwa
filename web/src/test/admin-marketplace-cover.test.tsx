@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AdminMarketplaceCoverSection } from "@/components/admin/AdminMarketplaceCoverSection";
 import * as marketplaceCoverImageApi from "@/api/marketplaceCoverImageApi";
@@ -36,15 +36,22 @@ describe("AdminMarketplaceCoverSection", () => {
       { route: "/admin/settings", path: "/admin/settings" },
     );
 
-    expect(screen.getByTestId("admin-marketplace-cover-section")).toBeInTheDocument();
+    const section = screen.getByTestId("admin-marketplace-cover-section");
+    expect(section).toBeInTheDocument();
     expect(screen.getByText("Marketplace cover image")).toBeInTheDocument();
     expect(
       screen.getByText(/marketplace, homepage featured cards, and public discovery surfaces/i),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("admin-marketplace-cover-placeholder")).toBeInTheDocument();
+    expect(screen.getByText(/JPG, PNG, or WebP up to 12 MB/i)).toBeInTheDocument();
+    expect(screen.getByTestId("admin-marketplace-cover-empty")).toHaveTextContent(
+      "No marketplace cover image uploaded.",
+    );
+    expect(screen.getByTestId("admin-marketplace-cover-upload")).toHaveTextContent("Upload");
+    expect(within(section).queryByRole("img")).not.toBeInTheDocument();
+    expect(within(section).queryByRole("textbox")).not.toBeInTheDocument();
   });
 
-  it("renders existing cover image preview when present", () => {
+  it("renders compact current file status when image exists", () => {
     renderRoute(
       <AdminMarketplaceCoverSection
         businessId={BUSINESS_ID}
@@ -54,11 +61,26 @@ describe("AdminMarketplaceCoverSection", () => {
       { route: "/admin/settings", path: "/admin/settings" },
     );
 
-    expect(screen.getByTestId("admin-marketplace-cover-image")).toHaveAttribute(
-      "src",
-      mockImage.url,
-    );
+    const section = screen.getByTestId("admin-marketplace-cover-section");
+    expect(screen.getByText(/Current file:/i)).toBeInTheDocument();
+    expect(screen.getByTestId("admin-marketplace-cover-filename")).toHaveTextContent("cover.webp");
+    expect(screen.getByTestId("admin-marketplace-cover-upload")).toHaveTextContent("Replace");
     expect(screen.getByTestId("admin-marketplace-cover-remove")).toBeInTheDocument();
+    expect(within(section).queryByRole("img")).not.toBeInTheDocument();
+    expect(within(section).queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
+  it("derives a short filename from the stored URL when metadata filename is missing", () => {
+    renderRoute(
+      <AdminMarketplaceCoverSection
+        businessId={BUSINESS_ID}
+        image={{ ...mockImage, filename: "" }}
+        onImageChange={vi.fn()}
+      />,
+      { route: "/admin/settings", path: "/admin/settings" },
+    );
+
+    expect(screen.getByTestId("admin-marketplace-cover-filename")).toHaveTextContent("cover.webp");
   });
 
   it("upload success updates image via callback", async () => {

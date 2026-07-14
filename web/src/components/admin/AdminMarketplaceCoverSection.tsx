@@ -3,7 +3,6 @@ import {
   removeMarketplaceCoverImage,
   uploadMarketplaceCoverImage,
 } from "@/api/marketplaceCoverImageApi";
-import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
 import {
   isAllowedServiceImageFile,
   normalizeServiceImageMedia,
@@ -22,6 +21,16 @@ type AdminMarketplaceCoverSectionProps = {
   disabled?: boolean;
   onImageChange: (image: ServiceImageMedia | null) => void;
 };
+
+function marketplaceCoverDisplayFilename(image: ServiceImageMedia): string {
+  const filename = image.filename.trim();
+  if (filename) {
+    return filename;
+  }
+
+  const basename = image.url.split("?")[0]?.split("/").pop();
+  return basename || "marketplace-cover.webp";
+}
 
 export function AdminMarketplaceCoverSection({
   businessId,
@@ -100,23 +109,23 @@ export function AdminMarketplaceCoverSection({
       </div>
 
       <div
-        className="overflow-hidden rounded-xl border border-slate-200 bg-white"
-        data-testid="admin-marketplace-cover-preview"
+        className="rounded-lg border border-slate-200 bg-white px-3 py-2.5"
+        data-testid="admin-marketplace-cover-status"
       >
         {normalizedImage ? (
-          <ServiceImageDisplay
-            image={normalizedImage}
-            variant="card"
-            testId="admin-marketplace-cover-image"
-            className="!aspect-[16/9] !h-auto !w-full !max-w-none !rounded-none"
-          />
+          <p className="text-xs text-slate-700">
+            Current file:{" "}
+            <span
+              className="font-medium text-slate-900"
+              data-testid="admin-marketplace-cover-filename"
+            >
+              {marketplaceCoverDisplayFilename(normalizedImage)}
+            </span>
+          </p>
         ) : (
-          <div
-            className="flex aspect-[16/9] items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-sm font-medium text-slate-500"
-            data-testid="admin-marketplace-cover-placeholder"
-          >
-            No marketplace cover yet
-          </div>
+          <p className="text-xs text-slate-600" data-testid="admin-marketplace-cover-empty">
+            No marketplace cover image uploaded.
+          </p>
         )}
       </div>
 
