@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createBillingCheckoutSession } from "@/api/billingApi";
 import { getBusiness, updateBusiness } from "@/api/adminApi";
 import { PlanFeatureComparison } from "@/components/admin/PlanFeatureComparison";
+import { AdminMarketplaceCoverSection } from "@/components/admin/AdminMarketplaceCoverSection";
 import { ProToolsComingSoonCard } from "@/components/admin/ProToolsComingSoonCard";
 import { PublicProfileSettingsCard } from "@/components/admin/PublicProfileSettingsCard";
 import { ErrorState } from "@/components/ErrorState";
@@ -17,6 +18,7 @@ import type {
 } from "@/types/api";
 import { getAdminSettingsErrorMessage, getBillingCheckoutErrorMessage } from "@/utils/errors";
 import { formatPlanLabel } from "@/utils/planManagement";
+import { normalizeServiceImageMedia, type ServiceImageMedia } from "@/lib/serviceImage";
 
 const CHECKOUT_PLANS: Array<{ id: CheckoutPlanId; label: string }> = [
   { id: "starter", label: "Starter" },
@@ -247,6 +249,7 @@ export function AdminSettingsPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [billingMessage, setBillingMessage] = useState<string | null>(null);
   const [checkoutLoadingPlan, setCheckoutLoadingPlan] = useState<CheckoutPlanId | null>(null);
+  const [marketplaceCoverImage, setMarketplaceCoverImage] = useState<ServiceImageMedia | null>(null);
 
   const businessQuery = useQuery({
     queryKey: ["admin-business", businessId],
@@ -257,6 +260,7 @@ export function AdminSettingsPage() {
   useEffect(() => {
     if (businessQuery.data) {
       setForm(formFromBusiness(businessQuery.data));
+      setMarketplaceCoverImage(normalizeServiceImageMedia(businessQuery.data.marketplace_cover_image));
     }
   }, [businessQuery.data]);
 
@@ -366,6 +370,15 @@ export function AdminSettingsPage() {
                 onChange={(value) => updateForm("logo_url", value)}
               />
             </div>
+            <AdminMarketplaceCoverSection
+              businessId={businessId!}
+              image={marketplaceCoverImage}
+              disabled={saving}
+              onImageChange={(nextImage) => {
+                setMarketplaceCoverImage(nextImage);
+                void queryClient.invalidateQueries({ queryKey: ["admin-business", businessId] });
+              }}
+            />
             <div>
               <FieldLabel htmlFor="contactEmail">Contact email</FieldLabel>
               <TextInput

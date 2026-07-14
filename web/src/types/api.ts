@@ -611,6 +611,7 @@ export interface BusinessAdminRead {
   subscription: BusinessSubscriptionSummary | null;
   created_at: string;
   updated_at: string;
+  marketplace_cover_image?: import("@/lib/serviceImage").ServiceImageMedia | null;
 }
 
 export interface AdminServiceRead {

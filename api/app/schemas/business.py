@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from app.models.enums import BusinessStatus, OperatingMode, PublicPageVariant, SubscriptionPlan, SubscriptionStatus
 from app.repositories.business_repository import DEFAULT_BUSINESS_SETTINGS
 from app.schemas.mini_site import MiniSiteConfig
+from app.schemas.service_image import ServiceImageMedia
 
 
 class BusinessRead(BaseModel):
@@ -130,6 +131,7 @@ class BusinessAdminRead(BaseModel):
     operating_mode: OperatingMode
     status: BusinessStatus
     settings: BusinessSettingsRead
+    marketplace_cover_image: ServiceImageMedia | None = None
     subscription: BusinessSubscriptionSummary | None
     created_at: datetime
     updated_at: datetime

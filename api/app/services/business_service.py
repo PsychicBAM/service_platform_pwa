@@ -31,6 +31,18 @@ from app.schemas.business import (
 )
 from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite, MiniSiteTemplate
 from app.schemas.mini_site_media import MiniSiteImageMedia, MiniSiteMediaRemoveResponse, MiniSiteMediaUploadResponse
+from app.schemas.marketplace_cover_image import (
+    MarketplaceCoverImageRemoveResponse,
+    MarketplaceCoverImageUploadResponse,
+)
+from app.schemas.service_image import ServiceImageMedia
+from app.services.marketplace_cover_image_optimizer import optimize_marketplace_cover_image
+from app.services.marketplace_cover_image_storage import (
+    delete_marketplace_cover_image_files_if_owned,
+    extension_for_content_type as marketplace_cover_extension_for_content_type,
+    marketplace_cover_upload_dir,
+    sanitize_original_filename as marketplace_cover_sanitize_original_filename,
+)
 from app.services.mini_site_image_optimizer import optimize_mini_site_image
 from app.services.mini_site_media_storage import (
     delete_mini_site_media_files_if_owned,
@@ -43,8 +55,13 @@ from app.utils.mini_site_media_slots import (
     MINI_SITE_IMAGE_MAX_SIZE_MESSAGE,
     is_allowed_mini_site_image_slot,
 )
+from app.utils.marketplace_cover_image import (
+    read_marketplace_cover_image,
+    set_marketplace_cover_image,
+)
+from app.utils.public_cover_image import resolve_public_cover_image_url
 from app.utils.marketplace_categories import category_keywords
-from app.utils.service_image import read_service_image
+from app.utils.service_image import read_service_image, SERVICE_IMAGE_MAX_BYTES, SERVICE_IMAGE_MAX_SIZE_MESSAGE
 
 
 class BusinessService:
@@ -126,14 +143,11 @@ class BusinessService:
         services,
     ) -> PublicBusinessDirectoryItem:
         previews: list[PublicBusinessDirectoryServicePreview] = []
-        cover_image_url: str | None = None
         has_booking_service = False
         for service in services:
             if service.type == ServiceType.booking:
                 has_booking_service = True
             image_url = self._service_image_url(service)
-            if cover_image_url is None and image_url:
-                cover_image_url = image_url
             price_cents = service.price_cents
             if service.price_type == PriceType.free and price_cents is None:
                 price_cents = 0
@@ -148,6 +162,11 @@ class BusinessService:
                     image_url=image_url,
                 )
             )
+        cover_image_url = resolve_public_cover_image_url(
+            settings=business.settings,
+            services=services,
+            service_image_url=self._service_image_url,
+        )
         starts_at_price_cents, starts_at_currency = self._starts_at_price(services)
         return PublicBusinessDirectoryItem(
             name=business.name,
@@ -296,6 +315,67 @@ class BusinessService:
 
         return MiniSiteMediaRemoveResponse(template=template, slot=slot, removed=True)
 
+    async def upload_marketplace_cover_image(
+        self,
+        business: Business,
+        *,
+        content: bytes,
+        content_type: str,
+        original_filename: str,
+        alt: str | None = None,
+    ) -> MarketplaceCoverImageUploadResponse:
+        if not content:
+            raise ValidationAppError("Image file is required.")
+        if len(content) > SERVICE_IMAGE_MAX_BYTES:
+            raise ValidationAppError(SERVICE_IMAGE_MAX_SIZE_MESSAGE)
+
+        marketplace_cover_extension_for_content_type(content_type)
+        marketplace_cover_upload_dir(business.id)
+
+        existing = read_marketplace_cover_image(business.settings)
+        delete_marketplace_cover_image_files_if_owned(
+            business.id,
+            existing.model_dump() if existing is not None else None,
+        )
+
+        optimized = optimize_marketplace_cover_image(business.id, content=content)
+        image = ServiceImageMedia(
+            kind="image",
+            url=optimized.web_url,
+            thumbnail_url=optimized.thumbnail_url,
+            alt=(alt or "").replace("<", "").replace(">", "").strip(),
+            filename=marketplace_cover_sanitize_original_filename(original_filename),
+            content_type=optimized.content_type,
+            size=optimized.size,
+            original_size=optimized.original_size,
+            width=optimized.width,
+            height=optimized.height,
+        )
+
+        business.settings = set_marketplace_cover_image(business.settings, image)
+        flag_modified(business, "settings")
+        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(business)
+
+        return MarketplaceCoverImageUploadResponse(image=image)
+
+    async def remove_marketplace_cover_image(
+        self,
+        business: Business,
+    ) -> MarketplaceCoverImageRemoveResponse:
+        existing = read_marketplace_cover_image(business.settings)
+        delete_marketplace_cover_image_files_if_owned(
+            business.id,
+            existing.model_dump() if existing is not None else None,
+        )
+        business.settings = set_marketplace_cover_image(business.settings, None)
+        flag_modified(business, "settings")
+        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(business)
+        return MarketplaceCoverImageRemoveResponse(removed=True)
+
     async def get_public_business(self, slug: str) -> PublicBusinessRead:
         business = await self.repo.get_public_by_slug(slug)
         if business is None:
@@ -352,6 +432,7 @@ class BusinessService:
             operating_mode=business.operating_mode,
             status=business.status,
             settings=BusinessSettingsRead.from_settings(business.settings),
+            marketplace_cover_image=read_marketplace_cover_image(business.settings),
             subscription=(
                 BusinessSubscriptionSummary.model_validate(subscription)
                 if subscription is not None

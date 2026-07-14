@@ -9,6 +9,10 @@ from app.models.business import Business
 from app.models.enums import ConsentEntityType, ConsentSource
 from app.schemas.business import BusinessAdminRead, BusinessUpdate
 from app.schemas.legal_consent_records import LegalConsentRecordListResponse
+from app.schemas.marketplace_cover_image import (
+    MarketplaceCoverImageRemoveResponse,
+    MarketplaceCoverImageUploadResponse,
+)
 from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite, MiniSiteTemplate
 from app.schemas.mini_site_media import MiniSiteMediaRemoveResponse, MiniSiteMediaUploadResponse
 from app.services.business_service import BusinessService
@@ -109,6 +113,44 @@ async def remove_mini_site_media(
         template=template,
         slot=slot,
     )
+
+
+@router.post(
+    "/{business_id}/marketplace-cover-image",
+    response_model=MarketplaceCoverImageUploadResponse,
+)
+async def upload_marketplace_cover_image(
+    business_id: uuid.UUID,
+    file: UploadFile = File(...),
+    alt: str | None = Form(default=None),
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> MarketplaceCoverImageUploadResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    content = await file.read()
+    content_type = file.content_type or ""
+    return await BusinessService(db).upload_marketplace_cover_image(
+        business,
+        content=content,
+        content_type=content_type,
+        original_filename=file.filename or "upload",
+        alt=alt,
+    )
+
+
+@router.delete(
+    "/{business_id}/marketplace-cover-image",
+    response_model=MarketplaceCoverImageRemoveResponse,
+)
+async def remove_marketplace_cover_image(
+    business_id: uuid.UUID,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> MarketplaceCoverImageRemoveResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    return await BusinessService(db).remove_marketplace_cover_image(business)
 
 
 @router.get("/{business_id}/legal-consents", response_model=LegalConsentRecordListResponse)
