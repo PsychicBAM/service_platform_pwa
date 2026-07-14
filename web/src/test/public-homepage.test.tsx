@@ -229,6 +229,65 @@ describe("public homepage", () => {
     expect(within(section).getByText("Find the right service")).toBeInTheDocument();
     expect(within(section).getByText("Book in minutes")).toBeInTheDocument();
     expect(within(section).getByText("Enjoy and review")).toBeInTheDocument();
+    expect(screen.getByTestId("homepage-how-it-works-review")).toBeInTheDocument();
+    expect(screen.getByText("Amazing service! Highly recommend.")).toBeInTheDocument();
+  });
+
+  it("limits featured card chips and keeps open business CTA", async () => {
+    mockFeaturedResponse([
+      {
+        ...mockFeaturedBusiness,
+        description:
+          "Trusted clinic with same-week appointments, extended hours, specialist referrals, and follow-up care for families across the city.",
+        services_preview: [
+          ...mockFeaturedBusiness.services_preview,
+          {
+            name: "Dental Cleaning",
+            type: "booking",
+            price_cents: 8000,
+            currency: "USD",
+            price_type: "fixed",
+            duration_minutes: 60,
+            image_url: null,
+          },
+          {
+            name: "Skin Consultation",
+            type: "booking",
+            price_cents: 9000,
+            currency: "USD",
+            price_type: "fixed",
+            duration_minutes: 30,
+            image_url: null,
+          },
+          {
+            name: "Lab Tests",
+            type: "booking",
+            price_cents: 4000,
+            currency: "USD",
+            price_type: "fixed",
+            duration_minutes: 15,
+            image_url: null,
+          },
+          {
+            name: "Vaccination",
+            type: "booking",
+            price_cents: 3500,
+            currency: "USD",
+            price_type: "fixed",
+            duration_minutes: 20,
+            image_url: null,
+          },
+        ],
+      },
+    ]);
+
+    renderRoute(<PlatformLandingPage />, { route: "/", path: "/" });
+
+    const card = await screen.findByTestId("featured-business-card");
+    expect(within(card).getByTestId("featured-business-cta")).toHaveTextContent("Open business");
+    expect(within(card).getByTestId("featured-business-description")).toHaveClass("line-clamp-3");
+    expect(within(card).getAllByTestId("featured-business-chip")).toHaveLength(3);
+    expect(within(card).getByTestId("featured-business-chip-more")).toHaveTextContent("+2 more");
   });
 
   it("does not render private fields in mocked featured data", async () => {

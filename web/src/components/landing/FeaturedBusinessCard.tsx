@@ -7,6 +7,8 @@ import {
   truncatePublicText,
 } from "@/lib/businessCardMedia";
 
+const MAX_SERVICE_CHIPS = 3;
+
 type FeaturedBusinessCardProps = {
   business: PublicBusinessDirectoryItem;
   badge?: "Top rated" | "Popular" | null;
@@ -15,9 +17,9 @@ type FeaturedBusinessCardProps = {
 export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusinessCardProps) {
   const businessHref = `/b/${business.slug}`;
   const coverGradient = gradientForBusinessSlug(business.slug);
-  const description = truncatePublicText(business.description, 90);
   const location = truncatePublicText(business.address, 36);
-  const serviceChips = business.services_preview.slice(0, +2);
+  const visibleServices = business.services_preview.slice(0, MAX_SERVICE_CHIPS);
+  const extraServiceCount = Math.max(0, business.services_preview.length - visibleServices.length);
   const resolvedBadge =
     badge ??
     (business.average_rating != null && business.average_rating >= 4.5
@@ -31,7 +33,7 @@ export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusines
       className="flex h-full min-w-[260px] max-w-sm flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:min-w-0"
       data-testid="featured-business-card"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-slate-100">
         {business.cover_image_url ? (
           <img
             src={business.cover_image_url}
@@ -64,33 +66,56 @@ export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusines
         )}
       </div>
 
-      <div className="flex flex-1 flex-col px-4 pb-4 pt-7">
-        <div className="space-y-2">
-          <h3 className="text-base font-semibold text-slate-900">{business.name}</h3>
-          <StarRating rating={business.average_rating} reviewCount={business.review_count} />
-          <p className="text-xs text-slate-500">
-            {operatingModeLabel(business.operating_mode)}
-            {location ? ` · ${location}` : ""}
-          </p>
-          {description ? <p className="text-sm text-slate-600">{description}</p> : null}
-        </div>
-
-        {serviceChips.length > 0 ? (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {serviceChips.map((service) => (
-              <span
-                key={service.name}
-                className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-4 pt-7">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="space-y-2">
+            <h3 className="text-base font-semibold text-slate-900">{business.name}</h3>
+            <StarRating rating={business.average_rating} reviewCount={business.review_count} />
+            <p className="text-xs text-slate-500">
+              {operatingModeLabel(business.operating_mode)}
+              {location ? ` · ${location}` : ""}
+            </p>
+            {business.description?.trim() ? (
+              <p
+                className="line-clamp-3 text-sm text-slate-600"
+                data-testid="featured-business-description"
               >
-                {service.name}
-              </span>
-            ))}
+                {business.description.trim()}
+              </p>
+            ) : null}
           </div>
-        ) : null}
+
+          {visibleServices.length > 0 || extraServiceCount > 0 ? (
+            <div
+              className="mt-auto flex flex-wrap gap-1.5 pt-3"
+              data-testid="featured-business-chips"
+            >
+              {visibleServices.map((service) => (
+                <span
+                  key={service.name}
+                  className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
+                  data-testid="featured-business-chip"
+                >
+                  {service.name}
+                </span>
+              ))}
+              {extraServiceCount > 0 ? (
+                <span
+                  className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500"
+                  data-testid="featured-business-chip-more"
+                >
+                  +{extraServiceCount} more
+                </span>
+              ) : null}
+            </div>
+          ) : (
+            <div className="mt-auto" aria-hidden="true" />
+          )}
+        </div>
 
         <Link
           to={businessHref}
-          className="mt-4 block w-full rounded-xl border-2 border-brand-700 px-4 py-2.5 text-center text-sm font-semibold text-brand-700 hover:bg-brand-50"
+          className="mt-4 block w-full shrink-0 rounded-xl border-2 border-brand-700 px-4 py-2.5 text-center text-sm font-semibold text-brand-700 hover:bg-brand-50"
           data-testid="featured-business-cta"
         >
           Open business

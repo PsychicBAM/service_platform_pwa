@@ -217,7 +217,7 @@ export function PlatformLandingPage() {
 
         {!featuredQuery.isLoading && featuredCards.length > 0 ? (
           <div
-            className="flex gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:overflow-visible"
+            className="flex gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:items-stretch lg:overflow-visible"
             data-testid="homepage-featured-grid"
           >
             {featuredCards.map((business) => (
@@ -243,29 +243,31 @@ export function PlatformLandingPage() {
 
       <section id="how-it-works" className="bg-white py-12 md:py-16">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-start">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">How it works</h2>
-              <div className="mt-6 grid gap-4 md:grid-cols-3" data-testid="homepage-how-it-works">
-                {HOW_IT_WORKS.map((step) => (
-                  <article
-                    key={step.title}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm"
-                  >
-                    <span
-                      className={`inline-flex h-11 w-11 items-center justify-center rounded-full text-lg ${step.tone}`}
-                      aria-hidden="true"
-                    >
-                      {step.icon}
-                    </span>
-                    <h3 className="mt-4 text-base font-semibold text-slate-900">{step.title}</h3>
-                    <p className="mt-2 text-sm text-slate-600">{step.description}</p>
-                  </article>
-                ))}
-              </div>
-            </div>
-            <aside className="hidden rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm lg:block">
-              <div className="rounded-xl bg-gradient-to-br from-brand-700/20 to-slate-200/80 p-6 text-center">
+          <h2 className="text-2xl font-bold text-slate-900">How it works</h2>
+          <div
+            className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-stretch"
+            data-testid="homepage-how-it-works"
+          >
+            {HOW_IT_WORKS.map((step) => (
+              <article
+                key={step.title}
+                className="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm"
+              >
+                <span
+                  className={`inline-flex h-11 w-11 items-center justify-center rounded-full text-lg ${step.tone}`}
+                  aria-hidden="true"
+                >
+                  {step.icon}
+                </span>
+                <h3 className="mt-4 text-base font-semibold text-slate-900">{step.title}</h3>
+                <p className="mt-2 text-sm text-slate-600">{step.description}</p>
+              </article>
+            ))}
+            <aside
+              data-testid="homepage-how-it-works-review"
+              className="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm"
+            >
+              <div className="flex flex-1 flex-col justify-center rounded-xl bg-gradient-to-br from-brand-700/20 to-slate-200/80 p-6 text-center">
                 <p className="text-3xl text-amber-400" aria-hidden="true">
                   ★★★★★
                 </p>
