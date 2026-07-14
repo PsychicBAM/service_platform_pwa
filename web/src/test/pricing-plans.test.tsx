@@ -1,13 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { PublicHomePage } from "@/pages/PublicHomePage";
+import { PricingPage } from "@/pages/PricingPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { renderRoute } from "@/test/test-utils";
 
 describe("pricing plans UX", () => {
-  it("A. pricing section shows all four plan names", () => {
-    renderRoute(<PublicHomePage />, { route: "/", path: "/" });
+  it("A. /pricing shows all four plan names", () => {
+    renderRoute(<PricingPage />, { route: "/pricing", path: "/pricing" });
 
     expect(screen.getByRole("heading", { name: /^Free$/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^Starter$/i })).toBeInTheDocument();
@@ -15,8 +14,8 @@ describe("pricing plans UX", () => {
     expect(screen.getByRole("heading", { name: /^Pro$/i })).toBeInTheDocument();
   });
 
-  it("B. pricing section shows price labels", () => {
-    renderRoute(<PublicHomePage />, { route: "/", path: "/" });
+  it("B. /pricing shows price labels", () => {
+    renderRoute(<PricingPage />, { route: "/pricing", path: "/pricing" });
 
     expect(screen.getByText("$0/mo")).toBeInTheDocument();
     expect(screen.getByText("$19/mo")).toBeInTheDocument();
@@ -25,29 +24,39 @@ describe("pricing plans UX", () => {
   });
 
   it("C. Business plan shows Recommended badge", () => {
-    renderRoute(<PublicHomePage />, { route: "/", path: "/" });
+    renderRoute(<PricingPage />, { route: "/pricing", path: "/pricing" });
 
     expect(screen.getByText("Recommended")).toBeInTheDocument();
   });
 
-  it("D. View details expands plan limits", async () => {
-    const user = userEvent.setup();
-    renderRoute(<PublicHomePage />, { route: "/", path: "/" });
+  it("D. Business plan shows key growth benefits", () => {
+    renderRoute(<PricingPage />, { route: "/pricing", path: "/pricing" });
 
-    const businessCard = screen.getByRole("heading", { name: /^Business$/i }).closest("article");
-    expect(businessCard).not.toBeNull();
-
-    await user.click(within(businessCard!).getByRole("button", { name: /view details/i }));
-    expect(within(businessCard!).getByText(/unlimited services, bookings, and orders/i)).toBeInTheDocument();
+    const businessCard = screen.getByTestId("pricing-plan-business");
+    expect(within(businessCard).getByText(/waitlists and reviews/i)).toBeInTheDocument();
+    expect(within(businessCard).getByText(/public marketplace presence/i)).toBeInTheDocument();
   });
 
-  it("E. Choose plan links to register with selected plan", () => {
-    renderRoute(<PublicHomePage />, { route: "/", path: "/" });
+  it("E. pricing CTAs use plan labels and register links", () => {
+    renderRoute(<PricingPage />, { route: "/pricing", path: "/pricing" });
 
-    expect(screen.getByRole("link", { name: /choose business/i })).toHaveAttribute(
+    expect(screen.getByTestId("pricing-plan-cta-free")).toHaveTextContent("Get Free");
+    expect(screen.getByTestId("pricing-plan-cta-free")).toHaveAttribute("href", "/register?plan=free");
+
+    expect(screen.getByTestId("pricing-plan-cta-starter")).toHaveTextContent("Get Starter");
+    expect(screen.getByTestId("pricing-plan-cta-starter")).toHaveAttribute(
+      "href",
+      "/register?plan=starter",
+    );
+
+    expect(screen.getByTestId("pricing-plan-cta-business")).toHaveTextContent("Get Business");
+    expect(screen.getByTestId("pricing-plan-cta-business")).toHaveAttribute(
       "href",
       "/register?plan=business",
     );
+
+    expect(screen.getByTestId("pricing-plan-cta-pro")).toHaveTextContent("Get Pro");
+    expect(screen.getByTestId("pricing-plan-cta-pro")).toHaveAttribute("href", "/register?plan=pro");
   });
 
   it("F. register page reads plan query param", () => {
