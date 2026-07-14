@@ -1,10 +1,10 @@
 import { Outlet } from "react-router-dom";
 import { PublicSiteFooter, PublicSiteHeader } from "@/components/public/PublicSiteChrome";
 
-export function MarketplaceShell() {
+export function LandingShell() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <PublicSiteHeader active="marketplace" />
+      <PublicSiteHeader active="home" />
       <Outlet />
       <PublicSiteFooter />
     </div>

@@ -1,25 +1,14 @@
 import { Link } from "react-router-dom";
 import type { PublicBusinessDirectoryItem } from "@/types/api";
+import {
+  gradientForBusinessSlug,
+  truncatePublicText,
+} from "@/lib/businessCardMedia";
 import { StarRating } from "@/components/marketplace/StarRating";
 
 type MarketplaceBusinessCardProps = {
   business: PublicBusinessDirectoryItem;
 };
-
-const COVER_GRADIENTS = [
-  "from-brand-700/80 via-brand-600/70 to-slate-700/80",
-  "from-slate-700/80 via-brand-800/70 to-slate-900/80",
-  "from-teal-700/80 via-brand-700/70 to-slate-800/80",
-  "from-slate-600/80 via-brand-600/70 to-teal-800/80",
-];
-
-function gradientForSlug(slug: string): string {
-  let hash = 0;
-  for (let index = 0; index < slug.length; index += 1) {
-    hash = (hash + slug.charCodeAt(index)) % COVER_GRADIENTS.length;
-  }
-  return COVER_GRADIENTS[hash];
-}
 
 function formatStartsAtPrice(business: PublicBusinessDirectoryItem): string {
   if (business.starts_at_price_cents == null) {
@@ -38,19 +27,12 @@ function formatStartsAtPrice(business: PublicBusinessDirectoryItem): string {
 }
 
 function truncateText(value: string | null | undefined, maxLength: number): string | null {
-  if (!value?.trim()) {
-    return null;
-  }
-  const trimmed = value.trim();
-  if (trimmed.length <= maxLength) {
-    return trimmed;
-  }
-  return `${trimmed.slice(0, maxLength - 1).trim()}…`;
+  return truncatePublicText(value, maxLength);
 }
 
 export function MarketplaceBusinessCard({ business }: MarketplaceBusinessCardProps) {
   const businessHref = `/b/${business.slug}`;
-  const coverGradient = gradientForSlug(business.slug);
+  const coverGradient = gradientForBusinessSlug(business.slug);
   const description = truncateText(business.description, 110);
   const location = truncateText(business.address, 48);
   const ctaLabel = business.has_booking_service ? "Book now" : "Open business";

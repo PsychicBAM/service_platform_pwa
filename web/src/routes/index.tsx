@@ -41,9 +41,16 @@ import { CookiesPage } from "@/pages/legal/CookiesPage";
 import { PrivacyPage } from "@/pages/legal/PrivacyPage";
 import { TermsPage } from "@/pages/legal/TermsPage";
 import { MarketplaceShell } from "@/components/marketplace/MarketplaceShell";
+import { LandingShell } from "@/components/landing/LandingShell";
 import { BusinessDirectoryPage } from "@/pages/BusinessDirectoryPage";
+import { PlatformLandingPage } from "@/pages/PlatformLandingPage";
 
 export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <LandingShell />,
+    children: [{ index: true, element: <PlatformLandingPage /> }],
+  },
   {
     path: "/businesses",
     element: <MarketplaceShell />,
@@ -53,7 +60,6 @@ export const router = createBrowserRouter([
     path: "/",
     element: <Layout />,
     children: [
-      { index: true, element: <PublicHomePage /> },
       { path: "b/:slug", element: <PublicHomePage /> },
       { path: "b/:slug/services", element: <ServicesPage /> },
       { path: "b/:slug/services/:serviceId", element: <ServiceDetailPage /> },
