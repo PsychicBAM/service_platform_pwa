@@ -46,14 +46,16 @@ import { BusinessDirectoryPage } from "@/pages/BusinessDirectoryPage";
 import { PlatformLandingPage } from "@/pages/PlatformLandingPage";
 import { PricingPage } from "@/pages/PricingPage";
 
-export const router = createBrowserRouter([
+export const routes = [
   {
     path: "/",
     element: <LandingShell />,
-    children: [
-      { index: true, element: <PlatformLandingPage /> },
-      { path: "pricing", element: <PricingPage /> },
-    ],
+    children: [{ index: true, element: <PlatformLandingPage /> }],
+  },
+  {
+    path: "/pricing",
+    element: <LandingShell />,
+    children: [{ index: true, element: <PricingPage /> }],
   },
   {
     path: "/businesses",
@@ -124,7 +126,9 @@ export const router = createBrowserRouter([
       },
     ],
   },
-]);
+] ;
+
+export const router = createBrowserRouter(routes);
 
 export function AppRouter() {
   return <RouterProvider router={router} />;

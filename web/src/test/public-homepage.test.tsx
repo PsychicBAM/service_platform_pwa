@@ -143,6 +143,18 @@ describe("public homepage", () => {
     expect(cta).toHaveAttribute("href", `/b/${DEMO_SLUG}`);
   });
 
+  it("renders four collage tiles when only one business exists", async () => {
+    mockFeaturedResponse([mockFeaturedBusiness]);
+
+    renderRoute(<PlatformLandingPage />, { route: "/", path: "/" });
+
+    const collage = await screen.findByTestId("homepage-hero-collage");
+    expect(collage).toBeInTheDocument();
+    expect(screen.getAllByTestId("hero-collage-tile")).toHaveLength(4);
+    expect(screen.getByText("Coaching")).toBeInTheDocument();
+    expect(screen.getByText("Tutoring")).toBeInTheDocument();
+  });
+
   it("renders hero collage with multiple media tiles", async () => {
     mockFeaturedResponse([
       mockFeaturedBusiness,
@@ -163,6 +175,7 @@ describe("public homepage", () => {
     renderRoute(<PlatformLandingPage />, { route: "/", path: "/" });
 
     expect(await screen.findByTestId("homepage-get-started")).toHaveAttribute("href", "/pricing");
+    expect(screen.getByTestId("homepage-get-started")).toHaveTextContent("Get started");
     expect(screen.getByTestId("homepage-business-cta")).toHaveAttribute("href", "/pricing");
   });
 

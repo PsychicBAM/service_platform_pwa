@@ -1,10 +1,35 @@
 import { describe, it, expect } from "vitest";
-import { screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PricingPage } from "@/pages/PricingPage";
 import { MANUAL_BILLING_NOTE } from "@/data/pricingPlans";
+import { routes } from "@/routes";
 import { renderRoute } from "@/test/test-utils";
 
+function renderAppAt(path: string) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  const router = createMemoryRouter(routes, { initialEntries: [path] });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
+}
+
 describe("pricing page", () => {
+  it("/pricing route renders PricingPage via app router", async () => {
+    renderAppAt("/pricing");
+
+    expect(await screen.findByTestId("pricing-plan-grid")).toBeInTheDocument();
+    expect(screen.queryByText(/page not found/i)).not.toBeInTheDocument();
+  });
+
   it("renders Free, Starter, Business, and Pro plans", () => {
     renderRoute(<PricingPage />, { route: "/pricing", path: "/pricing" });
 
@@ -16,9 +41,14 @@ describe("pricing page", () => {
     expect(screen.getByText("Recommended")).toBeInTheDocument();
   });
 
-  it("links plan CTAs to register with plan query", () => {
+  it("links all plan CTAs to register with plan query", () => {
     renderRoute(<PricingPage />, { route: "/pricing", path: "/pricing" });
 
+    expect(screen.getByTestId("pricing-plan-cta-free")).toHaveAttribute("href", "/register?plan=free");
+    expect(screen.getByTestId("pricing-plan-cta-starter")).toHaveAttribute(
+      "href",
+      "/register?plan=starter",
+    );
     expect(screen.getByTestId("pricing-plan-cta-business")).toHaveAttribute(
       "href",
       "/register?plan=business",

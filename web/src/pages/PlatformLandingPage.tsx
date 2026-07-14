@@ -159,10 +159,10 @@ export function PlatformLandingPage() {
               </a>
               <Link
                 to="/pricing"
-                className="rounded-xl px-2 py-3 text-center text-sm font-semibold text-brand-700 hover:underline sm:ml-1"
+                className="rounded-xl border-2 border-brand-700 bg-white px-5 py-3 text-center text-sm font-semibold text-brand-700 hover:bg-brand-50"
                 data-testid="homepage-get-started"
               >
-                Start your business
+                Get started
               </Link>
             </div>
           </div>
@@ -299,7 +299,7 @@ export function PlatformLandingPage() {
               className="mt-5 inline-block rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-800 hover:bg-brand-50"
               data-testid="homepage-business-cta"
             >
-              Start your business
+              Get started
             </Link>
           </div>
         </div>
