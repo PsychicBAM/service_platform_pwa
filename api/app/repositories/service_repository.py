@@ -84,6 +84,30 @@ class ServiceRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
+    async def list_active_previews_for_businesses(
+        self,
+        business_ids: list[uuid.UUID],
+        *,
+        limit_per_business: int = 4,
+    ) -> dict[uuid.UUID, list[Service]]:
+        if not business_ids:
+            return {}
+        stmt = (
+            select(Service)
+            .where(
+                Service.business_id.in_(business_ids),
+                Service.is_active.is_(True),
+            )
+            .order_by(Service.business_id, Service.sort_order, Service.name)
+        )
+        result = await self.session.execute(stmt)
+        grouped: dict[uuid.UUID, list[Service]] = {bid: [] for bid in business_ids}
+        for service in result.scalars().all():
+            bucket = grouped.setdefault(service.business_id, [])
+            if len(bucket) < limit_per_business:
+                bucket.append(service)
+        return grouped
+
     async def create(self, service: Service) -> Service:
         self.session.add(service)
         await self.session.flush()

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from app.config import get_settings
 from app.exceptions.auth import AppError
-from app.routers import auth, billing, bookings, businesses, claims, clients, health, me_bookings, me_orders, orders, public, review_requests, reviews, schedule, services, superadmin, waitlist
+from app.routers import auth, billing, bookings, businesses, claims, clients, health, me_bookings, me_orders, orders, public, public_directory, review_requests, reviews, schedule, services, superadmin, waitlist
 
 settings = get_settings()
 
@@ -54,6 +54,7 @@ app.include_router(orders.router, prefix=settings.api_v1_prefix)
 app.include_router(clients.router, prefix=settings.api_v1_prefix)
 app.include_router(superadmin.router, prefix=settings.api_v1_prefix)
 app.include_router(public.router, prefix=settings.api_v1_prefix)
+app.include_router(public_directory.router, prefix=settings.api_v1_prefix)
 
 upload_root = Path(settings.mini_site_upload_root)
 upload_root.mkdir(parents=True, exist_ok=True)

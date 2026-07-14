@@ -29,6 +29,54 @@ export interface PublicBusiness {
   miniSiteConfig: MiniSiteConfig | null;
 }
 
+export interface PublicBusinessDirectoryServicePreview {
+  name: string;
+  type: ServiceType;
+  price_cents: number | null;
+  currency: string;
+  price_type: PriceType;
+  duration_minutes: number | null;
+  image_url: string | null;
+}
+
+export interface PublicBusinessDirectoryItem {
+  name: string;
+  slug: string;
+  description: string | null;
+  logo_url: string | null;
+  address: string | null;
+  operating_mode: OperatingMode;
+  average_rating: number | null;
+  review_count: number;
+  cover_image_url: string | null;
+  has_booking_service: boolean;
+  starts_at_price_cents: number | null;
+  starts_at_currency: string | null;
+  services_preview: PublicBusinessDirectoryServicePreview[];
+}
+
+export interface PublicBusinessDirectoryMeta {
+  page: number;
+  limit: number;
+  total: number;
+}
+
+export interface PublicBusinessDirectoryResponse {
+  data: PublicBusinessDirectoryItem[];
+  meta: PublicBusinessDirectoryMeta;
+}
+
+export type PublicBusinessDirectorySort = "popular" | "rating" | "newest" | "name";
+
+export interface PublicBusinessDirectoryQuery {
+  q?: string;
+  category?: string;
+  rating_min?: number;
+  sort?: PublicBusinessDirectorySort;
+  page?: number;
+  limit?: number;
+}
+
 export type ReviewStatus = "published" | "hidden";
 
 export interface ReviewRead {

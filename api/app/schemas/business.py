@@ -167,3 +167,40 @@ class PublicBusinessRead(BaseModel):
     review_count: int = 0
     public_page_variant: PublicPageVariant
     mini_site_config: MiniSiteConfig | None = None
+
+
+class PublicBusinessDirectoryServicePreview(BaseModel):
+    name: str
+    type: str
+    price_cents: int | None = None
+    currency: str = "USD"
+    price_type: str
+    duration_minutes: int | None = None
+    image_url: str | None = None
+
+
+class PublicBusinessDirectoryItem(BaseModel):
+    name: str
+    slug: str
+    description: str | None
+    logo_url: str | None
+    address: str | None
+    operating_mode: OperatingMode
+    average_rating: float | None = None
+    review_count: int = 0
+    cover_image_url: str | None = None
+    has_booking_service: bool = False
+    starts_at_price_cents: int | None = None
+    starts_at_currency: str | None = None
+    services_preview: list[PublicBusinessDirectoryServicePreview] = []
+
+
+class PublicBusinessDirectoryMeta(BaseModel):
+    page: int
+    limit: int
+    total: int
+
+
+class PublicBusinessDirectoryResponse(BaseModel):
+    data: list[PublicBusinessDirectoryItem]
+    meta: PublicBusinessDirectoryMeta

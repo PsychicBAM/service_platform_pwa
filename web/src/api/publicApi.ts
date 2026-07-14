@@ -6,6 +6,8 @@ import type {
   PublicBookingCreate,
   PublicBookingCreateResponse,
   PublicBusiness,
+  PublicBusinessDirectoryQuery,
+  PublicBusinessDirectoryResponse,
   PublicOrderCreate,
   PublicOrderCreateResponse,
   PublicPageVariant,
@@ -114,6 +116,37 @@ export function listPublicReviews(slug: string) {
   return apiClient.get<PublicReviewsResponse>(`/public/b/${encodeSlug(slug)}/reviews`, {
     auth: false,
   });
+}
+
+function buildDirectoryQuery(params: PublicBusinessDirectoryQuery = {}): string {
+  const search = new URLSearchParams();
+  if (params.q?.trim()) {
+    search.set("q", params.q.trim());
+  }
+  if (params.category && params.category !== "all") {
+    search.set("category", params.category);
+  }
+  if (params.rating_min != null) {
+    search.set("rating_min", String(params.rating_min));
+  }
+  if (params.sort) {
+    search.set("sort", params.sort);
+  }
+  if (params.page != null) {
+    search.set("page", String(params.page));
+  }
+  if (params.limit != null) {
+    search.set("limit", String(params.limit));
+  }
+  const query = search.toString();
+  return query ? `?${query}` : "";
+}
+
+export function listPublicBusinesses(params: PublicBusinessDirectoryQuery = {}) {
+  return apiClient.get<PublicBusinessDirectoryResponse>(
+    `/public/businesses${buildDirectoryQuery(params)}`,
+    { auth: false },
+  );
 }
 
 export function getReviewRequestContext(token: string) {

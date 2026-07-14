@@ -177,6 +177,150 @@ class BusinessRepository:
         result = await self.session.execute(stmt)
         return int(result.scalar_one())
 
+    def _public_directory_filters(
+        self,
+        stmt,
+        *,
+        q: str | None = None,
+        category_keywords: list[str] | None = None,
+        rating_min: float | None = None,
+        review_subq=None,
+    ):
+        from app.models.service import Service
+
+        stmt = stmt.where(Business.status == BusinessStatus.active)
+        if q and q.strip():
+            term = f"%{q.strip()}%"
+            service_match = select(Service.business_id).where(
+                Service.is_active.is_(True),
+                Service.name.ilike(term),
+            )
+            stmt = stmt.where(
+                or_(
+                    Business.name.ilike(term),
+                    Business.description.ilike(term),
+                    Business.address.ilike(term),
+                    Business.id.in_(service_match),
+                )
+            )
+        if category_keywords:
+            keyword_clauses = []
+            for keyword in category_keywords:
+                term = f"%{keyword}%"
+                service_match = select(Service.business_id).where(
+                    Service.is_active.is_(True),
+                    or_(
+                        Service.name.ilike(term),
+                        Service.description.ilike(term),
+                    ),
+                )
+                keyword_clauses.append(Business.name.ilike(term))
+                keyword_clauses.append(Business.description.ilike(term))
+                keyword_clauses.append(Business.id.in_(service_match))
+            stmt = stmt.where(or_(*keyword_clauses))
+        if rating_min is not None and review_subq is not None:
+            stmt = stmt.where(review_subq.c.avg_rating >= rating_min)
+        return stmt
+
+    async def list_public_directory(
+        self,
+        *,
+        q: str | None = None,
+        category_keywords: list[str] | None = None,
+        rating_min: float | None = None,
+        sort: str = "popular",
+        page: int = 1,
+        limit: int = 20,
+    ) -> list[tuple[Business, float | None, int]]:
+        from app.models.enums import ReviewStatus
+        from app.models.review import Review
+
+        review_subq = (
+            select(
+                Review.business_id.label("business_id"),
+                func.avg(Review.rating).label("avg_rating"),
+                func.count(Review.id).label("review_count"),
+            )
+            .where(Review.status == ReviewStatus.published)
+            .group_by(Review.business_id)
+            .subquery()
+        )
+        stmt = select(
+            Business,
+            review_subq.c.avg_rating,
+            review_subq.c.review_count,
+        ).outerjoin(review_subq, Business.id == review_subq.c.business_id)
+        stmt = self._public_directory_filters(
+            stmt,
+            q=q,
+            category_keywords=category_keywords,
+            rating_min=rating_min,
+            review_subq=review_subq,
+        )
+        if sort == "rating":
+            stmt = stmt.order_by(
+                review_subq.c.avg_rating.desc().nullslast(),
+                review_subq.c.review_count.desc().nullslast(),
+                Business.name.asc(),
+            )
+        elif sort == "newest":
+            stmt = stmt.order_by(Business.created_at.desc(), Business.name.asc())
+        elif sort == "name":
+            stmt = stmt.order_by(Business.name.asc())
+        else:
+            stmt = stmt.order_by(
+                review_subq.c.review_count.desc().nullslast(),
+                review_subq.c.avg_rating.desc().nullslast(),
+                Business.name.asc(),
+            )
+        offset = max(page - 1, 0) * limit
+        stmt = stmt.offset(offset).limit(limit)
+        result = await self.session.execute(stmt)
+        rows: list[tuple[Business, float | None, int]] = []
+        for business, avg_rating, review_count in result.all():
+            rows.append(
+                (
+                    business,
+                    float(avg_rating) if avg_rating is not None else None,
+                    int(review_count or 0),
+                )
+            )
+        return rows
+
+    async def count_public_directory(
+        self,
+        *,
+        q: str | None = None,
+        category_keywords: list[str] | None = None,
+        rating_min: float | None = None,
+    ) -> int:
+        from app.models.enums import ReviewStatus
+        from app.models.review import Review
+
+        review_subq = (
+            select(
+                Review.business_id.label("business_id"),
+                func.avg(Review.rating).label("avg_rating"),
+                func.count(Review.id).label("review_count"),
+            )
+            .where(Review.status == ReviewStatus.published)
+            .group_by(Review.business_id)
+            .subquery()
+        )
+        stmt = select(func.count()).select_from(Business).outerjoin(
+            review_subq,
+            Business.id == review_subq.c.business_id,
+        )
+        stmt = self._public_directory_filters(
+            stmt,
+            q=q,
+            category_keywords=category_keywords,
+            rating_min=rating_min,
+            review_subq=review_subq,
+        )
+        result = await self.session.execute(stmt)
+        return int(result.scalar_one())
+
     async def create_business(
         self,
         *,

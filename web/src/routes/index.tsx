@@ -40,8 +40,15 @@ import { ConsentPage } from "@/pages/legal/ConsentPage";
 import { CookiesPage } from "@/pages/legal/CookiesPage";
 import { PrivacyPage } from "@/pages/legal/PrivacyPage";
 import { TermsPage } from "@/pages/legal/TermsPage";
+import { MarketplaceShell } from "@/components/marketplace/MarketplaceShell";
+import { BusinessDirectoryPage } from "@/pages/BusinessDirectoryPage";
 
 export const router = createBrowserRouter([
+  {
+    path: "/businesses",
+    element: <MarketplaceShell />,
+    children: [{ index: true, element: <BusinessDirectoryPage /> }],
+  },
   {
     path: "/",
     element: <Layout />,
