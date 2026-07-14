@@ -45,6 +45,7 @@ export interface PublicBusinessDirectoryItem {
   description: string | null;
   logo_url: string | null;
   address: string | null;
+  location?: import("@/lib/publicLocation").PublicBusinessLocation | null;
   operating_mode: OperatingMode;
   average_rating: number | null;
   review_count: number;
@@ -70,6 +71,7 @@ export type PublicBusinessDirectorySort = "popular" | "rating" | "newest" | "nam
 
 export interface PublicBusinessDirectoryQuery {
   q?: string;
+  location?: string;
   category?: string;
   rating_min?: number;
   sort?: PublicBusinessDirectorySort;
@@ -586,6 +588,7 @@ export interface BusinessUpdatePayload {
   timezone?: string;
   operating_mode?: OperatingMode;
   settings?: BusinessSettingsUpdatePayload;
+  public_location?: import("@/lib/publicLocation").PublicBusinessLocation | null;
 }
 
 export interface BusinessSubscriptionSummary {
@@ -612,6 +615,7 @@ export interface BusinessAdminRead {
   created_at: string;
   updated_at: string;
   marketplace_cover_image?: import("@/lib/serviceImage").ServiceImageMedia | null;
+  public_location?: import("@/lib/publicLocation").PublicBusinessLocation | null;
 }
 
 export interface AdminServiceRead {

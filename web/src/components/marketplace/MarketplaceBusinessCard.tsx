@@ -4,6 +4,7 @@ import {
   gradientForBusinessSlug,
   truncatePublicText,
 } from "@/lib/businessCardMedia";
+import { formatPublicLocationDisplay } from "@/lib/publicLocation";
 import { StarRating } from "@/components/marketplace/StarRating";
 
 type MarketplaceBusinessCardProps = {
@@ -34,7 +35,7 @@ export function MarketplaceBusinessCard({ business }: MarketplaceBusinessCardPro
   const businessHref = `/b/${business.slug}`;
   const coverGradient = gradientForBusinessSlug(business.slug);
   const description = truncateText(business.description, 110);
-  const location = truncateText(business.address, 48);
+  const location = truncateText(formatPublicLocationDisplay(business), 48);
   const ctaLabel = business.has_booking_service ? "Book now" : "Open business";
   const serviceChips = business.services_preview.slice(0, 3);
 

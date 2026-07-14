@@ -6,6 +6,7 @@ import {
   operatingModeLabel,
   truncatePublicText,
 } from "@/lib/businessCardMedia";
+import { formatPublicLocationDisplay } from "@/lib/publicLocation";
 
 const MAX_SERVICE_CHIPS = 3;
 
@@ -17,7 +18,7 @@ type FeaturedBusinessCardProps = {
 export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusinessCardProps) {
   const businessHref = `/b/${business.slug}`;
   const coverGradient = gradientForBusinessSlug(business.slug);
-  const location = truncatePublicText(business.address, 36);
+  const locationLabel = truncatePublicText(formatPublicLocationDisplay(business), 36);
   const visibleServices = business.services_preview.slice(0, MAX_SERVICE_CHIPS);
   const extraServiceCount = Math.max(0, business.services_preview.length - visibleServices.length);
   const resolvedBadge =
@@ -73,7 +74,7 @@ export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusines
             <StarRating rating={business.average_rating} reviewCount={business.review_count} />
             <p className="text-xs text-slate-500">
               {operatingModeLabel(business.operating_mode)}
-              {location ? ` · ${location}` : ""}
+              {locationLabel ? ` · ${locationLabel}` : ""}
             </p>
             {business.description?.trim() ? (
               <p

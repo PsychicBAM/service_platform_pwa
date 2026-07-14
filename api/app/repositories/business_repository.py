@@ -182,6 +182,7 @@ class BusinessRepository:
         stmt,
         *,
         q: str | None = None,
+        location: str | None = None,
         category_keywords: list[str] | None = None,
         rating_min: float | None = None,
         review_subq=None,
@@ -201,6 +202,18 @@ class BusinessRepository:
                     Business.description.ilike(term),
                     Business.address.ilike(term),
                     Business.id.in_(service_match),
+                )
+            )
+        if location and location.strip():
+            term = f"%{location.strip()}%"
+            location_json = Business.settings["public_location"]
+            stmt = stmt.where(
+                or_(
+                    location_json["city"].as_string().ilike(term),
+                    location_json["district_or_area"].as_string().ilike(term),
+                    location_json["public_address"].as_string().ilike(term),
+                    location_json["country"].as_string().ilike(term),
+                    Business.address.ilike(term),
                 )
             )
         if category_keywords:
@@ -226,6 +239,7 @@ class BusinessRepository:
         self,
         *,
         q: str | None = None,
+        location: str | None = None,
         category_keywords: list[str] | None = None,
         rating_min: float | None = None,
         sort: str = "popular",
@@ -253,6 +267,7 @@ class BusinessRepository:
         stmt = self._public_directory_filters(
             stmt,
             q=q,
+            location=location,
             category_keywords=category_keywords,
             rating_min=rating_min,
             review_subq=review_subq,
@@ -291,6 +306,7 @@ class BusinessRepository:
         self,
         *,
         q: str | None = None,
+        location: str | None = None,
         category_keywords: list[str] | None = None,
         rating_min: float | None = None,
     ) -> int:
@@ -314,6 +330,7 @@ class BusinessRepository:
         stmt = self._public_directory_filters(
             stmt,
             q=q,
+            location=location,
             category_keywords=category_keywords,
             rating_min=rating_min,
             review_subq=review_subq,

@@ -43,6 +43,7 @@ from app.repositories.client_repository import ClientRepository
 from app.repositories.schedule_repository import ScheduleRepository
 from app.repositories.user_repository import UserRepository
 from app.services.password_service import hash_password, verify_password
+from app.utils.public_location import PublicLocation, format_public_location_display, set_public_location
 from app.utils.references import generate_booking_reference, generate_order_reference
 
 DEMO_PASSWORD = "ChangeMe123!"
@@ -65,6 +66,48 @@ LINKED_ORDER_FORM_DATA = {
     "details": "I need a Telegram bot with booking and notifications.",
 }
 LINKED_ORDER_MESSAGE_BODY = "Hello, I added more details for the project."
+
+DEMO_PUBLIC_LOCATIONS: dict[str, dict[str, str]] = {
+    BUSINESS_SLUG: {
+        "country": "UAE",
+        "city": "Dubai",
+        "district_or_area": "Dubai Marina",
+        "public_address": "Marina Walk, Dubai Marina",
+    },
+    COACH_BUSINESS_SLUG: {
+        "country": "UAE",
+        "city": "Dubai",
+        "district_or_area": "Jumeirah",
+        "public_address": "Jumeirah Beach Road",
+    },
+    TEACHER_BUSINESS_SLUG: {
+        "country": "UAE",
+        "city": "Dubai",
+        "district_or_area": "Business Bay",
+        "public_address": "Bay Square, Business Bay",
+    },
+    CLEANING_BUSINESS_SLUG: {
+        "country": "UAE",
+        "city": "Dubai",
+        "district_or_area": "Downtown Dubai",
+        "public_address": "Boulevard Plaza, Downtown Dubai",
+    },
+}
+
+
+async def _apply_public_location(
+    businesses: BusinessRepository,
+    business,
+    location_data: dict[str, str],
+) -> None:
+    location = PublicLocation.model_validate(location_data)
+    await businesses.update_settings(
+        business,
+        {"public_location": location.model_dump(exclude_none=True)},
+    )
+    display = format_public_location_display(location)
+    if display:
+        await businesses.update_business(business, {"address": display})
 
 
 def _disable_sql_echo() -> None:
@@ -226,6 +269,7 @@ async def _ensure_marketplace_demo_business(
     operating_mode: OperatingMode,
     plan: SubscriptionPlan,
     services: list[dict],
+    public_location: dict[str, str] | None = None,
 ) -> dict[str, str]:
     actions: dict[str, str] = {}
 
@@ -266,6 +310,10 @@ async def _ensure_marketplace_demo_business(
     )
     business.status = BusinessStatus.active
     await session.flush()
+
+    if public_location:
+        await _apply_public_location(businesses, business, public_location)
+        actions[f"{summary_prefix}_location"] = "updated"
 
     member = await businesses.get_member(business.id, owner.id)
     if member is None:
@@ -389,6 +437,13 @@ async def seed_demo() -> dict:
         )
         business.status = BusinessStatus.active
         await session.flush()
+
+        await _apply_public_location(
+            businesses,
+            business,
+            DEMO_PUBLIC_LOCATIONS[BUSINESS_SLUG],
+        )
+        summary["business_location"] = "updated"
 
         member = await businesses.get_member(business.id, owner.id)
         if member is None:
@@ -631,6 +686,7 @@ async def seed_demo() -> dict:
             address="Fitness District, Moscow",
             operating_mode=OperatingMode.both,
             plan=SubscriptionPlan.starter,
+            public_location=DEMO_PUBLIC_LOCATIONS[COACH_BUSINESS_SLUG],
             services=[
                 {
                     "name": "Personal Training",
@@ -672,6 +728,7 @@ async def seed_demo() -> dict:
             address="Education Quarter, Moscow",
             operating_mode=OperatingMode.both,
             plan=SubscriptionPlan.starter,
+            public_location=DEMO_PUBLIC_LOCATIONS[TEACHER_BUSINESS_SLUG],
             services=[
                 {
                     "name": "Math Lesson",
@@ -714,6 +771,7 @@ async def seed_demo() -> dict:
             address="Residential Area, Moscow",
             operating_mode=OperatingMode.both,
             plan=SubscriptionPlan.business,
+            public_location=DEMO_PUBLIC_LOCATIONS[CLEANING_BUSINESS_SLUG],
             services=[
                 {
                     "name": "Deep Cleaning",

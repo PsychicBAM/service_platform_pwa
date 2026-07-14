@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { listPublicBusinesses } from "@/api/publicApi";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -19,18 +20,27 @@ import { getApiErrorMessage } from "@/utils/errors";
 const PAGE_SIZE = 12;
 
 export function BusinessDirectoryPage() {
-  const [searchInput, setSearchInput] = useState("");
-  const [query, setQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
+  const [locationInput, setLocationInput] = useState(searchParams.get("location") ?? "");
+  const query = searchParams.get("q") ?? "";
+  const locationQuery = searchParams.get("location") ?? "";
   const [category, setCategory] = useState<MarketplaceCategoryId>("all");
   const [ratingMin, setRatingMin] = useState("");
   const [sort, setSort] = useState<MarketplaceSort>("popular");
   const [page, setPage] = useState(1);
 
+  useEffect(() => {
+    setSearchInput(searchParams.get("q") ?? "");
+    setLocationInput(searchParams.get("location") ?? "");
+  }, [searchParams]);
+
   const directoryQuery = useQuery({
-    queryKey: ["public-business-directory", query, category, ratingMin, sort, page],
+    queryKey: ["public-business-directory", query, locationQuery, category, ratingMin, sort, page],
     queryFn: () =>
       listPublicBusinesses({
         q: query || undefined,
+        location: locationQuery || undefined,
         category: category === "all" ? undefined : category,
         rating_min: ratingMin ? Number(ratingMin) : undefined,
         sort: sort as PublicBusinessDirectorySort,
@@ -53,9 +63,36 @@ export function BusinessDirectoryPage() {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  function updateSearchParams(next: { q?: string; location?: string }) {
+    const params = new URLSearchParams(searchParams);
+    if (next.q !== undefined) {
+      const trimmed = next.q.trim();
+      if (trimmed) {
+        params.set("q", trimmed);
+      } else {
+        params.delete("q");
+      }
+    }
+    if (next.location !== undefined) {
+      const trimmed = next.location.trim();
+      if (trimmed) {
+        params.set("location", trimmed);
+      } else {
+        params.delete("location");
+      }
+    }
+    setSearchParams(params, { replace: true });
+  }
+
   function handleSearchSubmit(event: React.FormEvent) {
     event.preventDefault();
-    setQuery(searchInput.trim());
+    updateSearchParams({ q: searchInput, location: locationInput });
+    setPage(1);
+  }
+
+  function handleLocationClear() {
+    setLocationInput("");
+    updateSearchParams({ location: "" });
     setPage(1);
   }
 
@@ -84,7 +121,7 @@ export function BusinessDirectoryPage() {
           Explore top-rated businesses and book with confidence.
         </p>
 
-        <form onSubmit={handleSearchSubmit} className="mt-5 flex flex-col gap-3 sm:flex-row">
+        <form onSubmit={handleSearchSubmit} className="mt-5 flex flex-col gap-3 lg:flex-row">
           <label className="sr-only" htmlFor="marketplace-search">
             Search services
           </label>
@@ -96,6 +133,18 @@ export function BusinessDirectoryPage() {
             placeholder="What service are you looking for?"
             className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none ring-brand-700/20 placeholder:text-slate-400 focus:border-brand-700 focus:ring-2"
             data-testid="marketplace-search-input"
+          />
+          <label className="sr-only" htmlFor="marketplace-location">
+            Location
+          </label>
+          <input
+            id="marketplace-location"
+            type="search"
+            value={locationInput}
+            onChange={(event) => setLocationInput(event.target.value)}
+            placeholder="City, district, or area"
+            className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none ring-brand-700/20 placeholder:text-slate-400 focus:border-brand-700 focus:ring-2"
+            data-testid="marketplace-location-input"
           />
           <button
             type="submit"
@@ -126,16 +175,21 @@ export function BusinessDirectoryPage() {
             </select>
           </label>
 
-          <label className="flex min-w-[160px] flex-col gap-1 text-xs font-medium text-slate-600">
-            Location
-            <select
-              disabled
-              className="cursor-not-allowed rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500"
-              aria-label="Location filter coming soon"
-            >
-              <option>All locations</option>
-            </select>
-          </label>
+          {locationQuery ? (
+            <div className="flex items-end gap-2">
+              <p className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                Location: <span data-testid="marketplace-active-location">{locationQuery}</span>
+              </p>
+              <button
+                type="button"
+                onClick={handleLocationClear}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                data-testid="marketplace-location-clear"
+              >
+                Clear
+              </button>
+            </div>
+          ) : null}
 
           <label className="flex min-w-[140px] flex-col gap-1 text-xs font-medium text-slate-600">
             Rating

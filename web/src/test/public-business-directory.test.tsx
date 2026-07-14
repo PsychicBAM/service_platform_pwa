@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BusinessDirectoryPage } from "@/pages/BusinessDirectoryPage";
 import * as publicApi from "@/api/publicApi";
 import { DEMO_SLUG } from "@/test/mock-fixtures";
-import { renderRoute } from "@/test/test-utils";
+import { createTestQueryClient, renderRoute } from "@/test/test-utils";
 import type { PublicBusinessDirectoryItem } from "@/types/api";
 
 vi.mock("@/api/publicApi");
@@ -15,6 +17,15 @@ const mockDirectoryBusiness: PublicBusinessDirectoryItem = {
   description: "Trusted dental care with same-week appointments.",
   logo_url: null,
   address: "Indiranagar, Bangalore",
+  location: {
+    country: "India",
+    city: "Bangalore",
+    district_or_area: "Indiranagar",
+    public_address: null,
+    latitude: null,
+    longitude: null,
+    location_note: null,
+  },
   operating_mode: "both",
   average_rating: 4.8,
   review_count: 256,
@@ -112,6 +123,71 @@ describe("public business directory", () => {
     expect(publicApi.listPublicBusinesses).toHaveBeenCalled();
     const lastCall = vi.mocked(publicApi.listPublicBusinesses).mock.calls.at(-1)?.[0];
     expect(lastCall?.q).toBe("dental");
+  });
+
+  it("submits location filter to directory API and updates router search", async () => {
+    mockDirectoryResponse([], 0);
+    const user = userEvent.setup();
+    const queryClient = createTestQueryClient();
+    const router = createMemoryRouter(
+      [{ path: "/businesses", element: <BusinessDirectoryPage /> }],
+      { initialEntries: ["/businesses"] },
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+
+    await user.type(screen.getByTestId("marketplace-location-input"), "Dubai");
+    await user.click(screen.getByTestId("marketplace-search-button"));
+
+    expect(publicApi.listPublicBusinesses).toHaveBeenCalled();
+    const lastCall = vi.mocked(publicApi.listPublicBusinesses).mock.calls.at(-1)?.[0];
+    expect(lastCall?.location).toBe("Dubai");
+    expect(router.state.location.search).toBe("?location=Dubai");
+  });
+
+  it("loads directory with location query param from URL", async () => {
+    mockDirectoryResponse([], 0);
+
+    renderRoute(<BusinessDirectoryPage />, {
+      route: "/businesses?location=Dubai",
+      path: "/businesses",
+    });
+
+    expect(await screen.findByTestId("marketplace-active-location")).toHaveTextContent("Dubai");
+    expect(publicApi.listPublicBusinesses).toHaveBeenCalledWith(
+      expect.objectContaining({ location: "Dubai" }),
+    );
+  });
+
+  it("clears location filter from URL and API calls", async () => {
+    mockDirectoryResponse([], 0);
+    const user = userEvent.setup();
+
+    renderRoute(<BusinessDirectoryPage />, {
+      route: "/businesses?location=Dubai",
+      path: "/businesses",
+    });
+
+    await screen.findByTestId("marketplace-active-location");
+    await user.click(screen.getByTestId("marketplace-location-clear"));
+
+    const lastCall = vi.mocked(publicApi.listPublicBusinesses).mock.calls.at(-1)?.[0];
+    expect(lastCall?.location).toBeUndefined();
+  });
+
+  it("shows clean location text on cards without undefined punctuation", async () => {
+    mockDirectoryResponse();
+
+    renderRoute(<BusinessDirectoryPage />, { route: "/businesses", path: "/businesses" });
+
+    const card = await screen.findByTestId("marketplace-business-card");
+    expect(within(card).getByText("Indiranagar, Bangalore, India")).toBeInTheDocument();
+    expect(within(card).queryByText(/undefined/i)).not.toBeInTheDocument();
+    expect(within(card).queryByText(", ,")).not.toBeInTheDocument();
   });
 
   it("renders empty state when no businesses match", async () => {

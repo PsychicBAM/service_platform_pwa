@@ -25,6 +25,15 @@ const mockFeaturedBusiness: PublicBusinessDirectoryItem = {
   description: "Trusted clinic with same-week appointments.",
   logo_url: null,
   address: "Indiranagar, Bangalore",
+  location: {
+    country: "India",
+    city: "Bangalore",
+    district_or_area: "Indiranagar",
+    public_address: null,
+    latitude: null,
+    longitude: null,
+    location_note: null,
+  },
   operating_mode: "both",
   average_rating: 4.9,
   review_count: 128,
@@ -132,6 +141,16 @@ describe("public homepage", () => {
       page: 1,
     });
     expect(screen.getByRole("heading", { name: mockFeaturedBusiness.name })).toBeInTheDocument();
+  });
+
+  it("shows clean location text on featured cards", async () => {
+    mockFeaturedResponse();
+
+    renderRoute(<PlatformLandingPage />, { route: "/", path: "/" });
+
+    const card = await screen.findByTestId("featured-business-card");
+    expect(within(card).getByText(/Indiranagar, Bangalore, India/i)).toBeInTheDocument();
+    expect(within(card).queryByText(/undefined/i)).not.toBeInTheDocument();
   });
 
   it("links featured business CTA to /b/:slug", async () => {

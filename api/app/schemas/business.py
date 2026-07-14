@@ -8,6 +8,7 @@ from app.models.enums import BusinessStatus, OperatingMode, PublicPageVariant, S
 from app.repositories.business_repository import DEFAULT_BUSINESS_SETTINGS
 from app.schemas.mini_site import MiniSiteConfig
 from app.schemas.service_image import ServiceImageMedia
+from app.utils.public_location import PublicLocation, PublicLocationWrite
 
 
 class BusinessRead(BaseModel):
@@ -132,6 +133,7 @@ class BusinessAdminRead(BaseModel):
     status: BusinessStatus
     settings: BusinessSettingsRead
     marketplace_cover_image: ServiceImageMedia | None = None
+    public_location: PublicLocation | None = None
     subscription: BusinessSubscriptionSummary | None
     created_at: datetime
     updated_at: datetime
@@ -147,6 +149,7 @@ class BusinessUpdate(BaseModel):
     timezone: str | None = None
     operating_mode: OperatingMode | None = None
     settings: BusinessSettingsUpdate | None = None
+    public_location: PublicLocationWrite | None = None
 
     @field_validator("name")
     @classmethod
@@ -187,6 +190,7 @@ class PublicBusinessDirectoryItem(BaseModel):
     description: str | None
     logo_url: str | None
     address: str | None
+    location: PublicLocation | None = None
     operating_mode: OperatingMode
     average_rating: float | None = None
     review_count: int = 0

@@ -15,6 +15,7 @@ DirectorySort = Literal["popular", "rating", "newest", "name"]
 @router.get("", response_model=PublicBusinessDirectoryResponse)
 async def list_public_businesses(
     q: str | None = Query(default=None, min_length=1, max_length=120),
+    location: str | None = Query(default=None, min_length=1, max_length=120),
     category: str | None = Query(default=None, max_length=64),
     rating_min: float | None = Query(default=None, ge=1, le=5),
     sort: DirectorySort = Query(default="popular"),
@@ -24,6 +25,7 @@ async def list_public_businesses(
 ) -> PublicBusinessDirectoryResponse:
     return await BusinessService(db).list_public_directory(
         q=q,
+        location=location,
         category=category,
         rating_min=rating_min,
         sort=sort,

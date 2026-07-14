@@ -123,6 +123,9 @@ function buildDirectoryQuery(params: PublicBusinessDirectoryQuery = {}): string 
   if (params.q?.trim()) {
     search.set("q", params.q.trim());
   }
+  if (params.location?.trim()) {
+    search.set("location", params.location.trim());
+  }
   if (params.category && params.category !== "all") {
     search.set("category", params.category);
   }

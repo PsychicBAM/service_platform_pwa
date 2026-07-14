@@ -59,6 +59,11 @@ from app.utils.marketplace_cover_image import (
     read_marketplace_cover_image,
     set_marketplace_cover_image,
 )
+from app.utils.public_location import (
+    format_public_location_display,
+    read_public_location,
+    set_public_location,
+)
 from app.utils.public_cover_image import resolve_public_cover_image_url
 from app.utils.marketplace_categories import category_keywords
 from app.utils.service_image import read_service_image, SERVICE_IMAGE_MAX_BYTES, SERVICE_IMAGE_MAX_SIZE_MESSAGE
@@ -74,6 +79,7 @@ class BusinessService:
         self,
         *,
         q: str | None = None,
+        location: str | None = None,
         category: str | None = None,
         rating_min: float | None = None,
         sort: str = "popular",
@@ -83,6 +89,7 @@ class BusinessService:
         keywords = category_keywords(category)
         rows = await self.repo.list_public_directory(
             q=q,
+            location=location,
             category_keywords=keywords or None,
             rating_min=rating_min,
             sort=sort,
@@ -91,6 +98,7 @@ class BusinessService:
         )
         total = await self.repo.count_public_directory(
             q=q,
+            location=location,
             category_keywords=keywords or None,
             rating_min=rating_min,
         )
@@ -168,12 +176,14 @@ class BusinessService:
             service_image_url=self._service_image_url,
         )
         starts_at_price_cents, starts_at_currency = self._starts_at_price(services)
+        public_location = read_public_location(business.settings)
         return PublicBusinessDirectoryItem(
             name=business.name,
             slug=business.slug,
             description=business.description,
             logo_url=business.logo_url,
-            address=business.address,
+            address=format_public_location_display(public_location, business.address),
+            location=public_location,
             operating_mode=business.operating_mode,
             average_rating=avg_rating,
             review_count=review_count,
@@ -195,9 +205,25 @@ class BusinessService:
     ) -> BusinessAdminRead:
         data = payload.model_dump(exclude_unset=True)
         settings_patch = data.pop("settings", None)
+        public_location_patch = data.pop("public_location", None)
 
         if "timezone" in data:
             self._validate_timezone(data["timezone"])
+
+        if public_location_patch is not None:
+            normalized_location = (
+                public_location_patch
+                if isinstance(public_location_patch, dict)
+                else public_location_patch.model_dump(exclude_unset=True)
+            )
+            from app.utils.public_location import PublicLocationWrite
+
+            location = PublicLocationWrite.model_validate(normalized_location)
+            business.settings = set_public_location(business.settings, location)
+            flag_modified(business, "settings")
+            display_address = format_public_location_display(location, business.address)
+            if display_address:
+                data["address"] = display_address
 
         if settings_patch is not None:
             await self.repo.update_settings(business, settings_patch)
@@ -433,6 +459,7 @@ class BusinessService:
             status=business.status,
             settings=BusinessSettingsRead.from_settings(business.settings),
             marketplace_cover_image=read_marketplace_cover_image(business.settings),
+            public_location=read_public_location(business.settings),
             subscription=(
                 BusinessSubscriptionSummary.model_validate(subscription)
                 if subscription is not None
