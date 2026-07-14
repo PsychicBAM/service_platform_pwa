@@ -56,6 +56,15 @@ describe("pricing page", () => {
     expect(screen.getByTestId("pricing-plan-cta-pro")).toHaveAttribute("href", "/register?plan=pro");
   });
 
+  it("renders plan-specific CTA labels", () => {
+    renderRoute(<PricingPage />, { route: "/pricing", path: "/pricing" });
+
+    expect(screen.getByTestId("pricing-plan-cta-free")).toHaveTextContent("Get Free");
+    expect(screen.getByTestId("pricing-plan-cta-starter")).toHaveTextContent("Get Starter");
+    expect(screen.getByTestId("pricing-plan-cta-business")).toHaveTextContent("Get Business");
+    expect(screen.getByTestId("pricing-plan-cta-pro")).toHaveTextContent("Get Pro");
+  });
+
   it("shows manual billing note without triggering checkout", () => {
     renderRoute(<PricingPage />, { route: "/pricing", path: "/pricing" });
 

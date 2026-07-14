@@ -1,5 +1,12 @@
 import { Link } from "react-router-dom";
-import { MANUAL_BILLING_NOTE, PRICING_PLANS } from "@/data/pricingPlans";
+import { MANUAL_BILLING_NOTE, PRICING_PLANS, type PricingPlanId } from "@/data/pricingPlans";
+
+const PLAN_CTA_LABELS: Record<PricingPlanId, string> = {
+  free: "Get Free",
+  starter: "Get Starter",
+  business: "Get Business",
+  pro: "Get Pro",
+};
 
 export function PublicPricingCards() {
   return (
@@ -56,7 +63,7 @@ export function PublicPricingCards() {
               }`}
               data-testid={`pricing-plan-cta-${plan.id}`}
             >
-              Get started
+              {PLAN_CTA_LABELS[plan.id]}
             </Link>
           </article>
         ))}

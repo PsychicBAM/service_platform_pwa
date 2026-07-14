@@ -143,10 +143,20 @@ export function PlatformLandingPage() {
               </div>
             </form>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div
+              className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
+              data-testid="homepage-hero-ctas"
+            >
+              <Link
+                to="/pricing"
+                className="rounded-xl bg-brand-700 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-brand-800"
+                data-testid="homepage-get-started"
+              >
+                Get started
+              </Link>
               <Link
                 to="/businesses"
-                className="rounded-xl bg-brand-700 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-brand-800"
+                className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50"
                 data-testid="homepage-browse-businesses"
               >
                 Browse businesses
@@ -157,13 +167,6 @@ export function PlatformLandingPage() {
               >
                 How it works
               </a>
-              <Link
-                to="/pricing"
-                className="rounded-xl border-2 border-brand-700 bg-white px-5 py-3 text-center text-sm font-semibold text-brand-700 hover:bg-brand-50"
-                data-testid="homepage-get-started"
-              >
-                Get started
-              </Link>
             </div>
           </div>
 

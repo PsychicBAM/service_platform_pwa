@@ -164,9 +164,35 @@ describe("public homepage", () => {
 
     renderRoute(<PlatformLandingPage />, { route: "/", path: "/" });
 
-    const collage = await screen.findByTestId("homepage-hero-collage");
+    await screen.findByTestId("homepage-featured-grid");
+    const collage = screen.getByTestId("homepage-hero-collage");
     expect(collage).toBeInTheDocument();
     expect(screen.getAllByTestId("hero-collage-tile")).toHaveLength(4);
+
+    const imageSrcs = Array.from(collage.querySelectorAll("img")).map((img) =>
+      img.getAttribute("src"),
+    );
+    expect(imageSrcs).toContain("/uploads/services/demo/cover.webp");
+    expect(imageSrcs).toContain("/uploads/services/coach/cover.webp");
+    expect(imageSrcs).toContain("/uploads/services/tutor/cover.webp");
+  });
+
+  it("renders Get started before Browse businesses in hero CTAs", async () => {
+    mockFeaturedResponse();
+
+    renderRoute(<PlatformLandingPage />, { route: "/", path: "/" });
+
+    const ctaArea = await screen.findByTestId("homepage-hero-ctas");
+    const links = within(ctaArea).getAllByRole("link");
+
+    expect(links[0]).toHaveTextContent("Get started");
+    expect(links[0]).toHaveAttribute("href", "/pricing");
+    expect(links[0].className).toMatch(/bg-brand-700/);
+
+    expect(links[1]).toHaveTextContent("Browse businesses");
+    expect(links[1]).toHaveAttribute("href", "/businesses");
+    expect(links[1].className).toMatch(/border-slate-200/);
+    expect(links[1].className).not.toMatch(/bg-brand-700/);
   });
 
   it("links get started CTAs to /pricing", async () => {
