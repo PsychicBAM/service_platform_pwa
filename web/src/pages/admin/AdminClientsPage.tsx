@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { listAdminClients } from "@/api/adminApi";
 import { AdminClientDetailPanel } from "@/components/admin/AdminClientDetailPanel";
@@ -43,8 +44,13 @@ export function AdminClientsPage() {
   });
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-bold">Clients</h2>
+    <section className="space-y-4" data-testid="admin-clients-page">
+      <div>
+        <h2 className="text-xl font-bold text-slate-900">Clients</h2>
+        <p className="mt-0.5 text-sm text-slate-600">
+          Find customers, review activity, and update contact details.
+        </p>
+      </div>
 
       {successMessage ? (
         <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
@@ -54,22 +60,24 @@ export function AdminClientsPage() {
 
       {actionError ? <ErrorState title="Action failed" message={actionError} /> : null}
 
-      <label htmlFor="clientSearch" className="block text-sm">
-        <span className="font-medium text-slate-700">Search clients</span>
-        <input
-          id="clientSearch"
-          type="search"
-          value={searchInput}
-          placeholder="Name, email, or phone"
-          onChange={(event) => {
-            setSearchInput(event.target.value);
-            setSelectedClientId(null);
-            setSuccessMessage(null);
-            setActionError(null);
-          }}
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        />
-      </label>
+      <div data-testid="admin-clients-search">
+        <label htmlFor="clientSearch" className="block text-sm">
+          <span className="font-medium text-slate-700">Search clients</span>
+          <input
+            id="clientSearch"
+            type="search"
+            value={searchInput}
+            placeholder="Name, email, or phone"
+            onChange={(event) => {
+              setSearchInput(event.target.value);
+              setSelectedClientId(null);
+              setSuccessMessage(null);
+              setActionError(null);
+            }}
+            className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm sm:min-h-0 sm:py-2"
+          />
+        </label>
+      </div>
 
       {selectedClientId && businessId ? (
         <AdminClientDetailPanel
@@ -96,50 +104,97 @@ export function AdminClientsPage() {
       ) : null}
 
       {!isLoading && !isError && data?.data.length === 0 ? (
-        <EmptyState
-          title={searchQuery ? "No clients match your search" : "No clients yet"}
-        />
+        <div className="space-y-3" data-testid="admin-clients-empty">
+          <EmptyState
+            title={searchQuery ? "No clients match your search" : "No clients yet"}
+            description={
+              searchQuery
+                ? "Try another name, email, or phone."
+                : "Clients will appear here after bookings or service requests."
+            }
+          />
+          {!searchQuery ? (
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link
+                to="/admin/bookings"
+                className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                View bookings
+              </Link>
+              <Link
+                to="/admin/orders"
+                className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                View orders
+              </Link>
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
-      {!isLoading && !isError && data ? (
-        <div className="grid gap-3 lg:grid-cols-2">
-          {data.data.map((client) => (
-            <article
-              key={client.id}
-              className={`rounded-2xl border bg-white p-4 shadow-sm ${
-                selectedClientId === client.id
-                  ? "border-brand-400 ring-1 ring-brand-200"
-                  : "border-slate-200"
-              }`}
-            >
-              <h3 className="font-semibold text-slate-900">{client.full_name}</h3>
-              {client.email ? (
-                <p className="mt-1 text-sm text-slate-600">{client.email}</p>
-              ) : null}
-              {client.phone ? <p className="text-sm text-slate-600">{client.phone}</p> : null}
-              <p className="mt-2 text-xs text-slate-500">{formatSource(client.source)}</p>
-              <p className="mt-1 text-xs text-slate-500">
-                {client.bookings_count} booking{client.bookings_count === 1 ? "" : "s"} ·{" "}
-                {client.orders_count} order{client.orders_count === 1 ? "" : "s"}
-              </p>
-              {client.last_activity_at ? (
-                <p className="mt-1 text-xs text-slate-500">
-                  Last activity {formatDateTimeLabel(client.last_activity_at)}
-                </p>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedClientId(client.id);
-                  setSuccessMessage(null);
-                  setActionError(null);
-                }}
-                className="mt-4 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+      {!isLoading && !isError && data && data.data.length > 0 ? (
+        <div
+          className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-2"
+          data-testid="admin-clients-list"
+        >
+          {data.data.map((client) => {
+            const contact = [client.email, client.phone].filter(Boolean).join(" · ");
+
+            return (
+              <article
+                key={client.id}
+                className={`flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ${
+                  selectedClientId === client.id
+                    ? "border-brand-400 ring-1 ring-brand-200"
+                    : "border-slate-200"
+                }`}
+                data-testid="admin-client-card"
               >
-                View details
-              </button>
-            </article>
-          ))}
+                <div className="flex min-w-0 flex-1 flex-col gap-2 p-3 sm:p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h3 className="min-w-0 break-words text-base font-semibold text-slate-900">
+                      {client.full_name}
+                    </h3>
+                    <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">
+                      {formatSource(client.source)}
+                    </span>
+                  </div>
+                  {contact ? (
+                    <p className="truncate text-sm text-slate-600" title={contact}>
+                      {contact}
+                    </p>
+                  ) : null}
+                  <p className="text-xs text-slate-500">
+                    {client.bookings_count} booking{client.bookings_count === 1 ? "" : "s"} ·{" "}
+                    {client.orders_count} order{client.orders_count === 1 ? "" : "s"}
+                  </p>
+                  {client.last_activity_at ? (
+                    <p className="mt-auto text-xs text-slate-500">
+                      Last activity {formatDateTimeLabel(client.last_activity_at)}
+                    </p>
+                  ) : (
+                    <p className="mt-auto text-xs text-slate-500">
+                      Created {formatDateTimeLabel(client.created_at)}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2 border-t border-slate-100 bg-slate-50/70 px-3 py-3 sm:px-4 sm:py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedClientId(client.id);
+                      setSuccessMessage(null);
+                      setActionError(null);
+                    }}
+                    className="min-h-10 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:min-h-0 sm:flex-none sm:py-1.5"
+                    data-testid={`admin-client-view-${client.id}`}
+                  >
+                    View details
+                  </button>
+                </div>
+              </article>
+            );
+          })}
         </div>
       ) : null}
     </section>

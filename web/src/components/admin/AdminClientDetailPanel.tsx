@@ -141,22 +141,31 @@ export function AdminClientDetailPanel({
   }
 
   return (
-    <div className="rounded-2xl border border-brand-200 bg-brand-50/40 p-4 space-y-4">
+    <div
+      className="space-y-4 overflow-hidden rounded-2xl border border-brand-200 bg-brand-50/40 p-3 sm:p-4"
+      data-testid="admin-client-detail-panel"
+    >
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900">{client.full_name}</h3>
+        <div className="min-w-0">
+          <h3 className="break-words text-lg font-semibold text-slate-900">{client.full_name}</h3>
           <p className="mt-1 text-sm text-slate-600">{formatSource(client.source)}</p>
+          {client.email ? (
+            <p className="mt-1 break-all text-sm text-slate-600">{client.email}</p>
+          ) : null}
+          {client.phone ? (
+            <p className="break-words text-sm text-slate-600">{client.phone}</p>
+          ) : null}
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="text-sm text-slate-600 hover:text-brand-700"
+          className="min-h-10 shrink-0 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-white/70 hover:text-brand-700 sm:min-h-0"
         >
           Close
         </button>
       </div>
 
-      <dl className="grid gap-2 text-sm sm:grid-cols-2">
+      <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-slate-500">Bookings</dt>
           <dd className="font-medium text-slate-900">{client.bookings_count}</dd>
@@ -168,16 +177,18 @@ export function AdminClientDetailPanel({
         {client.last_activity_at ? (
           <div className="sm:col-span-2">
             <dt className="text-slate-500">Last activity</dt>
-            <dd className="text-slate-800">{formatDateTimeLabel(client.last_activity_at)}</dd>
+            <dd className="break-words text-slate-800">
+              {formatDateTimeLabel(client.last_activity_at)}
+            </dd>
           </div>
         ) : null}
         <div>
           <dt className="text-slate-500">Created</dt>
-          <dd className="text-slate-800">{formatDateTimeLabel(client.created_at)}</dd>
+          <dd className="break-words text-slate-800">{formatDateTimeLabel(client.created_at)}</dd>
         </div>
         <div>
           <dt className="text-slate-500">Updated</dt>
-          <dd className="text-slate-800">{formatDateTimeLabel(client.updated_at)}</dd>
+          <dd className="break-words text-slate-800">{formatDateTimeLabel(client.updated_at)}</dd>
         </div>
       </dl>
 
@@ -193,7 +204,7 @@ export function AdminClientDetailPanel({
             value={form.full_name}
             disabled={saving}
             onChange={(event) => updateField("full_name", event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+            className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:opacity-60 sm:min-h-0 sm:py-2"
           />
         </div>
         <div>
@@ -206,7 +217,7 @@ export function AdminClientDetailPanel({
             value={form.email}
             disabled={saving}
             onChange={(event) => updateField("email", event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+            className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:opacity-60 sm:min-h-0 sm:py-2"
           />
         </div>
         <div>
@@ -219,7 +230,7 @@ export function AdminClientDetailPanel({
             value={form.phone}
             disabled={saving}
             onChange={(event) => updateField("phone", event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+            className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:opacity-60 sm:min-h-0 sm:py-2"
           />
         </div>
         <TextAreaField
@@ -233,7 +244,7 @@ export function AdminClientDetailPanel({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+          className="min-h-11 w-full rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 sm:min-h-0 sm:w-auto sm:py-1.5"
         >
           {saving ? "Saving…" : "Save client"}
         </button>
@@ -248,16 +259,16 @@ export function AdminClientDetailPanel({
             {client.bookings.map((booking) => (
               <li
                 key={booking.id}
-                className="rounded-xl border border-slate-200 bg-white p-3 text-sm"
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white p-3 text-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <p className="font-mono text-xs font-semibold text-slate-900">
+                  <p className="truncate font-mono text-xs font-semibold text-slate-900">
                     {booking.reference}
                   </p>
                   <StatusBadge status={booking.status} kind="booking" />
                 </div>
-                <p className="mt-1 text-slate-800">{booking.service_name}</p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 break-words text-slate-800">{booking.service_name}</p>
+                <p className="mt-1 break-words text-xs text-slate-500">
                   {formatDateTimeLabel(booking.starts_at)} – {formatDateTimeLabel(booking.ends_at)}
                 </p>
               </li>
@@ -275,16 +286,16 @@ export function AdminClientDetailPanel({
             {client.orders.map((order) => (
               <li
                 key={order.id}
-                className="rounded-xl border border-slate-200 bg-white p-3 text-sm"
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white p-3 text-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <p className="font-mono text-xs font-semibold text-slate-900">
+                  <p className="truncate font-mono text-xs font-semibold text-slate-900">
                     {order.reference}
                   </p>
                   <StatusBadge status={order.status} kind="order" />
                 </div>
-                <p className="mt-1 text-slate-800">{order.service_name}</p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 break-words text-slate-800">{order.service_name}</p>
+                <p className="mt-1 break-words text-xs text-slate-500">
                   Created {formatDateTimeLabel(order.created_at)}
                 </p>
               </li>
