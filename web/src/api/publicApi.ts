@@ -31,8 +31,10 @@ export type PublicBusinessWire = {
   operating_mode: OperatingMode;
   contact_phone: string | null;
   address: string | null;
+  location?: import("@/lib/publicLocation").PublicBusinessLocation | null;
   average_rating?: number | null;
   review_count?: number;
+  cover_image_url?: string | null;
   public_page_variant: PublicPageVariant;
   mini_site_config: MiniSiteConfigWire | null;
 };
@@ -47,8 +49,10 @@ export function mapPublicBusinessFromWire(wire: PublicBusinessWire): PublicBusin
     operating_mode: wire.operating_mode,
     contact_phone: wire.contact_phone,
     address: wire.address,
+    location: wire.location ?? null,
     average_rating: wire.average_rating ?? null,
     review_count: wire.review_count ?? 0,
+    cover_image_url: wire.cover_image_url ?? null,
     public_page_variant: wire.public_page_variant,
     miniSiteConfig: wire.mini_site_config
       ? mapMiniSiteConfigFromWire(wire.mini_site_config)

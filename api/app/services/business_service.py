@@ -50,6 +50,7 @@ from app.services.mini_site_media_storage import (
     mini_site_business_upload_dir,
     sanitize_original_filename,
 )
+from app.services.service_service import ServiceService
 from app.utils.mini_site_media_slots import (
     MINI_SITE_IMAGE_MAX_BYTES,
     MINI_SITE_IMAGE_MAX_SIZE_MESSAGE,
@@ -430,6 +431,13 @@ class BusinessService:
             if public_page_variant == PublicPageVariant.mini_site
             else None
         )
+        services = await ServiceService(self.session).list_public(business)
+        cover_image_url = resolve_public_cover_image_url(
+            settings=business.settings,
+            services=services,
+            service_image_url=self._service_image_url,
+        )
+        public_location = read_public_location(business.settings)
         return PublicBusinessRead(
             id=business.id,
             name=business.name,
@@ -438,9 +446,11 @@ class BusinessService:
             logo_url=business.logo_url,
             operating_mode=business.operating_mode,
             contact_phone=business.contact_phone,
-            address=business.address,
+            address=format_public_location_display(public_location, business.address),
+            location=public_location,
             average_rating=avg_rating,
             review_count=review_count,
+            cover_image_url=cover_image_url,
             public_page_variant=public_page_variant,
             mini_site_config=mini_site_config,
         )

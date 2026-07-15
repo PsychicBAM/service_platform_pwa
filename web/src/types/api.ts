@@ -23,8 +23,10 @@ export interface PublicBusiness {
   operating_mode: OperatingMode;
   contact_phone: string | null;
   address: string | null;
+  location?: import("@/lib/publicLocation").PublicBusinessLocation | null;
   average_rating?: number | null;
   review_count?: number;
+  cover_image_url?: string | null;
   public_page_variant: PublicPageVariant;
   miniSiteConfig: MiniSiteConfig | null;
 }

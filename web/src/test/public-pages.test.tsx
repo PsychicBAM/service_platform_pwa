@@ -23,6 +23,10 @@ vi.mock("@/api/publicApi");
 describe("public pages smoke", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([
+      mockBookingService,
+      mockOrderService,
+    ]);
     vi.mocked(publicApi.listPublicReviews).mockResolvedValue({
       summary: { average_rating: 4.8, review_count: 24 },
       reviews: [
@@ -48,15 +52,98 @@ describe("public pages smoke", () => {
 
     expect(await screen.findByRole("heading", { name: mockPublicBusiness.name })).toBeInTheDocument();
     expect(screen.getByTestId("standard-public-business-home")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-business-hero")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-business-description")).toHaveTextContent(
+      mockPublicBusiness.description ?? "",
+    );
+    expect(screen.getByTestId("standard-public-business-location")).toHaveTextContent("123 Demo Street");
     expect(await screen.findByTestId("public-rating-summary")).toHaveTextContent("4.8");
     expect(screen.getByTestId("public-rating-summary")).toHaveTextContent("24 reviews");
     expect(screen.getByTestId("public-review")).toHaveTextContent("Olga");
     expect(screen.queryByTestId("pro-mini-site-layout")).not.toBeInTheDocument();
     expect(screen.queryByText("Pro profile")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /choose service/i })).toHaveAttribute(
+    expect(screen.getByTestId("standard-public-business-book-cta")).toHaveAttribute(
       "href",
-      `/b/${DEMO_SLUG}/services`,
+      "#services-booking",
     );
+    expect(screen.getByTestId("standard-public-business-request-cta")).toHaveAttribute(
+      "href",
+      "#services-requests",
+    );
+    expect(await screen.findAllByTestId("service-card")).toHaveLength(2);
+  });
+
+  it("A1. standard hero uses cover image when provided", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
+      ...mockPublicBusiness,
+      cover_image_url: "/uploads/services/demo/cover.webp",
+    });
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("standard-public-business-hero-cover")).toHaveAttribute(
+      "src",
+      "/uploads/services/demo/cover.webp",
+    );
+  });
+
+  it("A1b. standard hero shows gradient fallback when no cover image exists", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
+      ...mockPublicBusiness,
+      cover_image_url: null,
+    });
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([
+      { ...mockBookingService, image: null },
+    ]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("standard-public-business-hero-cover-fallback")).toBeInTheDocument();
+    expect(screen.queryByTestId("standard-public-business-hero-cover")).not.toBeInTheDocument();
+  });
+
+  it("A1c. standard hero shows only Book online CTA for booking-only services", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
+      ...mockPublicBusiness,
+      operating_mode: "booking_only",
+    });
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([mockBookingService]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("standard-public-business-book-cta")).toHaveAttribute(
+      "href",
+      "#services-booking",
+    );
+    expect(screen.queryByTestId("standard-public-business-request-cta")).not.toBeInTheDocument();
+  });
+
+  it("A1d. standard hero shows only Request service CTA for request-only services", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
+      ...mockPublicBusiness,
+      operating_mode: "orders_only",
+    });
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([mockOrderService]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("standard-public-business-request-cta")).toHaveAttribute(
+      "href",
+      "#services-requests",
+    );
+    expect(screen.queryByTestId("standard-public-business-book-cta")).not.toBeInTheDocument();
   });
 
   it("A2. renders Pro mini-site layout when public_page_variant is mini_site", async () => {

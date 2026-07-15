@@ -239,8 +239,10 @@ async def test_public_business_returns_safe_fields_only(
         "operating_mode",
         "contact_phone",
         "address",
+        "location",
         "average_rating",
         "review_count",
+        "cover_image_url",
         "public_page_variant",
         "mini_site_config",
     }
