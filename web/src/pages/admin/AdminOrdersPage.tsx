@@ -37,7 +37,7 @@ function FilterButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+      className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium ${
         active
           ? "bg-brand-600 text-white"
           : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
@@ -66,8 +66,13 @@ export function AdminOrdersPage() {
   });
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-bold">Orders</h2>
+    <section className="space-y-4" data-testid="admin-orders-page">
+      <div>
+        <h2 className="text-xl font-bold text-slate-900">Orders</h2>
+        <p className="mt-0.5 text-sm text-slate-600">
+          Review service requests, update status, and reply to customers.
+        </p>
+      </div>
 
       {successMessage ? (
         <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
@@ -77,7 +82,10 @@ export function AdminOrdersPage() {
 
       {actionError ? <ErrorState title="Action failed" message={actionError} /> : null}
 
-      <div className="flex flex-wrap gap-2">
+      <div
+        className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        data-testid="admin-orders-status-filters"
+      >
         {FILTERS.map((filter) => (
           <FilterButton
             key={filter.value}
@@ -122,50 +130,68 @@ export function AdminOrdersPage() {
       ) : null}
 
       {!isLoading && !isError && data ? (
-        <div className="grid gap-3 lg:grid-cols-2">
-          {data.data.map((order) => (
-            <article
-              key={order.id}
-              className={`rounded-2xl border bg-white p-4 shadow-sm ${
-                selectedOrderId === order.id
-                  ? "border-brand-400 ring-1 ring-brand-200"
-                  : "border-slate-200"
-              }`}
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <p className="font-mono text-sm font-semibold">{order.reference}</p>
-                <StatusBadge status={order.status} kind="order" />
-              </div>
-              <p className="mt-2 text-sm text-slate-800">{order.service_name}</p>
-              <p className="text-sm text-slate-600">{order.client_name}</p>
-              <p className="mt-2 text-xs text-slate-500">
-                Created {formatDateTimeLabel(order.created_at)}
-              </p>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedOrderId(order.id);
-                    setSuccessMessage(null);
-                    setActionError(null);
-                  }}
-                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                >
-                  View details
-                </button>
-                {businessId ? (
-                  <AdminReviewLinkAction
-                    businessId={businessId}
-                    orderId={order.id}
-                    canReview={order.can_review}
-                    hasReview={order.has_review}
-                    onCopied={setSuccessMessage}
-                    onError={setActionError}
-                  />
-                ) : null}
-              </div>
-            </article>
-          ))}
+        <div
+          className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-2"
+          data-testid="admin-orders-list"
+        >
+          {data.data.map((order) => {
+            const contact = [order.client_email, order.client_phone].filter(Boolean).join(" · ");
+
+            return (
+              <article
+                key={order.id}
+                className={`flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ${
+                  selectedOrderId === order.id
+                    ? "border-brand-400 ring-1 ring-brand-200"
+                    : "border-slate-200"
+                }`}
+                data-testid="admin-order-card"
+              >
+                <div className="flex flex-1 flex-col gap-2 p-3 sm:p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="truncate font-mono text-sm font-semibold text-slate-900">
+                      {order.reference}
+                    </p>
+                    <StatusBadge status={order.status} kind="order" />
+                  </div>
+                  <p className="truncate text-sm font-medium text-slate-800">
+                    {order.service_name}
+                  </p>
+                  <p className="truncate text-sm text-slate-600">{order.client_name}</p>
+                  {contact ? (
+                    <p className="truncate text-xs text-slate-500">{contact}</p>
+                  ) : null}
+                  <p className="mt-auto text-xs text-slate-500">
+                    Created {formatDateTimeLabel(order.created_at)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 border-t border-slate-100 bg-slate-50/70 px-3 py-3 sm:px-4 sm:py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedOrderId(order.id);
+                      setSuccessMessage(null);
+                      setActionError(null);
+                    }}
+                    className="min-h-10 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:min-h-0 sm:flex-none sm:py-1.5"
+                    data-testid={`admin-order-view-${order.id}`}
+                  >
+                    View details
+                  </button>
+                  {businessId ? (
+                    <AdminReviewLinkAction
+                      businessId={businessId}
+                      orderId={order.id}
+                      canReview={order.can_review}
+                      hasReview={order.has_review}
+                      onCopied={setSuccessMessage}
+                      onError={setActionError}
+                    />
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </div>
       ) : null}
     </section>

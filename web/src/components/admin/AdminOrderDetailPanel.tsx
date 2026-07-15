@@ -11,6 +11,10 @@ import {
   sendAdminOrderMessage,
   updateAdminOrder,
 } from "@/api/adminApi";
+import {
+  AdminConfirmDialog,
+  type AdminConfirmDialogVariant,
+} from "@/components/admin/AdminConfirmDialog";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { NewMessageNotification } from "@/components/NewMessageNotification";
@@ -23,6 +27,15 @@ import { formatDateTimeLabel } from "@/utils/format";
 
 const MESSAGE_MAX_LENGTH = 5000;
 const MESSAGE_POLL_INTERVAL_MS = 1000;
+
+type PendingConfirm = {
+  kind: "accept" | "accept_and_start" | "decline" | "start_work" | "complete" | "cancel";
+  title: string;
+  description: string;
+  confirmLabel: string;
+  variant: AdminConfirmDialogVariant;
+  successMessage: string;
+};
 
 const MESSAGING_OPEN_STATUSES: OrderStatus[] = [
   "submitted",
@@ -112,6 +125,7 @@ export function AdminOrderDetailPanel({
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [messageBody, setMessageBody] = useState("");
   const [messagesClosed, setMessagesClosed] = useState(false);
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
 
   const detailQuery = useQuery({
     queryKey: ["admin-order", businessId, orderId],
@@ -138,6 +152,7 @@ export function AdminOrderDetailPanel({
       setShowCancelForm(false);
       setDeclineReason("");
       setCancelReason("");
+      setPendingConfirm(null);
       setMessagesClosed(!isMessagingOpen(detailQuery.data.status));
     }
   }, [detailQuery.data]);
@@ -231,76 +246,123 @@ export function AdminOrderDetailPanel({
     };
   }
 
-  async function handleAccept(startWork: boolean) {
-    const confirmMessage = startWork
-      ? "Accept this request and start work?"
-      : "Accept this request?";
-    if (!window.confirm(confirmMessage)) {
+  function closePendingConfirm() {
+    if (acting) {
       return;
     }
-    try {
-      await acceptMutation.mutateAsync(buildAcceptPayload(startWork));
-      onSuccess(startWork ? "Request accepted and work started." : "Request accepted.");
-    } catch (error) {
-      onError(getAdminOrderErrorMessage(error, "Could not accept request."));
-    }
+    setPendingConfirm(null);
   }
 
-  async function handleDeclineSubmit() {
+  function requestAccept(startWork: boolean) {
+    setPendingConfirm({
+      kind: startWork ? "accept_and_start" : "accept",
+      title: startWork ? "Accept request and start work?" : "Accept request?",
+      description: startWork
+        ? "This request will be accepted and marked as in progress."
+        : "This request will be marked as accepted.",
+      confirmLabel: startWork ? "Accept & start" : "Accept",
+      variant: "success",
+      successMessage: startWork
+        ? "Request accepted and work started."
+        : "Request accepted.",
+    });
+  }
+
+  function requestDeclineSubmit() {
     const reason = declineReason.trim();
     if (!reason) {
       onError("Please enter a decline reason.");
       return;
     }
-    if (!window.confirm("Decline this request?")) {
-      return;
-    }
-    try {
-      await declineMutation.mutateAsync({
-        decline_reason: reason,
-        admin_notes: adminNotes.trim() || undefined,
-      });
-      onSuccess("Request declined.");
-    } catch (error) {
-      onError(getAdminOrderErrorMessage(error, "Could not decline request."));
-    }
+    setPendingConfirm({
+      kind: "decline",
+      title: "Decline request?",
+      description: "This request will be marked as declined.",
+      confirmLabel: "Decline request",
+      variant: "danger",
+      successMessage: "Request declined.",
+    });
   }
 
-  async function handleStartWork() {
-    if (!window.confirm("Mark this request as in progress?")) {
-      return;
-    }
-    try {
-      await inProgressMutation.mutateAsync();
-      onSuccess("Work started.");
-    } catch (error) {
-      onError(getAdminOrderErrorMessage(error, "Could not start work."));
-    }
+  function requestStartWork() {
+    setPendingConfirm({
+      kind: "start_work",
+      title: "Mark request as in progress?",
+      description: "This request will be marked as in progress.",
+      confirmLabel: "Start work",
+      variant: "default",
+      successMessage: "Work started.",
+    });
   }
 
-  async function handleComplete() {
-    if (!window.confirm("Mark this request as completed?")) {
-      return;
-    }
-    try {
-      await completeMutation.mutateAsync();
-      onSuccess("Request completed.");
-    } catch (error) {
-      onError(getAdminOrderErrorMessage(error, "Could not complete request."));
-    }
+  function requestComplete() {
+    setPendingConfirm({
+      kind: "complete",
+      title: "Mark request as completed?",
+      description: "This will mark the request as completed.",
+      confirmLabel: "Mark completed",
+      variant: "success",
+      successMessage: "Request completed.",
+    });
   }
 
-  async function handleCancelSubmit() {
-    if (!window.confirm("Cancel this request?")) {
+  function requestCancelSubmit() {
+    setPendingConfirm({
+      kind: "cancel",
+      title: "Cancel request?",
+      description: "This request will be marked as cancelled.",
+      confirmLabel: "Cancel request",
+      variant: "danger",
+      successMessage: "Request cancelled.",
+    });
+  }
+
+  async function confirmPendingAction() {
+    if (!pendingConfirm) {
       return;
     }
+
     try {
-      await cancelMutation.mutateAsync({
-        reason: cancelReason.trim() || undefined,
-      });
-      onSuccess("Request cancelled.");
+      switch (pendingConfirm.kind) {
+        case "accept":
+          await acceptMutation.mutateAsync(buildAcceptPayload(false));
+          break;
+        case "accept_and_start":
+          await acceptMutation.mutateAsync(buildAcceptPayload(true));
+          break;
+        case "decline":
+          await declineMutation.mutateAsync({
+            decline_reason: declineReason.trim(),
+            admin_notes: adminNotes.trim() || undefined,
+          });
+          break;
+        case "start_work":
+          await inProgressMutation.mutateAsync();
+          break;
+        case "complete":
+          await completeMutation.mutateAsync();
+          break;
+        case "cancel":
+          await cancelMutation.mutateAsync({
+            reason: cancelReason.trim() || undefined,
+          });
+          break;
+      }
+      onSuccess(pendingConfirm.successMessage);
+      setPendingConfirm(null);
     } catch (error) {
-      onError(getAdminOrderErrorMessage(error, "Could not cancel request."));
+      setPendingConfirm(null);
+      const fallback =
+        pendingConfirm.kind === "decline"
+          ? "Could not decline request."
+          : pendingConfirm.kind === "cancel"
+            ? "Could not cancel request."
+            : pendingConfirm.kind === "complete"
+              ? "Could not complete request."
+              : pendingConfirm.kind === "start_work"
+                ? "Could not start work."
+                : "Could not accept request.";
+      onError(getAdminOrderErrorMessage(error, fallback));
     }
   }
 
@@ -361,38 +423,51 @@ export function AdminOrderDetailPanel({
   const messagingOpen = isMessagingOpen(order.status) && !messagesClosed;
 
   return (
-    <OrderDetailContent
-      order={order}
-      formDetails={formDetails}
-      adminNotes={adminNotes}
-      quotedPriceInput={quotedPriceInput}
-      declineReason={declineReason}
-      cancelReason={cancelReason}
-      showDeclineForm={showDeclineForm}
-      showCancelForm={showCancelForm}
-      messageBody={messageBody}
-      messagingOpen={messagingOpen}
-      messagesQuery={messagesQuery}
-      showNewMessageNotification={showNotification}
-      onDismissNewMessageNotification={dismissNotification}
-      acting={acting}
-      onClose={onClose}
-      onAdminNotesChange={setAdminNotes}
-      onQuotedPriceChange={setQuotedPriceInput}
-      onDeclineReasonChange={setDeclineReason}
-      onCancelReasonChange={setCancelReason}
-      onMessageBodyChange={setMessageBody}
-      onShowDeclineForm={() => setShowDeclineForm(true)}
-      onShowCancelForm={() => setShowCancelForm(true)}
-      onAccept={() => handleAccept(false)}
-      onAcceptAndStart={() => handleAccept(true)}
-      onDeclineSubmit={handleDeclineSubmit}
-      onStartWork={handleStartWork}
-      onComplete={handleComplete}
-      onCancelSubmit={handleCancelSubmit}
-      onSaveDetails={handleSaveDetails}
-      onSendMessage={handleSendMessage}
-    />
+    <>
+      <OrderDetailContent
+        order={order}
+        formDetails={formDetails}
+        adminNotes={adminNotes}
+        quotedPriceInput={quotedPriceInput}
+        declineReason={declineReason}
+        cancelReason={cancelReason}
+        showDeclineForm={showDeclineForm}
+        showCancelForm={showCancelForm}
+        messageBody={messageBody}
+        messagingOpen={messagingOpen}
+        messagesQuery={messagesQuery}
+        showNewMessageNotification={showNotification}
+        onDismissNewMessageNotification={dismissNotification}
+        acting={acting}
+        onClose={onClose}
+        onAdminNotesChange={setAdminNotes}
+        onQuotedPriceChange={setQuotedPriceInput}
+        onDeclineReasonChange={setDeclineReason}
+        onCancelReasonChange={setCancelReason}
+        onMessageBodyChange={setMessageBody}
+        onShowDeclineForm={() => setShowDeclineForm(true)}
+        onShowCancelForm={() => setShowCancelForm(true)}
+        onAccept={() => requestAccept(false)}
+        onAcceptAndStart={() => requestAccept(true)}
+        onDeclineSubmit={requestDeclineSubmit}
+        onStartWork={requestStartWork}
+        onComplete={requestComplete}
+        onCancelSubmit={requestCancelSubmit}
+        onSaveDetails={() => void handleSaveDetails()}
+        onSendMessage={handleSendMessage}
+      />
+
+      <AdminConfirmDialog
+        open={Boolean(pendingConfirm)}
+        title={pendingConfirm?.title ?? ""}
+        description={pendingConfirm?.description ?? ""}
+        confirmLabel={pendingConfirm?.confirmLabel ?? "Confirm"}
+        variant={pendingConfirm?.variant ?? "default"}
+        isLoading={acting}
+        onCancel={closePendingConfirm}
+        onConfirm={() => void confirmPendingAction()}
+      />
+    </>
   );
 }
 
@@ -460,10 +535,15 @@ function OrderDetailContent({
   onSendMessage: (event: FormEvent) => void;
 }) {
   return (
-    <div className="rounded-2xl border border-brand-200 bg-brand-50/40 p-4 space-y-4">
+    <div
+      className="space-y-4 rounded-2xl border border-brand-200 bg-brand-50/40 p-3 sm:p-4"
+      data-testid="admin-order-detail-panel"
+    >
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-mono text-sm font-semibold text-slate-900">{order.reference}</p>
+        <div className="min-w-0">
+          <p className="truncate font-mono text-sm font-semibold text-slate-900">
+            {order.reference}
+          </p>
           <div className="mt-2">
             <StatusBadge status={order.status} kind="order" />
           </div>
@@ -471,7 +551,7 @@ function OrderDetailContent({
         <button
           type="button"
           onClick={onClose}
-          className="text-sm text-slate-600 hover:text-brand-700"
+          className="shrink-0 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-white/70 hover:text-brand-700"
         >
           Close
         </button>
@@ -485,13 +565,15 @@ function OrderDetailContent({
         <div>
           <dt className="text-slate-500">Client</dt>
           <dd className="font-medium text-slate-900">{order.client.full_name}</dd>
-          {order.client.email ? <dd className="text-slate-600">{order.client.email}</dd> : null}
+          {order.client.email ? (
+            <dd className="break-all text-slate-600">{order.client.email}</dd>
+          ) : null}
           {order.client.phone ? <dd className="text-slate-600">{order.client.phone}</dd> : null}
         </div>
         {formDetails ? (
           <div>
             <dt className="text-slate-500">Request details</dt>
-            <dd className="whitespace-pre-wrap text-slate-800">{formDetails}</dd>
+            <dd className="whitespace-pre-wrap break-words text-slate-800">{formDetails}</dd>
           </div>
         ) : null}
         {order.quoted_price_cents != null ? (
@@ -555,7 +637,7 @@ function OrderDetailContent({
           type="button"
           onClick={onSaveDetails}
           disabled={acting}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 sm:min-h-0 sm:py-1.5"
         >
           Save notes &amp; price
         </button>
@@ -564,9 +646,16 @@ function OrderDetailContent({
       <div className="flex flex-wrap gap-2 border-t border-slate-200 pt-4">
         {canAccept(order.status) ? (
           <>
-            <ActionButton label="Accept" onClick={onAccept} disabled={acting} primary />
+            <ActionButton
+              label="Accept"
+              testId="admin-order-action-accept"
+              onClick={onAccept}
+              disabled={acting}
+              primary
+            />
             <ActionButton
               label="Accept & start work"
+              testId="admin-order-action-accept-start"
               onClick={onAcceptAndStart}
               disabled={acting}
               primary
@@ -574,16 +663,39 @@ function OrderDetailContent({
           </>
         ) : null}
         {canDecline(order.status) && !showDeclineForm ? (
-          <ActionButton label="Decline" onClick={onShowDeclineForm} disabled={acting} />
+          <ActionButton
+            label="Decline"
+            testId="admin-order-action-decline"
+            onClick={onShowDeclineForm}
+            disabled={acting}
+          />
         ) : null}
         {canStartWork(order.status) ? (
-          <ActionButton label="Start work" onClick={onStartWork} disabled={acting} primary />
+          <ActionButton
+            label="Start work"
+            testId="admin-order-action-start"
+            onClick={onStartWork}
+            disabled={acting}
+            primary
+          />
         ) : null}
         {canComplete(order.status) ? (
-          <ActionButton label="Complete" onClick={onComplete} disabled={acting} primary />
+          <ActionButton
+            label="Complete"
+            testId="admin-order-action-complete"
+            onClick={onComplete}
+            disabled={acting}
+            primary
+          />
         ) : null}
         {canCancel(order.status) && !showCancelForm ? (
-          <ActionButton label="Cancel request" onClick={onShowCancelForm} disabled={acting} danger />
+          <ActionButton
+            label="Cancel request"
+            testId="admin-order-action-cancel"
+            onClick={onShowCancelForm}
+            disabled={acting}
+            danger
+          />
         ) : null}
       </div>
 
@@ -601,7 +713,8 @@ function OrderDetailContent({
             type="button"
             onClick={onDeclineSubmit}
             disabled={acting}
-            className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60"
+            className="min-h-11 w-full rounded-lg bg-amber-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-60 sm:min-h-0 sm:w-auto sm:py-1.5"
+            data-testid="admin-order-action-confirm-decline"
           >
             Confirm decline
           </button>
@@ -621,14 +734,15 @@ function OrderDetailContent({
             type="button"
             onClick={onCancelSubmit}
             disabled={acting}
-            className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+            className="min-h-11 w-full rounded-lg bg-red-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 sm:min-h-0 sm:w-auto sm:py-1.5"
+            data-testid="admin-order-action-confirm-cancel"
           >
             Confirm cancel
           </button>
         </div>
       ) : null}
 
-      <div className="space-y-3 border-t border-slate-200 pt-4">
+      <div className="space-y-3 border-t border-slate-200 pt-4" data-testid="admin-order-messages">
         <div>
           <h3 className="text-sm font-medium text-slate-700">Messages</h3>
           <p className="text-xs text-slate-400">Messages refresh automatically.</p>
@@ -655,7 +769,7 @@ function OrderDetailContent({
         ) : null}
 
         {messagesQuery.data && messagesQuery.data.data.length > 0 ? (
-          <div className="space-y-2">
+          <div className="max-h-80 space-y-2 overflow-y-auto pr-0.5 sm:max-h-none sm:overflow-visible">
             {messagesQuery.data.data.map((message) => (
               <div
                 key={message.id}
@@ -671,7 +785,9 @@ function OrderDetailContent({
                     {formatDateTimeLabel(message.created_at)}
                   </time>
                 </div>
-                <p className="mt-1 whitespace-pre-wrap text-slate-800">{message.body}</p>
+                <p className="mt-1 whitespace-pre-wrap break-words text-slate-800">
+                  {message.body}
+                </p>
               </div>
             ))}
           </div>
@@ -690,7 +806,7 @@ function OrderDetailContent({
             <button
               type="submit"
               disabled={acting || !messageBody.trim()}
-              className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+              className="min-h-11 w-full rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 sm:min-h-0 sm:w-auto sm:py-1.5"
             >
               Send message
             </button>
@@ -709,24 +825,33 @@ function ActionButton({
   disabled,
   primary,
   danger,
+  testId,
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
   primary?: boolean;
   danger?: boolean;
+  testId?: string;
 }) {
-  let className = "rounded-lg border px-3 py-1.5 text-sm font-medium disabled:opacity-60 ";
+  let className =
+    "min-h-10 flex-1 rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity-60 sm:min-h-0 sm:flex-none sm:py-1.5 ";
   if (danger) {
-    className += "border-red-300 text-red-700 hover:bg-red-50";
+    className += "border-red-300 bg-white text-red-700 hover:bg-red-50";
   } else if (primary) {
     className += "border-brand-600 bg-brand-600 text-white hover:bg-brand-700";
   } else {
-    className += "border-slate-300 text-slate-700 hover:bg-slate-50";
+    className += "border-slate-300 bg-white text-slate-700 hover:bg-slate-50";
   }
 
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className={className}>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={className}
+      data-testid={testId}
+    >
       {label}
     </button>
   );
