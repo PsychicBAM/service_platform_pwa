@@ -31,7 +31,7 @@ export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusines
 
   return (
     <article
-      className="flex h-full min-w-[260px] max-w-sm flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:min-w-0"
+      className="flex h-full w-[min(86vw,360px)] flex-none snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md lg:w-auto lg:max-w-none lg:flex-auto"
       data-testid="featured-business-card"
     >
       <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-slate-100">
@@ -69,10 +69,10 @@ export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusines
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-4 pt-7">
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="space-y-2">
-            <h3 className="text-base font-semibold text-slate-900">{business.name}</h3>
+          <div className="min-w-0 space-y-2">
+            <h3 className="truncate text-base font-semibold text-slate-900">{business.name}</h3>
             <StarRating rating={business.average_rating} reviewCount={business.review_count} />
-            <p className="text-xs text-slate-500">
+            <p className="truncate text-xs text-slate-500">
               {operatingModeLabel(business.operating_mode)}
               {locationLabel ? ` · ${locationLabel}` : ""}
             </p>
@@ -88,13 +88,13 @@ export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusines
 
           {visibleServices.length > 0 || extraServiceCount > 0 ? (
             <div
-              className="mt-auto flex flex-wrap gap-1.5 pt-3"
+              className="mt-auto flex max-w-full flex-wrap gap-1.5 pt-3"
               data-testid="featured-business-chips"
             >
               {visibleServices.map((service) => (
                 <span
                   key={service.name}
-                  className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
+                  className="max-w-full truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
                   data-testid="featured-business-chip"
                 >
                   {service.name}

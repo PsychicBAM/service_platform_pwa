@@ -144,6 +144,35 @@ describe("public homepage", () => {
     expect(screen.getByRole("heading", { name: mockFeaturedBusiness.name })).toBeInTheDocument();
   });
 
+  it("uses mobile snap carousel for featured businesses and keeps desktop grid classes", async () => {
+    mockFeaturedResponse([
+      mockFeaturedBusiness,
+      mockFeaturedBusinessTwo,
+      mockFeaturedBusinessThree,
+    ]);
+
+    renderRoute(<PlatformLandingPage />, { route: "/", path: "/" });
+
+    const grid = await screen.findByTestId("homepage-featured-grid");
+    expect(grid.className).toMatch(/snap-x/);
+    expect(grid.className).toMatch(/snap-mandatory/);
+    expect(grid.className).toMatch(/overflow-x-auto/);
+    expect(grid.className).toMatch(/items-stretch/);
+    expect(grid.className).toMatch(/lg:grid/);
+    expect(grid.className).toMatch(/lg:grid-cols-5/);
+
+    const cards = screen.getAllByTestId("featured-business-card");
+    expect(cards.length).toBeGreaterThan(0);
+    for (const card of cards) {
+      expect(card.className).toMatch(/snap-start/);
+      expect(card.className).toMatch(/flex-none|flex h-full/);
+      expect(card.className).toMatch(/w-\[min\(86vw,360px\)\]/);
+      expect(card.className).toMatch(/lg:w-auto/);
+      expect(card.className).toMatch(/flex-col/);
+      expect(within(card).getByTestId("featured-business-cta")).toHaveTextContent("Open business");
+    }
+  });
+
   it("shows clean location text on featured cards", async () => {
     mockFeaturedResponse();
 

@@ -217,7 +217,7 @@ export function PlatformLandingPage() {
 
         {!featuredQuery.isLoading && featuredCards.length > 0 ? (
           <div
-            className="flex gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:items-stretch lg:overflow-visible"
+            className="-mx-4 flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:grid lg:grid-cols-5 lg:gap-4 lg:overflow-visible lg:px-0 lg:[scrollbar-width:auto]"
             data-testid="homepage-featured-grid"
           >
             {featuredCards.map((business) => (
