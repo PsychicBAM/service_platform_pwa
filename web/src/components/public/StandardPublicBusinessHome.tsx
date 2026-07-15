@@ -4,9 +4,11 @@ import { EmptyState } from "@/components/EmptyState";
 import { LoadingState } from "@/components/LoadingState";
 import { StandardPublicBusinessClientActions } from "@/components/public/StandardPublicBusinessClientActions";
 import { StandardPublicBusinessHero } from "@/components/public/StandardPublicBusinessHero";
+import { StandardPublicBusinessLocationSection } from "@/components/public/StandardPublicBusinessLocationSection";
+import { StandardPublicBusinessQuickInfo } from "@/components/public/StandardPublicBusinessQuickInfo";
+import { StandardPublicBusinessReviewsSection } from "@/components/public/StandardPublicBusinessReviewsSection";
 import { StandardPublicServiceCard } from "@/components/public/StandardPublicServiceCard";
 import { partitionPublicServices } from "@/lib/standardPublicHero";
-import { formatDateTimeLabel } from "@/utils/format";
 import type { PublicBusiness } from "@/types/api";
 
 type StandardPublicBusinessHomeProps = {
@@ -27,7 +29,8 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
 
   const services = servicesQuery.data ?? [];
   const { bookingServices, requestServices } = partitionPublicServices(services);
-  const recent = reviewsQuery.data?.reviews ?? [];
+  const reviewSummary = reviewsQuery.data?.summary ?? null;
+  const reviews = reviewsQuery.data?.reviews ?? [];
 
   return (
     <section className="space-y-6" data-testid="standard-public-business-home">
@@ -39,7 +42,7 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
         <StandardPublicBusinessHero
           business={business}
           services={services}
-          reviewSummary={reviewsQuery.data?.summary ?? null}
+          reviewSummary={reviewSummary}
         />
       ) : null}
 
@@ -95,31 +98,26 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
         </section>
       ) : null}
 
-      {recent.length > 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-          <h2 className="text-base font-semibold text-slate-900">Recent reviews</h2>
-          <div className="mt-4 space-y-3">
-            {recent.map((review) => (
-              <article
-                key={review.id}
-                className="rounded-xl border border-slate-200 bg-slate-50/50 p-4"
-                data-testid="public-review"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-medium text-slate-900">{review.customer_name}</p>
-                  <p className="text-sm font-semibold text-amber-700">{review.rating} ★</p>
-                </div>
-                {review.service_name ? (
-                  <p className="mt-1 text-sm text-slate-600">{review.service_name}</p>
-                ) : null}
-                {review.comment ? (
-                  <p className="mt-2 text-sm text-slate-700">{review.comment}</p>
-                ) : null}
-                <p className="mt-2 text-xs text-slate-500">{formatDateTimeLabel(review.created_at)}</p>
-              </article>
-            ))}
+      {!servicesQuery.isLoading ? (
+        <section
+          className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]"
+          data-testid="standard-public-trust-section"
+        >
+          <StandardPublicBusinessReviewsSection
+            summary={reviewSummary}
+            reviews={reviews}
+            isLoading={reviewsQuery.isLoading}
+          />
+          <div className="space-y-6">
+            <StandardPublicBusinessQuickInfo
+              business={business}
+              hasBookingServices={bookingServices.length > 0}
+              hasRequestServices={requestServices.length > 0}
+              reviewSummary={reviewSummary}
+            />
+            <StandardPublicBusinessLocationSection business={business} />
           </div>
-        </div>
+        </section>
       ) : null}
     </section>
   );

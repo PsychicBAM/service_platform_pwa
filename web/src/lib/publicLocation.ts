@@ -230,3 +230,58 @@ export function formatPublicLocationDisplay(
 
   return cleanText(business.address);
 }
+
+export type StandardPublicLocationDetails = {
+  lines: string[];
+  directionsNote: string | null;
+  hasDetails: boolean;
+};
+
+export function getStandardPublicLocationDetails(
+  business: Pick<PublicBusinessDirectoryItem, "location" | "address">,
+): StandardPublicLocationDetails {
+  const location = business.location;
+  const district = cleanText(location?.district_or_area ?? null);
+  const city = cleanText(location?.city ?? null);
+  const country = cleanText(location?.country ?? null);
+  const publicAddress = cleanText(location?.public_address ?? null);
+  const postalCode = cleanText(location?.postal_code ?? null);
+  const directionsNote = cleanText(location?.location_note ?? null);
+  const fallbackAddress = cleanText(business.address);
+
+  const lines: string[] = [];
+
+  if (district && city) {
+    lines.push(`${district}, ${city}`);
+  } else if (city) {
+    lines.push(city);
+  } else if (district) {
+    lines.push(district);
+  }
+
+  if (publicAddress) {
+    lines.push(postalCode ? `${publicAddress}, ${postalCode}` : publicAddress);
+  } else if (postalCode) {
+    lines.push(postalCode);
+  }
+
+  if (country && !lines.some((line) => line.includes(country))) {
+    lines.push(country);
+  }
+
+  if (lines.length === 0 && fallbackAddress) {
+    lines.push(fallbackAddress);
+  }
+
+  return {
+    lines,
+    directionsNote,
+    hasDetails: lines.length > 0 || Boolean(directionsNote),
+  };
+}
+
+export function hasStandardPublicLocation(
+  business: Pick<PublicBusinessDirectoryItem, "location" | "address">,
+): boolean {
+  return getStandardPublicLocationDetails(business).hasDetails;
+}

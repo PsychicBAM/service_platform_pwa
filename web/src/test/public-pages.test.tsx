@@ -83,6 +83,11 @@ describe("public pages smoke", () => {
     expect(await screen.findAllByTestId("standard-public-service-card")).toHaveLength(2);
     expect(screen.getByTestId("standard-public-booking-services")).toBeInTheDocument();
     expect(screen.getByTestId("standard-public-request-services")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-trust-section")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-reviews-section")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-location-section")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-quick-info")).toBeInTheDocument();
+    expect(screen.queryByText(/undefined/i)).not.toBeInTheDocument();
 
     const hero = screen.getByTestId("standard-public-business-hero");
     expect(within(hero).queryByRole("link", { name: /my bookings/i })).not.toBeInTheDocument();
@@ -316,6 +321,113 @@ describe("public pages smoke", () => {
     expect(await screen.findByTestId("standard-public-business-no-services")).toBeInTheDocument();
     expect(screen.getByText(/no public services yet/i)).toBeInTheDocument();
     expect(screen.queryByTestId("standard-public-business-services")).not.toBeInTheDocument();
+  });
+
+  it("A1k. standard page renders polished reviews section with summary and cards", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    const reviewsSection = await screen.findByTestId("standard-public-reviews-section");
+    expect(within(reviewsSection).getByTestId("standard-public-reviews-summary")).toHaveTextContent("4.8");
+    expect(within(reviewsSection).getByTestId("standard-public-reviews-summary")).toHaveTextContent(
+      "24 reviews",
+    );
+    expect(within(reviewsSection).getByTestId("public-review")).toHaveTextContent("Olga");
+    expect(within(reviewsSection).getByTestId("standard-public-review-comment")).toHaveTextContent(
+      "Great service",
+    );
+  });
+
+  it("A1l. standard page shows reviews empty state when no reviews exist", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+    vi.mocked(publicApi.listPublicReviews).mockResolvedValue({
+      summary: { average_rating: null, review_count: 0 },
+      reviews: [],
+    });
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("standard-public-reviews-empty")).toBeInTheDocument();
+    expect(screen.getByText(/no reviews yet/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/reviews will appear here after completed bookings or requests/i),
+    ).toBeInTheDocument();
+  });
+
+  it("A1m. standard page renders clean location details when location exists", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
+      ...mockPublicBusiness,
+      address: null,
+      location: {
+        country: "UAE",
+        city: "Dubai",
+        district_or_area: "Marina",
+        public_address: "Office 12, Marina Tower",
+        postal_code: null,
+        latitude: 25.08,
+        longitude: 55.14,
+        location_note: "Enter through the main lobby.",
+      },
+    });
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    const locationSection = await screen.findByTestId("standard-public-location-section");
+    const details = within(locationSection).getByTestId("standard-public-location-details");
+    expect(details).toHaveTextContent("Marina, Dubai");
+    expect(details).toHaveTextContent("Office 12, Marina Tower");
+    expect(details).toHaveTextContent("UAE");
+    expect(within(locationSection).getByTestId("standard-public-location-directions")).toHaveTextContent(
+      "Enter through the main lobby.",
+    );
+    expect(locationSection.textContent).not.toMatch(/25\.08|55\.14|latitude|longitude/i);
+  });
+
+  it("A1n. standard page shows location empty state when no location exists", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
+      ...mockPublicBusiness,
+      address: null,
+      location: null,
+    });
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("standard-public-location-empty")).toBeInTheDocument();
+    expect(screen.getByText(/location details have not been added yet/i)).toBeInTheDocument();
+  });
+
+  it("A1o. standard quick info card shows bookable and request trust items", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    const quickInfo = await screen.findByTestId("standard-public-quick-info");
+    expect(within(quickInfo).getByTestId("standard-public-quick-info-bookable")).toHaveTextContent(
+      "Bookable online",
+    );
+    expect(within(quickInfo).getByTestId("standard-public-quick-info-requests")).toHaveTextContent(
+      "Accepts requests",
+    );
+    expect(within(quickInfo).getByTestId("standard-public-quick-info-rating")).toHaveTextContent("4.8");
+    expect(within(quickInfo).getByTestId("standard-public-quick-info-location")).toHaveTextContent(
+      "Available",
+    );
   });
 
   it("A2. renders Pro mini-site layout when public_page_variant is mini_site", async () => {
