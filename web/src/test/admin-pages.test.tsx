@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AdminGuard } from "@/components/AdminGuard";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
@@ -76,12 +76,12 @@ function setupAdminApiMocks() {
   vi.mocked(adminApi.listAdminClients).mockResolvedValue({ data: [], meta: emptyListMeta });
 }
 
-function renderAdminPage(page: ReactElement) {
+function renderAdminPage(page: ReactElement, route = "/admin") {
   return renderRoute(
     <AdminBusinessProvider businesses={mockOwnerUser.businesses}>
       {page}
     </AdminBusinessProvider>,
-    { route: "/admin", path: "/admin/*" },
+    { route, path: "/admin/*" },
   );
 }
 
@@ -136,15 +136,19 @@ describe("admin pages smoke", () => {
     expect(screen.getByTestId("admin-onboarding-item-share")).toBeInTheDocument();
     expect(screen.getByTestId("admin-onboarding-action-services")).toHaveAttribute(
       "href",
-      "/admin/services",
+      "/admin/services?focus=add-service",
     );
     expect(screen.getByTestId("admin-onboarding-action-location")).toHaveAttribute(
       "href",
-      "/admin/settings",
+      "/admin/settings?focus=business-location",
     );
     expect(screen.getByTestId("admin-onboarding-action-hours")).toHaveAttribute(
       "href",
-      "/admin/schedule",
+      "/admin/schedule?focus=working-hours",
+    );
+    expect(screen.getByTestId("admin-onboarding-action-cover")).toHaveAttribute(
+      "href",
+      "/admin/settings?focus=marketplace-cover",
     );
     expect(screen.getByTestId("admin-onboarding-action-preview")).toHaveAttribute(
       "href",
@@ -203,6 +207,19 @@ describe("admin pages smoke", () => {
     expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.queryByTestId("admin-onboarding-checklist")).not.toBeInTheDocument();
     expect(screen.queryByTestId("admin-onboarding-complete")).not.toBeInTheDocument();
+  });
+
+  it("L4. services focus=add-service opens create flow and highlights Add service", async () => {
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+
+    renderAdminPage(<AdminServicesPage />, "/admin/services?focus=add-service");
+
+    expect(await screen.findByRole("heading", { name: "Services" })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId("admin-services-add")).toHaveAttribute("data-admin-focused", "true");
+    });
+    expect(screen.getByTestId("admin-services-add").className).toMatch(/ring-2/);
+    expect(screen.getByRole("heading", { name: "Add service" })).toBeInTheDocument();
   });
 
   it("M. admin services page renders mocked services", async () => {

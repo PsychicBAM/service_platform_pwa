@@ -133,4 +133,27 @@ describe("AdminMarketplaceCoverSection", () => {
       expect(onImageChange).toHaveBeenCalledWith(null);
     });
   });
+
+  it("highlights marketplace cover section when focus=marketplace-cover", async () => {
+    Element.prototype.scrollIntoView = vi.fn();
+
+    renderRoute(
+      <AdminMarketplaceCoverSection
+        businessId={BUSINESS_ID}
+        image={null}
+        onImageChange={vi.fn()}
+      />,
+      { route: "/admin/settings?focus=marketplace-cover", path: "/admin/settings" },
+    );
+
+    const section = screen.getByTestId("admin-marketplace-cover-section");
+    await waitFor(() => {
+      expect(section).toHaveAttribute("data-admin-focused", "true");
+    });
+    expect(section.className).toMatch(/ring-2/);
+    expect(screen.getByTestId("admin-marketplace-cover-upload")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+    });
+  });
 });

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateBusiness } from "@/api/adminApi";
 import { TextAreaField } from "@/components/TextAreaField";
+import { useAdminSectionFocus } from "@/hooks/useAdminSectionFocus";
+import { ADMIN_ONBOARDING_FOCUS } from "@/lib/adminFocus";
 import {
   EMPTY_PUBLIC_LOCATION_FORM,
   formatPublicLocationSummary,
@@ -59,12 +61,19 @@ export function AdminBusinessLocationSection({
   disabled = false,
 }: AdminBusinessLocationSectionProps) {
   const queryClient = useQueryClient();
+  const focus = useAdminSectionFocus(ADMIN_ONBOARDING_FOCUS.businessLocation);
   const [isEditing, setIsEditing] = useState(false);
   const [draftForm, setDraftForm] = useState<PublicLocationFormState>(EMPTY_PUBLIC_LOCATION_FORM);
   const [error, setError] = useState<string | null>(null);
 
   const savedForm = publicLocationFormFromApi(publicLocation);
   const summary = formatPublicLocationSummary(publicLocation);
+
+  useEffect(() => {
+    if (focus.matched) {
+      setIsEditing(true);
+    }
+  }, [focus.matched]);
 
   useEffect(() => {
     if (!isEditing) {
@@ -119,12 +128,17 @@ export function AdminBusinessLocationSection({
 
   const saving = saveMutation.isPending;
   const controlsDisabled = disabled || saving;
+  const sectionClassName = `rounded-xl border border-slate-200 bg-slate-50 p-4 ${
+    isEditing ? "space-y-3 " : ""
+  }${focus.highlightClassName}`.trim();
 
   if (!isEditing) {
     return (
       <div
-        className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+        ref={focus.ref}
+        className={sectionClassName}
         data-testid="admin-business-location-section"
+        data-admin-focused={focus.highlighted ? "true" : undefined}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -152,8 +166,10 @@ export function AdminBusinessLocationSection({
 
   return (
     <div
-      className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3"
+      ref={focus.ref}
+      className={sectionClassName}
       data-testid="admin-business-location-section"
+      data-admin-focused={focus.highlighted ? "true" : undefined}
     >
       <div>
         <p className="text-sm font-medium text-slate-900">Business location</p>

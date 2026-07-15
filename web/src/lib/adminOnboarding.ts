@@ -1,3 +1,4 @@
+import { ADMIN_ONBOARDING_FOCUS } from "@/lib/adminFocus";
 import { hasStandardPublicLocation } from "@/lib/publicLocation";
 import type {
   AdminServiceRead,
@@ -104,28 +105,28 @@ export function buildAdminOnboardingItems(input: {
       label: "Add services",
       description: "Publish at least one active service customers can book or request.",
       complete: hasServices,
-      href: "/admin/services",
+      href: `/admin/services?focus=${ADMIN_ONBOARDING_FOCUS.addService}`,
     },
     {
       id: "location",
       label: "Add business location",
       description: "Help customers find you in the marketplace.",
       complete: hasLocation,
-      href: "/admin/settings",
+      href: `/admin/settings?focus=${ADMIN_ONBOARDING_FOCUS.businessLocation}`,
     },
     {
       id: "cover",
       label: "Upload marketplace cover",
       description: "Add a cover photo that stands out on Marketplace.",
       complete: hasCover,
-      href: "/admin/settings",
+      href: `/admin/settings?focus=${ADMIN_ONBOARDING_FOCUS.marketplaceCover}`,
     },
     {
       id: "hours",
       label: "Set working hours",
       description: "Configure when clients can book appointments.",
       complete: hasHours,
-      href: "/admin/schedule",
+      href: `/admin/schedule?focus=${ADMIN_ONBOARDING_FOCUS.workingHours}`,
     },
     {
       id: "preview",

@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createAdminService,
@@ -13,6 +13,11 @@ import { uploadServiceImage } from "@/api/serviceImageApi";
 import { AdminServiceForm } from "@/components/admin/AdminServiceForm";
 import type { PendingSlotCapacityOverride } from "@/components/admin/AdminServiceSlotCapacitySection";
 import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
+import {
+  ADMIN_FOCUS_HIGHLIGHT_CLASS,
+  ADMIN_FOCUS_HIGHLIGHT_MS,
+  ADMIN_ONBOARDING_FOCUS,
+} from "@/lib/adminFocus";
 import { normalizeServiceImageMedia, serviceImageStatusText } from "@/lib/serviceImage";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -211,6 +216,7 @@ function AdminServiceListCard({
 export function AdminServicesPage() {
   const { businessId } = useAdminBusiness();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -222,6 +228,27 @@ export function AdminServicesPage() {
   );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [addServiceFocused, setAddServiceFocused] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("focus") !== ADMIN_ONBOARDING_FOCUS.addService) {
+      return;
+    }
+    setFormMode("create");
+    setEditingService(null);
+    setAddServiceFocused(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete("focus");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (!addServiceFocused) {
+      return;
+    }
+    const timeout = window.setTimeout(() => setAddServiceFocused(false), ADMIN_FOCUS_HIGHLIGHT_MS);
+    return () => window.clearTimeout(timeout);
+  }, [addServiceFocused]);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["admin-services", businessId],
@@ -416,8 +443,11 @@ export function AdminServicesPage() {
           type="button"
           onClick={openCreateForm}
           disabled={formMode === "create" || submitting}
-          className="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 disabled:opacity-60"
+          className={`shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 disabled:opacity-60 ${
+            addServiceFocused ? ADMIN_FOCUS_HIGHLIGHT_CLASS : ""
+          }`}
           data-testid="admin-services-add"
+          data-admin-focused={addServiceFocused ? "true" : undefined}
         >
           Add service
         </button>

@@ -28,12 +28,15 @@ vi.mock("@/api/marketplaceCoverImageApi", () => ({
   removeMarketplaceCoverImage: vi.fn(),
 }));
 
-function renderSettingsPage(page: ReactElement = <AdminSettingsPage />) {
+function renderSettingsPage(
+  page: ReactElement = <AdminSettingsPage />,
+  route = "/admin/settings",
+) {
   return renderRoute(
     <AdminBusinessProvider businesses={mockOwnerUser.businesses}>
       {page}
     </AdminBusinessProvider>,
-    { route: "/admin/settings", path: "/admin/settings" },
+    { route, path: "/admin/settings" },
   );
 }
 
@@ -69,6 +72,22 @@ describe("admin business location settings", () => {
     expect(screen.queryByTestId("admin-business-location-form")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Latitude")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Longitude")).not.toBeInTheDocument();
+  });
+
+  it("opens and highlights business location when focus=business-location", async () => {
+    Element.prototype.scrollIntoView = vi.fn();
+
+    renderSettingsPage(<AdminSettingsPage />, "/admin/settings?focus=business-location");
+
+    const section = await screen.findByTestId("admin-business-location-section");
+    await waitFor(() => {
+      expect(screen.getByTestId("admin-business-location-form")).toBeInTheDocument();
+      expect(section).toHaveAttribute("data-admin-focused", "true");
+    });
+    expect(section.className).toMatch(/ring-2/);
+    await waitFor(() => {
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+    });
   });
 
   it("shows empty summary when no public location is set", async () => {

@@ -14,6 +14,8 @@ import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { TextAreaField } from "@/components/TextAreaField";
 import { useAdminBusiness } from "@/hooks/useAdminBusiness";
+import { useAdminSectionFocus } from "@/hooks/useAdminSectionFocus";
+import { ADMIN_ONBOARDING_FOCUS } from "@/lib/adminFocus";
 import type { WorkingHourRead, WorkingHourUpdate } from "@/types/api";
 import { getAdminScheduleErrorMessage } from "@/utils/errors";
 import {
@@ -161,6 +163,7 @@ function buildUnavailablePayload(form: UnavailableForm) {
 export function AdminSchedulePage() {
   const { businessId } = useAdminBusiness();
   const queryClient = useQueryClient();
+  const workingHoursFocus = useAdminSectionFocus(ADMIN_ONBOARDING_FOCUS.workingHours);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [workingHours, setWorkingHours] = useState<DayHourForm[]>(buildDefaultHours());
@@ -387,7 +390,12 @@ export function AdminSchedulePage() {
 
       {!scheduleQuery.isLoading && !scheduleQuery.isError && data ? (
         <>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
+          <div
+            ref={workingHoursFocus.ref}
+            className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4 ${workingHoursFocus.highlightClassName}`.trim()}
+            data-testid="admin-schedule-working-hours"
+            data-admin-focused={workingHoursFocus.highlighted ? "true" : undefined}
+          >
             <h3 className="text-sm font-medium text-slate-700">Weekly working hours</h3>
             <ul className="space-y-3">
               {workingHours.map((day, index) => (

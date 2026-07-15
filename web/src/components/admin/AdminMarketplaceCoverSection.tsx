@@ -3,6 +3,8 @@ import {
   removeMarketplaceCoverImage,
   uploadMarketplaceCoverImage,
 } from "@/api/marketplaceCoverImageApi";
+import { useAdminSectionFocus } from "@/hooks/useAdminSectionFocus";
+import { ADMIN_ONBOARDING_FOCUS } from "@/lib/adminFocus";
 import {
   isAllowedServiceImageFile,
   normalizeServiceImageMedia,
@@ -39,6 +41,7 @@ export function AdminMarketplaceCoverSection({
   onImageChange,
 }: AdminMarketplaceCoverSectionProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const focus = useAdminSectionFocus(ADMIN_ONBOARDING_FOCUS.marketplaceCover);
   const [uploading, setUploading] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,8 +100,10 @@ export function AdminMarketplaceCoverSection({
 
   return (
     <div
-      className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3"
+      ref={focus.ref}
+      className={`rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3 ${focus.highlightClassName}`.trim()}
       data-testid="admin-marketplace-cover-section"
+      data-admin-focused={focus.highlighted ? "true" : undefined}
     >
       <div>
         <p className="text-sm font-medium text-slate-900">Marketplace cover image</p>

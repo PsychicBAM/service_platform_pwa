@@ -37,17 +37,28 @@ function ChecklistAction({
 
   if (item.action === "copy-public-link" && publicUrl) {
     return (
-      <button
-        type="button"
-        className="shrink-0 text-xs font-semibold text-brand-700 hover:text-brand-800"
-        data-testid={`admin-onboarding-action-${item.id}`}
-        onClick={async () => {
-          const copied = await copyTextToClipboard(publicUrl);
-          setCopyStatus(copied ? "copied" : "failed");
-        }}
-      >
-        {copyStatus === "copied" ? "Copied" : copyStatus === "failed" ? "Retry" : "Copy"}
-      </button>
+      <span className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          className="text-xs font-semibold text-brand-700 hover:text-brand-800"
+          data-testid={`admin-onboarding-action-${item.id}`}
+          onClick={async () => {
+            const copied = await copyTextToClipboard(publicUrl);
+            setCopyStatus(copied ? "copied" : "failed");
+          }}
+        >
+          {copyStatus === "copied" ? "Copied" : copyStatus === "failed" ? "Retry" : "Copy"}
+        </button>
+        {copyStatus === "failed" && item.href ? (
+          <Link
+            to={item.href}
+            className="text-xs font-semibold text-slate-600 underline hover:text-brand-700"
+            data-testid="admin-onboarding-action-share-fallback"
+          >
+            Open
+          </Link>
+        ) : null}
+      </span>
     );
   }
 
