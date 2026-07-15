@@ -74,6 +74,10 @@ export interface PublicBusinessDirectoryQuery {
   location?: string;
   category?: string;
   rating_min?: number;
+  bookable?: boolean;
+  requests?: boolean;
+  reviews?: boolean;
+  cover?: boolean;
   sort?: PublicBusinessDirectorySort;
   page?: number;
   limit?: number;

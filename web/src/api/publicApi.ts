@@ -132,6 +132,18 @@ function buildDirectoryQuery(params: PublicBusinessDirectoryQuery = {}): string 
   if (params.rating_min != null) {
     search.set("rating_min", String(params.rating_min));
   }
+  if (params.bookable) {
+    search.set("bookable", "true");
+  }
+  if (params.requests) {
+    search.set("requests", "true");
+  }
+  if (params.reviews) {
+    search.set("reviews", "true");
+  }
+  if (params.cover) {
+    search.set("cover", "true");
+  }
   if (params.sort) {
     search.set("sort", params.sort);
   }

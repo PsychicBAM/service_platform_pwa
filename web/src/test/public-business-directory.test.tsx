@@ -210,4 +210,67 @@ describe("public business directory", () => {
     expect(screen.queryByText(/contact_email/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/admin_notes/i)).not.toBeInTheDocument();
   });
+
+  it("shows real sidebar filters without coming soon placeholders", async () => {
+    mockDirectoryResponse();
+
+    renderRoute(<BusinessDirectoryPage />, { route: "/businesses", path: "/businesses" });
+
+    expect(await screen.findByTestId("marketplace-sidebar-filters")).toBeInTheDocument();
+    expect(screen.getByLabelText("Bookable online")).toBeInTheDocument();
+    expect(screen.getByLabelText("Accepts requests")).toBeInTheDocument();
+    expect(screen.getByLabelText("Has reviews")).toBeInTheDocument();
+    expect(screen.getByLabelText("Has cover photo")).toBeInTheDocument();
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
+  });
+
+  it("updates URL and API call when sidebar filters are toggled", async () => {
+    mockDirectoryResponse([], 0);
+    const user = userEvent.setup();
+    const queryClient = createTestQueryClient();
+    const router = createMemoryRouter(
+      [{ path: "/businesses", element: <BusinessDirectoryPage /> }],
+      { initialEntries: ["/businesses?location=Dubai&q=coach"] },
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+
+    await user.click(await screen.findByTestId("marketplace-filter-bookable"));
+
+    expect(router.state.location.search).toBe("?location=Dubai&q=coach&bookable=true");
+    expect(publicApi.listPublicBusinesses).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: "Dubai",
+        q: "coach",
+        bookable: true,
+      }),
+    );
+  });
+
+  it("clears sidebar filters from URL and API calls", async () => {
+    mockDirectoryResponse([], 0);
+    const user = userEvent.setup();
+    const queryClient = createTestQueryClient();
+    const router = createMemoryRouter(
+      [{ path: "/businesses", element: <BusinessDirectoryPage /> }],
+      { initialEntries: ["/businesses?bookable=true&reviews=true"] },
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+
+    await user.click(await screen.findByTestId("marketplace-sidebar-clear-filters"));
+
+    expect(router.state.location.search).toBe("");
+    const lastCall = vi.mocked(publicApi.listPublicBusinesses).mock.calls.at(-1)?.[0];
+    expect(lastCall?.bookable).toBeUndefined();
+    expect(lastCall?.reviews).toBeUndefined();
+  });
 });

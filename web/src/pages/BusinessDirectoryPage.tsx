@@ -15,6 +15,12 @@ import {
   type MarketplaceSort,
 } from "@/data/marketplaceCategories";
 import type { PublicBusinessDirectorySort } from "@/types/api";
+import {
+  clearMarketplaceSidebarFilterParams,
+  parseMarketplaceSidebarFilters,
+  setMarketplaceSidebarFilterParam,
+  type MarketplaceSidebarFilterKey,
+} from "@/lib/marketplaceFilters";
 import { getApiErrorMessage } from "@/utils/errors";
 
 const PAGE_SIZE = 12;
@@ -25,6 +31,7 @@ export function BusinessDirectoryPage() {
   const [locationInput, setLocationInput] = useState(searchParams.get("location") ?? "");
   const query = searchParams.get("q") ?? "";
   const locationQuery = searchParams.get("location") ?? "";
+  const sidebarFilters = parseMarketplaceSidebarFilters(searchParams);
   const [category, setCategory] = useState<MarketplaceCategoryId>("all");
   const [ratingMin, setRatingMin] = useState("");
   const [sort, setSort] = useState<MarketplaceSort>("popular");
@@ -36,13 +43,29 @@ export function BusinessDirectoryPage() {
   }, [searchParams]);
 
   const directoryQuery = useQuery({
-    queryKey: ["public-business-directory", query, locationQuery, category, ratingMin, sort, page],
+    queryKey: [
+      "public-business-directory",
+      query,
+      locationQuery,
+      category,
+      ratingMin,
+      sort,
+      page,
+      sidebarFilters.bookable,
+      sidebarFilters.requests,
+      sidebarFilters.reviews,
+      sidebarFilters.cover,
+    ],
     queryFn: () =>
       listPublicBusinesses({
         q: query || undefined,
         location: locationQuery || undefined,
         category: category === "all" ? undefined : category,
         rating_min: ratingMin ? Number(ratingMin) : undefined,
+        bookable: sidebarFilters.bookable || undefined,
+        requests: sidebarFilters.requests || undefined,
+        reviews: sidebarFilters.reviews || undefined,
+        cover: sidebarFilters.cover || undefined,
         sort: sort as PublicBusinessDirectorySort,
         page,
         limit: PAGE_SIZE,
@@ -108,6 +131,20 @@ export function BusinessDirectoryPage() {
 
   function handleSortChange(value: MarketplaceSort) {
     setSort(value);
+    setPage(1);
+  }
+
+  function handleSidebarFilterChange(key: MarketplaceSidebarFilterKey, enabled: boolean) {
+    const params = new URLSearchParams(searchParams);
+    setMarketplaceSidebarFilterParam(params, key, enabled);
+    setSearchParams(params, { replace: true });
+    setPage(1);
+  }
+
+  function handleClearSidebarFilters() {
+    const params = new URLSearchParams(searchParams);
+    clearMarketplaceSidebarFilterParams(params);
+    setSearchParams(params, { replace: true });
     setPage(1);
   }
 
@@ -230,6 +267,9 @@ export function BusinessDirectoryPage() {
           <MarketplaceSidebar
             activeCategory={category}
             onCategoryChange={handleCategoryChange}
+            filters={sidebarFilters}
+            onFilterChange={handleSidebarFilterChange}
+            onClearFilters={handleClearSidebarFilters}
             totalCount={total}
           />
         </div>

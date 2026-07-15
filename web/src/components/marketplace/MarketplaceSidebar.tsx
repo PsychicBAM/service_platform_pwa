@@ -1,17 +1,37 @@
+import type { MarketplaceSidebarFilterKey, MarketplaceSidebarFilters } from "@/lib/marketplaceFilters";
 import type { MarketplaceCategoryId } from "@/data/marketplaceCategories";
 import { MARKETPLACE_CATEGORIES } from "@/data/marketplaceCategories";
+
+const SIDEBAR_FILTER_OPTIONS: Array<{
+  key: MarketplaceSidebarFilterKey;
+  label: string;
+}> = [
+  { key: "bookable", label: "Bookable online" },
+  { key: "requests", label: "Accepts requests" },
+  { key: "reviews", label: "Has reviews" },
+  { key: "cover", label: "Has cover photo" },
+];
 
 type MarketplaceSidebarProps = {
   activeCategory: MarketplaceCategoryId;
   onCategoryChange: (category: MarketplaceCategoryId) => void;
+  filters: MarketplaceSidebarFilters;
+  onFilterChange: (key: MarketplaceSidebarFilterKey, enabled: boolean) => void;
+  onClearFilters: () => void;
   totalCount?: number;
 };
 
 export function MarketplaceSidebar({
   activeCategory,
   onCategoryChange,
+  filters,
+  onFilterChange,
+  onClearFilters,
   totalCount,
 }: MarketplaceSidebarProps) {
+  const hasActiveFilters =
+    filters.bookable || filters.requests || filters.reviews || filters.cover;
+
   return (
     <aside className="space-y-6" data-testid="marketplace-sidebar">
       <section>
@@ -48,22 +68,40 @@ export function MarketplaceSidebar({
         </ul>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-900">Offers</h3>
-        <label className="mt-3 flex items-center gap-2 text-sm text-slate-500">
-          <input type="checkbox" disabled className="rounded border-slate-300" />
-          Show businesses with offers
-          <span className="text-xs text-slate-400">(coming soon)</span>
-        </label>
-      </section>
-
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-900">Availability</h3>
-        <label className="mt-3 flex items-center gap-2 text-sm text-slate-500">
-          <input type="checkbox" disabled className="rounded border-slate-300" />
-          Book available today
-          <span className="text-xs text-slate-400">(coming soon)</span>
-        </label>
+      <section
+        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+        data-testid="marketplace-sidebar-filters"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold text-slate-900">Filters</h3>
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={onClearFilters}
+              className="text-xs font-medium text-brand-700 hover:text-brand-800"
+              data-testid="marketplace-sidebar-clear-filters"
+            >
+              Clear filters
+            </button>
+          ) : null}
+        </div>
+        <div className="mt-3 space-y-2">
+          {SIDEBAR_FILTER_OPTIONS.map((option) => (
+            <label
+              key={option.key}
+              className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              <input
+                type="checkbox"
+                checked={filters[option.key]}
+                onChange={(event) => onFilterChange(option.key, event.target.checked)}
+                className="rounded border-slate-300 text-brand-700 focus:ring-brand-700"
+                data-testid={`marketplace-filter-${option.key}`}
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
       </section>
     </aside>
   );

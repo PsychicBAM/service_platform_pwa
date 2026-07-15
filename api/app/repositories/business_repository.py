@@ -185,8 +185,13 @@ class BusinessRepository:
         location: str | None = None,
         category_keywords: list[str] | None = None,
         rating_min: float | None = None,
+        bookable: bool | None = None,
+        requests: bool | None = None,
+        reviews: bool | None = None,
+        cover: bool | None = None,
         review_subq=None,
     ):
+        from app.models.enums import ServiceType
         from app.models.service import Service
 
         stmt = stmt.where(Business.status == BusinessStatus.active)
@@ -233,6 +238,35 @@ class BusinessRepository:
             stmt = stmt.where(or_(*keyword_clauses))
         if rating_min is not None and review_subq is not None:
             stmt = stmt.where(review_subq.c.avg_rating >= rating_min)
+        if bookable:
+            booking_match = select(Service.business_id).where(
+                Service.is_active.is_(True),
+                Service.type == ServiceType.booking,
+            )
+            stmt = stmt.where(Business.id.in_(booking_match))
+        if requests:
+            request_match = select(Service.business_id).where(
+                Service.is_active.is_(True),
+                Service.type == ServiceType.order,
+            )
+            stmt = stmt.where(Business.id.in_(request_match))
+        if reviews and review_subq is not None:
+            stmt = stmt.where(func.coalesce(review_subq.c.review_count, 0) > 0)
+        if cover:
+            marketplace_cover_json = Business.settings["marketplace_cover_image"]
+            service_cover_match = select(Service.business_id).where(
+                Service.is_active.is_(True),
+                or_(
+                    Service.image_["url"].as_string().like("/uploads/%"),
+                    Service.image_["thumbnail_url"].as_string().like("/uploads/%"),
+                ),
+            )
+            stmt = stmt.where(
+                or_(
+                    marketplace_cover_json["url"].as_string().like("/uploads/%"),
+                    Business.id.in_(service_cover_match),
+                )
+            )
         return stmt
 
     async def list_public_directory(
@@ -242,6 +276,10 @@ class BusinessRepository:
         location: str | None = None,
         category_keywords: list[str] | None = None,
         rating_min: float | None = None,
+        bookable: bool | None = None,
+        requests: bool | None = None,
+        reviews: bool | None = None,
+        cover: bool | None = None,
         sort: str = "popular",
         page: int = 1,
         limit: int = 20,
@@ -270,6 +308,10 @@ class BusinessRepository:
             location=location,
             category_keywords=category_keywords,
             rating_min=rating_min,
+            bookable=bookable,
+            requests=requests,
+            reviews=reviews,
+            cover=cover,
             review_subq=review_subq,
         )
         if sort == "rating":
@@ -309,6 +351,10 @@ class BusinessRepository:
         location: str | None = None,
         category_keywords: list[str] | None = None,
         rating_min: float | None = None,
+        bookable: bool | None = None,
+        requests: bool | None = None,
+        reviews: bool | None = None,
+        cover: bool | None = None,
     ) -> int:
         from app.models.enums import ReviewStatus
         from app.models.review import Review
@@ -333,6 +379,10 @@ class BusinessRepository:
             location=location,
             category_keywords=category_keywords,
             rating_min=rating_min,
+            bookable=bookable,
+            requests=requests,
+            reviews=reviews,
+            cover=cover,
             review_subq=review_subq,
         )
         result = await self.session.execute(stmt)

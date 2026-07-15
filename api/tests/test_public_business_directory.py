@@ -6,7 +6,7 @@ from sqlalchemy import update
 
 from app.models.business import Business
 from app.models.enums import BusinessStatus
-from tests.conftest import BOOKING_SERVICE_PAYLOAD, activate_business, register_and_get_context
+from tests.conftest import BOOKING_SERVICE_PAYLOAD, ORDER_SERVICE_PAYLOAD, activate_business, register_and_get_context
 from tests.test_bookings_availability_blocking import FIXED_NOW, _setup_booking_business
 from tests.test_public_booking_create import booking_payload
 from tests.test_reviews import _create_completed_booking
@@ -244,3 +244,137 @@ async def test_public_directory_excludes_inactive_business_even_with_active_stat
     response = await async_client.get("/api/v1/public/businesses?q=Directory+Deactivate+Biz")
     assert response.status_code == 200
     assert not any(item["slug"] == ctx["slug"] for item in response.json()["data"])
+
+
+async def _setup_order_only_business(async_client: AsyncClient, db_session, slug_prefix: str) -> dict:
+    ctx = await register_and_get_context(async_client, slug_prefix)
+    await activate_business(db_session, ctx["slug"])
+    service_resp = await async_client.post(
+        f"/api/v1/businesses/{ctx['business_id']}/services",
+        json=ORDER_SERVICE_PAYLOAD,
+        headers=ctx["headers"],
+    )
+    assert service_resp.status_code == 201
+    ctx["service_id"] = service_resp.json()["id"]
+    return ctx
+
+
+@pytest.mark.asyncio
+async def test_public_directory_bookable_filter(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    booking_ctx = await _setup_active_business_with_service(async_client, db_session, "dir-filter-bookable")
+    order_ctx = await _setup_order_only_business(async_client, db_session, "dir-filter-order-only")
+    await _set_business_name(db_session, booking_ctx["slug"], "Directory Bookable Filter Studio")
+    await _set_business_name(db_session, order_ctx["slug"], "Directory Order Only Filter Studio")
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?bookable=true&q=Directory+Bookable+Filter+Studio"
+    )
+    assert response.status_code == 200
+    slugs = {item["slug"] for item in response.json()["data"]}
+    assert booking_ctx["slug"] in slugs
+    assert order_ctx["slug"] not in slugs
+
+
+@pytest.mark.asyncio
+async def test_public_directory_requests_filter(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    booking_ctx = await _setup_active_business_with_service(async_client, db_session, "dir-filter-booking-only")
+    order_ctx = await _setup_order_only_business(async_client, db_session, "dir-filter-requests")
+    await _set_business_name(db_session, booking_ctx["slug"], "Directory Booking Only Filter Studio")
+    await _set_business_name(db_session, order_ctx["slug"], "Directory Requests Filter Studio")
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?requests=true&q=Directory+Requests+Filter+Studio"
+    )
+    assert response.status_code == 200
+    slugs = {item["slug"] for item in response.json()["data"]}
+    assert order_ctx["slug"] in slugs
+    assert booking_ctx["slug"] not in slugs
+
+
+@pytest.mark.asyncio
+async def test_public_directory_reviews_filter(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    reviewed_ctx = await _setup_booking_business(async_client, db_session, "dir-filter-reviewed")
+    plain_ctx = await _setup_active_business_with_service(async_client, db_session, "dir-filter-no-reviews")
+    await _set_business_name(db_session, reviewed_ctx["slug"], "Directory Reviewed Filter Studio")
+    await _set_business_name(db_session, plain_ctx["slug"], "Directory No Reviews Filter Studio")
+    with patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW):
+        booking = await _create_completed_booking(async_client, reviewed_ctx)
+        review = await async_client.post(
+            f"/api/v1/public/b/{reviewed_ctx['slug']}/reviews",
+            json={
+                "booking_reference": booking["reference"],
+                "email": booking["client"]["email"],
+                "rating": 5,
+            },
+        )
+        assert review.status_code == 201
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?reviews=true&q=Directory+Reviewed+Filter+Studio"
+    )
+    assert response.status_code == 200
+    slugs = {item["slug"] for item in response.json()["data"]}
+    assert reviewed_ctx["slug"] in slugs
+    assert plain_ctx["slug"] not in slugs
+
+
+@pytest.mark.asyncio
+async def test_public_directory_cover_filter(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    covered_ctx = await _setup_active_business_with_service(async_client, db_session, "dir-filter-cover")
+    plain_ctx = await _setup_active_business_with_service(async_client, db_session, "dir-filter-no-cover")
+    await _set_business_name(db_session, covered_ctx["slug"], "Directory Cover Filter Studio")
+    await _set_business_name(db_session, plain_ctx["slug"], "Directory No Cover Filter Studio")
+    await db_session.execute(
+        update(Business)
+        .where(Business.slug == covered_ctx["slug"])
+        .values(
+            settings={
+                "marketplace_cover_image": {
+                    "kind": "image",
+                    "url": "/uploads/businesses/test/cover.webp",
+                    "thumbnail_url": "/uploads/businesses/test/cover_thumb.webp",
+                }
+            }
+        )
+    )
+    await db_session.commit()
+    db_session.expire_all()
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?cover=true&q=Directory+Cover+Filter+Studio"
+    )
+    assert response.status_code == 200
+    slugs = {item["slug"] for item in response.json()["data"]}
+    assert covered_ctx["slug"] in slugs
+    assert plain_ctx["slug"] not in slugs
+
+
+@pytest.mark.asyncio
+async def test_public_directory_sidebar_filters_combine_with_search_and_sort(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    first = await _setup_active_business_with_service(async_client, db_session, "dir-combo-filter-a")
+    second = await _setup_order_only_business(async_client, db_session, "dir-combo-filter-b")
+    await _set_business_name(db_session, first["slug"], "Alpha Combo Filter Studio")
+    await _set_business_name(db_session, second["slug"], "Zulu Combo Filter Studio")
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?bookable=true&q=Combo+Filter&sort=name&limit=50"
+    )
+    assert response.status_code == 200
+    names = [item["name"] for item in response.json()["data"] if "Combo Filter Studio" in item["name"]]
+    assert names == ["Alpha Combo Filter Studio"]
+    assert "contact_email" not in response.json()["data"][0]

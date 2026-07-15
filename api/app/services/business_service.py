@@ -82,6 +82,10 @@ class BusinessService:
         location: str | None = None,
         category: str | None = None,
         rating_min: float | None = None,
+        bookable: bool | None = None,
+        requests: bool | None = None,
+        reviews: bool | None = None,
+        cover: bool | None = None,
         sort: str = "popular",
         page: int = 1,
         limit: int = 20,
@@ -92,6 +96,10 @@ class BusinessService:
             location=location,
             category_keywords=keywords or None,
             rating_min=rating_min,
+            bookable=bookable,
+            requests=requests,
+            reviews=reviews,
+            cover=cover,
             sort=sort,
             page=page,
             limit=limit,
@@ -101,6 +109,10 @@ class BusinessService:
             location=location,
             category_keywords=keywords or None,
             rating_min=rating_min,
+            bookable=bookable,
+            requests=requests,
+            reviews=reviews,
+            cover=cover,
         )
         business_ids = [business.id for business, _, _ in rows]
         services_by_business = await self.service_repo.list_active_previews_for_businesses(
