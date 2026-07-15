@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PublicHomePage } from "@/pages/PublicHomePage";
 import { ServicesPage } from "@/pages/ServicesPage";
@@ -52,6 +52,16 @@ describe("public pages smoke", () => {
 
     expect(await screen.findByRole("heading", { name: mockPublicBusiness.name })).toBeInTheDocument();
     expect(screen.getByTestId("standard-public-business-home")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-business-client-actions")).toBeInTheDocument();
+    expect(screen.getByText(/already booked with this business/i)).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-business-my-bookings")).toHaveAttribute(
+      "href",
+      "/me/bookings",
+    );
+    expect(screen.getByTestId("standard-public-business-my-requests")).toHaveAttribute(
+      "href",
+      "/me/orders",
+    );
     expect(screen.getByTestId("standard-public-business-hero")).toBeInTheDocument();
     expect(screen.getByTestId("standard-public-business-description")).toHaveTextContent(
       mockPublicBusiness.description ?? "",
@@ -71,6 +81,36 @@ describe("public pages smoke", () => {
       "#services-requests",
     );
     expect(await screen.findAllByTestId("service-card")).toHaveLength(2);
+
+    const hero = screen.getByTestId("standard-public-business-hero");
+    expect(within(hero).queryByRole("link", { name: /my bookings/i })).not.toBeInTheDocument();
+    expect(within(hero).queryByRole("link", { name: /my requests/i })).not.toBeInTheDocument();
+  });
+
+  it("A0. renders client actions bar above hero with visible booking and request links", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    const home = await screen.findByTestId("standard-public-business-home");
+    const clientActions = await screen.findByTestId("standard-public-business-client-actions");
+    const hero = await screen.findByTestId("standard-public-business-hero");
+
+    expect(home.contains(clientActions)).toBe(true);
+    expect(home.contains(hero)).toBe(true);
+    expect(
+      home.compareDocumentPosition(clientActions) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      clientActions.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    expect(screen.getByText(/already booked with this business/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /my bookings/i })).toHaveAttribute("href", "/me/bookings");
+    expect(screen.getByRole("link", { name: /my requests/i })).toHaveAttribute("href", "/me/orders");
   });
 
   it("A1. standard hero uses cover image when provided", async () => {

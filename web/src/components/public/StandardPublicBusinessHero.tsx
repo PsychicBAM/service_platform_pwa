@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import {
   formatStandardPublicLocation,
   partitionPublicServices,
@@ -157,19 +156,6 @@ export function StandardPublicBusinessHero({
                 variant="primary"
                 testId="standard-public-business-view-services-cta"
               />
-            ) : null}
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-3 text-sm">
-            {business.operating_mode !== "orders_only" ? (
-              <Link to="/me/bookings" className="font-medium text-brand-700 hover:underline">
-                My bookings
-              </Link>
-            ) : null}
-            {business.operating_mode !== "booking_only" ? (
-              <Link to="/me/orders" className="font-medium text-brand-700 hover:underline">
-                My requests
-              </Link>
             ) : null}
           </div>
         </div>

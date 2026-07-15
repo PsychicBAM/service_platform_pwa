@@ -3,6 +3,7 @@ import { listPublicReviews, listPublicServices } from "@/api/publicApi";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingState } from "@/components/LoadingState";
 import { ServiceCard } from "@/components/ServiceCard";
+import { StandardPublicBusinessClientActions } from "@/components/public/StandardPublicBusinessClientActions";
 import { StandardPublicBusinessHero } from "@/components/public/StandardPublicBusinessHero";
 import { partitionPublicServices } from "@/lib/standardPublicHero";
 import { formatDateTimeLabel } from "@/utils/format";
@@ -30,6 +31,8 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
 
   return (
     <section className="space-y-6" data-testid="standard-public-business-home">
+      <StandardPublicBusinessClientActions operatingMode={business.operating_mode} />
+
       {servicesQuery.isLoading ? <LoadingState message="Loading services…" /> : null}
 
       {!servicesQuery.isLoading ? (
