@@ -430,6 +430,67 @@ describe("public pages smoke", () => {
     );
   });
 
+  it("A1p. standard page renders mobile sticky CTA with booking and request actions", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    const stickyBar = await screen.findByTestId("standard-public-mobile-sticky-cta");
+    expect(stickyBar.className).toContain("md:hidden");
+    expect(screen.getByTestId("standard-public-mobile-sticky-book")).toHaveAttribute(
+      "href",
+      "#services-booking",
+    );
+    expect(screen.getByTestId("standard-public-mobile-sticky-request")).toHaveAttribute(
+      "href",
+      "#services-requests",
+    );
+    expect(screen.getByTestId("standard-public-business-book-cta")).toHaveAttribute(
+      "href",
+      "#services-booking",
+    );
+    expect(screen.getByTestId("standard-public-business-request-cta")).toHaveAttribute(
+      "href",
+      "#services-requests",
+    );
+  });
+
+  it("A1q. mobile sticky CTA shows only booking action for booking-only services", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
+      ...mockPublicBusiness,
+      operating_mode: "booking_only",
+    });
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([mockBookingService]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("standard-public-mobile-sticky-cta")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-mobile-sticky-book")).toHaveAttribute(
+      "href",
+      "#services-booking",
+    );
+    expect(screen.queryByTestId("standard-public-mobile-sticky-request")).not.toBeInTheDocument();
+  });
+
+  it("A1r. mobile sticky CTA is hidden when no actionable services exist", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    await screen.findByTestId("standard-public-business-no-services");
+    expect(screen.queryByTestId("standard-public-mobile-sticky-cta")).not.toBeInTheDocument();
+  });
+
   it("A2. renders Pro mini-site layout when public_page_variant is mini_site", async () => {
     vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
       ...mockPublicBusiness,

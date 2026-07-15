@@ -7,6 +7,7 @@ import { StandardPublicBusinessHero } from "@/components/public/StandardPublicBu
 import { StandardPublicBusinessLocationSection } from "@/components/public/StandardPublicBusinessLocationSection";
 import { StandardPublicBusinessQuickInfo } from "@/components/public/StandardPublicBusinessQuickInfo";
 import { StandardPublicBusinessReviewsSection } from "@/components/public/StandardPublicBusinessReviewsSection";
+import { StandardPublicMobileStickyCta } from "@/components/public/StandardPublicMobileStickyCta";
 import { StandardPublicServiceCard } from "@/components/public/StandardPublicServiceCard";
 import { partitionPublicServices } from "@/lib/standardPublicHero";
 import type { PublicBusiness } from "@/types/api";
@@ -31,9 +32,17 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
   const { bookingServices, requestServices } = partitionPublicServices(services);
   const reviewSummary = reviewsQuery.data?.summary ?? null;
   const reviews = reviewsQuery.data?.reviews ?? [];
+  const hasBookingServices = bookingServices.length > 0;
+  const hasRequestServices = requestServices.length > 0;
+  const showMobileStickyCta =
+    !servicesQuery.isLoading &&
+    (hasBookingServices || hasRequestServices || services.length > 0);
 
   return (
-    <section className="space-y-6" data-testid="standard-public-business-home">
+    <section
+      className={`space-y-6 ${showMobileStickyCta ? "pb-24 md:pb-0" : ""}`}
+      data-testid="standard-public-business-home"
+    >
       <StandardPublicBusinessClientActions operatingMode={business.operating_mode} />
 
       {servicesQuery.isLoading ? <LoadingState message="Loading services…" /> : null}
@@ -119,6 +128,13 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
           </div>
         </section>
       ) : null}
+
+      <StandardPublicMobileStickyCta
+        hasBookingServices={hasBookingServices}
+        hasRequestServices={hasRequestServices}
+        hasServices={services.length > 0}
+        isLoading={servicesQuery.isLoading}
+      />
     </section>
   );
 }
