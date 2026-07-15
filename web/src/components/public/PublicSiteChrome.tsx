@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -23,13 +24,21 @@ export function PublicSiteHeader({ active = "home" }: PublicSiteHeaderProps) {
     if (!menuOpen) {
       return;
     }
+
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setMenuOpen(false);
       }
     }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
   }, [menuOpen]);
 
   function closeMenu() {
@@ -108,116 +117,140 @@ export function PublicSiteHeader({ active = "home" }: PublicSiteHeaderProps) {
         <button
           type="button"
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 md:hidden"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-label="Open menu"
           aria-expanded={menuOpen}
           aria-controls={menuId}
           data-testid="public-site-mobile-menu-button"
-          onClick={() => setMenuOpen((open) => !open)}
+          onClick={() => setMenuOpen(true)}
         >
-          {menuOpen ? (
-            <span className="text-xl leading-none" aria-hidden="true">
-              ×
-            </span>
-          ) : (
-            <span className="flex flex-col gap-1.5" aria-hidden="true">
-              <span className="block h-0.5 w-5 rounded bg-slate-700" />
-              <span className="block h-0.5 w-5 rounded bg-slate-700" />
-              <span className="block h-0.5 w-5 rounded bg-slate-700" />
-            </span>
-          )}
+          <span className="flex flex-col gap-1.5" aria-hidden="true">
+            <span className="block h-0.5 w-5 rounded bg-slate-700" />
+            <span className="block h-0.5 w-5 rounded bg-slate-700" />
+            <span className="block h-0.5 w-5 rounded bg-slate-700" />
+          </span>
         </button>
       </div>
 
-      {menuOpen ? (
-        <div
-          id={menuId}
-          className="border-t border-slate-200 bg-white md:hidden"
-          data-testid="public-site-mobile-menu"
-        >
-          <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3 text-sm font-medium text-slate-700">
-            <Link
-              to="/"
-              className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
-              onClick={closeMenu}
-              data-testid="public-site-mobile-link-home"
-            >
-              Home
-            </Link>
-            <Link
-              to="/businesses"
-              className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
-              onClick={closeMenu}
-              data-testid="public-site-mobile-link-marketplace"
-            >
-              Marketplace
-            </Link>
-            <Link
-              to="/businesses"
-              className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
-              onClick={closeMenu}
-              data-testid="public-site-mobile-link-reviews"
-            >
-              Reviews
-            </Link>
-            <Link
-              to="/pricing"
-              className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
-              onClick={closeMenu}
-              data-testid="public-site-mobile-link-pricing"
-            >
-              Pricing
-            </Link>
-            <Link
-              to="/#how-it-works"
-              className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
-              onClick={closeMenu}
-              data-testid="public-site-mobile-link-how-it-works"
-            >
-              How it works
-            </Link>
-            <div className="my-2 border-t border-slate-100" />
-            {isAuthenticated ? (
-              <>
-                <Link
-                  to="/me/bookings"
-                  className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
-                  onClick={closeMenu}
-                  data-testid="public-site-mobile-link-bookings"
+      {menuOpen
+        ? createPortal(
+            <div className="md:hidden" data-testid="public-site-mobile-menu-layer">
+              <button
+                type="button"
+                className="fixed inset-0 z-40 bg-slate-900/40"
+                aria-label="Close menu backdrop"
+                data-testid="public-site-mobile-menu-backdrop"
+                onClick={closeMenu}
+              />
+              <div
+                id={menuId}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Site menu"
+                className="fixed inset-y-0 right-0 z-50 flex w-[min(80vw,360px)] max-w-full flex-col bg-white shadow-xl"
+                data-testid="public-site-mobile-menu"
+              >
+                <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+                  <p className="text-sm font-semibold text-slate-900">Menu</p>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-xl leading-none text-slate-700 hover:bg-slate-50"
+                    aria-label="Close menu"
+                    data-testid="public-site-mobile-menu-close"
+                    onClick={closeMenu}
+                  >
+                    ×
+                  </button>
+                </div>
+                <nav
+                  aria-label="Mobile"
+                  className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-sm font-medium text-slate-700"
                 >
-                  My bookings
-                </Link>
-                <Link
-                  to="/admin"
-                  className="rounded-lg bg-brand-700 px-3 py-2.5 text-center font-semibold text-white hover:bg-brand-800"
-                  onClick={closeMenu}
-                  data-testid="public-site-mobile-link-dashboard"
-                >
-                  Dashboard
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
-                  onClick={closeMenu}
-                  data-testid="public-site-mobile-link-signin"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/pricing"
-                  className="rounded-lg bg-brand-700 px-3 py-2.5 text-center font-semibold text-white hover:bg-brand-800"
-                  onClick={closeMenu}
-                  data-testid="public-site-mobile-link-get-started"
-                >
-                  Get started
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      ) : null}
+                  <Link
+                    to="/"
+                    className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
+                    onClick={closeMenu}
+                    data-testid="public-site-mobile-link-home"
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    to="/businesses"
+                    className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
+                    onClick={closeMenu}
+                    data-testid="public-site-mobile-link-marketplace"
+                  >
+                    Marketplace
+                  </Link>
+                  <Link
+                    to="/businesses"
+                    className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
+                    onClick={closeMenu}
+                    data-testid="public-site-mobile-link-reviews"
+                  >
+                    Reviews
+                  </Link>
+                  <Link
+                    to="/pricing"
+                    className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
+                    onClick={closeMenu}
+                    data-testid="public-site-mobile-link-pricing"
+                  >
+                    Pricing
+                  </Link>
+                  <Link
+                    to="/#how-it-works"
+                    className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
+                    onClick={closeMenu}
+                    data-testid="public-site-mobile-link-how-it-works"
+                  >
+                    How it works
+                  </Link>
+                  <div className="my-2 border-t border-slate-100" />
+                  {isAuthenticated ? (
+                    <>
+                      <Link
+                        to="/me/bookings"
+                        className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
+                        onClick={closeMenu}
+                        data-testid="public-site-mobile-link-bookings"
+                      >
+                        My bookings
+                      </Link>
+                      <Link
+                        to="/admin"
+                        className="rounded-lg bg-brand-700 px-3 py-2.5 text-center font-semibold text-white hover:bg-brand-800"
+                        onClick={closeMenu}
+                        data-testid="public-site-mobile-link-dashboard"
+                      >
+                        Dashboard
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        to="/login"
+                        className="rounded-lg px-3 py-2.5 hover:bg-slate-50"
+                        onClick={closeMenu}
+                        data-testid="public-site-mobile-link-signin"
+                      >
+                        Sign in
+                      </Link>
+                      <Link
+                        to="/pricing"
+                        className="rounded-lg bg-brand-700 px-3 py-2.5 text-center font-semibold text-white hover:bg-brand-800"
+                        onClick={closeMenu}
+                        data-testid="public-site-mobile-link-get-started"
+                      >
+                        Get started
+                      </Link>
+                    </>
+                  )}
+                </nav>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </header>
   );
 }

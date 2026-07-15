@@ -15,6 +15,7 @@ vi.mock("@/hooks/useAuth");
 describe("public site header", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    document.body.style.overflow = "";
     vi.mocked(useAuth).mockReturnValue(mockUnauthenticatedAuth());
   });
 
@@ -23,6 +24,7 @@ describe("public site header", () => {
 
     const menuButton = screen.getByTestId("public-site-mobile-menu-button");
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
+    expect(menuButton).toHaveAttribute("aria-label", "Open menu");
     expect(menuButton.className).toMatch(/md:hidden/);
 
     const desktopNav = screen.getByTestId("public-site-desktop-nav");
@@ -39,7 +41,7 @@ describe("public site header", () => {
     expect(desktopActions).toHaveTextContent("Get started");
   });
 
-  it("opens mobile menu with public links and closes after clicking a link", async () => {
+  it("opens a fixed side drawer overlay without inline content push classes", async () => {
     const user = userEvent.setup();
     renderRoute(<PublicSiteHeader active="marketplace" />, {
       route: "/businesses",
@@ -48,26 +50,76 @@ describe("public site header", () => {
 
     await user.click(screen.getByTestId("public-site-mobile-menu-button"));
 
-    const menu = screen.getByTestId("public-site-mobile-menu");
+    const drawer = screen.getByTestId("public-site-mobile-menu");
+    const backdrop = screen.getByTestId("public-site-mobile-menu-backdrop");
+
     expect(screen.getByTestId("public-site-mobile-menu-button")).toHaveAttribute(
       "aria-expanded",
       "true",
     );
-    expect(menu).toHaveTextContent("Home");
-    expect(menu).toHaveTextContent("Marketplace");
-    expect(menu).toHaveTextContent("Pricing");
+    expect(drawer.className).toMatch(/fixed/);
+    expect(drawer.className).toMatch(/inset-y-0/);
+    expect(drawer.className).toMatch(/right-0/);
+    expect(drawer.className).not.toMatch(/border-t/);
+    expect(backdrop.className).toMatch(/fixed/);
+    expect(backdrop.className).toMatch(/inset-0/);
+
+    expect(drawer).toHaveTextContent("Home");
+    expect(drawer).toHaveTextContent("Marketplace");
+    expect(drawer).toHaveTextContent("Pricing");
+    expect(drawer).toHaveTextContent("How it works");
     expect(screen.queryByTestId("public-site-mobile-link-bookings")).not.toBeInTheDocument();
     expect(screen.getByTestId("public-site-mobile-link-signin")).toHaveAttribute("href", "/login");
     expect(screen.getByTestId("public-site-mobile-link-get-started")).toHaveAttribute(
       "href",
       "/pricing",
     );
+  });
 
-    await user.click(screen.getByTestId("public-site-mobile-link-pricing"));
+  it("closes the drawer when backdrop is clicked", async () => {
+    const user = userEvent.setup();
+    renderRoute(<PublicSiteHeader />, { route: "/", path: "/" });
+
+    await user.click(screen.getByTestId("public-site-mobile-menu-button"));
+    expect(screen.getByTestId("public-site-mobile-menu")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("public-site-mobile-menu-backdrop"));
+    expect(screen.queryByTestId("public-site-mobile-menu")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("public-site-mobile-menu-backdrop")).not.toBeInTheDocument();
+  });
+
+  it("closes the drawer when close button is clicked", async () => {
+    const user = userEvent.setup();
+    renderRoute(<PublicSiteHeader />, { route: "/", path: "/" });
+
+    await user.click(screen.getByTestId("public-site-mobile-menu-button"));
+    await user.click(screen.getByTestId("public-site-mobile-menu-close"));
+
     expect(screen.queryByTestId("public-site-mobile-menu")).not.toBeInTheDocument();
   });
 
-  it("shows My bookings and Dashboard in mobile menu when authenticated", async () => {
+  it("closes the drawer after clicking a nav link", async () => {
+    const user = userEvent.setup();
+    renderRoute(<PublicSiteHeader />, { route: "/", path: "/" });
+
+    await user.click(screen.getByTestId("public-site-mobile-menu-button"));
+    await user.click(screen.getByTestId("public-site-mobile-link-pricing"));
+
+    expect(screen.queryByTestId("public-site-mobile-menu")).not.toBeInTheDocument();
+  });
+
+  it("closes the drawer when Escape is pressed", async () => {
+    const user = userEvent.setup();
+    renderRoute(<PublicSiteHeader />, { route: "/", path: "/" });
+
+    await user.click(screen.getByTestId("public-site-mobile-menu-button"));
+    expect(screen.getByTestId("public-site-mobile-menu")).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByTestId("public-site-mobile-menu")).not.toBeInTheDocument();
+  });
+
+  it("shows My bookings and Dashboard in mobile drawer when authenticated", async () => {
     vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
     const user = userEvent.setup();
 
