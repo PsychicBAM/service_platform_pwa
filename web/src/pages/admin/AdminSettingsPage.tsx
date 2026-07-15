@@ -5,6 +5,7 @@ import { getBusiness, updateBusiness } from "@/api/adminApi";
 import { PlanFeatureComparison } from "@/components/admin/PlanFeatureComparison";
 import { AdminMarketplaceCoverSection } from "@/components/admin/AdminMarketplaceCoverSection";
 import { AdminBusinessLocationSection } from "@/components/admin/AdminBusinessLocationSection";
+import { AdminBusinessMapPinSection } from "@/components/admin/AdminBusinessMapPinSection";
 import { ProToolsComingSoonCard } from "@/components/admin/ProToolsComingSoonCard";
 import { PublicProfileSettingsCard } from "@/components/admin/PublicProfileSettingsCard";
 import { ErrorState } from "@/components/ErrorState";
@@ -378,6 +379,11 @@ export function AdminSettingsPage() {
               }}
             />
             <AdminBusinessLocationSection
+              businessId={businessId!}
+              publicLocation={businessQuery.data?.public_location}
+              disabled={saving}
+            />
+            <AdminBusinessMapPinSection
               businessId={businessId!}
               publicLocation={businessQuery.data?.public_location}
               disabled={saving}

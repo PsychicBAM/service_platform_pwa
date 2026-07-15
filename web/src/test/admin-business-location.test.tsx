@@ -171,3 +171,203 @@ describe("admin business location settings", () => {
     );
   });
 });
+
+describe("admin business map pin settings", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+    vi.mocked(adminApi.getBusiness).mockResolvedValue({
+      ...mockAdminBusiness,
+      public_location: {
+        country: "UAE",
+        city: "Dubai",
+        district_or_area: "Dubai Marina",
+        public_address: "Marina Walk",
+        postal_code: null,
+        latitude: 25.08,
+        longitude: 55.14,
+        location_note: null,
+      },
+    });
+    vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue(DEFAULT_MINI_SITE_CONFIG);
+  });
+
+  it("shows compact map pin card by default", async () => {
+    renderSettingsPage();
+
+    expect(await screen.findByTestId("admin-business-map-pin-section")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-business-map-pin-summary")).toHaveTextContent("Map pin set");
+    expect(screen.getByTestId("admin-business-map-pin-edit")).toBeInTheDocument();
+    expect(screen.queryByTestId("admin-business-map-pin-form")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Latitude")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Longitude")).not.toBeInTheDocument();
+  });
+
+  it("shows empty map pin summary when coordinates are missing", async () => {
+    vi.mocked(adminApi.getBusiness).mockResolvedValue({
+      ...mockAdminBusiness,
+      public_location: {
+        country: "UAE",
+        city: "Dubai",
+        district_or_area: "Dubai Marina",
+        public_address: "Marina Walk",
+        postal_code: null,
+        latitude: null,
+        longitude: null,
+        location_note: null,
+      },
+    });
+
+    renderSettingsPage();
+
+    expect(await screen.findByTestId("admin-business-map-pin-summary")).toHaveTextContent(
+      "No map pin set",
+    );
+  });
+
+  it("opens latitude and longitude fields when Edit is clicked", async () => {
+    const user = userEvent.setup();
+    renderSettingsPage();
+
+    await user.click(await screen.findByTestId("admin-business-map-pin-edit"));
+
+    const form = screen.getByTestId("admin-business-map-pin-form");
+    expect(form).toBeInTheDocument();
+    expect(within(form).getByLabelText("Latitude")).toHaveValue("25.08");
+    expect(within(form).getByLabelText("Longitude")).toHaveValue("55.14");
+    expect(screen.getByText(/optional\. used later for map discovery/i)).toBeInTheDocument();
+  });
+
+  it("shows validation error for invalid latitude", async () => {
+    const user = userEvent.setup();
+    renderSettingsPage();
+
+    await user.click(await screen.findByTestId("admin-business-map-pin-edit"));
+    await user.clear(screen.getByLabelText("Latitude"));
+    await user.type(screen.getByLabelText("Latitude"), "999");
+    await user.click(screen.getByTestId("admin-business-map-pin-save"));
+
+    expect(await screen.findByText(/latitude must be between -90 and 90/i)).toBeInTheDocument();
+    expect(adminApi.updateBusiness).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error for invalid longitude", async () => {
+    const user = userEvent.setup();
+    renderSettingsPage();
+
+    await user.click(await screen.findByTestId("admin-business-map-pin-edit"));
+    await user.clear(screen.getByLabelText("Longitude"));
+    await user.type(screen.getByLabelText("Longitude"), "999");
+    await user.click(screen.getByTestId("admin-business-map-pin-save"));
+
+    expect(await screen.findByText(/longitude must be between -180 and 180/i)).toBeInTheDocument();
+    expect(adminApi.updateBusiness).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error when only one coordinate is filled", async () => {
+    const user = userEvent.setup();
+    renderSettingsPage();
+
+    await user.click(await screen.findByTestId("admin-business-map-pin-edit"));
+    await user.clear(screen.getByLabelText("Longitude"));
+    await user.click(screen.getByTestId("admin-business-map-pin-save"));
+
+    expect(
+      await screen.findByText(/enter both latitude and longitude, or clear both fields/i),
+    ).toBeInTheDocument();
+    expect(adminApi.updateBusiness).not.toHaveBeenCalled();
+  });
+
+  it("saves valid coordinates and collapses after success", async () => {
+    const user = userEvent.setup();
+    vi.mocked(adminApi.updateBusiness).mockResolvedValue({
+      ...mockAdminBusiness,
+      public_location: {
+        country: "UAE",
+        city: "Dubai",
+        district_or_area: "Dubai Marina",
+        public_address: "Marina Walk",
+        postal_code: null,
+        latitude: 25.2,
+        longitude: 55.25,
+        location_note: null,
+      },
+    });
+
+    renderSettingsPage();
+    await user.click(await screen.findByTestId("admin-business-map-pin-edit"));
+
+    await user.clear(screen.getByLabelText("Latitude"));
+    await user.type(screen.getByLabelText("Latitude"), "25.2");
+    await user.clear(screen.getByLabelText("Longitude"));
+    await user.type(screen.getByLabelText("Longitude"), "55.25");
+    await user.click(screen.getByTestId("admin-business-map-pin-save"));
+
+    await waitFor(() => {
+      expect(adminApi.updateBusiness).toHaveBeenCalledWith(
+        mockAdminBusiness.id,
+        expect.objectContaining({
+          public_location: expect.objectContaining({
+            latitude: 25.2,
+            longitude: 55.25,
+            city: "Dubai",
+          }),
+        }),
+      );
+    });
+
+    expect(screen.queryByTestId("admin-business-map-pin-form")).not.toBeInTheDocument();
+    expect(screen.getByTestId("admin-business-map-pin-edit")).toBeInTheDocument();
+  });
+
+  it("cancel collapses without saving map pin changes", async () => {
+    const user = userEvent.setup();
+
+    renderSettingsPage();
+    await user.click(await screen.findByTestId("admin-business-map-pin-edit"));
+
+    await user.clear(screen.getByLabelText("Latitude"));
+    await user.type(screen.getByLabelText("Latitude"), "10");
+    await user.click(screen.getByTestId("admin-business-map-pin-cancel"));
+
+    expect(adminApi.updateBusiness).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("admin-business-map-pin-form")).not.toBeInTheDocument();
+    expect(screen.getByTestId("admin-business-map-pin-summary")).toHaveTextContent("Map pin set");
+  });
+
+  it("clear pin removes latitude and longitude", async () => {
+    const user = userEvent.setup();
+    vi.mocked(adminApi.updateBusiness).mockResolvedValue({
+      ...mockAdminBusiness,
+      public_location: {
+        country: "UAE",
+        city: "Dubai",
+        district_or_area: "Dubai Marina",
+        public_address: "Marina Walk",
+        postal_code: null,
+        latitude: null,
+        longitude: null,
+        location_note: null,
+      },
+    });
+
+    renderSettingsPage();
+    await user.click(await screen.findByTestId("admin-business-map-pin-edit"));
+    await user.click(screen.getByTestId("admin-business-map-pin-clear"));
+
+    await waitFor(() => {
+      expect(adminApi.updateBusiness).toHaveBeenCalledWith(
+        mockAdminBusiness.id,
+        expect.objectContaining({
+          public_location: expect.objectContaining({
+            latitude: null,
+            longitude: null,
+            city: "Dubai",
+          }),
+        }),
+      );
+    });
+
+    expect(screen.queryByTestId("admin-business-map-pin-form")).not.toBeInTheDocument();
+  });
+});

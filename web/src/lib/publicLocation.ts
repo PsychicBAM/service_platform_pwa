@@ -104,6 +104,97 @@ export function validatePublicLocationForm(form: PublicLocationFormState): strin
   return null;
 }
 
+export function hasMapPin(location: PublicBusinessLocation | null | undefined): boolean {
+  if (location?.latitude == null || location.longitude == null) {
+    return false;
+  }
+
+  return (
+    Number.isFinite(location.latitude) &&
+    Number.isFinite(location.longitude) &&
+    location.latitude >= -90 &&
+    location.latitude <= 90 &&
+    location.longitude >= -180 &&
+    location.longitude <= 180
+  );
+}
+
+export function formatMapPinSummary(location: PublicBusinessLocation | null | undefined): string {
+  return hasMapPin(location) ? "Map pin set" : "No map pin set";
+}
+
+export type MapPinFormState = {
+  latitude: string;
+  longitude: string;
+};
+
+export const EMPTY_MAP_PIN_FORM: MapPinFormState = {
+  latitude: "",
+  longitude: "",
+};
+
+export function mapPinFormFromApi(
+  location: PublicBusinessLocation | null | undefined,
+): MapPinFormState {
+  if (!location) {
+    return { ...EMPTY_MAP_PIN_FORM };
+  }
+
+  return {
+    latitude: location.latitude != null ? String(location.latitude) : "",
+    longitude: location.longitude != null ? String(location.longitude) : "",
+  };
+}
+
+export function validateMapPinForm(form: MapPinFormState): string | null {
+  const latitude = form.latitude.trim();
+  const longitude = form.longitude.trim();
+
+  if (!latitude && !longitude) {
+    return null;
+  }
+
+  if (!latitude || !longitude) {
+    return "Enter both latitude and longitude, or clear both fields.";
+  }
+
+  const parsedLatitude = Number(latitude);
+  if (!Number.isFinite(parsedLatitude) || parsedLatitude < -90 || parsedLatitude > 90) {
+    return "Latitude must be between -90 and 90.";
+  }
+
+  const parsedLongitude = Number(longitude);
+  if (!Number.isFinite(parsedLongitude) || parsedLongitude < -180 || parsedLongitude > 180) {
+    return "Longitude must be between -180 and 180.";
+  }
+
+  return null;
+}
+
+export function mapPinPayloadFromLocation(
+  location: PublicBusinessLocation | null | undefined,
+  pinForm: MapPinFormState,
+): PublicBusinessLocation {
+  const latitude = pinForm.latitude.trim();
+  const longitude = pinForm.longitude.trim();
+  const base = location ?? {
+    country: null,
+    city: null,
+    district_or_area: null,
+    public_address: null,
+    postal_code: null,
+    latitude: null,
+    longitude: null,
+    location_note: null,
+  };
+
+  return {
+    ...base,
+    latitude: latitude ? Number(latitude) : null,
+    longitude: longitude ? Number(longitude) : null,
+  };
+}
+
 export function formatPublicLocationDisplay(
   business: Pick<PublicBusinessDirectoryItem, "location" | "address">,
 ): string | null {
