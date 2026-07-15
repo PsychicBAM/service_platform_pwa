@@ -60,7 +60,7 @@ export function Layout() {
       <main className="flex-1 px-4 py-6 md:px-6 md:py-8">
         <Outlet />
       </main>
-      <footer className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-500">
+      <footer className="border-t border-slate-200 px-4 py-4 pb-24 text-center text-xs text-slate-500 md:pb-4">
         <p className="mb-2">Service Platform · Bookings &amp; requests</p>
         <nav
           aria-label="Legal"

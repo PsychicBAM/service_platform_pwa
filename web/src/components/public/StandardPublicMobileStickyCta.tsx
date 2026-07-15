@@ -20,8 +20,8 @@ function StickyCtaButton({
 }) {
   const className =
     variant === "primary"
-      ? "inline-flex items-center justify-center rounded-xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-800"
-      : "inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50";
+      ? "inline-flex min-w-0 items-center justify-center rounded-xl bg-brand-700 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-800"
+      : "inline-flex min-w-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50";
 
   return (
     <a
@@ -29,7 +29,7 @@ function StickyCtaButton({
       className={`${className} ${fullWidth ? "w-full" : "flex-1"}`}
       data-testid={testId}
     >
-      {label}
+      <span className="truncate">{label}</span>
     </a>
   );
 }
@@ -59,7 +59,7 @@ export function StandardPublicMobileStickyCta({
       className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 md:hidden"
       data-testid="standard-public-mobile-sticky-cta"
     >
-      <div className="mx-auto flex max-w-7xl gap-2 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex max-w-7xl gap-2 px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {showBook ? (
           <StickyCtaButton
             href="#services-booking"

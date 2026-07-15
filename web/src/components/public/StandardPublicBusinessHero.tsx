@@ -26,8 +26,8 @@ function HeroCta({
 }) {
   const className =
     variant === "primary"
-      ? "inline-flex items-center justify-center rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800"
-      : "inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50";
+      ? "inline-flex w-full items-center justify-center rounded-xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-800 md:w-auto md:py-2.5"
+      : "inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 md:w-auto md:py-2.5";
 
   return (
     <a href={href} className={className} data-testid={testId}>
@@ -56,7 +56,7 @@ export function StandardPublicBusinessHero({
       data-testid="standard-public-business-hero"
     >
       <div className="grid md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <div className="relative min-h-[180px] md:min-h-[240px]">
+        <div className="relative h-40 overflow-hidden md:h-auto md:min-h-[240px]">
           {coverUrl ? (
             <img
               src={coverUrl}
@@ -66,11 +66,11 @@ export function StandardPublicBusinessHero({
             />
           ) : (
             <div
-              className={`flex h-full min-h-[180px] w-full items-end bg-gradient-to-br ${coverGradient} p-5 md:min-h-[240px]`}
+              className={`flex h-full min-h-[10rem] w-full items-end bg-gradient-to-br ${coverGradient} p-4 md:min-h-[240px] md:p-5`}
               data-testid="standard-public-business-hero-cover-fallback"
               aria-hidden="true"
             >
-              <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white/90">
+              <span className="truncate rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white/90">
                 {business.name}
               </span>
             </div>
@@ -79,20 +79,20 @@ export function StandardPublicBusinessHero({
             <img
               src={business.logo_url}
               alt=""
-              className="absolute bottom-4 left-4 h-14 w-14 rounded-xl border-2 border-white object-cover shadow-md md:bottom-5 md:left-5 md:h-16 md:w-16"
+              className="absolute bottom-3 left-3 h-12 w-12 rounded-xl border-2 border-white object-cover shadow-md md:bottom-5 md:left-5 md:h-16 md:w-16"
             />
           ) : null}
         </div>
 
-        <div className="flex flex-col justify-center p-5 md:p-6">
+        <div className="flex flex-col justify-center p-4 md:p-6">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Business profile</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+          <h1 className="mt-1 break-words text-xl font-bold tracking-tight text-slate-900 md:text-3xl">
             {business.name}
           </h1>
 
           {business.description ? (
             <p
-              className="mt-3 text-sm leading-relaxed text-slate-600 md:text-base"
+              className="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600 md:mt-3 md:line-clamp-none md:text-base"
               data-testid="standard-public-business-description"
             >
               {business.description}
@@ -101,7 +101,7 @@ export function StandardPublicBusinessHero({
 
           {locationText ? (
             <p
-              className="mt-3 text-sm text-slate-500"
+              className="mt-2 truncate text-sm text-slate-500 md:mt-3 md:whitespace-normal md:overflow-visible"
               data-testid="standard-public-business-location"
             >
               {locationText}
@@ -109,7 +109,7 @@ export function StandardPublicBusinessHero({
           ) : null}
 
           <div
-            className="mt-4 flex flex-wrap gap-2"
+            className="mt-3 flex flex-wrap gap-2 md:mt-4"
             data-testid="standard-public-business-trust-row"
           >
             {averageRating != null && reviewCount > 0 ? (
@@ -132,7 +132,7 @@ export function StandardPublicBusinessHero({
             ) : null}
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-col gap-2 md:mt-5 md:flex-row md:flex-wrap md:gap-3">
             {hasBooking ? (
               <HeroCta
                 href="#services-booking"

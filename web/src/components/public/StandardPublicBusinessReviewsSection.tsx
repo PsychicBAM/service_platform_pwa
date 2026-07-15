@@ -1,4 +1,3 @@
-import { EmptyState } from "@/components/EmptyState";
 import { StarRating } from "@/components/marketplace/StarRating";
 import { formatDateTimeLabel } from "@/utils/format";
 import type { PublicReviewItem, PublicReviewSummary } from "@/types/api";
@@ -37,10 +36,10 @@ export function StandardPublicBusinessReviewsSection({
 
   return (
     <section
-      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6"
+      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-6"
       data-testid="standard-public-reviews-section"
     >
-      <h2 className="text-lg font-semibold text-slate-900 md:text-xl">Reviews</h2>
+      <h2 className="text-base font-semibold text-slate-900 md:text-xl">Reviews</h2>
 
       {isLoading ? (
         <p className="mt-4 text-sm text-slate-500">Loading reviews…</p>
@@ -89,11 +88,14 @@ export function StandardPublicBusinessReviewsSection({
       ) : null}
 
       {!isLoading && !hasReviews ? (
-        <div className="mt-4" data-testid="standard-public-reviews-empty">
-          <EmptyState
-            title="No reviews yet"
-            description="Reviews will appear here after completed bookings or requests."
-          />
+        <div
+          className="mt-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 px-3 py-5 text-center md:mt-4"
+          data-testid="standard-public-reviews-empty"
+        >
+          <p className="text-sm font-medium text-slate-800">No reviews yet</p>
+          <p className="mt-1 text-xs text-slate-600 md:text-sm">
+            Reviews will appear here after completed bookings or requests.
+          </p>
         </div>
       ) : null}
     </section>

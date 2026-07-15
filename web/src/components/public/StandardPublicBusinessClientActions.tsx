@@ -6,7 +6,7 @@ type StandardPublicBusinessClientActionsProps = {
 };
 
 const CLIENT_ACTION_BUTTON_CLASS =
-  "inline-flex min-w-[8.5rem] flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 sm:flex-none";
+  "inline-flex flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 sm:min-w-[8.5rem] sm:flex-none sm:px-4";
 
 export function StandardPublicBusinessClientActions({
   operatingMode,
@@ -20,14 +20,14 @@ export function StandardPublicBusinessClientActions({
 
   return (
     <section
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm md:p-4"
       data-testid="standard-public-business-client-actions"
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm font-medium text-slate-700">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <p className="text-xs font-medium text-slate-600 sm:text-sm sm:text-slate-700">
           Already booked with this business?
         </p>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+        <div className="flex flex-row gap-2 sm:justify-end">
           {showBookings ? (
             <Link
               to="/me/bookings"

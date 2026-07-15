@@ -9,7 +9,7 @@ import {
 import type { PublicService } from "@/types/api";
 import { formatDuration, serviceTypeIcon } from "@/utils/format";
 
-const STANDARD_SERVICE_IMAGE_ASPECT = "aspect-[5/3]";
+const STANDARD_SERVICE_IMAGE_ASPECT = "aspect-[16/9] md:aspect-[5/3]";
 
 type StandardPublicServiceCardProps = {
   slug: string;
@@ -44,15 +44,17 @@ export function StandardPublicServiceCard({ slug, service }: StandardPublicServi
           testId="standard-public-service-card-placeholder"
           className="bg-gradient-to-br from-brand-50 via-white to-slate-100"
         >
-          <span className="text-2xl opacity-60" aria-hidden>
+          <span className="text-xl opacity-60 md:text-2xl" aria-hidden>
             {serviceTypeIcon(service.type)}
           </span>
         </ServiceCardNoImageArea>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col p-5">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <h3 className="text-lg font-semibold leading-snug text-slate-900">{service.name}</h3>
+      <div className="flex min-h-0 flex-1 flex-col p-4 md:p-5">
+        <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+          <h3 className="min-w-0 flex-1 break-words text-base font-semibold leading-snug text-slate-900 md:text-lg">
+            {service.name}
+          </h3>
           <TypeBadge type={service.type} />
         </div>
 
@@ -65,7 +67,7 @@ export function StandardPublicServiceCard({ slug, service }: StandardPublicServi
           </p>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 md:mt-4">
           <PriceLabel service={service} className="text-base" />
           {duration ? (
             <span
@@ -77,10 +79,10 @@ export function StandardPublicServiceCard({ slug, service }: StandardPublicServi
           ) : null}
         </div>
 
-        <div className="mt-auto pt-5">
+        <div className="mt-auto pt-4 md:pt-5">
           <Link
             to={`/b/${slug}/services/${service.id}`}
-            className="block rounded-xl bg-brand-700 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-800"
+            className="block w-full rounded-xl bg-brand-700 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-800"
             data-testid="standard-public-service-card-cta"
           >
             {standardServiceCtaLabel(service.type)}

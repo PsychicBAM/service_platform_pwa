@@ -40,8 +40,11 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
 
   return (
     <section
-      className={`space-y-6 ${showMobileStickyCta ? "pb-24 md:pb-0" : ""}`}
+      className={`space-y-4 md:space-y-6 ${
+        showMobileStickyCta ? "pb-28 md:pb-0" : ""
+      }`}
       data-testid="standard-public-business-home"
+      data-mobile-sticky-padding={showMobileStickyCta ? "true" : "false"}
     >
       <StandardPublicBusinessClientActions operatingMode={business.operating_mode} />
 
@@ -65,7 +68,7 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
       ) : null}
 
       {!servicesQuery.isLoading && services.length > 0 ? (
-        <section id="services" className="space-y-8" data-testid="standard-public-business-services">
+        <section id="services" className="space-y-6 md:space-y-8" data-testid="standard-public-business-services">
           <div>
             <h2 className="text-xl font-bold text-slate-900 md:text-2xl">Services</h2>
             <p className="mt-1 text-sm text-slate-600">
@@ -74,14 +77,14 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
           </div>
 
           {bookingServices.length > 0 ? (
-            <div id="services-booking" className="space-y-4" data-testid="standard-public-booking-services">
+            <div id="services-booking" className="space-y-3 md:space-y-4" data-testid="standard-public-booking-services">
               <div>
-                <h3 className="text-lg font-semibold text-slate-900">Book online</h3>
+                <h3 className="text-base font-semibold text-slate-900 md:text-lg">Book online</h3>
                 <p className="mt-1 text-sm text-slate-600">
                   Choose a time and book instantly.
                 </p>
               </div>
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 2xl:grid-cols-3">
                 {bookingServices.map((service) => (
                   <StandardPublicServiceCard key={service.id} slug={slug} service={service} />
                 ))}
@@ -90,14 +93,14 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
           ) : null}
 
           {requestServices.length > 0 ? (
-            <div id="services-requests" className="space-y-4" data-testid="standard-public-request-services">
+            <div id="services-requests" className="space-y-3 md:space-y-4" data-testid="standard-public-request-services">
               <div>
-                <h3 className="text-lg font-semibold text-slate-900">Request service</h3>
+                <h3 className="text-base font-semibold text-slate-900 md:text-lg">Request service</h3>
                 <p className="mt-1 text-sm text-slate-600">
                   Send details and get a response from the business.
                 </p>
               </div>
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 2xl:grid-cols-3">
                 {requestServices.map((service) => (
                   <StandardPublicServiceCard key={service.id} slug={slug} service={service} />
                 ))}
@@ -109,7 +112,7 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
 
       {!servicesQuery.isLoading ? (
         <section
-          className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]"
+          className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]"
           data-testid="standard-public-trust-section"
         >
           <StandardPublicBusinessReviewsSection
@@ -117,7 +120,7 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
             reviews={reviews}
             isLoading={reviewsQuery.isLoading}
           />
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             <StandardPublicBusinessQuickInfo
               business={business}
               hasBookingServices={bookingServices.length > 0}

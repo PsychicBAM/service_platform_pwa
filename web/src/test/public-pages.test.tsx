@@ -440,6 +440,7 @@ describe("public pages smoke", () => {
 
     const stickyBar = await screen.findByTestId("standard-public-mobile-sticky-cta");
     expect(stickyBar.className).toContain("md:hidden");
+    expect(stickyBar.className).toContain("fixed");
     expect(screen.getByTestId("standard-public-mobile-sticky-book")).toHaveAttribute(
       "href",
       "#services-booking",
@@ -456,6 +457,15 @@ describe("public pages smoke", () => {
       "href",
       "#services-requests",
     );
+    expect(screen.getByTestId("standard-public-business-home")).toHaveAttribute(
+      "data-mobile-sticky-padding",
+      "true",
+    );
+    expect(screen.getByTestId("standard-public-business-home").className).toMatch(/pb-28/);
+    expect(screen.getByTestId("standard-public-business-client-actions")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-reviews-section")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-location-section")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-quick-info")).toBeInTheDocument();
   });
 
   it("A1q. mobile sticky CTA shows only booking action for booking-only services", async () => {
