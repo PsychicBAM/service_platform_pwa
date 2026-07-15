@@ -165,11 +165,16 @@ describe("public homepage", () => {
     expect(cards.length).toBeGreaterThan(0);
     for (const card of cards) {
       expect(card.className).toMatch(/snap-start/);
-      expect(card.className).toMatch(/flex-none|flex h-full/);
+      expect(card.className).toMatch(/h-full/);
+      expect(card.className).toMatch(/min-h-\[26\.5rem\]/);
       expect(card.className).toMatch(/w-\[min\(86vw,360px\)\]/);
       expect(card.className).toMatch(/lg:w-auto/);
+      expect(card.className).toMatch(/lg:min-h-0/);
       expect(card.className).toMatch(/flex-col/);
       expect(within(card).getByTestId("featured-business-cta")).toHaveTextContent("Open business");
+      expect(within(card).getByTestId("featured-business-description").className).toMatch(
+        /line-clamp-2/,
+      );
     }
   });
 
@@ -334,9 +339,9 @@ describe("public homepage", () => {
 
     const card = await screen.findByTestId("featured-business-card");
     expect(within(card).getByTestId("featured-business-cta")).toHaveTextContent("Open business");
-    expect(within(card).getByTestId("featured-business-description")).toHaveClass("line-clamp-3");
-    expect(within(card).getAllByTestId("featured-business-chip")).toHaveLength(3);
-    expect(within(card).getByTestId("featured-business-chip-more")).toHaveTextContent("+2 more");
+    expect(within(card).getByTestId("featured-business-description")).toHaveClass("line-clamp-2");
+    expect(within(card).getAllByTestId("featured-business-chip")).toHaveLength(2);
+    expect(within(card).getByTestId("featured-business-chip-more")).toHaveTextContent("+3 more");
   });
 
   it("does not render private fields in mocked featured data", async () => {

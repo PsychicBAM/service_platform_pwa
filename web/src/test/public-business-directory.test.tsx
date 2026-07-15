@@ -325,11 +325,63 @@ describe("public business directory", () => {
     renderRoute(<BusinessDirectoryPage />, { route: "/businesses", path: "/businesses" });
 
     expect(await screen.findByTestId("marketplace-sidebar-filters")).toBeInTheDocument();
+    expect(screen.getByTestId("marketplace-desktop-sidebar").className).toMatch(/hidden/);
+    expect(screen.getByTestId("marketplace-desktop-sidebar").className).toMatch(/lg:block/);
+    expect(screen.getByTestId("marketplace-mobile-filters-button")).toBeInTheDocument();
     expect(screen.getByLabelText("Bookable online")).toBeInTheDocument();
     expect(screen.getByLabelText("Accepts requests")).toBeInTheDocument();
     expect(screen.getByLabelText("Has reviews")).toBeInTheDocument();
     expect(screen.getByLabelText("Has cover photo")).toBeInTheDocument();
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
+  });
+
+  it("opens mobile filters panel with categories and real filters", async () => {
+    mockDirectoryResponse();
+    const user = userEvent.setup();
+
+    renderRoute(<BusinessDirectoryPage />, { route: "/businesses", path: "/businesses" });
+
+    expect(screen.queryByTestId("marketplace-mobile-filters-panel")).not.toBeInTheDocument();
+    await user.click(await screen.findByTestId("marketplace-mobile-filters-button"));
+
+    const panel = screen.getByTestId("marketplace-mobile-filters-panel");
+    expect(panel).toHaveTextContent("Categories");
+    expect(panel).toHaveTextContent("Bookable online");
+    expect(panel).toHaveTextContent("Accepts requests");
+    expect(panel).toHaveTextContent("Has reviews");
+    expect(panel).toHaveTextContent("Has cover photo");
+  });
+
+  it("updates URL from mobile filters panel and can clear filters", async () => {
+    mockDirectoryResponse([], 0);
+    const user = userEvent.setup();
+    const queryClient = createTestQueryClient();
+    const router = createMemoryRouter(
+      [{ path: "/businesses", element: <BusinessDirectoryPage /> }],
+      { initialEntries: ["/businesses?location=Dubai"] },
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+
+    await user.click(await screen.findByTestId("marketplace-mobile-filters-button"));
+    await user.click(screen.getByTestId("marketplace-mobile-filter-bookable"));
+
+    expect(router.state.location.search).toContain("bookable=true");
+    expect(publicApi.listPublicBusinesses).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: "Dubai",
+        bookable: true,
+      }),
+    );
+
+    await user.click(screen.getByTestId("marketplace-mobile-clear-filters"));
+    expect(router.state.location.search).toBe("?location=Dubai");
+    const lastCall = vi.mocked(publicApi.listPublicBusinesses).mock.calls.at(-1)?.[0];
+    expect(lastCall?.bookable).toBeUndefined();
   });
 
   it("updates URL and API call when sidebar filters are toggled", async () => {

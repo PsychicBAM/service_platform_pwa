@@ -6,6 +6,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { MarketplaceBusinessCard } from "@/components/marketplace/MarketplaceBusinessCard";
 import { MarketplaceEmptyState } from "@/components/marketplace/MarketplaceEmptyState";
+import { MarketplaceMobileFilters } from "@/components/marketplace/MarketplaceMobileFilters";
 import { MarketplaceSidebar } from "@/components/marketplace/MarketplaceSidebar";
 import {
   MARKETPLACE_CATEGORIES,
@@ -229,11 +230,22 @@ export function BusinessDirectoryPage() {
           </button>
         </form>
 
+        <div className="mt-4 lg:hidden">
+          <MarketplaceMobileFilters
+            activeCategory={category}
+            onCategoryChange={handleCategoryChange}
+            filters={sidebarFilters}
+            onFilterChange={handleSidebarFilterChange}
+            onClearFilters={handleClearSidebarFilters}
+            totalCount={total}
+          />
+        </div>
+
         <div
           className="mt-4 flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center"
           data-testid="marketplace-filter-row"
         >
-          <label className="flex min-w-[160px] flex-col gap-1 text-xs font-medium text-slate-600">
+          <label className="hidden min-w-[160px] flex-col gap-1 text-xs font-medium text-slate-600 lg:flex">
             Category
             <select
               value={category}
@@ -300,7 +312,10 @@ export function BusinessDirectoryPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)]">
-        <div className="lg:sticky lg:top-24 lg:self-start">
+        <div
+          className="hidden lg:sticky lg:top-24 lg:block lg:self-start"
+          data-testid="marketplace-desktop-sidebar"
+        >
           <MarketplaceSidebar
             activeCategory={category}
             onCategoryChange={handleCategoryChange}

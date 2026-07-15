@@ -221,7 +221,12 @@ export function PlatformLandingPage() {
             data-testid="homepage-featured-grid"
           >
             {featuredCards.map((business) => (
-              <FeaturedBusinessCard key={business.slug} business={business} />
+              <div
+                key={business.slug}
+                className="flex shrink-0 snap-start self-stretch lg:contents"
+              >
+                <FeaturedBusinessCard business={business} />
+              </div>
             ))}
           </div>
         ) : null}

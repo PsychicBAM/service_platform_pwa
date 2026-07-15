@@ -8,7 +8,7 @@ import {
 } from "@/lib/businessCardMedia";
 import { formatPublicLocationDisplay } from "@/lib/publicLocation";
 
-const MAX_SERVICE_CHIPS = 3;
+const MAX_SERVICE_CHIPS = 2;
 
 type FeaturedBusinessCardProps = {
   business: PublicBusinessDirectoryItem;
@@ -21,6 +21,7 @@ export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusines
   const locationLabel = truncatePublicText(formatPublicLocationDisplay(business), 36);
   const visibleServices = business.services_preview.slice(0, MAX_SERVICE_CHIPS);
   const extraServiceCount = Math.max(0, business.services_preview.length - visibleServices.length);
+  const description = business.description?.trim() ?? "";
   const resolvedBadge =
     badge ??
     (business.average_rating != null && business.average_rating >= 4.5
@@ -31,10 +32,10 @@ export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusines
 
   return (
     <article
-      className="flex h-full w-[min(86vw,360px)] flex-none snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md lg:w-auto lg:max-w-none lg:flex-auto"
+      className="flex h-full min-h-[26.5rem] w-[min(86vw,360px)] flex-none snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md lg:min-h-0 lg:w-auto lg:max-w-none lg:flex-auto"
       data-testid="featured-business-card"
     >
-      <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-slate-100">
+      <div className="relative h-40 shrink-0 overflow-hidden bg-slate-100 lg:aspect-[4/3] lg:h-auto">
         {business.cover_image_url ? (
           <img
             src={business.cover_image_url}
@@ -76,42 +77,36 @@ export function FeaturedBusinessCard({ business, badge = null }: FeaturedBusines
               {operatingModeLabel(business.operating_mode)}
               {locationLabel ? ` · ${locationLabel}` : ""}
             </p>
-            {business.description?.trim() ? (
-              <p
-                className="line-clamp-3 text-sm text-slate-600"
-                data-testid="featured-business-description"
-              >
-                {business.description.trim()}
-              </p>
-            ) : null}
+            <p
+              className="line-clamp-2 min-h-[2.5rem] text-sm text-slate-600"
+              data-testid="featured-business-description"
+            >
+              {description || "\u00a0"}
+            </p>
           </div>
 
-          {visibleServices.length > 0 || extraServiceCount > 0 ? (
-            <div
-              className="mt-auto flex max-w-full flex-wrap gap-1.5 pt-3"
-              data-testid="featured-business-chips"
-            >
-              {visibleServices.map((service) => (
-                <span
-                  key={service.name}
-                  className="max-w-full truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
-                  data-testid="featured-business-chip"
-                >
-                  {service.name}
-                </span>
-              ))}
-              {extraServiceCount > 0 ? (
-                <span
-                  className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500"
-                  data-testid="featured-business-chip-more"
-                >
-                  +{extraServiceCount} more
-                </span>
-              ) : null}
-            </div>
-          ) : (
-            <div className="mt-auto" aria-hidden="true" />
-          )}
+          <div
+            className="mt-auto flex h-7 max-w-full flex-nowrap items-center gap-1.5 overflow-hidden pt-3"
+            data-testid="featured-business-chips"
+          >
+            {visibleServices.map((service) => (
+              <span
+                key={service.name}
+                className="max-w-[9rem] shrink truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
+                data-testid="featured-business-chip"
+              >
+                {service.name}
+              </span>
+            ))}
+            {extraServiceCount > 0 ? (
+              <span
+                className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500"
+                data-testid="featured-business-chip-more"
+              >
+                +{extraServiceCount} more
+              </span>
+            ) : null}
+          </div>
         </div>
 
         <Link
