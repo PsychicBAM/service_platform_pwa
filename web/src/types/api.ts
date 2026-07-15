@@ -67,7 +67,13 @@ export interface PublicBusinessDirectoryResponse {
   meta: PublicBusinessDirectoryMeta;
 }
 
-export type PublicBusinessDirectorySort = "popular" | "rating" | "newest" | "name";
+export type PublicBusinessDirectorySort =
+  | "popular"
+  | "rating"
+  | "reviews"
+  | "newest"
+  | "bookable"
+  | "name";
 
 export interface PublicBusinessDirectoryQuery {
   q?: string;

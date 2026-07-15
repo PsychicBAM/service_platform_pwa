@@ -6,10 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.schemas.business import PublicBusinessDirectoryResponse
 from app.services.business_service import BusinessService
+from app.utils.public_directory_sort import normalize_directory_sort
 
 router = APIRouter(prefix="/public/businesses", tags=["public-directory"])
 
-DirectorySort = Literal["popular", "rating", "newest", "name"]
+DirectorySort = Literal["popular", "rating", "reviews", "newest", "bookable", "name"]
 
 
 @router.get("", response_model=PublicBusinessDirectoryResponse)
@@ -22,7 +23,7 @@ async def list_public_businesses(
     requests: bool | None = Query(default=None),
     reviews: bool | None = Query(default=None),
     cover: bool | None = Query(default=None),
-    sort: DirectorySort = Query(default="popular"),
+    sort: str = Query(default="popular", max_length=32),
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=12, ge=1, le=50),
     db: AsyncSession = Depends(get_db),
@@ -36,7 +37,7 @@ async def list_public_businesses(
         requests=requests,
         reviews=reviews,
         cover=cover,
-        sort=sort,
+        sort=normalize_directory_sort(sort),
         page=page,
         limit=limit,
     )

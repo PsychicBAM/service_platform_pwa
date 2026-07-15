@@ -29,9 +29,11 @@ export const MARKETPLACE_CATEGORIES: MarketplaceCategory[] = [
 
 export const MARKETPLACE_SORT_OPTIONS = [
   { value: "popular", label: "Popular" },
-  { value: "rating", label: "Rating" },
+  { value: "rating", label: "Highest rated" },
+  { value: "reviews", label: "Most reviewed" },
   { value: "newest", label: "Newest" },
-  { value: "name", label: "Name" },
+  { value: "bookable", label: "Bookable first" },
+  { value: "name", label: "Name A-Z" },
 ] as const;
 
 export type MarketplaceSort = (typeof MARKETPLACE_SORT_OPTIONS)[number]["value"];

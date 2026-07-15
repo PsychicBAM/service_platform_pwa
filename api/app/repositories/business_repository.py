@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import case, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -17,6 +17,7 @@ from app.models.enums import (
 )
 from app.models.subscription import Subscription
 from app.models.user import User
+from app.utils.public_directory_sort import normalize_directory_sort
 
 DEFAULT_BUSINESS_SETTINGS: dict[str, Any] = {
     "auto_confirm_bookings": False,
@@ -269,6 +270,58 @@ class BusinessRepository:
             )
         return stmt
 
+    def _apply_public_directory_sort(self, stmt, *, sort: str, review_subq):
+        from app.models.enums import ServiceType
+        from app.models.service import Service
+
+        normalized = normalize_directory_sort(sort)
+
+        if normalized == "rating":
+            return stmt.order_by(
+                review_subq.c.avg_rating.desc().nullslast(),
+                review_subq.c.review_count.desc().nullslast(),
+                Business.name.asc(),
+                Business.id.asc(),
+            )
+        if normalized == "reviews":
+            return stmt.order_by(
+                review_subq.c.review_count.desc().nullslast(),
+                review_subq.c.avg_rating.desc().nullslast(),
+                Business.name.asc(),
+                Business.id.asc(),
+            )
+        if normalized == "newest":
+            return stmt.order_by(
+                Business.created_at.desc(),
+                Business.id.desc(),
+                Business.name.asc(),
+            )
+        if normalized == "bookable":
+            has_booking = exists(
+                select(Service.id).where(
+                    Service.business_id == Business.id,
+                    Service.is_active.is_(True),
+                    Service.type == ServiceType.booking,
+                )
+            )
+            bookable_rank = case((has_booking, 1), else_=0)
+            return stmt.order_by(
+                bookable_rank.desc(),
+                review_subq.c.review_count.desc().nullslast(),
+                review_subq.c.avg_rating.desc().nullslast(),
+                Business.name.asc(),
+                Business.id.asc(),
+            )
+        if normalized == "name":
+            return stmt.order_by(Business.name.asc(), Business.id.asc())
+
+        return stmt.order_by(
+            review_subq.c.review_count.desc().nullslast(),
+            review_subq.c.avg_rating.desc().nullslast(),
+            Business.name.asc(),
+            Business.id.asc(),
+        )
+
     async def list_public_directory(
         self,
         *,
@@ -314,22 +367,7 @@ class BusinessRepository:
             cover=cover,
             review_subq=review_subq,
         )
-        if sort == "rating":
-            stmt = stmt.order_by(
-                review_subq.c.avg_rating.desc().nullslast(),
-                review_subq.c.review_count.desc().nullslast(),
-                Business.name.asc(),
-            )
-        elif sort == "newest":
-            stmt = stmt.order_by(Business.created_at.desc(), Business.name.asc())
-        elif sort == "name":
-            stmt = stmt.order_by(Business.name.asc())
-        else:
-            stmt = stmt.order_by(
-                review_subq.c.review_count.desc().nullslast(),
-                review_subq.c.avg_rating.desc().nullslast(),
-                Business.name.asc(),
-            )
+        stmt = self._apply_public_directory_sort(stmt, sort=sort, review_subq=review_subq)
         offset = max(page - 1, 0) * limit
         stmt = stmt.offset(offset).limit(limit)
         result = await self.session.execute(stmt)

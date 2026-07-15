@@ -378,3 +378,171 @@ async def test_public_directory_sidebar_filters_combine_with_search_and_sort(
     names = [item["name"] for item in response.json()["data"] if "Combo Filter Studio" in item["name"]]
     assert names == ["Alpha Combo Filter Studio"]
     assert "contact_email" not in response.json()["data"][0]
+
+
+@pytest.mark.asyncio
+async def test_public_directory_sort_by_rating_orders_highest_first(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    high_ctx = await _setup_booking_business(async_client, db_session, "dir-sort-rating-high")
+    low_ctx = await _setup_booking_business(async_client, db_session, "dir-sort-rating-low")
+    await _set_business_name(db_session, high_ctx["slug"], "High Rating Sort Studio")
+    await _set_business_name(db_session, low_ctx["slug"], "Low Rating Sort Studio")
+    with patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW):
+        high_booking = await _create_completed_booking(async_client, high_ctx)
+        low_booking = await _create_completed_booking(async_client, low_ctx)
+        assert (
+            await async_client.post(
+                f"/api/v1/public/b/{high_ctx['slug']}/reviews",
+                json={
+                    "booking_reference": high_booking["reference"],
+                    "email": high_booking["client"]["email"],
+                    "rating": 5,
+                },
+            )
+        ).status_code == 201
+        assert (
+            await async_client.post(
+                f"/api/v1/public/b/{low_ctx['slug']}/reviews",
+                json={
+                    "booking_reference": low_booking["reference"],
+                    "email": low_booking["client"]["email"],
+                    "rating": 2,
+                },
+            )
+        ).status_code == 201
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?sort=rating&q=Rating+Sort+Studio&limit=50"
+    )
+    assert response.status_code == 200
+    names = [item["name"] for item in response.json()["data"] if "Rating Sort Studio" in item["name"]]
+    assert names.index("High Rating Sort Studio") < names.index("Low Rating Sort Studio")
+
+
+@pytest.mark.asyncio
+async def test_public_directory_sort_by_reviews_orders_most_reviewed_first(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    reviewed_ctx = await _setup_booking_business(async_client, db_session, "dir-sort-reviews-yes")
+    plain_ctx = await _setup_active_business_with_service(async_client, db_session, "dir-sort-reviews-no")
+    await _set_business_name(db_session, reviewed_ctx["slug"], "Reviewed Sort Studio")
+    await _set_business_name(db_session, plain_ctx["slug"], "Plain Sort Studio")
+    with patch("app.services.availability_service._now_in_tz", return_value=FIXED_NOW):
+        booking = await _create_completed_booking(async_client, reviewed_ctx)
+        assert (
+            await async_client.post(
+                f"/api/v1/public/b/{reviewed_ctx['slug']}/reviews",
+                json={
+                    "booking_reference": booking["reference"],
+                    "email": booking["client"]["email"],
+                    "rating": 4,
+                },
+            )
+        ).status_code == 201
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?sort=reviews&q=Sort+Studio&limit=50"
+    )
+    assert response.status_code == 200
+    names = [item["name"] for item in response.json()["data"] if item["name"].endswith("Sort Studio")]
+    assert names.index("Reviewed Sort Studio") < names.index("Plain Sort Studio")
+
+
+@pytest.mark.asyncio
+async def test_public_directory_sort_by_newest_orders_recent_first(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    from datetime import UTC, datetime
+
+    older_ctx = await _setup_active_business_with_service(async_client, db_session, "dir-sort-newest-old")
+    newer_ctx = await _setup_active_business_with_service(async_client, db_session, "dir-sort-newest-new")
+    await _set_business_name(db_session, older_ctx["slug"], "Older Newest Sort Studio")
+    await _set_business_name(db_session, newer_ctx["slug"], "Newer Newest Sort Studio")
+    await db_session.execute(
+        update(Business)
+        .where(Business.slug == older_ctx["slug"])
+        .values(created_at=datetime(2024, 1, 1, tzinfo=UTC))
+    )
+    await db_session.execute(
+        update(Business)
+        .where(Business.slug == newer_ctx["slug"])
+        .values(created_at=datetime(2025, 6, 1, tzinfo=UTC))
+    )
+    await db_session.commit()
+    db_session.expire_all()
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?sort=newest&q=Newest+Sort+Studio&limit=50"
+    )
+    assert response.status_code == 200
+    names = [item["name"] for item in response.json()["data"] if "Newest Sort Studio" in item["name"]]
+    assert names.index("Newer Newest Sort Studio") < names.index("Older Newest Sort Studio")
+
+
+@pytest.mark.asyncio
+async def test_public_directory_sort_by_bookable_puts_booking_services_first(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    booking_ctx = await _setup_active_business_with_service(async_client, db_session, "dir-sort-bookable-yes")
+    order_ctx = await _setup_order_only_business(async_client, db_session, "dir-sort-bookable-no")
+    await _set_business_name(db_session, booking_ctx["slug"], "Zulu Bookable Sort Studio")
+    await _set_business_name(db_session, order_ctx["slug"], "Alpha Order Sort Studio")
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?sort=bookable&q=Sort+Studio&limit=50"
+    )
+    assert response.status_code == 200
+    names = [item["name"] for item in response.json()["data"] if item["name"].endswith("Sort Studio")]
+    assert names.index("Zulu Bookable Sort Studio") < names.index("Alpha Order Sort Studio")
+
+
+@pytest.mark.asyncio
+async def test_public_directory_invalid_sort_falls_back_to_popular(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx = await _setup_active_business_with_service(async_client, db_session, "dir-sort-invalid")
+    await _set_business_name(db_session, ctx["slug"], "Invalid Sort Fallback Studio")
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?sort=not-a-real-sort&q=Invalid+Sort+Fallback+Studio"
+    )
+    assert response.status_code == 200
+    slugs = {item["slug"] for item in response.json()["data"]}
+    assert ctx["slug"] in slugs
+
+
+@pytest.mark.asyncio
+async def test_public_directory_sort_combines_with_location_and_pagination(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx = await _setup_active_business_with_service(async_client, db_session, "dir-sort-location")
+    await _set_business_name(db_session, ctx["slug"], "Location Sort Studio")
+    await db_session.execute(
+        update(Business)
+        .where(Business.slug == ctx["slug"])
+        .values(
+            settings={
+                "public_location": {
+                    "country": "UAE",
+                    "city": "Dubai",
+                    "district_or_area": "Marina",
+                }
+            }
+        )
+    )
+    await db_session.commit()
+    db_session.expire_all()
+
+    response = await async_client.get(
+        "/api/v1/public/businesses?sort=name&location=Marina&page=1&limit=12"
+    )
+    assert response.status_code == 200
+    assert response.json()["meta"]["page"] == 1
+    assert "contact_email" not in str(response.json())

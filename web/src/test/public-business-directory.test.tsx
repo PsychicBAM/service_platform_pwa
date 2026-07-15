@@ -273,4 +273,61 @@ describe("public business directory", () => {
     expect(lastCall?.bookable).toBeUndefined();
     expect(lastCall?.reviews).toBeUndefined();
   });
+
+  it("shows marketplace sort options with clear labels", async () => {
+    mockDirectoryResponse();
+
+    renderRoute(<BusinessDirectoryPage />, { route: "/businesses", path: "/businesses" });
+
+    const sortSelect = await screen.findByTestId("marketplace-sort-filter");
+    expect(sortSelect).toHaveValue("popular");
+    expect(within(sortSelect).getByRole("option", { name: "Popular" })).toBeInTheDocument();
+    expect(within(sortSelect).getByRole("option", { name: "Highest rated" })).toBeInTheDocument();
+    expect(within(sortSelect).getByRole("option", { name: "Most reviewed" })).toBeInTheDocument();
+    expect(within(sortSelect).getByRole("option", { name: "Newest" })).toBeInTheDocument();
+    expect(within(sortSelect).getByRole("option", { name: "Bookable first" })).toBeInTheDocument();
+    expect(within(sortSelect).getByRole("option", { name: "Name A-Z" })).toBeInTheDocument();
+  });
+
+  it("updates URL and API call when sort changes and preserves other params", async () => {
+    mockDirectoryResponse([], 0);
+    const user = userEvent.setup();
+    const queryClient = createTestQueryClient();
+    const router = createMemoryRouter(
+      [{ path: "/businesses", element: <BusinessDirectoryPage /> }],
+      { initialEntries: ["/businesses?location=Dubai&q=coach&bookable=true"] },
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+
+    await user.selectOptions(screen.getByTestId("marketplace-sort-filter"), "rating");
+
+    expect(router.state.location.search).toBe("?location=Dubai&q=coach&bookable=true&sort=rating");
+    expect(publicApi.listPublicBusinesses).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: "Dubai",
+        q: "coach",
+        bookable: true,
+        sort: "rating",
+      }),
+    );
+  });
+
+  it("defaults invalid URL sort to popular without crashing", async () => {
+    mockDirectoryResponse([], 0);
+
+    renderRoute(<BusinessDirectoryPage />, {
+      route: "/businesses?sort=not-valid",
+      path: "/businesses",
+    });
+
+    expect(await screen.findByTestId("marketplace-sort-filter")).toHaveValue("popular");
+    expect(publicApi.listPublicBusinesses).toHaveBeenCalledWith(
+      expect.objectContaining({ sort: "popular" }),
+    );
+  });
 });
