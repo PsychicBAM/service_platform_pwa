@@ -339,4 +339,98 @@ describe("admin pages smoke", () => {
       screen.queryByTestId(`admin-service-list-thumb-placeholder-${BOOKING_SERVICE_ID}`),
     ).not.toBeInTheDocument();
   });
+
+  it("O. deactivate opens custom dialog and cancel does not mutate", async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+    vi.mocked(adminApi.updateAdminService).mockResolvedValue({
+      ...mockAdminServices[0],
+      is_active: false,
+    });
+
+    renderAdminPage(<AdminServicesPage />);
+
+    await screen.findByTestId(`admin-service-toggle-${BOOKING_SERVICE_ID}`);
+    await user.click(screen.getByTestId(`admin-service-toggle-${BOOKING_SERVICE_ID}`));
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(await screen.findByTestId("admin-confirm-dialog")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Deactivate service?" })).toBeInTheDocument();
+    expect(
+      screen.getByText("This service will be hidden from your public catalog."),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("admin-confirm-dialog-cancel")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-confirm-dialog-confirm")).toHaveTextContent("Deactivate");
+
+    await user.click(screen.getByTestId("admin-confirm-dialog-cancel"));
+    expect(screen.queryByTestId("admin-confirm-dialog")).not.toBeInTheDocument();
+    expect(adminApi.updateAdminService).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it("P. deactivate confirm calls updateAdminService", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+    vi.mocked(adminApi.updateAdminService).mockResolvedValue({
+      ...mockAdminServices[0],
+      is_active: false,
+    });
+
+    renderAdminPage(<AdminServicesPage />);
+
+    await user.click(await screen.findByTestId(`admin-service-toggle-${BOOKING_SERVICE_ID}`));
+    await user.click(screen.getByTestId("admin-confirm-dialog-confirm"));
+
+    await waitFor(() => {
+      expect(adminApi.updateAdminService).toHaveBeenCalledWith(
+        mockAdminBusiness.id,
+        BOOKING_SERVICE_ID,
+        { is_active: false },
+      );
+    });
+    await waitFor(() => {
+      expect(screen.queryByTestId("admin-confirm-dialog")).not.toBeInTheDocument();
+    });
+  });
+
+  it("Q. delete opens destructive custom dialog and confirm deletes", async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+    vi.mocked(adminApi.deleteAdminService).mockResolvedValue(undefined as never);
+
+    renderAdminPage(<AdminServicesPage />);
+
+    await user.click(await screen.findByTestId(`admin-service-delete-${BOOKING_SERVICE_ID}`));
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(await screen.findByRole("heading", { name: "Delete service?" })).toBeInTheDocument();
+    expect(screen.getByText("This action cannot be undone.")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-confirm-dialog-confirm")).toHaveTextContent("Delete");
+    expect(screen.getByTestId("admin-confirm-dialog").className).toMatch(/bottom-0|rounded-t/);
+
+    await user.click(screen.getByTestId("admin-confirm-dialog-confirm"));
+
+    await waitFor(() => {
+      expect(adminApi.deleteAdminService).toHaveBeenCalledWith(
+        mockAdminBusiness.id,
+        BOOKING_SERVICE_ID,
+      );
+    });
+    confirmSpy.mockRestore();
+  });
+
+  it("R. escape closes custom confirm dialog", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+
+    renderAdminPage(<AdminServicesPage />);
+
+    await user.click(await screen.findByTestId(`admin-service-toggle-${BOOKING_SERVICE_ID}`));
+    expect(await screen.findByTestId("admin-confirm-dialog")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByTestId("admin-confirm-dialog")).not.toBeInTheDocument();
+    expect(adminApi.updateAdminService).not.toHaveBeenCalled();
+  });
 });

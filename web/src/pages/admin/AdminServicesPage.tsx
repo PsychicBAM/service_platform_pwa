@@ -10,6 +10,7 @@ import {
   updateAdminService,
 } from "@/api/adminApi";
 import { uploadServiceImage } from "@/api/serviceImageApi";
+import { AdminConfirmDialog } from "@/components/admin/AdminConfirmDialog";
 import { AdminServiceForm } from "@/components/admin/AdminServiceForm";
 import type { PendingSlotCapacityOverride } from "@/components/admin/AdminServiceSlotCapacitySection";
 import { ServiceImageDisplay } from "@/components/ServiceImageDisplay";
@@ -36,6 +37,16 @@ import { formatDuration, serviceTypeIcon, businessLocalDateTimeToIso } from "@/u
 
 type TypeFilter = "all" | ServiceType;
 type StatusFilter = "all" | "active" | "inactive";
+
+type PendingServiceConfirm =
+  | {
+      kind: "activate" | "deactivate";
+      service: AdminServiceRead;
+    }
+  | {
+      kind: "delete";
+      service: AdminServiceRead;
+    };
 
 function FilterButton({
   active,
@@ -239,6 +250,7 @@ export function AdminServicesPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [addServiceFocused, setAddServiceFocused] = useState(false);
+  const [pendingConfirm, setPendingConfirm] = useState<PendingServiceConfirm | null>(null);
   const addServiceHeaderRef = useRef<HTMLDivElement | null>(null);
   const createFormRef = useRef<HTMLDivElement | null>(null);
 
@@ -420,38 +432,74 @@ export function AdminServicesPage() {
     setActionError(null);
   }
 
-  async function handleToggleActive(service: AdminServiceRead) {
+  function requestToggleActive(service: AdminServiceRead) {
     setActionError(null);
-    const nextActive = !service.is_active;
-    const confirmed = window.confirm(
-      nextActive
-        ? `Activate ${service.name}?`
-        : `Deactivate ${service.name}? It will be hidden from the public catalog.`,
-    );
-    if (!confirmed) {
+    setPendingConfirm({
+      kind: service.is_active ? "deactivate" : "activate",
+      service,
+    });
+  }
+
+  function requestDelete(service: AdminServiceRead) {
+    setActionError(null);
+    setPendingConfirm({ kind: "delete", service });
+  }
+
+  function closePendingConfirm() {
+    if (toggleActiveMutation.isPending || deleteMutation.isPending) {
       return;
     }
+    setPendingConfirm(null);
+  }
+
+  async function confirmPendingAction() {
+    if (!pendingConfirm) {
+      return;
+    }
+
+    const { kind, service } = pendingConfirm;
     try {
-      await toggleActiveMutation.mutateAsync({ serviceId: service.id, isActive: nextActive });
+      if (kind === "activate" || kind === "deactivate") {
+        await toggleActiveMutation.mutateAsync({
+          serviceId: service.id,
+          isActive: kind === "activate",
+        });
+      } else {
+        await deleteMutation.mutateAsync(service.id);
+      }
+      setPendingConfirm(null);
     } catch (err) {
-      setActionError(getAdminServiceErrorMessage(err, "Could not update service status."));
+      setPendingConfirm(null);
+      if (kind === "delete") {
+        setActionError(getAdminServiceErrorMessage(err, "Could not delete service."));
+      } else {
+        setActionError(getAdminServiceErrorMessage(err, "Could not update service status."));
+      }
     }
   }
 
-  async function handleDelete(service: AdminServiceRead) {
-    setActionError(null);
-    const confirmed = window.confirm(
-      `Delete ${service.name}? This soft-deletes the service and hides it from public listings.`,
-    );
-    if (!confirmed) {
-      return;
-    }
-    try {
-      await deleteMutation.mutateAsync(service.id);
-    } catch (err) {
-      setActionError(getAdminServiceErrorMessage(err, "Could not delete service."));
-    }
-  }
+  const confirmDialogProps = pendingConfirm
+    ? pendingConfirm.kind === "activate"
+      ? {
+          title: "Activate service?",
+          description: "Customers will be able to see this service in your public catalog.",
+          confirmLabel: "Activate",
+          variant: "success" as const,
+        }
+      : pendingConfirm.kind === "deactivate"
+        ? {
+            title: "Deactivate service?",
+            description: "This service will be hidden from your public catalog.",
+            confirmLabel: "Deactivate",
+            variant: "default" as const,
+          }
+        : {
+            title: "Delete service?",
+            description: "This action cannot be undone.",
+            confirmLabel: "Delete",
+            variant: "danger" as const,
+          }
+    : null;
 
   return (
     <section className="space-y-4 sm:space-y-5" data-testid="admin-services-page">
@@ -649,12 +697,23 @@ export function AdminServicesPage() {
                 setActionError(null);
               }}
               onViewWaitlist={() => navigate("/admin/bookings?tab=waitlist")}
-              onToggleActive={() => void handleToggleActive(service)}
-              onDelete={() => void handleDelete(service)}
+              onToggleActive={() => requestToggleActive(service)}
+              onDelete={() => requestDelete(service)}
             />
           ))}
         </div>
       ) : null}
+
+      <AdminConfirmDialog
+        open={Boolean(pendingConfirm && confirmDialogProps)}
+        title={confirmDialogProps?.title ?? ""}
+        description={confirmDialogProps?.description ?? ""}
+        confirmLabel={confirmDialogProps?.confirmLabel ?? "Confirm"}
+        variant={confirmDialogProps?.variant ?? "default"}
+        isLoading={toggleActiveMutation.isPending || deleteMutation.isPending}
+        onCancel={closePendingConfirm}
+        onConfirm={() => void confirmPendingAction()}
+      />
     </section>
   );
 }
