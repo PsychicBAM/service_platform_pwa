@@ -2,9 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { listPublicReviews, listPublicServices } from "@/api/publicApi";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingState } from "@/components/LoadingState";
-import { ServiceCard } from "@/components/ServiceCard";
 import { StandardPublicBusinessClientActions } from "@/components/public/StandardPublicBusinessClientActions";
 import { StandardPublicBusinessHero } from "@/components/public/StandardPublicBusinessHero";
+import { StandardPublicServiceCard } from "@/components/public/StandardPublicServiceCard";
 import { partitionPublicServices } from "@/lib/standardPublicHero";
 import { formatDateTimeLabel } from "@/utils/format";
 import type { PublicBusiness } from "@/types/api";
@@ -44,39 +44,50 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
       ) : null}
 
       {!servicesQuery.isLoading && services.length === 0 ? (
-        <EmptyState
-          title="No services yet"
-          description="This business has not published any services."
-        />
+        <div data-testid="standard-public-business-no-services">
+          <EmptyState
+            title="No public services yet."
+            description="Check back soon for services from this business."
+          />
+        </div>
       ) : null}
 
       {!servicesQuery.isLoading && services.length > 0 ? (
-        <section id="services" className="space-y-5" data-testid="standard-public-business-services">
-          <div className="flex items-center justify-between gap-3">
+        <section id="services" className="space-y-8" data-testid="standard-public-business-services">
+          <div>
             <h2 className="text-xl font-bold text-slate-900 md:text-2xl">Services</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Browse services and choose the option that fits your needs.
+            </p>
           </div>
 
           {bookingServices.length > 0 ? (
-            <div id="services-booking" className="space-y-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Book online
-              </h3>
-              <div className="grid items-stretch gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
+            <div id="services-booking" className="space-y-4" data-testid="standard-public-booking-services">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">Book online</h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  Choose a time and book instantly.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3">
                 {bookingServices.map((service) => (
-                  <ServiceCard key={service.id} slug={slug} service={service} />
+                  <StandardPublicServiceCard key={service.id} slug={slug} service={service} />
                 ))}
               </div>
             </div>
           ) : null}
 
           {requestServices.length > 0 ? (
-            <div id="services-requests" className="space-y-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Request service
-              </h3>
-              <div className="grid items-stretch gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
+            <div id="services-requests" className="space-y-4" data-testid="standard-public-request-services">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">Request service</h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  Send details and get a response from the business.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3">
                 {requestServices.map((service) => (
-                  <ServiceCard key={service.id} slug={slug} service={service} />
+                  <StandardPublicServiceCard key={service.id} slug={slug} service={service} />
                 ))}
               </div>
             </div>

@@ -80,7 +80,9 @@ describe("public pages smoke", () => {
       "href",
       "#services-requests",
     );
-    expect(await screen.findAllByTestId("service-card")).toHaveLength(2);
+    expect(await screen.findAllByTestId("standard-public-service-card")).toHaveLength(2);
+    expect(screen.getByTestId("standard-public-booking-services")).toBeInTheDocument();
+    expect(screen.getByTestId("standard-public-request-services")).toBeInTheDocument();
 
     const hero = screen.getByTestId("standard-public-business-hero");
     expect(within(hero).queryByRole("link", { name: /my bookings/i })).not.toBeInTheDocument();
@@ -184,6 +186,136 @@ describe("public pages smoke", () => {
       "#services-requests",
     );
     expect(screen.queryByTestId("standard-public-business-book-cta")).not.toBeInTheDocument();
+  });
+
+  it("A1e. standard page renders polished booking service card details", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    const bookingSection = await screen.findByTestId("standard-public-booking-services");
+    const bookingCard = within(bookingSection).getByTestId("standard-public-service-card");
+
+    expect(within(bookingCard).getByRole("heading", { name: mockBookingService.name })).toBeInTheDocument();
+    expect(within(bookingCard).getByText("Booking")).toBeInTheDocument();
+    expect(within(bookingCard).getByText("$50.00")).toBeInTheDocument();
+    expect(within(bookingCard).getByTestId("standard-public-service-card-duration")).toHaveTextContent(
+      "1 hr",
+    );
+    expect(within(bookingCard).getByTestId("standard-public-service-card-cta")).toHaveAttribute(
+      "href",
+      `/b/${DEMO_SLUG}/services/${BOOKING_SERVICE_ID}`,
+    );
+    expect(within(bookingCard).getByTestId("standard-public-service-card-cta")).toHaveTextContent(
+      "Book now",
+    );
+  });
+
+  it("A1f. standard page renders polished request service card details", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    const requestSection = await screen.findByTestId("standard-public-request-services");
+    const requestCard = within(requestSection).getByTestId("standard-public-service-card");
+
+    expect(within(requestCard).getByRole("heading", { name: mockOrderService.name })).toBeInTheDocument();
+    expect(within(requestCard).getByText("Request")).toBeInTheDocument();
+    expect(within(requestCard).getByText("Price on quote")).toBeInTheDocument();
+    expect(within(requestCard).getByTestId("standard-public-service-card-cta")).toHaveAttribute(
+      "href",
+      `/b/${DEMO_SLUG}/services/${ORDER_SERVICE_ID}`,
+    );
+    expect(within(requestCard).getByTestId("standard-public-service-card-cta")).toHaveTextContent(
+      "Request now",
+    );
+  });
+
+  it("A1g. standard service card renders image when provided", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([
+      {
+        ...mockBookingService,
+        image: {
+          kind: "image" as const,
+          url: "/uploads/services/biz-1/svc-1/abc.webp",
+          thumbnailUrl: "/uploads/services/biz-1/svc-1/abc_thumb.webp",
+          alt: "",
+          filename: "photo.jpg",
+          contentType: "image/webp",
+          size: 1200,
+          originalSize: 4500,
+          width: 1200,
+          height: 800,
+        },
+      },
+    ]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("standard-public-service-card-image")).toHaveAttribute(
+      "src",
+      "/uploads/services/biz-1/svc-1/abc.webp",
+    );
+    expect(screen.queryByTestId("standard-public-service-card-placeholder")).not.toBeInTheDocument();
+  });
+
+  it("A1h. standard service card renders placeholder when no image is provided", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([
+      { ...mockBookingService, image: null },
+    ]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("standard-public-service-card-placeholder")).toBeInTheDocument();
+    expect(screen.queryByTestId("standard-public-service-card-image")).not.toBeInTheDocument();
+  });
+
+  it("A1i. standard service card clamps long descriptions", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([
+      {
+        ...mockBookingService,
+        description:
+          "This is a very long service description that should be clamped to two lines in the card layout so the card stays balanced and readable on both desktop and mobile screens without breaking the grid.",
+      },
+    ]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    const description = await screen.findByTestId("standard-public-service-card-description");
+    expect(description.className).toContain("line-clamp-2");
+    expect(description.textContent?.length ?? 0).toBeGreaterThan(40);
+  });
+
+  it("A1j. standard page shows empty services state when no public services exist", async () => {
+    vi.mocked(publicApi.getPublicBusiness).mockResolvedValue(mockPublicBusiness);
+    vi.mocked(publicApi.listPublicServices).mockResolvedValue([]);
+
+    renderRoute(<PublicHomePage />, {
+      route: `/b/${DEMO_SLUG}`,
+      path: "/b/:slug",
+    });
+
+    expect(await screen.findByTestId("standard-public-business-no-services")).toBeInTheDocument();
+    expect(screen.getByText(/no public services yet/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("standard-public-business-services")).not.toBeInTheDocument();
   });
 
   it("A2. renders Pro mini-site layout when public_page_variant is mini_site", async () => {
