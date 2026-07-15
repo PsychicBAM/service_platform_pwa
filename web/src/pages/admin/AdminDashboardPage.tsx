@@ -16,6 +16,7 @@ import {
   DashboardRecentList,
   type DashboardRecentItem,
 } from "@/components/admin/DashboardRecentList";
+import { AdminOnboardingChecklist } from "@/components/admin/AdminOnboardingChecklist";
 import { CurrentPlanCard } from "@/components/admin/CurrentPlanCard";
 import { DashboardStatCard } from "@/components/admin/DashboardStatCard";
 import { PublicBusinessLinkCard } from "@/components/admin/PublicBusinessLinkCard";
@@ -233,6 +234,12 @@ export function AdminDashboardPage() {
         <h2 className="text-xl font-bold text-slate-900">Dashboard</h2>
         <p className="mt-1 text-sm text-slate-600">Overview for {business.name}</p>
       </div>
+
+      <AdminOnboardingChecklist
+        business={business}
+        services={services}
+        schedule={scheduleQuery.data}
+      />
 
       <PublicBusinessLinkCard businessName={business.name} businessSlug={business.slug} />
 

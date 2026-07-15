@@ -89,6 +89,15 @@ describe("admin pages smoke", () => {
 
     expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByText(`Overview for ${mockAdminBusiness.name}`)).toBeInTheDocument();
+    expect(screen.getByTestId("admin-onboarding-checklist")).toBeInTheDocument();
+    expect(screen.getByText(/complete your business profile/i)).toBeInTheDocument();
+    expect(screen.getByTestId("admin-onboarding-progress")).toHaveTextContent(/of 6 completed/);
+    expect(screen.getByTestId("admin-onboarding-item-services")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-onboarding-item-location")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-onboarding-item-cover")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-onboarding-item-hours")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-onboarding-item-preview")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-onboarding-item-share")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Public business page" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Current plan" })).toBeInTheDocument();
     expect(screen.getByTestId("current-plan-badge")).toHaveTextContent("Free");
@@ -104,6 +113,74 @@ describe("admin pages smoke", () => {
       `/b/${mockAdminBusiness.slug}`,
     );
     expect(screen.getByText("Appointments and requests")).toBeInTheDocument();
+  });
+
+  it("L2. admin onboarding checklist derives completion and action routes from data", async () => {
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+    vi.mocked(adminApi.getBusiness).mockResolvedValue({
+      ...mockAdminBusiness,
+      address: "123 Demo Street",
+      public_location: {
+        country: "UAE",
+        city: "Dubai",
+        district_or_area: "Marina",
+        public_address: null,
+        postal_code: null,
+        latitude: null,
+        longitude: null,
+        location_note: null,
+      },
+      marketplace_cover_image: {
+        kind: "image",
+        url: "/uploads/cover.webp",
+        thumbnailUrl: "/uploads/cover_thumb.webp",
+        alt: "",
+        filename: "cover.webp",
+        contentType: "image/webp",
+        size: 1000,
+        originalSize: 2000,
+        width: 1200,
+        height: 800,
+      },
+    });
+
+    renderAdminPage(<AdminDashboardPage />);
+
+    expect(await screen.findByTestId("admin-onboarding-checklist")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-onboarding-item-services")).toHaveAttribute(
+      "data-complete",
+      "true",
+    );
+    expect(screen.getByTestId("admin-onboarding-item-location")).toHaveAttribute(
+      "data-complete",
+      "true",
+    );
+    expect(screen.getByTestId("admin-onboarding-item-cover")).toHaveAttribute(
+      "data-complete",
+      "true",
+    );
+    expect(screen.getByTestId("admin-onboarding-item-hours")).toHaveAttribute(
+      "data-complete",
+      "true",
+    );
+    expect(screen.getByTestId("admin-onboarding-progress")).toHaveTextContent("6 of 6 completed");
+    expect(screen.getByTestId("admin-onboarding-action-services")).toHaveAttribute(
+      "href",
+      "/admin/services",
+    );
+    expect(screen.getByTestId("admin-onboarding-action-location")).toHaveAttribute(
+      "href",
+      "/admin/settings",
+    );
+    expect(screen.getByTestId("admin-onboarding-action-hours")).toHaveAttribute(
+      "href",
+      "/admin/schedule",
+    );
+    expect(screen.getByTestId("admin-onboarding-action-preview")).toHaveAttribute(
+      "href",
+      `/b/${mockAdminBusiness.slug}`,
+    );
+    expect(screen.queryByText(/undefined/i)).not.toBeInTheDocument();
   });
 
   it("M. admin services page renders mocked services", async () => {
