@@ -25,6 +25,8 @@ vi.mock("@/api/adminApi", async (importOriginal) => {
     updateWaitlistEntryStatus: vi.fn(),
     promoteWaitlistEntry: vi.fn(),
     getAdminBooking: vi.fn(),
+    updateAdminBooking: vi.fn(),
+    cancelAdminBooking: vi.fn(),
   };
 });
 
@@ -99,7 +101,6 @@ describe("AdminBookingsPage waitlist", () => {
         status: "resolved",
       },
     });
-    vi.spyOn(window, "confirm").mockReturnValue(true);
   });
 
   it("shows main tabs Bookings and Waitlist", async () => {
@@ -116,6 +117,19 @@ describe("AdminBookingsPage waitlist", () => {
     expect(screen.getByRole("button", { name: "Pending" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Confirmed" })).toBeInTheDocument();
     expect(screen.queryByTestId("admin-waitlist-view")).not.toBeInTheDocument();
+  });
+
+  it("renders mobile-friendly booking cards with client/service/status/actions", async () => {
+    renderBookingsPage();
+
+    const list = await screen.findByTestId("admin-bookings-list");
+    expect(list.className).toMatch(/grid-cols-1/);
+    const card = screen.getByTestId("admin-booking-card");
+    expect(card).toHaveTextContent("John Doe");
+    expect(card).toHaveTextContent("Arabic Lesson");
+    expect(card).toHaveTextContent("BK-001");
+    expect(card).toHaveTextContent("Pending");
+    expect(screen.getByTestId("admin-booking-view-booking-1")).toBeInTheDocument();
   });
 
   it("fetches and renders waitlist entries on Waitlist tab", async () => {
@@ -197,10 +211,20 @@ describe("AdminBookingsPage waitlist", () => {
 
   it("calls promote API and shows success message", async () => {
     const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     renderBookingsPage();
 
     await user.click(screen.getByTestId("admin-bookings-tab-waitlist"));
     await user.click(await screen.findByTestId(`waitlist-promote-${WAITLIST_ENTRY_ID}`));
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(await screen.findByTestId("admin-confirm-dialog")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Promote waitlist entry?" })).toBeInTheDocument();
+    expect(
+      screen.getByText("This will create a booking if capacity is still available."),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("admin-confirm-dialog-confirm"));
 
     await waitFor(() => {
       expect(adminApi.promoteWaitlistEntry).toHaveBeenCalledWith(
@@ -209,6 +233,19 @@ describe("AdminBookingsPage waitlist", () => {
       );
     });
     expect(await screen.findByText("Booking created from waitlist.")).toBeInTheDocument();
+    confirmSpy.mockRestore();
+  });
+
+  it("promote dialog cancel closes without calling promote API", async () => {
+    const user = userEvent.setup();
+    renderBookingsPage();
+
+    await user.click(screen.getByTestId("admin-bookings-tab-waitlist"));
+    await user.click(await screen.findByTestId(`waitlist-promote-${WAITLIST_ENTRY_ID}`));
+    await user.click(await screen.findByTestId("admin-confirm-dialog-cancel"));
+
+    expect(screen.queryByTestId("admin-confirm-dialog")).not.toBeInTheDocument();
+    expect(adminApi.promoteWaitlistEntry).not.toHaveBeenCalled();
   });
 
   it("shows visible error when promote fails", async () => {
@@ -220,7 +257,89 @@ describe("AdminBookingsPage waitlist", () => {
 
     await user.click(screen.getByTestId("admin-bookings-tab-waitlist"));
     await user.click(await screen.findByTestId(`waitlist-promote-${WAITLIST_ENTRY_ID}`));
+    await user.click(await screen.findByTestId("admin-confirm-dialog-confirm"));
 
     expect(await screen.findByText("This time slot is fully booked.")).toBeInTheDocument();
+  });
+
+  it("booking status action opens custom confirm dialog instead of window.confirm", async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.mocked(adminApi.getAdminBooking).mockResolvedValue({
+      id: "booking-1",
+      business_id: BUSINESS_ID,
+      reference: "BK-001",
+      status: "pending",
+      starts_at: "2026-06-23T11:00:00-04:00",
+      ends_at: "2026-06-23T12:00:00-04:00",
+      client_notes: null,
+      admin_notes: null,
+      cancelled_at: null,
+      cancelled_by: null,
+      cancellation_reason: null,
+      service: {
+        id: "svc-1",
+        name: "Arabic Lesson",
+        type: "booking",
+        duration_minutes: 60,
+      },
+      client: {
+        id: "client-1",
+        full_name: "John Doe",
+        email: "john@example.com",
+        phone: null,
+      },
+      created_at: "2026-06-20T08:00:00Z",
+      updated_at: "2026-06-20T08:00:00Z",
+      has_review: false,
+      can_review: false,
+    });
+    vi.mocked(adminApi.updateAdminBooking).mockResolvedValue({
+      id: "booking-1",
+      business_id: BUSINESS_ID,
+      reference: "BK-001",
+      status: "confirmed",
+      starts_at: "2026-06-23T11:00:00-04:00",
+      ends_at: "2026-06-23T12:00:00-04:00",
+      client_notes: null,
+      admin_notes: null,
+      cancelled_at: null,
+      cancelled_by: null,
+      cancellation_reason: null,
+      service: {
+        id: "svc-1",
+        name: "Arabic Lesson",
+        type: "booking",
+        duration_minutes: 60,
+      },
+      client: {
+        id: "client-1",
+        full_name: "John Doe",
+        email: "john@example.com",
+        phone: null,
+      },
+      created_at: "2026-06-20T08:00:00Z",
+      updated_at: "2026-06-20T08:00:00Z",
+      has_review: false,
+      can_review: false,
+    });
+
+    renderBookingsPage();
+
+    await user.click(await screen.findByTestId("admin-booking-view-booking-1"));
+    expect(await screen.findByTestId("admin-booking-detail-panel")).toBeInTheDocument();
+    await user.click(screen.getByTestId("admin-booking-action-confirm"));
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(await screen.findByRole("heading", { name: "Confirm booking?" })).toBeInTheDocument();
+    expect(screen.getByTestId("admin-confirm-dialog-confirm")).toHaveTextContent("Confirm booking");
+
+    await user.click(screen.getByTestId("admin-confirm-dialog-confirm"));
+    await waitFor(() => {
+      expect(adminApi.updateAdminBooking).toHaveBeenCalledWith(BUSINESS_ID, "booking-1", {
+        status: "confirmed",
+      });
+    });
+    confirmSpy.mockRestore();
   });
 });
