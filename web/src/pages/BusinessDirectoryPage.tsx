@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { listPublicBusinesses } from "@/api/publicApi";
-import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { MarketplaceBusinessCard } from "@/components/marketplace/MarketplaceBusinessCard";
+import { MarketplaceEmptyState } from "@/components/marketplace/MarketplaceEmptyState";
 import { MarketplaceSidebar } from "@/components/marketplace/MarketplaceSidebar";
 import {
   MARKETPLACE_CATEGORIES,
@@ -15,13 +15,15 @@ import {
   type MarketplaceSort,
 } from "@/data/marketplaceCategories";
 import {
+  clearAllMarketplaceFilterParams,
   clearMarketplaceSidebarFilterParams,
+  getMarketplaceActiveFilterChips,
+  hasActiveMarketplaceFilters,
   parseMarketplaceSidebarFilters,
   setMarketplaceSidebarFilterParam,
   type MarketplaceSidebarFilterKey,
 } from "@/lib/marketplaceFilters";
 import { parseMarketplaceSort, setMarketplaceSortParam } from "@/lib/marketplaceSort";
-import { getApiErrorMessage } from "@/utils/errors";
 
 const PAGE_SIZE = 12;
 
@@ -86,6 +88,28 @@ export function BusinessDirectoryPage() {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  const filterContext = useMemo(
+    () => ({
+      q: query,
+      location: locationQuery,
+      category,
+      ratingMin,
+      sidebarFilters,
+      sort,
+    }),
+    [query, locationQuery, category, ratingMin, sidebarFilters, sort],
+  );
+
+  const hasActiveFilters = hasActiveMarketplaceFilters(filterContext);
+  const activeFilterChips = useMemo(
+    () => getMarketplaceActiveFilterChips(filterContext),
+    [filterContext],
+  );
+
+  const showEmptyState =
+    !directoryQuery.isLoading && !directoryQuery.isError && businesses.length === 0;
+  const emptyStateVariant = hasActiveFilters ? "no-results" : "initial";
+
   function updateSearchParams(next: { q?: string; location?: string }) {
     const params = new URLSearchParams(searchParams);
     if (next.q !== undefined) {
@@ -148,6 +172,17 @@ export function BusinessDirectoryPage() {
     clearMarketplaceSidebarFilterParams(params);
     setSearchParams(params, { replace: true });
     setPage(1);
+  }
+
+  function handleClearAllFilters() {
+    setSearchInput("");
+    setLocationInput("");
+    setCategory("all");
+    setRatingMin("");
+    setPage(1);
+    const params = new URLSearchParams(searchParams);
+    clearAllMarketplaceFilterParams(params);
+    setSearchParams(params, { replace: true });
   }
 
   return (
@@ -279,19 +314,30 @@ export function BusinessDirectoryPage() {
         <div>
           {directoryQuery.isLoading ? <LoadingState message="Loading businesses…" /> : null}
           {directoryQuery.isError ? (
-            <ErrorState
-              title="Could not load marketplace"
-              message={getApiErrorMessage(directoryQuery.error, "Please try again.")}
-            />
+            <div className="space-y-4" data-testid="marketplace-error-state">
+              <ErrorState
+                title="Could not load businesses"
+                message="Something went wrong while loading the marketplace. Please try again."
+              />
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => directoryQuery.refetch()}
+                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  data-testid="marketplace-retry-button"
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
           ) : null}
 
-          {!directoryQuery.isLoading && !directoryQuery.isError && businesses.length === 0 ? (
-            <div data-testid="marketplace-empty-state">
-              <EmptyState
-                title="No businesses found"
-                description="Try adjusting your search or filters to discover more services."
-              />
-            </div>
+          {showEmptyState ? (
+            <MarketplaceEmptyState
+              variant={emptyStateVariant}
+              activeFilters={activeFilterChips}
+              onClearFilters={handleClearAllFilters}
+            />
           ) : null}
 
           {!directoryQuery.isLoading && !directoryQuery.isError && businesses.length > 0 ? (

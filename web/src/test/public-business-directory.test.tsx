@@ -191,13 +191,121 @@ describe("public business directory", () => {
     expect(within(card).queryByText(", ,")).not.toBeInTheDocument();
   });
 
-  it("renders empty state when no businesses match", async () => {
+  it("shows initial empty state when no businesses exist and no filters are active", async () => {
     mockDirectoryResponse([], 0);
 
     renderRoute(<BusinessDirectoryPage />, { route: "/businesses", path: "/businesses" });
 
     expect(await screen.findByTestId("marketplace-empty-state")).toBeInTheDocument();
+    expect(screen.getByText(/no businesses listed yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/public businesses will appear here once they are published/i)).toBeInTheDocument();
+    expect(screen.getByTestId("marketplace-start-business-link")).toHaveAttribute("href", "/pricing");
+  });
+
+  it("shows no-results state when filters are active and API returns zero businesses", async () => {
+    mockDirectoryResponse([], 0);
+
+    renderRoute(<BusinessDirectoryPage />, {
+      route: "/businesses?q=zzzzzzzz",
+      path: "/businesses",
+    });
+
+    expect(await screen.findByTestId("marketplace-empty-state")).toBeInTheDocument();
     expect(screen.getByText(/no businesses found/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/try changing your search, location, category, rating, or filters/i),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("marketplace-clear-filters")).toBeInTheDocument();
+    expect(screen.getByTestId("marketplace-browse-all-link")).toBeInTheDocument();
+    expect(screen.getByTestId("marketplace-active-filter-chips")).toHaveTextContent("Search: zzzzzzzz");
+  });
+
+  it("clears all marketplace filters from URL and local state", async () => {
+    mockDirectoryResponse([], 0);
+    const user = userEvent.setup();
+    const queryClient = createTestQueryClient();
+    const router = createMemoryRouter(
+      [{ path: "/businesses", element: <BusinessDirectoryPage /> }],
+      {
+        initialEntries: [
+          "/businesses?q=coach&location=Dubai&bookable=true&reviews=true&sort=rating",
+        ],
+      },
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+
+    await user.click(await screen.findByTestId("marketplace-clear-filters"));
+
+    expect(router.state.location.pathname).toBe("/businesses");
+    expect(router.state.location.search).toBe("");
+    expect(screen.getByTestId("marketplace-search-input")).toHaveValue("");
+    expect(screen.getByTestId("marketplace-location-input")).toHaveValue("");
+    expect(screen.getByTestId("marketplace-category-filter")).toHaveValue("all");
+    expect(screen.getByTestId("marketplace-rating-filter")).toHaveValue("");
+    expect(screen.getByTestId("marketplace-sort-filter")).toHaveValue("popular");
+    expect(publicApi.listPublicBusinesses).toHaveBeenCalledWith(
+      expect.objectContaining({
+        q: undefined,
+        location: undefined,
+        bookable: undefined,
+        reviews: undefined,
+        sort: "popular",
+      }),
+    );
+  });
+
+  it("browse all businesses action clears filters and returns to /businesses", async () => {
+    mockDirectoryResponse([], 0);
+    const user = userEvent.setup();
+    const queryClient = createTestQueryClient();
+    const router = createMemoryRouter(
+      [{ path: "/businesses", element: <BusinessDirectoryPage /> }],
+      { initialEntries: ["/businesses?q=zzzzzzzz"] },
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+
+    await user.click(await screen.findByTestId("marketplace-browse-all-link"));
+
+    expect(router.state.location.pathname).toBe("/businesses");
+    expect(router.state.location.search).toBe("");
+  });
+
+  it("shows friendly error state with retry when directory API fails", async () => {
+    vi.mocked(publicApi.listPublicBusinesses).mockRejectedValue(new Error("Network failed"));
+
+    renderRoute(<BusinessDirectoryPage />, { route: "/businesses", path: "/businesses" });
+
+    expect(await screen.findByTestId("marketplace-error-state")).toBeInTheDocument();
+    expect(screen.getByText(/could not load businesses/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/something went wrong while loading the marketplace/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/network failed/i)).not.toBeInTheDocument();
+    expect(screen.getByTestId("marketplace-retry-button")).toBeInTheDocument();
+  });
+
+  it("does not show empty state while directory is loading", async () => {
+    vi.mocked(publicApi.listPublicBusinesses).mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    renderRoute(<BusinessDirectoryPage />, {
+      route: "/businesses?q=zzzzzzzz",
+      path: "/businesses",
+    });
+
+    expect(screen.getByText(/loading businesses/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("marketplace-empty-state")).not.toBeInTheDocument();
   });
 
   it("does not render private fields on cards", async () => {
