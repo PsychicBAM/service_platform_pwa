@@ -52,6 +52,39 @@ export function hasAdminActiveService(services: AdminServiceRead[]): boolean {
   return services.some((service) => service.is_active);
 }
 
+export function getAdminOnboardingDismissStorageKey(
+  business: Pick<BusinessAdminRead, "id" | "slug"> | null | undefined,
+): string {
+  const businessKey = business?.id?.trim() || business?.slug?.trim() || "default";
+  return `admin:onboarding:dismissed:${businessKey}`;
+}
+
+export function readAdminOnboardingDismissed(
+  business: Pick<BusinessAdminRead, "id" | "slug"> | null | undefined,
+): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  try {
+    return window.localStorage.getItem(getAdminOnboardingDismissStorageKey(business)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function writeAdminOnboardingDismissed(
+  business: Pick<BusinessAdminRead, "id" | "slug"> | null | undefined,
+): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.setItem(getAdminOnboardingDismissStorageKey(business), "1");
+  } catch {
+    // Ignore storage failures (private mode / quota / jsdom quirks).
+  }
+}
+
 export function buildAdminOnboardingItems(input: {
   business: BusinessAdminRead;
   services: AdminServiceRead[];

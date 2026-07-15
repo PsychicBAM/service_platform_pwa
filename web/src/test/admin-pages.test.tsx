@@ -1,12 +1,14 @@
 import type { ReactElement } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { AdminGuard } from "@/components/AdminGuard";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { AdminServicesPage } from "@/pages/admin/AdminServicesPage";
 import { AdminBusinessProvider } from "@/hooks/useAdminBusiness";
 import { useAuth } from "@/hooks/useAuth";
 import * as adminApi from "@/api/adminApi";
+import { getAdminOnboardingDismissStorageKey } from "@/lib/adminOnboarding";
 import {
   emptyListMeta,
   mockAdminBusiness,
@@ -21,6 +23,33 @@ import {
   mockUnauthenticatedAuth,
   renderRoute,
 } from "@/test/test-utils";
+
+const COMPLETE_ADMIN_BUSINESS = {
+  ...mockAdminBusiness,
+  address: "123 Demo Street",
+  public_location: {
+    country: "UAE",
+    city: "Dubai",
+    district_or_area: "Marina",
+    public_address: null,
+    postal_code: null,
+    latitude: null,
+    longitude: null,
+    location_note: null,
+  },
+  marketplace_cover_image: {
+    kind: "image" as const,
+    url: "/uploads/cover.webp",
+    thumbnailUrl: "/uploads/cover_thumb.webp",
+    alt: "",
+    filename: "cover.webp",
+    contentType: "image/webp",
+    size: 1000,
+    originalSize: 2000,
+    width: 1200,
+    height: 800,
+  },
+};
 
 vi.mock("@/hooks/useAuth");
 vi.mock("@/api/adminApi", () => ({
@@ -60,6 +89,7 @@ describe("admin pages smoke", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupAdminApiMocks();
+    window.localStorage.clear();
   });
 
   it("J. non-authenticated /admin shows login prompt", () => {
@@ -89,15 +119,37 @@ describe("admin pages smoke", () => {
 
     expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByText(`Overview for ${mockAdminBusiness.name}`)).toBeInTheDocument();
-    expect(screen.getByTestId("admin-onboarding-checklist")).toBeInTheDocument();
+    const checklist = screen.getByTestId("admin-onboarding-checklist");
+    expect(checklist).toBeInTheDocument();
+    expect(checklist.className).toMatch(/bg-slate-50\/40/);
     expect(screen.getByText(/complete your business profile/i)).toBeInTheDocument();
     expect(screen.getByTestId("admin-onboarding-progress")).toHaveTextContent(/of 6 completed/);
+    expect(screen.getByTestId("admin-onboarding-hide")).toHaveAttribute(
+      "aria-label",
+      "Hide onboarding checklist",
+    );
     expect(screen.getByTestId("admin-onboarding-item-services")).toBeInTheDocument();
     expect(screen.getByTestId("admin-onboarding-item-location")).toBeInTheDocument();
     expect(screen.getByTestId("admin-onboarding-item-cover")).toBeInTheDocument();
     expect(screen.getByTestId("admin-onboarding-item-hours")).toBeInTheDocument();
     expect(screen.getByTestId("admin-onboarding-item-preview")).toBeInTheDocument();
     expect(screen.getByTestId("admin-onboarding-item-share")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-onboarding-action-services")).toHaveAttribute(
+      "href",
+      "/admin/services",
+    );
+    expect(screen.getByTestId("admin-onboarding-action-location")).toHaveAttribute(
+      "href",
+      "/admin/settings",
+    );
+    expect(screen.getByTestId("admin-onboarding-action-hours")).toHaveAttribute(
+      "href",
+      "/admin/schedule",
+    );
+    expect(screen.getByTestId("admin-onboarding-action-preview")).toHaveAttribute(
+      "href",
+      `/b/${mockAdminBusiness.slug}`,
+    );
     expect(screen.getByRole("heading", { name: "Public business page" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Current plan" })).toBeInTheDocument();
     expect(screen.getByTestId("current-plan-badge")).toHaveTextContent("Free");
@@ -115,72 +167,42 @@ describe("admin pages smoke", () => {
     expect(screen.getByText("Appointments and requests")).toBeInTheDocument();
   });
 
-  it("L2. admin onboarding checklist derives completion and action routes from data", async () => {
+  it("L2. completed onboarding shows compact success state without full checklist rows", async () => {
     vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
-    vi.mocked(adminApi.getBusiness).mockResolvedValue({
-      ...mockAdminBusiness,
-      address: "123 Demo Street",
-      public_location: {
-        country: "UAE",
-        city: "Dubai",
-        district_or_area: "Marina",
-        public_address: null,
-        postal_code: null,
-        latitude: null,
-        longitude: null,
-        location_note: null,
-      },
-      marketplace_cover_image: {
-        kind: "image",
-        url: "/uploads/cover.webp",
-        thumbnailUrl: "/uploads/cover_thumb.webp",
-        alt: "",
-        filename: "cover.webp",
-        contentType: "image/webp",
-        size: 1000,
-        originalSize: 2000,
-        width: 1200,
-        height: 800,
-      },
-    });
+    vi.mocked(adminApi.getBusiness).mockResolvedValue(COMPLETE_ADMIN_BUSINESS);
 
     renderAdminPage(<AdminDashboardPage />);
 
-    expect(await screen.findByTestId("admin-onboarding-checklist")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-onboarding-item-services")).toHaveAttribute(
-      "data-complete",
-      "true",
+    expect(await screen.findByTestId("admin-onboarding-complete")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-onboarding-complete-label")).toHaveTextContent(
+      "Business profile complete",
     );
-    expect(screen.getByTestId("admin-onboarding-item-location")).toHaveAttribute(
-      "data-complete",
-      "true",
-    );
-    expect(screen.getByTestId("admin-onboarding-item-cover")).toHaveAttribute(
-      "data-complete",
-      "true",
-    );
-    expect(screen.getByTestId("admin-onboarding-item-hours")).toHaveAttribute(
-      "data-complete",
-      "true",
-    );
-    expect(screen.getByTestId("admin-onboarding-progress")).toHaveTextContent("6 of 6 completed");
-    expect(screen.getByTestId("admin-onboarding-action-services")).toHaveAttribute(
-      "href",
-      "/admin/services",
-    );
-    expect(screen.getByTestId("admin-onboarding-action-location")).toHaveAttribute(
-      "href",
-      "/admin/settings",
-    );
-    expect(screen.getByTestId("admin-onboarding-action-hours")).toHaveAttribute(
-      "href",
-      "/admin/schedule",
-    );
-    expect(screen.getByTestId("admin-onboarding-action-preview")).toHaveAttribute(
-      "href",
-      `/b/${mockAdminBusiness.slug}`,
-    );
+    expect(screen.queryByTestId("admin-onboarding-checklist")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("admin-onboarding-item-services")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("admin-onboarding-item-location")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("admin-onboarding-progress")).not.toBeInTheDocument();
     expect(screen.queryByText(/undefined/i)).not.toBeInTheDocument();
+  });
+
+  it("L3. hiding onboarding checklist persists dismissal via localStorage", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+
+    const { unmount } = renderAdminPage(<AdminDashboardPage />);
+
+    expect(await screen.findByTestId("admin-onboarding-checklist")).toBeInTheDocument();
+    await user.click(screen.getByTestId("admin-onboarding-hide"));
+    expect(screen.queryByTestId("admin-onboarding-checklist")).not.toBeInTheDocument();
+    expect(
+      window.localStorage.getItem(getAdminOnboardingDismissStorageKey(mockAdminBusiness)),
+    ).toBe("1");
+
+    unmount();
+    renderAdminPage(<AdminDashboardPage />);
+
+    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(screen.queryByTestId("admin-onboarding-checklist")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("admin-onboarding-complete")).not.toBeInTheDocument();
   });
 
   it("M. admin services page renders mocked services", async () => {
