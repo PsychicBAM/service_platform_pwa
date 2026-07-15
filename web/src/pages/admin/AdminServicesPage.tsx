@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -92,6 +92,9 @@ function AdminServiceThumbnail({
   );
 }
 
+const actionButtonClass =
+  "min-h-10 flex-1 rounded-lg border bg-white px-3 py-2 text-sm font-medium disabled:opacity-60 sm:min-h-0 sm:flex-none sm:px-3 sm:py-1.5 sm:text-xs";
+
 function AdminServiceListCard({
   service,
   submitting,
@@ -110,17 +113,20 @@ function AdminServiceListCard({
   const duration = service.type === "booking" ? formatDuration(service.duration_minutes) : null;
   const imageStatus = serviceImageStatusText(service.image ?? null);
   const hasImage = Boolean(normalizeServiceImageMedia(service.image));
+  const statusLabel = service.is_active ? "Active" : "Hidden";
 
   return (
     <article
       className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
       data-testid="admin-service-card"
     >
-      <div className="flex flex-1 gap-3 p-4">
+      <div className="flex flex-1 gap-3 p-3 sm:p-4">
         <AdminServiceThumbnail service={service} />
 
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-semibold text-slate-900">{service.name}</h3>
+          <h3 className="truncate text-base font-semibold text-slate-900 sm:text-[15px]">
+            {service.name}
+          </h3>
 
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <TypeBadge type={service.type} />
@@ -130,8 +136,9 @@ function AdminServiceListCard({
                   ? "bg-emerald-100 text-emerald-800"
                   : "bg-slate-100 text-slate-600"
               }`}
+              data-testid={`admin-service-status-${service.id}`}
             >
-              {service.is_active ? "Active" : "Inactive"}
+              {statusLabel}
             </span>
             {service.type === "booking" && service.waitlist_enabled ? (
               <span
@@ -158,7 +165,7 @@ function AdminServiceListCard({
           </div>
 
           <p
-            className={`mt-1.5 text-xs ${hasImage ? "text-slate-600" : "text-slate-500"}`}
+            className={`mt-1.5 truncate text-xs ${hasImage ? "text-slate-600" : "text-slate-500"}`}
             data-testid={`admin-service-list-image-status-${service.id}`}
           >
             {imageStatus}
@@ -172,12 +179,13 @@ function AdminServiceListCard({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-t border-slate-100 bg-slate-50/70 px-4 py-2.5">
+      <div className="flex flex-wrap gap-2 border-t border-slate-100 bg-slate-50/70 px-3 py-3 sm:px-4 sm:py-2.5">
         <button
           type="button"
           onClick={onEdit}
           disabled={submitting}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          className={`${actionButtonClass} border-slate-300 text-slate-700 hover:bg-slate-50`}
+          data-testid={`admin-service-edit-${service.id}`}
         >
           Edit
         </button>
@@ -186,7 +194,7 @@ function AdminServiceListCard({
             type="button"
             onClick={onViewWaitlist}
             disabled={submitting}
-            className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-60"
+            className={`${actionButtonClass} border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100`}
             data-testid={`admin-service-view-waitlist-${service.id}`}
           >
             View waitlist
@@ -196,7 +204,8 @@ function AdminServiceListCard({
           type="button"
           onClick={onToggleActive}
           disabled={submitting}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          className={`${actionButtonClass} border-slate-300 text-slate-700 hover:bg-slate-50`}
+          data-testid={`admin-service-toggle-${service.id}`}
         >
           {service.is_active ? "Deactivate" : "Activate"}
         </button>
@@ -204,7 +213,8 @@ function AdminServiceListCard({
           type="button"
           onClick={onDelete}
           disabled={submitting}
-          className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+          className={`${actionButtonClass} border-red-200 text-red-700 hover:bg-red-50`}
+          data-testid={`admin-service-delete-${service.id}`}
         >
           Delete
         </button>
@@ -229,6 +239,8 @@ export function AdminServicesPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [addServiceFocused, setAddServiceFocused] = useState(false);
+  const addServiceHeaderRef = useRef<HTMLDivElement | null>(null);
+  const createFormRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (searchParams.get("focus") !== ADMIN_ONBOARDING_FOCUS.addService) {
@@ -236,6 +248,8 @@ export function AdminServicesPage() {
     }
     setFormMode("create");
     setEditingService(null);
+    setPendingCreateImageFile(null);
+    setPendingCreateOverrides([]);
     setAddServiceFocused(true);
     const next = new URLSearchParams(searchParams);
     next.delete("focus");
@@ -246,8 +260,17 @@ export function AdminServicesPage() {
     if (!addServiceFocused) {
       return;
     }
+    const scrollTimeout = window.setTimeout(() => {
+      (createFormRef.current ?? addServiceHeaderRef.current)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 0);
     const timeout = window.setTimeout(() => setAddServiceFocused(false), ADMIN_FOCUS_HIGHLIGHT_MS);
-    return () => window.clearTimeout(timeout);
+    return () => {
+      window.clearTimeout(scrollTimeout);
+      window.clearTimeout(timeout);
+    };
   }, [addServiceFocused]);
 
   const { data, isLoading, isError, error } = useQuery({
@@ -431,19 +454,23 @@ export function AdminServicesPage() {
   }
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+    <section className="space-y-4 sm:space-y-5" data-testid="admin-services-page">
+      <div
+        ref={addServiceHeaderRef}
+        className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between"
+        data-testid="admin-services-header"
+      >
+        <div className="min-w-0">
           <h2 className="text-xl font-bold text-slate-900">Services</h2>
           <p className="mt-0.5 text-sm text-slate-600">
-            Manage offerings, pricing, photos, and visibility on your public catalog.
+            Add offerings customers can book or request on your public page.
           </p>
         </div>
         <button
           type="button"
           onClick={openCreateForm}
           disabled={formMode === "create" || submitting}
-          className={`shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 disabled:opacity-60 ${
+          className={`w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:opacity-60 sm:w-auto sm:shrink-0 sm:py-2 sm:font-medium ${
             addServiceFocused ? ADMIN_FOCUS_HIGHLIGHT_CLASS : ""
           }`}
           data-testid="admin-services-add"
@@ -461,69 +488,88 @@ export function AdminServicesPage() {
 
       {actionError ? <ErrorState title="Action failed" message={actionError} /> : null}
 
-      <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Type</span>
-          <FilterButton active={typeFilter === "all"} label="All" onClick={() => setTypeFilter("all")} />
-          <FilterButton
-            active={typeFilter === "booking"}
-            label="Booking"
-            onClick={() => setTypeFilter("booking")}
-          />
-          <FilterButton
-            active={typeFilter === "order"}
-            label="Requests"
-            onClick={() => setTypeFilter("order")}
-          />
+      {allServices.length > 0 || formMode ? (
+        <div
+          className="space-y-2 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50/60 p-3"
+          data-testid="admin-services-filters"
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Type
+            </span>
+            <FilterButton
+              active={typeFilter === "all"}
+              label="All"
+              onClick={() => setTypeFilter("all")}
+            />
+            <FilterButton
+              active={typeFilter === "booking"}
+              label="Booking"
+              onClick={() => setTypeFilter("booking")}
+            />
+            <FilterButton
+              active={typeFilter === "order"}
+              label="Requests"
+              onClick={() => setTypeFilter("order")}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Status
+            </span>
+            <FilterButton
+              active={statusFilter === "all"}
+              label="All status"
+              onClick={() => setStatusFilter("all")}
+            />
+            <FilterButton
+              active={statusFilter === "active"}
+              label="Active"
+              onClick={() => setStatusFilter("active")}
+            />
+            <FilterButton
+              active={statusFilter === "inactive"}
+              label="Hidden"
+              onClick={() => setStatusFilter("inactive")}
+            />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</span>
-          <FilterButton
-            active={statusFilter === "all"}
-            label="All status"
-            onClick={() => setStatusFilter("all")}
-          />
-          <FilterButton
-            active={statusFilter === "active"}
-            label="Active"
-            onClick={() => setStatusFilter("active")}
-          />
-          <FilterButton
-            active={statusFilter === "inactive"}
-            label="Inactive"
-            onClick={() => setStatusFilter("inactive")}
-          />
-        </div>
-      </div>
+      ) : null}
 
       {formMode === "create" ? (
-        <AdminServiceForm
-          mode="create"
-          businessId={businessId ?? undefined}
-          pendingImageFile={pendingCreateImageFile}
-          onPendingImageFileChange={setPendingCreateImageFile}
-          pendingSlotCapacityOverrides={pendingCreateOverrides}
-          onPendingSlotCapacityOverridesChange={setPendingCreateOverrides}
-          submitting={createMutation.isPending}
-          submitError={formSubmitError}
-          onCancel={() => {
-            setFormMode(null);
-            setPendingCreateImageFile(null);
-            setPendingCreateOverrides([]);
-          }}
-          onSubmit={(payload, options) => {
-            createMutation.mutate(
-              {
-                payload: payload as ServiceCreatePayload,
-                pendingImageFile: options?.pendingImageFile ?? null,
-                pendingSlotCapacityOverrides: options?.pendingSlotCapacityOverrides ?? [],
-              },
-              {
-                onError: () => undefined,
-              },
-            );
-          }}
-        />
+        <div
+          ref={createFormRef}
+          className={addServiceFocused ? ADMIN_FOCUS_HIGHLIGHT_CLASS : undefined}
+          data-testid="admin-services-create-area"
+        >
+          <AdminServiceForm
+            mode="create"
+            businessId={businessId ?? undefined}
+            pendingImageFile={pendingCreateImageFile}
+            onPendingImageFileChange={setPendingCreateImageFile}
+            pendingSlotCapacityOverrides={pendingCreateOverrides}
+            onPendingSlotCapacityOverridesChange={setPendingCreateOverrides}
+            submitting={createMutation.isPending}
+            submitError={formSubmitError}
+            onCancel={() => {
+              setFormMode(null);
+              setPendingCreateImageFile(null);
+              setPendingCreateOverrides([]);
+            }}
+            onSubmit={(payload, options) => {
+              createMutation.mutate(
+                {
+                  payload: payload as ServiceCreatePayload,
+                  pendingImageFile: options?.pendingImageFile ?? null,
+                  pendingSlotCapacityOverrides: options?.pendingSlotCapacityOverrides ?? [],
+                },
+                {
+                  onError: () => undefined,
+                },
+              );
+            }}
+          />
+        </div>
       ) : null}
 
       {formMode === "edit" && editingService ? (
@@ -558,11 +604,25 @@ export function AdminServicesPage() {
         />
       ) : null}
 
-      {!isLoading && !isError && allServices.length === 0 ? (
-        <EmptyState
-          title="No services yet"
-          description="Add your first service to show it on your public page and mini-site."
-        />
+      {!isLoading && !isError && allServices.length === 0 && formMode !== "create" ? (
+        <div
+          className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center sm:py-10"
+          data-testid="admin-services-empty"
+        >
+          <h3 className="text-base font-medium text-slate-800">No services yet</h3>
+          <p className="mt-2 text-sm text-slate-600">
+            Add your first service so customers can book or send requests.
+          </p>
+          <button
+            type="button"
+            onClick={openCreateForm}
+            disabled={submitting}
+            className="mt-4 w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60 sm:w-auto"
+            data-testid="admin-services-empty-add"
+          >
+            Add service
+          </button>
+        </div>
       ) : null}
 
       {!isLoading && !isError && allServices.length > 0 && filteredServices.length === 0 ? (
@@ -573,7 +633,10 @@ export function AdminServicesPage() {
       ) : null}
 
       {!isLoading && !isError && filteredServices.length > 0 ? (
-        <div className="grid items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div
+          className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3"
+          data-testid="admin-services-list"
+        >
           {filteredServices.map((service) => (
             <AdminServiceListCard
               key={service.id}

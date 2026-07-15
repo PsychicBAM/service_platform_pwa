@@ -149,7 +149,7 @@ export function AdminServiceImageSection({
 
   return (
     <div
-      className="rounded-xl border border-slate-200 bg-white p-3 space-y-2"
+      className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/50 p-3"
       data-testid="admin-service-image-section"
     >
       <div>
@@ -158,14 +158,14 @@ export function AdminServiceImageSection({
       </div>
 
       <div
-        className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5"
+        className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
         data-testid="admin-service-image-status"
       >
         {isCreateMode && pendingPreviewUrl ? (
           <img
             src={pendingPreviewUrl}
             alt=""
-            className="h-14 w-14 shrink-0 rounded-md object-cover"
+            className="h-12 w-12 shrink-0 rounded-md object-cover"
             data-testid="admin-service-image-pending-preview"
           />
         ) : normalizedImage ? (
@@ -173,11 +173,11 @@ export function AdminServiceImageSection({
             image={normalizedImage}
             variant="thumb"
             testId="admin-service-image-thumb"
-            className="!h-14 !w-14 !rounded-md"
+            className="!h-12 !w-12 !rounded-md"
           />
         ) : (
           <div
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-white text-sm font-medium text-slate-400"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50 text-xs font-medium text-slate-400"
             data-testid="admin-service-image-thumb-placeholder"
             aria-hidden
           >
@@ -197,7 +197,7 @@ export function AdminServiceImageSection({
           type="button"
           disabled={isCreateMode ? !canPickFile : !canUploadSaved}
           onClick={() => fileInputRef.current?.click()}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-10 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:flex-none sm:py-1.5 sm:text-xs"
           data-testid="admin-service-image-upload"
         >
           {uploading
@@ -215,7 +215,7 @@ export function AdminServiceImageSection({
             type="button"
             disabled={disabled || uploading || removing}
             onClick={() => void handleRemove()}
-            className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-10 flex-1 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:flex-none sm:py-1.5 sm:text-xs"
             data-testid="admin-service-image-remove"
           >
             {removing ? "Removing…" : "Remove"}

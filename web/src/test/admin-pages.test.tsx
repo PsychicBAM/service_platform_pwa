@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AdminGuard } from "@/components/AdminGuard";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
@@ -211,6 +211,7 @@ describe("admin pages smoke", () => {
 
   it("L4. services focus=add-service opens create flow and highlights Add service", async () => {
     vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+    Element.prototype.scrollIntoView = vi.fn();
 
     renderAdminPage(<AdminServicesPage />, "/admin/services?focus=add-service");
 
@@ -219,6 +220,7 @@ describe("admin pages smoke", () => {
       expect(screen.getByTestId("admin-services-add")).toHaveAttribute("data-admin-focused", "true");
     });
     expect(screen.getByTestId("admin-services-add").className).toMatch(/ring-2/);
+    expect(screen.getByTestId("admin-services-create-area")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Add service" })).toBeInTheDocument();
   });
 
@@ -228,16 +230,26 @@ describe("admin pages smoke", () => {
     renderAdminPage(<AdminServicesPage />);
 
     expect(await screen.findByRole("heading", { name: "Services" })).toBeInTheDocument();
+    expect(screen.getByTestId("admin-services-header")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-services-add")).toBeInTheDocument();
     expect(await screen.findByText(mockAdminServices[0].name)).toBeInTheDocument();
     expect(screen.getByText(mockAdminServices[1].name)).toBeInTheDocument();
-    expect(screen.getAllByTestId("admin-service-card")).toHaveLength(mockAdminServices.length);
+    const list = screen.getByTestId("admin-services-list");
+    expect(list.className).toMatch(/grid-cols-1/);
+    const cards = screen.getAllByTestId("admin-service-card");
+    expect(cards).toHaveLength(mockAdminServices.length);
+    expect(within(cards[0]).getByText("Booking")).toBeInTheDocument();
+    expect(within(cards[1]).getByText("Request")).toBeInTheDocument();
+    expect(screen.getByTestId(`admin-service-status-${BOOKING_SERVICE_ID}`)).toHaveTextContent(
+      "Active",
+    );
+    expect(screen.getByTestId(`admin-service-edit-${BOOKING_SERVICE_ID}`)).toBeInTheDocument();
     expect(
       screen.getByTestId(`admin-service-list-thumb-placeholder-${BOOKING_SERVICE_ID}`),
     ).toBeInTheDocument();
     expect(
       screen.getByTestId(`admin-service-list-image-status-${BOOKING_SERVICE_ID}`),
     ).toHaveTextContent("No image");
-    expect(screen.getByTestId("admin-services-add")).toBeInTheDocument();
     expect(screen.getByTestId(`admin-service-waitlist-badge-${BOOKING_SERVICE_ID}`)).toHaveTextContent(
       "Waitlist enabled",
     );
@@ -245,6 +257,50 @@ describe("admin pages smoke", () => {
       "Manage entries in Bookings → Waitlist.",
     );
     expect(screen.getByTestId(`admin-service-view-waitlist-${BOOKING_SERVICE_ID}`)).toBeInTheDocument();
+  });
+
+  it("M2. admin services empty state shows Add service CTA", async () => {
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+    vi.mocked(adminApi.listAdminServices).mockResolvedValue({
+      data: [],
+      meta: emptyListMeta,
+    });
+
+    renderAdminPage(<AdminServicesPage />);
+
+    expect(await screen.findByTestId("admin-services-empty")).toBeInTheDocument();
+    expect(screen.getByText("No services yet")).toBeInTheDocument();
+    expect(
+      screen.getByText("Add your first service so customers can book or send requests."),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("admin-services-empty-add")).toBeInTheDocument();
+    expect(screen.queryByTestId("admin-service-card")).not.toBeInTheDocument();
+  });
+
+  it("M3. long service names clamp without undefined text", async () => {
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+    const longName =
+      "Very Long Coaching Package With Extra Extra Extra Words For Mobile Overflow Testing";
+    vi.mocked(adminApi.listAdminServices).mockResolvedValue({
+      data: [
+        {
+          ...mockAdminServices[0],
+          name: longName,
+          description:
+            "A long description that should clamp to two lines so the mobile card stays compact and readable for business owners managing their catalog.",
+        },
+      ],
+      meta: { page: 1, limit: 100, total: 1 },
+    });
+
+    renderAdminPage(<AdminServicesPage />);
+
+    const card = await screen.findByTestId("admin-service-card");
+    expect(within(card).getByRole("heading", { name: longName }).className).toMatch(/truncate/);
+    expect(within(card).getByText(/long description that should clamp/i).className).toMatch(
+      /line-clamp-2/,
+    );
+    expect(card.textContent).not.toMatch(/undefined/i);
   });
 
   it("N. admin services list shows thumbnail when service has image", async () => {

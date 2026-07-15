@@ -251,16 +251,16 @@ export function AdminServiceForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-4"
+      className="space-y-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:space-y-4 sm:p-4"
       noValidate
       data-testid="admin-service-form"
     >
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="font-semibold text-slate-900">{title}</h3>
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="min-w-0 truncate text-base font-semibold text-slate-900">{title}</h3>
         <button
           type="button"
           onClick={onCancel}
-          className="text-sm text-slate-600 hover:text-brand-700"
+          className="shrink-0 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-brand-700"
         >
           Cancel
         </button>
@@ -344,7 +344,7 @@ export function AdminServiceForm({
 
       {isBooking ? (
         <section
-          className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4"
+          className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 sm:p-4"
           data-testid="admin-service-booking-rules"
         >
           <h3 className="text-sm font-semibold text-slate-900">Booking rules</h3>
@@ -512,13 +512,23 @@ export function AdminServiceForm({
         </p>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
-      >
-        {submitting ? "Saving…" : mode === "create" ? "Create service" : "Save changes"}
-      </button>
+      <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={submitting}
+          className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 sm:min-h-0 sm:w-auto"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="min-h-11 w-full rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 sm:min-h-0 sm:w-auto sm:min-w-[10rem]"
+        >
+          {submitting ? "Saving…" : mode === "create" ? "Create service" : "Save changes"}
+        </button>
+      </div>
     </form>
   );
 }
