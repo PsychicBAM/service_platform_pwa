@@ -20,6 +20,7 @@ import { CheckEmailPage } from "@/pages/CheckEmailPage";
 import { ClaimGuestPage } from "@/pages/ClaimGuestPage";
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { LoginPage } from "@/pages/LoginPage";
+import { MeAccountPage } from "@/pages/MeAccountPage";
 import { MyBookingsPage } from "@/pages/MyBookingsPage";
 import { MyOrderDetailPage } from "@/pages/MyOrderDetailPage";
 import { MyOrdersPage } from "@/pages/MyOrdersPage";
@@ -80,6 +81,7 @@ export const routes = [
       { path: "check-email", element: <CheckEmailPage /> },
       { path: "billing/success", element: <BillingSuccessPage /> },
       { path: "billing/cancel", element: <BillingCancelPage /> },
+      { path: "me", element: <MeAccountPage /> },
       { path: "me/bookings", element: <MyBookingsPage /> },
       { path: "me/orders", element: <MyOrdersPage /> },
       { path: "me/claim", element: <ClaimGuestPage /> },

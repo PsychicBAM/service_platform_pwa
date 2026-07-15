@@ -24,6 +24,12 @@ export function Layout() {
                     Admin
                   </Link>
                 ) : null}
+                <Link
+                  to="/me"
+                  className="shrink-0 whitespace-nowrap py-1 text-slate-600 hover:text-brand-700"
+                >
+                  Account
+                </Link>
                 <Link to="/me/bookings" className="shrink-0 whitespace-nowrap py-1 text-slate-600 hover:text-brand-700">
                   Bookings
                 </Link>

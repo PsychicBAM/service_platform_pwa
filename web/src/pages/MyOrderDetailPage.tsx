@@ -120,9 +120,12 @@ export function MyOrderDetailPage() {
   const formDetails = order ? formatFormData(order.form_data) : null;
 
   return (
-    <section className="space-y-4">
-      <Link to="/me/orders" className="inline-block text-sm text-brand-700 hover:underline">
-        ← Back to My Orders
+    <section className="space-y-4" data-testid="my-order-detail-page">
+      <Link
+        to="/me/orders"
+        className="inline-flex min-h-10 items-center text-sm font-medium text-brand-700 hover:underline"
+      >
+        ← Back to My requests
       </Link>
 
       {orderQuery.isLoading ? <LoadingState message="Loading order…" /> : null}
@@ -136,12 +139,17 @@ export function MyOrderDetailPage() {
 
       {order ? (
         <>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div
+            className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+            data-testid="my-order-detail-card"
+          >
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <p className="font-mono text-sm font-semibold text-slate-900">{order.reference}</p>
-                <p className="mt-1 text-sm text-slate-600">{order.business.name}</p>
-                <p className="text-sm font-medium text-slate-800">{order.service.name}</p>
+              <div className="min-w-0">
+                <p className="truncate font-mono text-sm font-semibold text-slate-900">
+                  {order.reference}
+                </p>
+                <p className="mt-1 break-words text-sm text-slate-600">{order.business.name}</p>
+                <p className="break-words text-sm font-medium text-slate-800">{order.service.name}</p>
               </div>
               <StatusBadge status={order.status} kind="order" />
             </div>
@@ -149,7 +157,9 @@ export function MyOrderDetailPage() {
             {formDetails ? (
               <div className="mt-4 border-t border-slate-100 pt-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Request details</p>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{formDetails}</p>
+                <p className="mt-1 whitespace-pre-wrap break-words text-sm text-slate-600">
+                  {formDetails}
+                </p>
               </div>
             ) : null}
 
@@ -165,7 +175,7 @@ export function MyOrderDetailPage() {
             {order.decline_reason ? (
               <div className="mt-4 border-t border-slate-100 pt-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Decline reason</p>
-                <p className="mt-1 text-sm text-red-700">{order.decline_reason}</p>
+                <p className="mt-1 break-words text-sm text-red-700">{order.decline_reason}</p>
               </div>
             ) : null}
 
@@ -180,7 +190,7 @@ export function MyOrderDetailPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3" data-testid="my-order-messages">
             <div>
               <h2 className="text-sm font-medium text-slate-700">Messages</h2>
               <p className="text-xs text-slate-400">Messages refresh automatically.</p>
@@ -207,23 +217,25 @@ export function MyOrderDetailPage() {
             ) : null}
 
             {messagesQuery.data && messagesQuery.data.data.length > 0 ? (
-              <div className="space-y-2">
+              <div className="max-h-[28rem] space-y-2 overflow-y-auto pr-0.5">
                 {messagesQuery.data.data.map((message) => (
                   <div
                     key={message.id}
-                    className={`rounded-xl border px-3 py-2 text-sm ${
+                    className={`overflow-hidden rounded-xl border px-3 py-2 text-sm ${
                       message.sender_type === "client"
                         ? "border-brand-200 bg-brand-50"
                         : "border-slate-200 bg-white"
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2 text-xs text-slate-500">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
                       <span>{message.sender_type === "client" ? "You" : "Business"}</span>
-                      <time dateTime={message.created_at}>
+                      <time dateTime={message.created_at} className="shrink-0">
                         {formatDateTimeLabel(message.created_at)}
                       </time>
                     </div>
-                    <p className="mt-1 whitespace-pre-wrap text-slate-800">{message.body}</p>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-slate-800">
+                      {message.body}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -231,7 +243,11 @@ export function MyOrderDetailPage() {
           </div>
 
           {messagingOpen ? (
-            <form onSubmit={handleSend} className="space-y-3 border-t border-slate-200 pt-4">
+            <form
+              onSubmit={handleSend}
+              className="space-y-3 border-t border-slate-200 pt-4"
+              data-testid="my-order-reply-form"
+            >
               <TextAreaField
                 name="message"
                 label="Send a message"
@@ -249,7 +265,7 @@ export function MyOrderDetailPage() {
               <button
                 type="submit"
                 disabled={sendMutation.isPending}
-                className="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+                className="min-h-11 w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
               >
                 {sendMutation.isPending ? "Sending…" : "Send message"}
               </button>

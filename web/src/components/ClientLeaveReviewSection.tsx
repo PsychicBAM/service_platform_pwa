@@ -77,7 +77,7 @@ export function ClientLeaveReviewSection({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100"
+        className="min-h-10 flex-1 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 sm:min-h-0 sm:flex-none sm:py-1.5"
         data-testid="leave-review-button"
       >
         Leave review
@@ -88,7 +88,7 @@ export function ClientLeaveReviewSection({
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3"
+      className="w-full min-w-0 basis-full space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3"
       data-testid="leave-review-form"
     >
       <p className="text-sm font-medium text-slate-800">Leave a review</p>
@@ -97,7 +97,7 @@ export function ClientLeaveReviewSection({
         <select
           value={rating}
           onChange={(event) => setRating(Number(event.target.value))}
-          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+          className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm sm:min-h-0 sm:py-2"
           data-testid="review-rating-select"
         >
           {[5, 4, 3, 2, 1].map((value) => (
@@ -132,7 +132,7 @@ export function ClientLeaveReviewSection({
         <button
           type="submit"
           disabled={submitMutation.isPending}
-          className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+          className="min-h-11 flex-1 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 sm:min-h-0 sm:flex-none sm:py-1.5"
           data-testid="review-submit-button"
         >
           {submitMutation.isPending ? "Submitting…" : "Submit"}
@@ -144,7 +144,7 @@ export function ClientLeaveReviewSection({
             setSubmitError(null);
           }}
           disabled={submitMutation.isPending}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-white disabled:opacity-60"
+          className="min-h-11 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-700 hover:bg-white disabled:opacity-60 sm:min-h-0 sm:flex-none sm:py-1.5"
         >
           Cancel
         </button>
