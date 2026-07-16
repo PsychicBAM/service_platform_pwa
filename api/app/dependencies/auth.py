@@ -35,6 +35,30 @@ async def get_current_user(
     return user
 
 
+async def get_optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> User | None:
+    """Return the authenticated user when a valid bearer token is present.
+
+    Missing or invalid tokens resolve to None so public endpoints stay usable.
+    """
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        return None
+    try:
+        payload = decode_token(credentials.credentials)
+        if payload.get("type") != "access":
+            return None
+        user_id = get_token_subject(credentials.credentials)
+    except Exception:
+        return None
+
+    user = await UserRepository(db).get_by_id(user_id)
+    if user is None or not user.is_active:
+        return None
+    return user
+
+
 async def require_active_user(
     current_user: User = Depends(get_current_user),
 ) -> User:

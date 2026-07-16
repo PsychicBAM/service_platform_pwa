@@ -187,12 +187,16 @@ export function MyOrdersPage() {
             >
               <div className="flex min-w-0 flex-1 flex-col gap-2 p-3 sm:p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <p className="truncate font-mono text-sm font-semibold text-slate-900">
-                    {order.reference}
-                  </p>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900">
+                      {order.business.name}
+                    </p>
+                    <p className="mt-0.5 truncate font-mono text-xs text-slate-500">
+                      Reference: {order.reference}
+                    </p>
+                  </div>
                   <StatusBadge status={order.status} kind="order" />
                 </div>
-                <p className="truncate text-sm text-slate-600">{order.business.name}</p>
                 <p className="truncate text-sm font-medium text-slate-800">{order.service.name}</p>
                 <p className="text-xs text-slate-500">
                   Created {formatDateTimeLabel(order.created_at)}

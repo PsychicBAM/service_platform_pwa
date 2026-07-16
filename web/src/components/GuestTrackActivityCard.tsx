@@ -1,16 +1,20 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
+export type GuestTrackMode = "guest" | "saved" | "email_mismatch";
+
 type GuestTrackActivityCardProps = {
   kind: "booking" | "order";
   reference?: string;
   businessSlug?: string;
+  mode?: GuestTrackMode;
 };
 
 export function GuestTrackActivityCard({
   kind,
   reference,
   businessSlug,
+  mode = "guest",
 }: GuestTrackActivityCardProps) {
   const { isAuthenticated } = useAuth();
   const isBooking = kind === "booking";
@@ -37,10 +41,72 @@ export function GuestTrackActivityCard({
   const listLabel = isBooking ? "View my bookings" : "View my requests";
   const claimLabel = "Claim manually";
 
+  if (mode === "saved") {
+    return (
+      <div
+        className="overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm sm:p-5"
+        data-testid="guest-track-activity-card"
+        data-mode="saved"
+      >
+        <h2 className="text-base font-semibold text-emerald-950">Saved to your account</h2>
+        <p className="mt-2 text-sm text-emerald-900">
+          {isBooking
+            ? "This booking is now available in My bookings."
+            : "This request is now available in My requests."}
+        </p>
+        {reference ? (
+          <p className="mt-2 break-all rounded-lg bg-white/70 px-3 py-2 font-mono text-sm font-semibold text-slate-800">
+            Reference: {reference}
+          </p>
+        ) : null}
+        <div className="mt-4">
+          <Link
+            to={listPath}
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
+            data-testid="guest-track-view-list"
+          >
+            {listLabel}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === "email_mismatch") {
+    return (
+      <div
+        className="overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm sm:p-5"
+        data-testid="guest-track-activity-card"
+        data-mode="email_mismatch"
+      >
+        <h2 className="text-base font-semibold text-amber-950">Submitted as guest</h2>
+        <p className="mt-2 text-sm text-amber-950">
+          This email does not match your account email. You can claim it manually with the guest
+          contact details.
+        </p>
+        {reference ? (
+          <p className="mt-2 break-all rounded-lg bg-white/70 px-3 py-2 font-mono text-sm font-semibold text-slate-800">
+            Reference: {reference}
+          </p>
+        ) : null}
+        <div className="mt-4">
+          <Link
+            to={claimPath}
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
+            data-testid="guest-track-claim"
+          >
+            {claimLabel}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
       data-testid="guest-track-activity-card"
+      data-mode="guest"
     >
       <h2 className="text-base font-semibold text-slate-900">
         {isBooking ? "Want to track this booking?" : "Want to track replies and status updates?"}

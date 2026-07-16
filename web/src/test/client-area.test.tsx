@@ -126,6 +126,7 @@ describe("client area mobile UX", () => {
     expect(card).toHaveTextContent(longBusinessName);
     expect(card).toHaveTextContent(longServiceName);
     expect(card).toHaveTextContent("Confirmed");
+    expect(card).toHaveTextContent(`Reference: ${upcomingBooking.reference}`);
     expect(within(card).getByText(longBusinessName).className).toMatch(/truncate/);
     expect(screen.getByTestId(`my-booking-cancel-${upcomingBooking.id}`)).toBeInTheDocument();
     expect(
@@ -250,6 +251,7 @@ describe("client area mobile UX", () => {
     expect(card).toHaveTextContent(longBusinessName);
     expect(card).toHaveTextContent(longServiceName);
     expect(card).toHaveTextContent("In Progress");
+    expect(card).toHaveTextContent(`Reference: ${mockMyOrder.reference}`);
     expect(card).toHaveTextContent("Last message:");
     const message = within(card).getByText((content) => content.includes("Last message:"));
     expect(message.className).toMatch(/line-clamp-2/);

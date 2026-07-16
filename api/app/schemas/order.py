@@ -160,9 +160,17 @@ class PublicOrderCreateResponse(BaseModel):
     created_at: datetime
     payment_required: bool = False
     payment: None = None
+    linked_to_account: bool = False
 
     @classmethod
-    def from_entities(cls, order, service, client) -> "PublicOrderCreateResponse":
+    def from_entities(
+        cls,
+        order,
+        service,
+        client,
+        *,
+        linked_to_account: bool = False,
+    ) -> "PublicOrderCreateResponse":
         return cls(
             id=order.id,
             reference=order.reference,
@@ -182,6 +190,7 @@ class PublicOrderCreateResponse(BaseModel):
             created_at=order.created_at,
             payment_required=False,
             payment=None,
+            linked_to_account=linked_to_account,
         )
 
 

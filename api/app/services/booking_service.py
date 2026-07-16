@@ -15,6 +15,7 @@ from app.models.business import Business
 from app.models.client import Client
 from app.models.enums import BookingStatus, BusinessStatus, OperatingMode, ServiceType
 from app.models.service import Service
+from app.models.user import User
 from app.repositories.booking_repository import BookingRepository
 from app.repositories.business_repository import BusinessRepository
 from app.repositories.client_repository import ClientRepository
@@ -35,6 +36,7 @@ from app.utils.booking_rules import (
     assert_slot_booking_rules,
 )
 from app.utils.booking_slots import normalize_starts_at, slot_starts_match
+from app.utils.public_client_attach import resolve_attach_user_id
 from app.utils.references import generate_booking_reference
 
 # Re-export for existing imports.
@@ -55,7 +57,9 @@ class BookingService:
         self,
         business_slug: str,
         payload: PublicBookingCreate,
-    ) -> tuple[Booking, Service, Client]:
+        *,
+        current_user: User | None = None,
+    ) -> tuple[Booking, Service, Client, bool]:
         business = await self.business_repo.get_by_slug(business_slug)
         if business is None or business.status != BusinessStatus.active:
             raise NotFoundError("Business not found.")
@@ -83,13 +87,20 @@ class BookingService:
 
         await self._assert_slot_available(business, service, starts_at, ends_at)
 
+        attach_user_id, _ = resolve_attach_user_id(
+            current_user,
+            payload.client.email,
+        )
         client = await self.client_repo.get_or_create_guest_client(
             business.id,
             full_name=payload.client.full_name,
             email=payload.client.email,
             phone=payload.client.phone,
+            attach_user_id=attach_user_id,
         )
-
+        linked_to_account = (
+            attach_user_id is not None and client.user_id == attach_user_id
+        )
         settings = business.settings or {}
         auto_confirm = bool(settings.get("auto_confirm_bookings", False))
         status = BookingStatus.confirmed if auto_confirm else BookingStatus.pending
@@ -131,7 +142,7 @@ class BookingService:
         booking.service = service
         booking.client = client
         EmailNotificationService().notify_admin_booking_created(booking, business=business)
-        return booking, service, client
+        return booking, service, client, linked_to_account
 
     async def _assert_slot_available(
         self,

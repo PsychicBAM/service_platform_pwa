@@ -209,18 +209,31 @@ class ClientRepository:
         full_name: str,
         email: str | None,
         phone: str | None,
+        attach_user_id: uuid.UUID | None = None,
     ) -> Client:
         normalized_email = email.strip().lower() if email else None
         if normalized_email:
             existing = await self.find_by_email(business_id, normalized_email)
             if existing is not None:
+                if (
+                    attach_user_id is not None
+                    and existing.user_id is None
+                ):
+                    existing.user_id = attach_user_id
+                    existing.source = ClientSource.registered
+                    await self.session.flush()
                 return existing
         client = Client(
             business_id=business_id,
             full_name=full_name,
             email=normalized_email,
             phone=phone.strip() if phone else None,
-            source=ClientSource.guest,
+            user_id=attach_user_id,
+            source=(
+                ClientSource.registered
+                if attach_user_id is not None
+                else ClientSource.guest
+            ),
         )
         return await self.create(client)
 

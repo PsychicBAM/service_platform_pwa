@@ -120,6 +120,131 @@ describe("client account creation flow clarity", () => {
     expect(screen.getByTestId("guest-track-claim")).toHaveTextContent("Claim manually");
   });
 
+  it("signed-in client booking success shows saved to account when linked", async () => {
+    const user = userEvent.setup();
+    const defaultDate = generateBookingDates(1)[0]!.date;
+    const slotStartsAt = `${defaultDate}T10:00:00`;
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockClientUser));
+    vi.mocked(publicApi.getPublicService).mockResolvedValue(mockBookingService);
+    vi.mocked(publicApi.getAvailability).mockResolvedValue({
+      date: defaultDate,
+      service_id: BOOKING_SERVICE_ID,
+      slots: [{ starts_at: slotStartsAt, ends_at: `${defaultDate}T11:00:00` }],
+    });
+    vi.mocked(publicApi.createPublicBooking).mockResolvedValue({
+      id: "booking-linked",
+      reference: "BKG-2026-0500",
+      status: "pending",
+      starts_at: slotStartsAt,
+      ends_at: `${defaultDate}T11:00:00`,
+      service: { id: BOOKING_SERVICE_ID, name: mockBookingService.name, type: "booking" },
+      client: {
+        id: "client-1",
+        full_name: "Client User",
+        email: mockClientUser.email,
+        phone: null,
+      },
+      payment_required: false,
+      payment: null,
+      linked_to_account: true,
+    });
+
+    renderRoute(<BookingPage />, {
+      route: `/b/${DEMO_SLUG}/services/${BOOKING_SERVICE_ID}/book`,
+      path: "/b/:slug/services/:serviceId/book",
+    });
+
+    await screen.findByRole("heading", { level: 1, name: mockBookingService.name });
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /10:00/i })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole("button", { name: /10:00/i }));
+    await user.type(screen.getByLabelText(/full name/i), "Client User");
+    await user.type(screen.getByLabelText(/^email$/i), mockClientUser.email);
+    await user.click(getConsentCheckbox());
+    await user.click(screen.getByRole("button", { name: "Submit booking request" }));
+
+    expect(await screen.findByText("Saved to your account")).toBeInTheDocument();
+    expect(screen.getByTestId("guest-track-view-list")).toHaveAttribute("href", "/me/bookings");
+    expect(screen.queryByTestId("guest-track-create-account")).not.toBeInTheDocument();
+  });
+
+  it("signed-in client request success shows saved to account when linked", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockClientUser));
+    vi.mocked(publicApi.getPublicService).mockResolvedValue(mockOrderService);
+    vi.mocked(publicApi.createPublicOrder).mockResolvedValue({
+      id: "order-linked",
+      reference: "ORD-2026-0500",
+      status: "submitted",
+      service: { id: ORDER_SERVICE_ID, name: mockOrderService.name, type: "order" },
+      client: {
+        id: "client-1",
+        full_name: "Client User",
+        email: mockClientUser.email,
+        phone: null,
+      },
+      form_data: { details: "Need a bot" },
+      created_at: "2026-06-30T10:00:00Z",
+      payment_required: false,
+      payment: null,
+      linked_to_account: true,
+    });
+
+    renderRoute(<OrderRequestPage />, {
+      route: `/b/${DEMO_SLUG}/services/${ORDER_SERVICE_ID}/request`,
+      path: "/b/:slug/services/:serviceId/request",
+    });
+
+    await screen.findByRole("heading", { level: 1, name: mockOrderService.name });
+    await user.type(screen.getByLabelText(/full name/i), "Client User");
+    await user.type(screen.getByLabelText(/^email$/i), mockClientUser.email);
+    await user.type(screen.getByLabelText(/project \/ request details/i), "Need a bot");
+    await user.click(getConsentCheckbox());
+    await user.click(screen.getByRole("button", { name: "Submit request" }));
+
+    expect(await screen.findByText("Saved to your account")).toBeInTheDocument();
+    expect(screen.getByTestId("guest-track-view-list")).toHaveAttribute("href", "/me/orders");
+  });
+
+  it("signed-in email mismatch shows guest claim guidance", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockClientUser));
+    vi.mocked(publicApi.getPublicService).mockResolvedValue(mockOrderService);
+    vi.mocked(publicApi.createPublicOrder).mockResolvedValue({
+      id: "order-guest",
+      reference: "ORD-2026-0501",
+      status: "submitted",
+      service: { id: ORDER_SERVICE_ID, name: mockOrderService.name, type: "order" },
+      client: {
+        id: "client-2",
+        full_name: "Other Guest",
+        email: "other@example.com",
+        phone: null,
+      },
+      form_data: { details: "Need a bot" },
+      created_at: "2026-06-30T10:00:00Z",
+      payment_required: false,
+      payment: null,
+      linked_to_account: false,
+    });
+
+    renderRoute(<OrderRequestPage />, {
+      route: `/b/${DEMO_SLUG}/services/${ORDER_SERVICE_ID}/request`,
+      path: "/b/:slug/services/:serviceId/request",
+    });
+
+    await screen.findByRole("heading", { level: 1, name: mockOrderService.name });
+    await user.type(screen.getByLabelText(/full name/i), "Other Guest");
+    await user.type(screen.getByLabelText(/^email$/i), "other@example.com");
+    await user.type(screen.getByLabelText(/project \/ request details/i), "Need a bot");
+    await user.click(getConsentCheckbox());
+    await user.click(screen.getByRole("button", { name: "Submit request" }));
+
+    expect(await screen.findByText("Submitted as guest")).toBeInTheDocument();
+    expect(screen.getByTestId("guest-track-claim")).toBeInTheDocument();
+  });
+
   it("request success shows create client account, login, and claim links", async () => {
     const user = userEvent.setup();
     vi.mocked(publicApi.getPublicService).mockResolvedValue(mockOrderService);

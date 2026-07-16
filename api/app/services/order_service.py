@@ -13,6 +13,7 @@ from app.models.client import Client
 from app.models.enums import BusinessStatus, OperatingMode, OrderStatus, ServiceType
 from app.models.order import Order
 from app.models.service import Service
+from app.models.user import User
 from app.repositories.business_repository import BusinessRepository
 from app.repositories.client_repository import ClientRepository
 from app.repositories.order_repository import OrderRepository
@@ -20,6 +21,7 @@ from app.repositories.service_repository import ServiceRepository
 from app.schemas.order import PublicOrderCreate
 from app.services.email_notification_service import EmailNotificationService
 from app.services.legal_consent_service import LegalConsentService
+from app.utils.public_client_attach import resolve_attach_user_id
 from app.utils.references import generate_order_reference
 
 
@@ -35,7 +37,9 @@ class OrderService:
         self,
         business_slug: str,
         payload: PublicOrderCreate,
-    ) -> tuple[Order, Service, Client]:
+        *,
+        current_user: User | None = None,
+    ) -> tuple[Order, Service, Client, bool]:
         business = await self.business_repo.get_by_slug(business_slug)
         if business is None or business.status != BusinessStatus.active:
             raise NotFoundError("Business not found.")
@@ -52,11 +56,19 @@ class OrderService:
         if service.type != ServiceType.order:
             raise ServiceNotOrderableError("Only order services can be ordered.")
 
+        attach_user_id, _ = resolve_attach_user_id(
+            current_user,
+            payload.client.email,
+        )
         client = await self.client_repo.get_or_create_guest_client(
             business.id,
             full_name=payload.client.full_name,
             email=payload.client.email,
             phone=payload.client.phone,
+            attach_user_id=attach_user_id,
+        )
+        linked_to_account = (
+            attach_user_id is not None and client.user_id == attach_user_id
         )
 
         year = datetime.now(UTC).year
@@ -85,4 +97,4 @@ class OrderService:
         order.service = service
         order.client = client
         EmailNotificationService().notify_admin_order_submitted(order, business=business)
-        return order, service, client
+        return order, service, client, linked_to_account

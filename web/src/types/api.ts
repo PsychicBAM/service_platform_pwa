@@ -273,6 +273,7 @@ export interface PublicBookingCreateResponse {
   ends_at: string;
   payment_required: boolean;
   payment: null;
+  linked_to_account?: boolean;
 }
 
 export interface PublicOrderCreate {
@@ -310,6 +311,7 @@ export interface PublicOrderCreateResponse {
   created_at: string;
   payment_required: boolean;
   payment: null;
+  linked_to_account?: boolean;
 }
 
 export interface TokenPair {

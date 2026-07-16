@@ -5,9 +5,11 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.dependencies.auth import get_optional_user
 from app.dependencies.business import get_active_business_by_slug
 from app.models.business import Business
 from app.models.enums import ServiceType
+from app.models.user import User
 from app.schemas.booking import PublicBookingCreate, PublicBookingCreateResponse
 from app.schemas.business import PublicBusinessRead
 from app.schemas.order import PublicOrderCreate, PublicOrderCreateResponse
@@ -89,12 +91,21 @@ async def create_public_booking(
     slug: str,
     payload: PublicBookingCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
 ) -> PublicBookingCreateResponse:
-    booking, service, client = await BookingService(db).create_public_booking(
+    booking, service, client, linked_to_account = await BookingService(
+        db
+    ).create_public_booking(
         slug,
         payload,
+        current_user=current_user,
     )
-    return PublicBookingCreateResponse.from_entities(booking, service, client)
+    return PublicBookingCreateResponse.from_entities(
+        booking,
+        service,
+        client,
+        linked_to_account=linked_to_account,
+    )
 
 
 @router.post(
@@ -146,6 +157,16 @@ async def create_public_order(
     slug: str,
     payload: PublicOrderCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
 ) -> PublicOrderCreateResponse:
-    order, service, client = await OrderService(db).create_public_order(slug, payload)
-    return PublicOrderCreateResponse.from_entities(order, service, client)
+    order, service, client, linked_to_account = await OrderService(db).create_public_order(
+        slug,
+        payload,
+        current_user=current_user,
+    )
+    return PublicOrderCreateResponse.from_entities(
+        order,
+        service,
+        client,
+        linked_to_account=linked_to_account,
+    )

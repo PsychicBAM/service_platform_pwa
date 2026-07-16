@@ -21,9 +21,10 @@ import { FormField } from "@/components/FormField";
 import { LoadingState } from "@/components/LoadingState";
 import { PriceLabel } from "@/components/PriceLabel";
 import { SuccessCard } from "@/components/SuccessCard";
-import { GuestTrackActivityCard } from "@/components/GuestTrackActivityCard";
+import { GuestTrackActivityCard, type GuestTrackMode } from "@/components/GuestTrackActivityCard";
 import { TextAreaField } from "@/components/TextAreaField";
 import { TimeSlotGrid } from "@/components/TimeSlotGrid";
+import { useAuth } from "@/hooks/useAuth";
 import {
   formatBookingStatus,
   getApiErrorMessage,
@@ -85,6 +86,7 @@ function slotKey(slot: AvailabilitySlot): string {
 export function BookingPage() {
   const { slug = "", serviceId = "" } = useParams<{ slug: string; serviceId: string }>();
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
   const defaultDate = useMemo(() => generateBookingDates(1)[0]?.date ?? null, []);
   const [selectedDate, setSelectedDate] = useState<string | null>(defaultDate);
@@ -124,8 +126,11 @@ export function BookingPage() {
           phone: phone.trim() || null,
         },
       }),
-    onSuccess: () => {
+    onSuccess: async (booking) => {
       setSuccessView("booking");
+      if (booking.linked_to_account) {
+        await queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
+      }
     },
   });
 
@@ -275,6 +280,11 @@ export function BookingPage() {
 
   if (successView === "booking" && bookingMutation.data) {
     const booking = bookingMutation.data;
+    const trackMode: GuestTrackMode = booking.linked_to_account
+      ? "saved"
+      : isAuthenticated
+        ? "email_mismatch"
+        : "guest";
     return (
       <FormPageShell>
         <SuccessCard
@@ -286,9 +296,18 @@ export function BookingPage() {
             { label: "Service", value: booking.service.name },
             { label: "Date & time", value: formatDateTimeLabel(booking.starts_at) },
           ]}
-          note="The business will review and confirm your booking. Save your reference to claim it later."
+          note={
+            trackMode === "saved"
+              ? "This booking was saved to your account."
+              : "The business will review and confirm your booking. Save your reference to claim it later."
+          }
         />
-        <GuestTrackActivityCard kind="booking" reference={booking.reference} businessSlug={slug} />
+        <GuestTrackActivityCard
+          kind="booking"
+          reference={booking.reference}
+          businessSlug={slug}
+          mode={trackMode}
+        />
         <Link
           to={`/b/${slug}/services`}
           className="block rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 hover:bg-slate-50"

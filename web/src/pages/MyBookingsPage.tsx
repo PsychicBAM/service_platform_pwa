@@ -180,12 +180,16 @@ export function MyBookingsPage() {
             >
               <div className="flex min-w-0 flex-1 flex-col gap-2 p-3 sm:p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <p className="truncate font-mono text-sm font-semibold text-slate-900">
-                    {booking.reference}
-                  </p>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900">
+                      {booking.business.name}
+                    </p>
+                    <p className="mt-0.5 truncate font-mono text-xs text-slate-500">
+                      Reference: {booking.reference}
+                    </p>
+                  </div>
                   <StatusBadge status={booking.status} kind="booking" />
                 </div>
-                <p className="truncate text-sm text-slate-600">{booking.business.name}</p>
                 <p className="truncate text-sm font-medium text-slate-800">{booking.service.name}</p>
                 <p className="mt-auto text-sm text-slate-600">
                   {formatDateTimeLabel(booking.starts_at)}

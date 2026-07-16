@@ -81,9 +81,17 @@ class PublicBookingCreateResponse(BaseModel):
     ends_at: datetime
     payment_required: bool = False
     payment: None = None
+    linked_to_account: bool = False
 
     @classmethod
-    def from_entities(cls, booking, service, client) -> "PublicBookingCreateResponse":
+    def from_entities(
+        cls,
+        booking,
+        service,
+        client,
+        *,
+        linked_to_account: bool = False,
+    ) -> "PublicBookingCreateResponse":
         return cls(
             id=booking.id,
             reference=booking.reference,
@@ -103,6 +111,7 @@ class PublicBookingCreateResponse(BaseModel):
             ends_at=booking.ends_at,
             payment_required=False,
             payment=None,
+            linked_to_account=linked_to_account,
         )
 
 

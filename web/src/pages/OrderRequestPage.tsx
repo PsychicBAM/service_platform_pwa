@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createPublicOrder, getPublicService } from "@/api/publicApi";
 import { FormPageShell } from "@/components/FormPageShell";
 import {
@@ -11,8 +11,9 @@ import { ErrorState } from "@/components/ErrorState";
 import { FormField } from "@/components/FormField";
 import { LoadingState } from "@/components/LoadingState";
 import { PriceLabel } from "@/components/PriceLabel";
-import { GuestTrackActivityCard } from "@/components/GuestTrackActivityCard";
+import { GuestTrackActivityCard, type GuestTrackMode } from "@/components/GuestTrackActivityCard";
 import { TextAreaField } from "@/components/TextAreaField";
+import { useAuth } from "@/hooks/useAuth";
 import {
   formatOrderStatus,
   getApiErrorMessage,
@@ -63,6 +64,8 @@ function descriptionPreview(description: string | null): string | null {
 
 export function OrderRequestPage() {
   const { slug = "", serviceId = "" } = useParams<{ slug: string; serviceId: string }>();
+  const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -90,6 +93,11 @@ export function OrderRequestPage() {
           phone: phone.trim() || null,
         },
       }),
+    onSuccess: async (order) => {
+      if (order.linked_to_account) {
+        await queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      }
+    },
   });
 
   const handleSubmit = async (event: FormEvent) => {
@@ -149,6 +157,11 @@ export function OrderRequestPage() {
 
   if (orderMutation.isSuccess && orderMutation.data) {
     const order = orderMutation.data;
+    const trackMode: GuestTrackMode = order.linked_to_account
+      ? "saved"
+      : isAuthenticated
+        ? "email_mismatch"
+        : "guest";
     return (
       <FormPageShell>
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
@@ -169,11 +182,17 @@ export function OrderRequestPage() {
             </div>
           </dl>
           <p className="mt-4 text-sm text-emerald-800">
-            The business will review your request and contact you. Save your reference to claim it
-            later.
+            {trackMode === "saved"
+              ? "This request was saved to your account."
+              : "The business will review your request and contact you. Save your reference to claim it later."}
           </p>
         </div>
-        <GuestTrackActivityCard kind="order" reference={order.reference} businessSlug={slug} />
+        <GuestTrackActivityCard
+          kind="order"
+          reference={order.reference}
+          businessSlug={slug}
+          mode={trackMode}
+        />
         <Link
           to={`/b/${slug}/services`}
           className="block rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 hover:bg-slate-50"

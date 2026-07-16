@@ -96,7 +96,6 @@ export function createPublicBooking(slug: string, payload: PublicBookingCreate) 
   return apiClient.post<PublicBookingCreateResponse>(
     `/public/b/${encodeSlug(slug)}/bookings`,
     payload,
-    { auth: false },
   );
 }
 
@@ -112,7 +111,6 @@ export function createPublicOrder(slug: string, payload: PublicOrderCreate) {
   return apiClient.post<PublicOrderCreateResponse>(
     `/public/b/${encodeSlug(slug)}/orders`,
     payload,
-    { auth: false },
   );
 }
 
