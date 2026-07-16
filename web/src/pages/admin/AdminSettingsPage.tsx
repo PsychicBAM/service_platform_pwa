@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type HTMLAttributes } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createBillingCheckoutSession } from "@/api/billingApi";
 import { getBusiness, updateBusiness } from "@/api/adminApi";
@@ -218,6 +218,8 @@ function TextInput({
   type = "text",
   placeholder,
   required,
+  inputMode,
+  autoComplete,
 }: {
   id: string;
   value: string;
@@ -226,11 +228,15 @@ function TextInput({
   type?: string;
   placeholder?: string;
   required?: boolean;
+  inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
+  autoComplete?: string;
 }) {
   return (
     <input
       id={id}
       type={type}
+      inputMode={inputMode}
+      autoComplete={autoComplete}
       value={value}
       required={required}
       disabled={disabled}
@@ -344,6 +350,7 @@ export function AdminSettingsPage() {
           onSubmit={handleSubmit}
           className="space-y-4"
           data-testid="admin-business-settings-form"
+          noValidate
         >
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
             <h3 className="text-sm font-medium text-slate-700">Business profile</h3>
@@ -399,7 +406,9 @@ export function AdminSettingsPage() {
               <FieldLabel htmlFor="contactEmail">Contact email</FieldLabel>
               <TextInput
                 id="contactEmail"
-                type="email"
+                type="text"
+                inputMode="email"
+                autoComplete="email"
                 value={form.contact_email}
                 disabled={saving}
                 onChange={(value) => updateForm("contact_email", value)}
@@ -573,9 +582,18 @@ export function AdminSettingsPage() {
               email delivery is configured).
             </p>
           </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+            data-testid="admin-settings-save"
+          >
+            {saving ? "Saving…" : "Save settings"}
+          </button>
         </form>
 
-        {/* Outside the settings form so test-email HTML validation cannot block Save settings. */}
+        {/* Outside the settings form so test-email controls cannot interfere with Save. */}
         <AdminEmailDeliverySection />
 
         <div className="space-y-4">
@@ -672,16 +690,6 @@ export function AdminSettingsPage() {
               ) : null}
             </dl>
           </div>
-
-          <button
-            type="submit"
-            form="admin-business-settings-form"
-            disabled={saving}
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
-            data-testid="admin-settings-save"
-          >
-            {saving ? "Saving…" : "Save settings"}
-          </button>
         </div>
         </div>
       ) : null}

@@ -197,6 +197,8 @@ describe("admin email delivery settings", () => {
 
     const settingsForm = screen.getByTestId("admin-business-settings-form");
     expect(settingsForm).not.toContainElement(screen.getByTestId("admin-email-delivery-section"));
+    expect(settingsForm).toContainElement(screen.getByTestId("admin-settings-save"));
+    expect(screen.getByTestId("admin-settings-save")).toHaveAttribute("type", "submit");
     expect(screen.getByTestId("admin-email-test-submit")).toHaveAttribute("type", "button");
 
     const nameInput = screen.getByLabelText(/business name/i);

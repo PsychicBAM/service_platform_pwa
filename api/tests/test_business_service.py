@@ -59,6 +59,7 @@ async def test_update_settings_merges_unknown_keys(db_session: AsyncSession) -> 
 @pytest.mark.asyncio
 async def test_update_admin_business_applies_profile_and_settings(
     db_session: AsyncSession,
+    db_engine,
 ) -> None:
     business = Business(
         id=uuid.uuid4(),
@@ -85,3 +86,14 @@ async def test_update_admin_business_applies_profile_and_settings(
     assert result.name == "Renamed Biz"
     assert result.timezone == "Europe/London"
     assert result.settings.cancellation_hours == 36
+
+    # Commit must persist beyond the request session (regression: flush-only rolled back).
+    from tests.conftest import _session_factory
+
+    factory = _session_factory(db_engine)
+    async with factory() as verify_session:
+        reloaded = await verify_session.get(Business, business.id)
+        assert reloaded is not None
+        assert reloaded.name == "Renamed Biz"
+        assert reloaded.timezone == "Europe/London"
+        assert reloaded.settings["cancellation_hours"] == 36

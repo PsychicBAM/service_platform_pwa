@@ -244,6 +244,7 @@ class BusinessService:
         if data:
             await self.repo.update_business(business, data)
 
+        await self.session.commit()
         await self.session.refresh(business)
         subscription = await self.repo.get_subscription(business.id)
         return self._to_admin_read(business, subscription)
