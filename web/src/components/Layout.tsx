@@ -34,7 +34,7 @@ export function Layout() {
                   Bookings
                 </Link>
                 <Link to="/me/orders" className="shrink-0 whitespace-nowrap py-1 text-slate-600 hover:text-brand-700">
-                  Orders
+                  Requests
                 </Link>
                 <button
                   type="button"

@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Layout } from "@/components/Layout";
 import { MeAccountPage } from "@/pages/MeAccountPage";
 import { MyBookingsPage } from "@/pages/MyBookingsPage";
 import { MyOrdersPage } from "@/pages/MyOrdersPage";
+import { ClaimGuestPage } from "@/pages/ClaimGuestPage";
 import { useAuth } from "@/hooks/useAuth";
 import * as meApi from "@/api/meApi";
 import {
@@ -53,17 +55,48 @@ describe("client area mobile UX", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockClientUser));
+    vi.mocked(meApi.listMyBookings).mockResolvedValue({
+      data: [],
+      meta: emptyListMeta,
+    });
+    vi.mocked(meApi.listMyOrders).mockResolvedValue({
+      data: [],
+      meta: emptyListMeta,
+    });
   });
 
-  it("renders /me account dashboard quick links as mobile-friendly cards", async () => {
+  it("renders /me account dashboard with onboarding sections and quick actions", async () => {
     renderRoute(<MeAccountPage />, { route: "/me", path: "/me" });
 
     expect(await screen.findByTestId("me-account-page")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Your account" })).toBeInTheDocument();
+    expect(screen.getByTestId("me-signed-in-card")).toHaveTextContent(mockClientUser.email);
+    expect(screen.getByTestId("me-how-it-works")).toHaveTextContent(
+      "How your client account works",
+    );
+
     const links = screen.getByTestId("me-account-links");
     expect(links.className).toMatch(/grid-cols-1/);
     expect(screen.getByTestId("me-link-bookings")).toHaveAttribute("href", "/me/bookings");
+    expect(screen.getByTestId("me-link-bookings")).toHaveTextContent("Open bookings");
     expect(screen.getByTestId("me-link-orders")).toHaveAttribute("href", "/me/orders");
-    expect(screen.getByRole("heading", { name: "Account" })).toBeInTheDocument();
+    expect(screen.getByTestId("me-link-orders")).toHaveTextContent("Open requests");
+    expect(screen.getByTestId("me-link-claim")).toHaveAttribute("href", "/me/claim");
+    expect(screen.getByTestId("me-link-businesses")).toHaveAttribute("href", "/businesses");
+
+    expect(await screen.findByTestId("me-next-steps")).toBeInTheDocument();
+    expect(screen.getByTestId("me-next-browse")).toHaveAttribute("href", "/businesses");
+    expect(screen.getByTestId("me-account-summary")).toHaveTextContent("Upcoming bookings");
+    expect(screen.getByTestId("me-account-summary")).toHaveTextContent("Open requests");
+  });
+
+  it("client nav shows Account, Bookings, and Requests", () => {
+    renderRoute(<Layout />, { route: "/me", path: "/me" });
+
+    expect(screen.getByRole("link", { name: "Account" })).toHaveAttribute("href", "/me");
+    expect(screen.getByRole("link", { name: "Bookings" })).toHaveAttribute("href", "/me/bookings");
+    expect(screen.getByRole("link", { name: "Requests" })).toHaveAttribute("href", "/me/orders");
+    expect(screen.queryByRole("link", { name: "Orders" })).not.toBeInTheDocument();
   });
 
   it("renders mobile-friendly booking cards with business, service, time, status, and cancel", async () => {
@@ -86,6 +119,9 @@ describe("client area mobile UX", () => {
     expect(card).toHaveTextContent("Confirmed");
     expect(within(card).getByText(longBusinessName).className).toMatch(/truncate/);
     expect(screen.getByTestId(`my-booking-cancel-${upcomingBooking.id}`)).toBeInTheDocument();
+    expect(
+      screen.getByText("Upcoming and past appointments linked to your account."),
+    ).toBeInTheDocument();
   });
 
   it("shows Leave review on completed reviewable booking", async () => {
@@ -102,7 +138,7 @@ describe("client area mobile UX", () => {
     expect(await screen.findByTestId("leave-review-button")).toBeInTheDocument();
   });
 
-  it("renders bookings empty state", async () => {
+  it("renders bookings empty state with browse and claim links", async () => {
     vi.mocked(meApi.listMyBookings).mockResolvedValue({
       data: [],
       meta: emptyListMeta,
@@ -116,8 +152,16 @@ describe("client area mobile UX", () => {
     expect(await screen.findByTestId("my-bookings-empty")).toBeInTheDocument();
     expect(screen.getByText("No bookings yet")).toBeInTheDocument();
     expect(
-      screen.getByText("Your bookings will appear here after you schedule a service."),
+      screen.getByText("Book a service from a business page and it will appear here."),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Browse businesses" })).toHaveAttribute(
+      "href",
+      "/businesses",
+    );
+    expect(screen.getByRole("link", { name: "Claim guest booking" })).toHaveAttribute(
+      "href",
+      "/me/claim?type=booking",
+    );
   });
 
   it("cancel booking opens custom confirm without window.confirm", async () => {
@@ -196,9 +240,13 @@ describe("client area mobile UX", () => {
     expect(message.className).toMatch(/line-clamp-2/);
     expect(screen.getByTestId(`my-order-view-${ORDER_ID}`)).toBeInTheDocument();
     expect(screen.getByTestId(`my-order-cancel-${ORDER_ID}`)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "My requests" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Track service requests, business replies, and status updates."),
+    ).toBeInTheDocument();
   });
 
-  it("renders orders empty state", async () => {
+  it("renders orders empty state with browse and claim links", async () => {
     vi.mocked(meApi.listMyOrders).mockResolvedValue({
       data: [],
       meta: emptyListMeta,
@@ -212,10 +260,16 @@ describe("client area mobile UX", () => {
     expect(await screen.findByTestId("my-orders-empty")).toBeInTheDocument();
     expect(screen.getByText("No requests yet")).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "Your service requests will appear here after you contact a business.",
-      ),
+      screen.getByText("Send a service request to a business and it will appear here."),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Browse businesses" })).toHaveAttribute(
+      "href",
+      "/businesses",
+    );
+    expect(screen.getByRole("link", { name: "Claim guest request" })).toHaveAttribute(
+      "href",
+      "/me/claim?type=order",
+    );
   });
 
   it("shows Leave review on completed reviewable order", async () => {
@@ -268,5 +322,22 @@ describe("client area mobile UX", () => {
 
     confirmSpy.mockRestore();
     promptSpy.mockRestore();
+  });
+
+  it("claim guest page explains reference-based claim flow", () => {
+    renderRoute(<ClaimGuestPage />, {
+      route: "/me/claim",
+      path: "/me/claim",
+    });
+
+    expect(
+      screen.getByText("This links a guest booking or request to your signed-in account."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Enter the reference from your confirmation, plus the same email or phone you used as a guest.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("claim-guest-form")).toBeInTheDocument();
   });
 });

@@ -97,6 +97,10 @@ export function ClaimGuestPage() {
     return (
       <FormPageShell>
         <h1 className="text-xl font-bold md:text-2xl">Claim a booking or request</h1>
+        <p className="text-sm text-slate-600">
+          This links a guest booking or request to your signed-in account so you can manage it
+          here.
+        </p>
         <AuthPrompt description="Log in to link a guest booking or request to your account." />
       </FormPageShell>
     );
@@ -116,7 +120,7 @@ export function ClaimGuestPage() {
   if (success) {
     const listPath = success.type === "booking" ? "/me/bookings" : "/me/orders";
     const listLabel =
-      success.type === "booking" ? "Go to my bookings" : "Go to my orders";
+      success.type === "booking" ? "Go to my bookings" : "Go to my requests";
 
     return (
       <FormPageShell>
@@ -139,7 +143,7 @@ export function ClaimGuestPage() {
           </p>
           <Link
             to={listPath}
-            className="mt-4 inline-flex rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
           >
             {listLabel}
           </Link>
@@ -152,14 +156,18 @@ export function ClaimGuestPage() {
     <FormPageShell>
       <h1 className="text-xl font-bold md:text-2xl">Claim a booking or request</h1>
       <p className="text-sm text-slate-600">
-        Use the reference and the same email or phone you used when submitting as a guest.
+        This links a guest booking or request to your signed-in account.
+      </p>
+      <p className="text-sm text-slate-600">
+        Enter the reference from your confirmation, plus the same email or phone you used as a
+        guest.
       </p>
 
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setClaimType("booking")}
-          className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+          className={`min-h-10 rounded-full px-3 py-1.5 text-sm font-medium ${
             claimType === "booking"
               ? "bg-brand-600 text-white"
               : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
@@ -170,7 +178,7 @@ export function ClaimGuestPage() {
         <button
           type="button"
           onClick={() => setClaimType("order")}
-          className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+          className={`min-h-10 rounded-full px-3 py-1.5 text-sm font-medium ${
             claimType === "order"
               ? "bg-brand-600 text-white"
               : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
@@ -182,8 +190,9 @@ export function ClaimGuestPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         noValidate
+        data-testid="claim-guest-form"
       >
         <FormField
           label="Reference"
@@ -225,7 +234,7 @@ export function ClaimGuestPage() {
         <button
           type="submit"
           disabled={claimMutation.isPending}
-          className="w-full rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+          className="min-h-11 w-full rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
         >
           {claimMutation.isPending
             ? "Claiming…"

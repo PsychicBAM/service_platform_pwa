@@ -84,7 +84,7 @@ export function MyOrdersPage() {
       <div>
         <h1 className="text-xl font-bold text-slate-900 md:text-2xl">My requests</h1>
         <p className="mt-0.5 text-sm text-slate-600">
-          Track service requests, messages, and status updates.
+          Track service requests, business replies, and status updates.
         </p>
       </div>
       <p className="text-sm text-slate-600">
@@ -131,11 +131,25 @@ export function MyOrdersPage() {
       {!ordersQuery.isLoading &&
       !ordersQuery.isError &&
       ordersQuery.data?.data.length === 0 ? (
-        <div data-testid="my-orders-empty">
+        <div className="space-y-3" data-testid="my-orders-empty">
           <EmptyState
             title="No requests yet"
-            description="Your service requests will appear here after you contact a business."
+            description="Send a service request to a business and it will appear here."
           />
+          <div className="flex flex-wrap justify-center gap-2">
+            <Link
+              to="/businesses"
+              className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Browse businesses
+            </Link>
+            <Link
+              to="/me/claim?type=order"
+              className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Claim guest request
+            </Link>
+          </div>
         </div>
       ) : null}
 

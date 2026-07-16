@@ -83,7 +83,7 @@ export function MyBookingsPage() {
       <div>
         <h1 className="text-xl font-bold text-slate-900 md:text-2xl">My bookings</h1>
         <p className="mt-0.5 text-sm text-slate-600">
-          View upcoming appointments and manage cancellations.
+          Upcoming and past appointments linked to your account.
         </p>
       </div>
       <p className="text-sm text-slate-600">
@@ -130,11 +130,25 @@ export function MyBookingsPage() {
       {!bookingsQuery.isLoading &&
       !bookingsQuery.isError &&
       bookingsQuery.data?.data.length === 0 ? (
-        <div data-testid="my-bookings-empty">
+        <div className="space-y-3" data-testid="my-bookings-empty">
           <EmptyState
             title="No bookings yet"
-            description="Your bookings will appear here after you schedule a service."
+            description="Book a service from a business page and it will appear here."
           />
+          <div className="flex flex-wrap justify-center gap-2">
+            <Link
+              to="/businesses"
+              className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Browse businesses
+            </Link>
+            <Link
+              to="/me/claim?type=booking"
+              className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Claim guest booking
+            </Link>
+          </div>
         </div>
       ) : null}
 
