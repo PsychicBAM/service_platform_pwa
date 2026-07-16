@@ -1,6 +1,16 @@
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+/** Mobile: fixed to viewport. Desktop (md+): sticky in document flow. */
+export const siteHeaderBarClass =
+  "fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 md:sticky";
+
+/** Matches site header bar height (h-14). Hidden on desktop where header is in flow. */
+export const siteHeaderOffsetClass = "h-14 shrink-0 md:hidden";
+
+export const siteHeaderInnerClass =
+  "mx-auto flex h-14 w-full items-center justify-between gap-4 px-4 md:px-6";
+
 type SiteMobileMenuButtonProps = {
   menuOpen: boolean;
   menuId: string;

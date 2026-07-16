@@ -4,6 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   SiteMobileMenuButton,
   SiteMobileMenuDrawer,
+  siteHeaderBarClass,
+  siteHeaderInnerClass,
+  siteHeaderOffsetClass,
   siteMobileMenuLinkClass,
 } from "@/components/SiteMobileMenu";
 
@@ -26,90 +29,94 @@ export function PublicSiteHeader({ active = "home" }: PublicSiteHeaderProps) {
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   return (
-    <header
-      className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90"
-      data-testid="public-site-header"
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
-        <div className="flex min-w-0 items-center gap-8">
-          <Link to="/" className="flex shrink-0 items-center gap-2" onClick={closeMenu}>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-700 text-sm font-bold text-white">
-              S
-            </span>
-            <span className="text-lg font-semibold text-slate-900">Service Platform</span>
-          </Link>
-          <nav
-            className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex"
-            data-testid="public-site-desktop-nav"
+    <>
+      <header className={siteHeaderBarClass} data-testid="public-site-header">
+        <div className={`${siteHeaderInnerClass} max-w-7xl`}>
+          <div className="flex min-w-0 items-center gap-8">
+            <Link to="/" className="flex shrink-0 items-center gap-2" onClick={closeMenu}>
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-700 text-sm font-bold text-white">
+                S
+              </span>
+              <span className="text-lg font-semibold text-slate-900">Service Platform</span>
+            </Link>
+            <nav
+              className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex"
+              data-testid="public-site-desktop-nav"
+            >
+              <Link to="/" className={navLinkClass(active === "home")}>
+                Home
+              </Link>
+              <Link to="/businesses" className={navLinkClass(active === "marketplace")}>
+                Marketplace
+              </Link>
+              <Link to="/businesses" className="hover:text-brand-700">
+                Reviews
+              </Link>
+              <Link to="/pricing" className={navLinkClass(active === "pricing")}>
+                Pricing
+              </Link>
+              <Link to="/#how-it-works" className="hover:text-brand-700">
+                How it works
+              </Link>
+            </nav>
+          </div>
+
+          <div
+            className="hidden shrink-0 items-center gap-2 sm:gap-3 md:flex"
+            data-testid="public-site-desktop-actions"
           >
-            <Link to="/" className={navLinkClass(active === "home")}>
-              Home
-            </Link>
-            <Link to="/businesses" className={navLinkClass(active === "marketplace")}>
-              Marketplace
-            </Link>
-            <Link to="/businesses" className="hover:text-brand-700">
-              Reviews
-            </Link>
-            <Link to="/pricing" className={navLinkClass(active === "pricing")}>
-              Pricing
-            </Link>
-            <Link to="/#how-it-works" className="hover:text-brand-700">
-              How it works
-            </Link>
-          </nav>
-        </div>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/me"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-brand-700"
+                >
+                  Account
+                </Link>
+                <Link
+                  to="/me/bookings"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-brand-700"
+                >
+                  My bookings
+                </Link>
+                <Link
+                  to="/admin"
+                  className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800"
+                >
+                  Dashboard
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-brand-700"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/pricing"
+                  className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
+          </div>
 
-        <div
-          className="hidden shrink-0 items-center gap-2 sm:gap-3 md:flex"
-          data-testid="public-site-desktop-actions"
-        >
-          {isAuthenticated ? (
-            <>
-              <Link
-                to="/me"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-brand-700"
-              >
-                Account
-              </Link>
-              <Link
-                to="/me/bookings"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-brand-700"
-              >
-                My bookings
-              </Link>
-              <Link
-                to="/admin"
-                className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800"
-              >
-                Dashboard
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-brand-700"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/pricing"
-                className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800"
-              >
-                Get started
-              </Link>
-            </>
-          )}
+          <SiteMobileMenuButton
+            menuOpen={menuOpen}
+            menuId={menuId}
+            onOpen={() => setMenuOpen(true)}
+            testId="public-site-mobile-menu-button"
+          />
         </div>
-
-        <SiteMobileMenuButton
-          menuOpen={menuOpen}
-          menuId={menuId}
-          onOpen={() => setMenuOpen(true)}
-          testId="public-site-mobile-menu-button"
-        />
-      </div>
+      </header>
+      <div
+        className={siteHeaderOffsetClass}
+        aria-hidden="true"
+        data-testid="public-site-header-offset"
+      />
 
       <SiteMobileMenuDrawer
         open={menuOpen}
@@ -206,7 +213,7 @@ export function PublicSiteHeader({ active = "home" }: PublicSiteHeaderProps) {
           </>
         )}
       </SiteMobileMenuDrawer>
-    </header>
+    </>
   );
 }
 

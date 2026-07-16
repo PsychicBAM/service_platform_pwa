@@ -19,13 +19,19 @@ describe("public site header", () => {
     vi.mocked(useAuth).mockReturnValue(mockUnauthenticatedAuth());
   });
 
-  it("renders sticky mobile hamburger and keeps desktop nav with desktop classes", async () => {
+  it("renders fixed mobile hamburger and keeps desktop nav with desktop classes", async () => {
     renderRoute(<PublicSiteHeader active="home" />, { route: "/", path: "/" });
 
     const header = screen.getByTestId("public-site-header");
-    expect(header.className).toMatch(/sticky/);
+    expect(header.className).toMatch(/fixed/);
+    expect(header.className).toMatch(/inset-x-0/);
     expect(header.className).toMatch(/top-0/);
     expect(header.className).toMatch(/z-50/);
+    expect(header.className).toMatch(/md:sticky/);
+
+    const offset = screen.getByTestId("public-site-header-offset");
+    expect(offset.className).toMatch(/h-14/);
+    expect(offset.className).toMatch(/md:hidden/);
 
     const menuButton = screen.getByTestId("public-site-mobile-menu-button");
     expect(menuButton).toHaveAttribute("aria-expanded", "false");

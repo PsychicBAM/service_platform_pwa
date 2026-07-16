@@ -104,9 +104,15 @@ describe("client area mobile UX", () => {
     renderRoute(<Layout />, { route: "/me", path: "/me" });
 
     const header = screen.getByTestId("app-layout-header");
-    expect(header.className).toMatch(/sticky/);
+    expect(header.className).toMatch(/fixed/);
+    expect(header.className).toMatch(/inset-x-0/);
     expect(header.className).toMatch(/top-0/);
     expect(header.className).toMatch(/z-50/);
+    expect(header.className).toMatch(/md:sticky/);
+
+    const offset = screen.getByTestId("app-layout-header-offset");
+    expect(offset.className).toMatch(/h-14/);
+    expect(offset.className).toMatch(/md:hidden/);
 
     const desktopNav = screen.getByTestId("app-layout-desktop-nav");
     expect(desktopNav.className).toMatch(/hidden/);
@@ -177,7 +183,7 @@ describe("client area mobile UX", () => {
     expect(logout).toHaveBeenCalled();
   });
 
-  it("verify email banner stays below sticky header for unverified clients", () => {
+  it("verify email banner stays below fixed header for unverified clients", () => {
     vi.mocked(useAuth).mockReturnValue(
       mockAuthenticatedAuth({ ...mockClientUser, email_verified: false }),
     );

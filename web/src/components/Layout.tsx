@@ -4,6 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   SiteMobileMenuButton,
   SiteMobileMenuDrawer,
+  siteHeaderBarClass,
+  siteHeaderOffsetClass,
   siteMobileMenuLinkClass,
 } from "@/components/SiteMobileMenu";
 
@@ -20,11 +22,8 @@ export function Layout() {
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col md:max-w-3xl lg:max-w-5xl">
-      <header
-        className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90"
-        data-testid="app-layout-header"
-      >
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
+      <header className={siteHeaderBarClass} data-testid="app-layout-header">
+        <div className="mx-auto flex h-14 w-full items-center justify-between gap-3 px-4">
           <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2" onClick={closeMenu}>
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-700 text-sm font-bold text-white">
               S
@@ -80,6 +79,11 @@ export function Layout() {
           />
         </div>
       </header>
+      <div
+        className={siteHeaderOffsetClass}
+        aria-hidden="true"
+        data-testid="app-layout-header-offset"
+      />
 
       {isAuthenticated && user && user.email_verified === false ? (
         <div
