@@ -2,11 +2,15 @@ import { FormEvent, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { registerClient } from "@/api/authApi";
+import { claimGuestBooking, claimGuestOrder } from "@/api/meApi";
 import { AuthPageShell } from "@/components/AuthPageShell";
 import { ErrorState } from "@/components/ErrorState";
 import { getRegisterErrorMessage } from "@/utils/errors";
 
 const MIN_PASSWORD_LENGTH = 8;
+
+const AUTO_CLAIM_FAILED_MESSAGE =
+  "Your account was created. We could not link this item automatically. Please confirm the guest email or phone used when booking.";
 
 export function ClientRegisterPage() {
   const navigate = useNavigate();
@@ -23,20 +27,39 @@ export function ClientRegisterPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function buildClaimPath(): string {
+  function buildClaimPath(extra?: Record<string, string>): string {
     const params = new URLSearchParams();
     params.set("type", claimType);
     if (reference) {
       params.set("reference", reference);
     }
+    if (extra) {
+      for (const [key, value] of Object.entries(extra)) {
+        params.set(key, value);
+      }
+    }
     return `/me/claim?${params.toString()}`;
+  }
+
+  async function tryAutoClaim(claimEmail: string): Promise<boolean> {
+    if (!reference) {
+      return false;
+    }
+    const payload = { reference, email: claimEmail };
+    if (claimType === "booking") {
+      await claimGuestBooking(payload);
+    } else {
+      await claimGuestOrder(payload);
+    }
+    return true;
   }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitError(null);
     const errors: Record<string, string> = {};
-    if (!email.trim()) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
       errors.email = "Email is required.";
     }
     if (!password) {
@@ -55,11 +78,25 @@ export function ClientRegisterPage() {
     setLoading(true);
     try {
       await registerClient({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password,
         full_name: fullName.trim() || null,
       });
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+
+      if (reference) {
+        try {
+          await tryAutoClaim(normalizedEmail);
+          navigate(claimType === "booking" ? "/me/bookings" : "/me/orders");
+          return;
+        } catch {
+          navigate(buildClaimPath({ autoClaimFailed: "1" }), {
+            state: { message: AUTO_CLAIM_FAILED_MESSAGE },
+          });
+          return;
+        }
+      }
+
       navigate(buildClaimPath());
     } catch (err) {
       setSubmitError(getRegisterErrorMessage(err));
@@ -83,8 +120,7 @@ export function ClientRegisterPage() {
       >
         <p className="font-medium">Use the same email you used when booking or sending a request.</p>
         <p className="mt-1">
-          After creating your account, claim your booking or request with its reference and the
-          same email or phone you used as a guest.
+          After creating your account, we can link your booking or request using its reference.
         </p>
         {reference ? (
           <p className="mt-2 break-all font-mono text-xs font-semibold">

@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { claimGuestBooking, claimGuestOrder } from "@/api/meApi";
 import { FormPageShell } from "@/components/FormPageShell";
@@ -25,11 +25,14 @@ type FieldErrors = {
 };
 
 type ClaimSuccess =
-  | { type: "booking"; item: MyBookingDetail }
-  | { type: "order"; item: MyOrderDetail };
+  | { type: "booking"; item: MyBookingDetail; alreadyLinked: boolean }
+  | { type: "order"; item: MyOrderDetail; alreadyLinked: boolean };
 
 function parseClaimType(value: string | null): ClaimType {
-  return value === "order" ? "order" : "booking";
+  if (value === "order" || value === "request") {
+    return "order";
+  }
+  return "booking";
 }
 
 function validateClaimForm(reference: string, email: string, phone: string): FieldErrors {
@@ -62,27 +65,49 @@ function buildPayload(reference: string, email: string, phone: string) {
 }
 
 export function ClaimGuestPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const locationMessage =
+    typeof (location.state as { message?: unknown } | null)?.message === "string"
+      ? ((location.state as { message: string }).message)
+      : null;
+  const autoClaimFailed = searchParams.get("autoClaimFailed") === "1";
+
   const [claimType, setClaimType] = useState<ClaimType>(
     parseClaimType(searchParams.get("type")),
   );
   const [reference, setReference] = useState(searchParams.get("reference")?.trim() ?? "");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => user?.email ?? "");
   const [phone, setPhone] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState<ClaimSuccess | null>(null);
+  const [emailTouched, setEmailTouched] = useState(Boolean(user?.email));
+
+  useEffect(() => {
+    if (!emailTouched && user?.email) {
+      setEmail(user.email);
+    }
+  }, [emailTouched, user?.email]);
 
   const claimMutation = useMutation({
     mutationFn: async (): Promise<ClaimSuccess> => {
       const payload = buildPayload(reference, email, phone);
       if (claimType === "booking") {
         const response: ClaimGuestBookingResponse = await claimGuestBooking(payload);
-        return { type: "booking", item: response.booking };
+        return {
+          type: "booking",
+          item: response.booking,
+          alreadyLinked: Boolean(response.already_linked),
+        };
       }
       const response: ClaimGuestOrderResponse = await claimGuestOrder(payload);
-      return { type: "order", item: response.order };
+      return {
+        type: "order",
+        item: response.order,
+        alreadyLinked: Boolean(response.already_linked),
+      };
     },
     onSuccess: (result) => {
       setSuccess(result);
@@ -148,7 +173,9 @@ export function ClaimGuestPage() {
       <FormPageShell>
         <h1 className="text-xl font-bold md:text-2xl">Claim a booking or request</h1>
         <article className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
-          <p className="text-sm font-semibold text-emerald-800">Claimed successfully</p>
+          <p className="text-sm font-semibold text-emerald-800">
+            {success.alreadyLinked ? "Already linked to your account" : "Claimed successfully"}
+          </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <p className="font-mono text-sm font-semibold text-slate-900">
               {success.item.reference}
@@ -158,11 +185,7 @@ export function ClaimGuestPage() {
               kind={success.type === "booking" ? "booking" : "order"}
             />
           </div>
-          <p className="mt-2 text-sm text-slate-600">
-            {success.type === "booking"
-              ? success.item.service.name
-              : success.item.service.name}
-          </p>
+          <p className="mt-2 text-sm text-slate-600">{success.item.service.name}</p>
           <Link
             to={listPath}
             className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
@@ -181,9 +204,18 @@ export function ClaimGuestPage() {
         This links a guest booking or request to your signed-in account.
       </p>
       <p className="text-sm text-slate-600">
-        Enter the reference from your confirmation, plus the same email or phone you used as a
-        guest.
+        Use the same email or phone you entered when booking as a guest.
       </p>
+
+      {autoClaimFailed || locationMessage ? (
+        <div
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
+          data-testid="claim-auto-failed-note"
+        >
+          {locationMessage ||
+            "Your account was created. We could not link this item automatically. Please confirm the guest email or phone used when booking."}
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         <button
@@ -232,7 +264,10 @@ export function ClaimGuestPage() {
           name="email"
           type="email"
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          onChange={(event) => {
+            setEmailTouched(true);
+            setEmail(event.target.value);
+          }}
           placeholder="guest@example.com"
           autoComplete="email"
           error={fieldErrors.email ?? fieldErrors.contact}
@@ -246,7 +281,7 @@ export function ClaimGuestPage() {
           onChange={(event) => setPhone(event.target.value)}
           placeholder="+15550101"
           autoComplete="tel"
-          hint="Provide at least one of email or phone."
+          hint="Optional if you provide email. Use the same contact you entered as a guest."
         />
 
         {submitError ? (

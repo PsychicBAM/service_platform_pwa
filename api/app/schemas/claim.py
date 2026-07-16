@@ -78,7 +78,9 @@ class ClaimGuestOrderRequest(BaseModel):
 
 class ClaimGuestBookingResponse(BaseModel):
     booking: MyBookingDetail
+    already_linked: bool = False
 
 
 class ClaimGuestOrderResponse(BaseModel):
     order: MyOrderDetail
+    already_linked: bool = False

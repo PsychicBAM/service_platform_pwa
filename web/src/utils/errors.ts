@@ -363,11 +363,27 @@ export function getClaimErrorMessage(error: unknown, fallback = "Something went 
     if (error.status === 401) {
       return "Please log in first.";
     }
+    if (error.code === "CLAIM_ALREADY_LINKED") {
+      return (
+        error.message ||
+        "This booking or request is already linked to another account."
+      );
+    }
     if (error.code === "CLAIM_NOT_FOUND_OR_MISMATCH") {
-      return "We could not find a matching guest item. Check the reference and contact.";
+      return (
+        error.message ||
+        "We could not find a matching booking or request. Check the reference and the email or phone used as a guest."
+      );
     }
     if (error.status === 422) {
       return "Check the reference and contact fields.";
+    }
+    if (error.status >= 500) {
+      return "Something went wrong while claiming. Please try again in a moment.";
+    }
+    // Avoid surfacing raw gateway phrases like "Internal Server Error".
+    if (/internal server error/i.test(error.message)) {
+      return "Something went wrong while claiming. Please try again in a moment.";
     }
     return error.message;
   }
@@ -375,6 +391,9 @@ export function getClaimErrorMessage(error: unknown, fallback = "Something went 
     return "Could not reach the server. Check your connection and try again.";
   }
   if (error instanceof Error) {
+    if (/internal server error/i.test(error.message)) {
+      return "Something went wrong while claiming. Please try again in a moment.";
+    }
     return error.message;
   }
   return fallback;

@@ -549,10 +549,12 @@ export interface ClaimGuestOrderPayload {
 
 export interface ClaimGuestBookingResponse {
   booking: MyBookingDetail;
+  already_linked?: boolean;
 }
 
 export interface ClaimGuestOrderResponse {
   order: MyOrderDetail;
+  already_linked?: boolean;
 }
 
 export type OrderMessageSenderType = "client" | "admin";

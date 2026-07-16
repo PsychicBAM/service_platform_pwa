@@ -28,6 +28,16 @@ import {
 } from "@/test/test-utils";
 import { generateBookingDates } from "@/utils/format";
 
+const mockNavigate = vi.fn();
+
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router-dom")>();
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
 vi.mock("@/hooks/useAuth");
 vi.mock("@/api/meApi");
 vi.mock("@/api/publicApi");
@@ -97,7 +107,7 @@ describe("client account creation flow clarity", () => {
 
     expect(await screen.findByText("Booking received")).toBeInTheDocument();
     const guidance = await screen.findByTestId("guest-track-activity-card");
-    expect(guidance).toHaveTextContent("does not create an account automatically");
+    expect(guidance).toHaveTextContent("save this booking to your account automatically");
     expect(screen.getByTestId("guest-track-create-account")).toHaveAttribute(
       "href",
       "/client/register?type=booking&reference=BKG-2026-0420",
@@ -107,6 +117,7 @@ describe("client account creation flow clarity", () => {
       "href",
       "/me/claim?type=booking&reference=BKG-2026-0420",
     );
+    expect(screen.getByTestId("guest-track-claim")).toHaveTextContent("Claim manually");
   });
 
   it("request success shows create client account, login, and claim links", async () => {
@@ -153,7 +164,7 @@ describe("client account creation flow clarity", () => {
     );
   });
 
-  it("client register page validates password confirmation and redirects to claim", async () => {
+  it("client register with booking reference auto-claims and redirects to bookings", async () => {
     const user = userEvent.setup();
     vi.mocked(authApi.registerClient).mockResolvedValue({
       user: {
@@ -168,6 +179,28 @@ describe("client account creation flow clarity", () => {
         token_type: "bearer",
         expires_in: 1800,
       },
+    });
+    vi.mocked(meApi.claimGuestBooking).mockResolvedValue({
+      booking: {
+        id: "booking-1",
+        reference: "BKG-1",
+        status: "pending",
+        business: { id: "biz-1", name: "Demo", slug: "demo" },
+        service: { id: "svc-1", name: "Cut" },
+        starts_at: "2026-07-20T10:00:00Z",
+        ends_at: "2026-07-20T11:00:00Z",
+        client_notes: null,
+        cancelled_at: null,
+        cancelled_by: null,
+        cancellation_reason: null,
+        can_cancel: true,
+        can_reschedule: true,
+        has_review: false,
+        can_review: false,
+        created_at: "2026-07-16T10:00:00Z",
+        updated_at: "2026-07-16T10:00:00Z",
+      },
+      already_linked: false,
     });
 
     renderRoute(<ClientRegisterPage />, {
@@ -199,6 +232,64 @@ describe("client account creation flow clarity", () => {
         password: "ChangeMe123!",
         full_name: null,
       });
+    });
+    await waitFor(() => {
+      expect(meApi.claimGuestBooking).toHaveBeenCalledWith({
+        reference: "BKG-1",
+        email: "newclient@example.com",
+      });
+    });
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/me/bookings");
+    });
+  });
+
+  it("client register auto-claim failure keeps account and sends user to claim", async () => {
+    const user = userEvent.setup();
+    vi.mocked(authApi.registerClient).mockResolvedValue({
+      user: {
+        id: "new-client-id",
+        email: "newclient@example.com",
+        full_name: "New Client",
+        role: "client",
+      },
+      tokens: {
+        access_token: "access",
+        refresh_token: "refresh",
+        token_type: "bearer",
+        expires_in: 1800,
+      },
+    });
+    vi.mocked(meApi.claimGuestOrder).mockRejectedValue(
+      new Error("Could not claim"),
+    );
+
+    renderRoute(<ClientRegisterPage />, {
+      route: "/client/register?type=order&reference=ORD-9",
+      path: "/client/register",
+    });
+
+    await user.type(screen.getByLabelText(/^email$/i), "newclient@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "ChangeMe123!");
+    await user.type(screen.getByLabelText(/^confirm password$/i), "ChangeMe123!");
+    await user.click(screen.getByRole("button", { name: "Create client account" }));
+
+    await waitFor(() => {
+      expect(authApi.registerClient).toHaveBeenCalled();
+      expect(meApi.claimGuestOrder).toHaveBeenCalledWith({
+        reference: "ORD-9",
+        email: "newclient@example.com",
+      });
+    });
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/me/claim?type=order&reference=ORD-9&autoClaimFailed=1",
+        expect.objectContaining({
+          state: expect.objectContaining({
+            message: expect.stringContaining("could not link this item automatically"),
+          }),
+        }),
+      );
     });
   });
 

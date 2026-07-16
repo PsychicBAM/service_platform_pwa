@@ -94,17 +94,15 @@ class OrderRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_guest_order_for_claim(self, reference: str) -> Order | None:
+    async def list_orders_for_claim_by_reference(self, reference: str) -> list[Order]:
+        """Find orders by reference across businesses (refs are unique per business only)."""
         normalized_reference = reference.strip()
         if not normalized_reference:
-            return None
+            return []
         stmt = (
             select(Order)
             .join(Order.client)
-            .where(
-                Order.reference == normalized_reference,
-                Client.user_id.is_(None),
-            )
+            .where(Order.reference == normalized_reference)
             .options(
                 selectinload(Order.client),
                 selectinload(Order.service),
@@ -112,7 +110,7 @@ class OrderRepository:
             )
         )
         result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        return list(result.scalars().unique().all())
 
     async def get_for_review_by_reference(
         self,

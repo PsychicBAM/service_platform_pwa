@@ -344,7 +344,7 @@ describe("client area mobile UX", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Enter the reference from your confirmation, plus the same email or phone you used as a guest.",
+        "Use the same email or phone you entered when booking as a guest.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByTestId("claim-guest-form")).toBeInTheDocument();

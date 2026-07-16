@@ -24,7 +24,7 @@ export function GuestTrackActivityCard({ kind, reference }: GuestTrackActivityCa
 
   const listPath = isBooking ? "/me/bookings" : "/me/orders";
   const listLabel = isBooking ? "View my bookings" : "View my requests";
-  const claimLabel = isBooking ? "Claim booking" : "Claim request";
+  const claimLabel = "Claim manually";
 
   return (
     <div
@@ -36,8 +36,8 @@ export function GuestTrackActivityCard({ kind, reference }: GuestTrackActivityCa
       </h2>
       <p className="mt-2 text-sm text-slate-600">
         {isBooking
-          ? "Booking as a guest does not create an account automatically. Create a client account, then claim this reference."
-          : "Sending a request as a guest does not create an account automatically. Create a client account, then claim this reference."}
+          ? "Create a client account to save this booking to your account automatically."
+          : "Create a client account to save this request to your account automatically."}
       </p>
       {reference ? (
         <p className="mt-2 break-all rounded-lg bg-slate-50 px-3 py-2 font-mono text-sm font-semibold text-slate-800">
@@ -89,7 +89,8 @@ export function GuestTrackActivityCard({ kind, reference }: GuestTrackActivityCa
         )}
       </div>
       <p className="mt-3 text-xs text-slate-500">
-        Save your reference. Customer signup is separate from business registration.
+        Keep this reference in case you need to claim manually. Customer signup is separate from
+        business registration.
       </p>
     </div>
   );

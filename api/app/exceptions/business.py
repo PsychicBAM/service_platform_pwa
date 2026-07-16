@@ -152,12 +152,27 @@ class InvalidTimezoneError(AppError):
 class ClaimNotFoundOrMismatchError(AppError):
     def __init__(
         self,
-        message: str = "Claim target not found or contact does not match.",
+        message: str = (
+            "We could not find a matching booking or request. "
+            "Check the reference and the email or phone used as a guest."
+        ),
     ) -> None:
         super().__init__(
             message=message,
             code="CLAIM_NOT_FOUND_OR_MISMATCH",
             status_code=404,
+        )
+
+
+class ClaimAlreadyLinkedError(AppError):
+    def __init__(
+        self,
+        message: str = "This booking or request is already linked to another account.",
+    ) -> None:
+        super().__init__(
+            message=message,
+            code="CLAIM_ALREADY_LINKED",
+            status_code=409,
         )
 
 

@@ -296,7 +296,7 @@ async def test_d_wrong_email_cannot_claim_booking(
     assert response.status_code == 404
     body = response.json()
     assert body["error"]["code"] == "CLAIM_NOT_FOUND_OR_MISMATCH"
-    assert body["error"]["message"] == "Claim target not found or contact does not match."
+    assert "could not find a matching" in body["error"]["message"].lower()
 
 
 @pytest.mark.asyncio
@@ -309,7 +309,10 @@ async def test_e_already_linked_booking_cannot_be_claimed_by_another_user(
     other = await _create_client_user(db_session, "route-book-linked-other")
     booking = (
         await db_session.execute(
-            select(Booking).where(Booking.reference == ctx["reference"])
+            select(Booking).where(
+                Booking.reference == ctx["reference"],
+                Booking.business_id == uuid.UUID(ctx["business_id"]),
+            )
         )
     ).scalar_one()
     client = (
@@ -325,8 +328,91 @@ async def test_e_already_linked_booking_cannot_be_claimed_by_another_user(
         json={"reference": ctx["reference"], "email": ctx["guest_email"]},
         headers=headers,
     )
-    assert response.status_code == 404
-    assert response.json()["error"]["code"] == "CLAIM_NOT_FOUND_OR_MISMATCH"
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "CLAIM_ALREADY_LINKED"
+    assert "already linked to another account" in response.json()["error"]["message"].lower()
+
+
+@pytest.mark.asyncio
+async def test_e2_claim_is_idempotent_for_same_user(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    ctx = await _create_guest_booking(async_client, db_session, "route-book-idem")
+    user = await _create_client_user(db_session, "route-book-idem")
+    await db_session.commit()
+    headers = await _login_client(async_client, user.email)
+
+    first = await async_client.post(
+        "/api/v1/me/claims/bookings",
+        json={"reference": ctx["reference"], "email": ctx["guest_email"]},
+        headers=headers,
+    )
+    assert first.status_code == 200
+    assert first.json()["already_linked"] is False
+
+    second = await async_client.post(
+        "/api/v1/me/claims/bookings",
+        json={"reference": ctx["reference"], "email": ctx["guest_email"]},
+        headers=headers,
+    )
+    assert second.status_code == 200
+    assert second.json()["already_linked"] is True
+    assert second.json()["booking"]["reference"] == ctx["reference"]
+
+
+@pytest.mark.asyncio
+async def test_e3_duplicate_reference_across_businesses_claims_by_contact(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    """References are unique per business; claiming must not 500 when refs collide."""
+    ctx_a = await _create_guest_booking(
+        async_client,
+        db_session,
+        "dup-ref-a",
+        email="dup-claim@example.com",
+        phone="+15551001",
+    )
+    ctx_b = await _create_guest_booking(
+        async_client,
+        db_session,
+        "dup-ref-b",
+        email="other-guest@example.com",
+        phone="+15551002",
+    )
+    # Force identical references across businesses (production can collide by year+count).
+    booking_b = (
+        await db_session.execute(
+            select(Booking).where(Booking.id == uuid.UUID(ctx_b["booking_id"]))
+        )
+    ).scalar_one()
+    booking_b.reference = ctx_a["reference"]
+    await db_session.commit()
+
+    user = await _create_client_user(db_session, "dup-ref-claim")
+    await db_session.commit()
+    headers = await _login_client(async_client, user.email)
+
+    response = await async_client.post(
+        "/api/v1/me/claims/bookings",
+        json={"reference": ctx_a["reference"], "email": "dup-claim@example.com"},
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert response.json()["booking"]["reference"] == ctx_a["reference"]
+    assert response.json()["booking"]["id"] == ctx_a["booking_id"]
+
+    listing = await async_client.get(
+        "/api/v1/me/bookings",
+        params={"status": "upcoming"},
+        headers=headers,
+    )
+    assert listing.status_code == 200
+    data = listing.json()["data"]
+    assert any(item["id"] == ctx_a["booking_id"] for item in data)
+    assert all(item["id"] != ctx_b["booking_id"] for item in data)
+    assert all(item["status"] == "pending" for item in data if item["id"] == ctx_a["booking_id"])
 
 
 @pytest.mark.asyncio
@@ -439,7 +525,12 @@ async def test_k_already_linked_order_cannot_be_claimed_by_another_user(
     owner = await _create_client_user(db_session, "route-order-linked-owner")
     other = await _create_client_user(db_session, "route-order-linked-other")
     order = (
-        await db_session.execute(select(Order).where(Order.reference == ctx["reference"]))
+        await db_session.execute(
+            select(Order).where(
+                Order.reference == ctx["reference"],
+                Order.business_id == uuid.UUID(ctx["business_id"]),
+            )
+        )
     ).scalar_one()
     client = (
         await db_session.execute(select(Client).where(Client.id == order.client_id))
@@ -454,8 +545,8 @@ async def test_k_already_linked_order_cannot_be_claimed_by_another_user(
         json={"reference": ctx["reference"], "email": ctx["guest_email"]},
         headers=headers,
     )
-    assert response.status_code == 404
-    assert response.json()["error"]["code"] == "CLAIM_NOT_FOUND_OR_MISMATCH"
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "CLAIM_ALREADY_LINKED"
 
 
 @pytest.mark.asyncio

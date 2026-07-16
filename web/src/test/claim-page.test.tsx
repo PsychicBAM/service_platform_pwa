@@ -58,6 +58,7 @@ describe("ClaimGuestPage", () => {
       path: "/me/claim",
     });
 
+    await user.clear(screen.getByLabelText(/^email$/i));
     await user.type(screen.getByLabelText(/^email$/i), "guest@example.com");
     await user.click(screen.getByRole("button", { name: /claim booking/i }));
 
@@ -75,6 +76,7 @@ describe("ClaimGuestPage", () => {
     });
 
     await user.type(screen.getByLabelText(/^reference$/i), "BKG-2026-0002");
+    await user.clear(screen.getByLabelText(/^email$/i));
     await user.click(screen.getByRole("button", { name: /claim booking/i }));
 
     expect(
@@ -96,6 +98,7 @@ describe("ClaimGuestPage", () => {
     });
 
     await user.type(screen.getByLabelText(/^reference$/i), mockMyBookingDetail.reference);
+    await user.clear(screen.getByLabelText(/^email$/i));
     await user.type(screen.getByLabelText(/^email$/i), "john.demo@example.com");
     await user.click(screen.getByRole("button", { name: /claim booking/i }));
 
@@ -113,7 +116,7 @@ describe("ClaimGuestPage", () => {
       new ApiClientError(
         404,
         "CLAIM_NOT_FOUND_OR_MISMATCH",
-        "Claim target not found or contact does not match.",
+        "We could not find a matching booking or request. Check the reference and the email or phone used as a guest.",
       ),
     );
     const user = userEvent.setup();
@@ -124,15 +127,55 @@ describe("ClaimGuestPage", () => {
     });
 
     await user.type(screen.getByLabelText(/^reference$/i), "BKG-2026-9999");
+    await user.clear(screen.getByLabelText(/^email$/i));
     await user.type(screen.getByLabelText(/^email$/i), "wrong@example.com");
     await user.click(screen.getByRole("button", { name: /claim booking/i }));
 
     await waitFor(() => {
       expect(
         screen.getByText(
-          "We could not find a matching guest item. Check the reference and contact.",
+          "We could not find a matching booking or request. Check the reference and the email or phone used as a guest.",
         ),
       ).toBeInTheDocument();
     });
+  });
+
+  it("G. prefills reference/type from query and signed-in email", () => {
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockClientUser));
+
+    renderRoute(<ClaimGuestPage />, {
+      route: "/me/claim?type=order&reference=ORD-7&autoClaimFailed=1",
+      path: "/me/claim",
+    });
+
+    expect(screen.getByLabelText(/^reference$/i)).toHaveValue("ORD-7");
+    expect(screen.getByLabelText(/^email$/i)).toHaveValue(mockClientUser.email);
+    expect(screen.getByRole("button", { name: /claim request/i })).toBeInTheDocument();
+    expect(screen.getByTestId("claim-auto-failed-note")).toBeInTheDocument();
+  });
+
+  it("H. does not display raw Internal Server Error text", async () => {
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockClientUser));
+    vi.mocked(meApi.claimGuestBooking).mockRejectedValue(
+      new ApiClientError(500, "INTERNAL_ERROR", "Internal Server Error"),
+    );
+    const user = userEvent.setup();
+
+    renderRoute(<ClaimGuestPage />, {
+      route: "/me/claim",
+      path: "/me/claim",
+    });
+
+    await user.type(screen.getByLabelText(/^reference$/i), "BKG-2026-9999");
+    await user.clear(screen.getByLabelText(/^email$/i));
+    await user.type(screen.getByLabelText(/^email$/i), "guest@example.com");
+    await user.click(screen.getByRole("button", { name: /claim booking/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Something went wrong while claiming. Please try again in a moment."),
+      ).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Internal Server Error")).not.toBeInTheDocument();
   });
 });
