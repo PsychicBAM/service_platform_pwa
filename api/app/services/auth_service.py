@@ -32,6 +32,7 @@ from app.schemas.legal_consent import LEGAL_CONSENT_VERSION
 from app.schemas.user import UserRead
 from app.services.password_service import hash_password, verify_password
 from app.services.email_verification_service import EmailVerificationService
+from app.services.email_service import EmailService
 from app.services.legal_consent_service import LegalConsentService
 from app.services.token_service import (
     create_access_token,
@@ -193,11 +194,17 @@ class AuthService:
             for member in user.business_members
         ]
 
+        delivery = EmailService(get_settings()).get_delivery_status()
+        email_delivery_active = (
+            delivery.enabled and not delivery.dry_run and delivery.configured
+        )
+
         return MeResponse(
             id=user.id,
             email=user.email,
             full_name=user.full_name,
             role=user.role,
             email_verified=user.email_verified_at is not None,
+            email_delivery_active=email_delivery_active,
             businesses=businesses,
         )

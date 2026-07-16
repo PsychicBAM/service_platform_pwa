@@ -4,6 +4,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApiClientError } from "@/api/client";
 import * as adminApi from "@/api/adminApi";
+import * as adminEmailApi from "@/api/adminEmailApi";
 import * as billingApi from "@/api/billingApi";
 import * as miniSiteApi from "@/api/miniSiteApi";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
@@ -17,6 +18,10 @@ vi.mock("@/hooks/useAuth");
 vi.mock("@/api/adminApi", () => ({
   getBusiness: vi.fn(),
   updateBusiness: vi.fn(),
+}));
+vi.mock("@/api/adminEmailApi", () => ({
+  getAdminEmailStatus: vi.fn(),
+  sendAdminTestEmail: vi.fn(),
 }));
 vi.mock("@/api/billingApi", () => ({
   createBillingCheckoutSession: vi.fn(),
@@ -49,6 +54,17 @@ describe("admin billing checkout", () => {
       },
     });
     vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue(DEFAULT_MINI_SITE_CONFIG);
+    vi.mocked(adminEmailApi.getAdminEmailStatus).mockResolvedValue({
+      enabled: false,
+      dry_run: true,
+      configured: false,
+      provider: "brevo",
+      host: null,
+      port: 587,
+      from_email: null,
+      from_name: null,
+      status: "disabled",
+    });
   });
 
   afterEach(() => {

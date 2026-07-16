@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createBillingCheckoutSession } from "@/api/billingApi";
 import { getBusiness, updateBusiness } from "@/api/adminApi";
 import { PlanFeatureComparison } from "@/components/admin/PlanFeatureComparison";
+import { AdminEmailDeliverySection } from "@/components/admin/AdminEmailDeliverySection";
 import { AdminMarketplaceCoverSection } from "@/components/admin/AdminMarketplaceCoverSection";
 import { AdminBusinessLocationSection } from "@/components/admin/AdminBusinessLocationSection";
 import { AdminBusinessMapPinSection } from "@/components/admin/AdminBusinessMapPinSection";
@@ -559,9 +560,15 @@ export function AdminSettingsPage() {
                 }
                 className="rounded border-slate-300"
               />
-              Notification email enabled (sending not implemented yet)
+              Notification email enabled
             </label>
+            <p className="text-xs text-slate-500">
+              When enabled, this business can receive booking/request notification emails (if server
+              email delivery is configured).
+            </p>
           </div>
+
+          <AdminEmailDeliverySection />
 
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
             <h3 className="text-sm font-medium text-slate-700">Billing / plan</h3>

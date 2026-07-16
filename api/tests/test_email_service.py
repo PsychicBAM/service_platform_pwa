@@ -27,9 +27,11 @@ def _settings(**overrides) -> Settings:
         "smtp_from_email": None,
         "smtp_from_name": "Service Platform",
         "smtp_use_tls": True,
+        "smtp_use_ssl": False,
+        "email_provider": "brevo",
     }
     base.update(overrides)
-    return Settings(**overrides)
+    return Settings(**base)
 
 
 def test_email_disabled_returns_disabled_dry_run_result() -> None:

@@ -196,6 +196,8 @@ def test_live_config_missing_smtp_reports_issue_codes() -> None:
     assert settings.email_config_issue_codes() == [
         "SMTP_HOST_MISSING",
         "SMTP_FROM_EMAIL_MISSING",
+        "SMTP_USERNAME_MISSING",
+        "SMTP_PASSWORD_MISSING",
     ]
 
 
@@ -223,6 +225,8 @@ def test_live_send_success_code() -> None:
             email_dry_run=False,
             smtp_host="smtp.example.com",
             smtp_from_email="noreply@example.com",
+            smtp_user="mailer",
+            smtp_password="secret",
         )
     )
     with patch("app.services.email_service.smtplib.SMTP") as smtp_mock:

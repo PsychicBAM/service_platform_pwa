@@ -90,7 +90,9 @@ export function Layout() {
           className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900"
           data-testid="app-layout-verify-banner"
         >
-          Please verify your email.{" "}
+          {user.email_delivery_active
+            ? "Please verify your email."
+            : "Email sending is not enabled in this environment, so verification emails may not arrive yet."}{" "}
           <Link to="/check-email" className="font-medium text-brand-700 hover:underline">
             Go to check email
           </Link>

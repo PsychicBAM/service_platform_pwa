@@ -191,7 +191,7 @@ describe("client area mobile UX", () => {
     renderRoute(<Layout />, { route: "/me", path: "/me" });
 
     expect(screen.getByTestId("app-layout-verify-banner")).toHaveTextContent(
-      /please verify your email/i,
+      /Email sending is not enabled in this environment/i,
     );
     expect(screen.getByTestId("app-layout-user-email")).toHaveTextContent(mockClientUser.email);
     expect(screen.getByTestId("app-layout-header")).not.toContainElement(

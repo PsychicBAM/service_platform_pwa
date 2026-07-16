@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as adminApi from "@/api/adminApi";
+import * as adminEmailApi from "@/api/adminEmailApi";
 import * as miniSiteApi from "@/api/miniSiteApi";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
 import { AdminBusinessProvider } from "@/hooks/useAdminBusiness";
@@ -15,6 +16,10 @@ vi.mock("@/hooks/useAuth");
 vi.mock("@/api/adminApi", () => ({
   getBusiness: vi.fn(),
   updateBusiness: vi.fn(),
+}));
+vi.mock("@/api/adminEmailApi", () => ({
+  getAdminEmailStatus: vi.fn(),
+  sendAdminTestEmail: vi.fn(),
 }));
 vi.mock("@/api/billingApi", () => ({
   createBillingCheckoutSession: vi.fn(),
@@ -58,6 +63,17 @@ describe("admin business location settings", () => {
       },
     });
     vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue(DEFAULT_MINI_SITE_CONFIG);
+    vi.mocked(adminEmailApi.getAdminEmailStatus).mockResolvedValue({
+      enabled: false,
+      dry_run: true,
+      configured: false,
+      provider: "brevo",
+      host: null,
+      port: 587,
+      from_email: null,
+      from_name: null,
+      status: "disabled",
+    });
   });
 
   it("shows compact business location summary by default", async () => {

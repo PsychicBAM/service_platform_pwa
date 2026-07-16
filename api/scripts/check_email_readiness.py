@@ -55,6 +55,7 @@ def run_audit(*, strict: bool = False, send_test_to: str | None = None) -> int:
     print(f"    APP_ENV={settings.app_env}")
     print(f"    EMAIL_ENABLED={settings.email_enabled}")
     print(f"    EMAIL_DRY_RUN={settings.email_dry_run}")
+    print(f"    EMAIL_PROVIDER={settings.email_provider}")
     print(f"    SMTP_HOST={_configured(settings.smtp_host)}")
     print(f"    SMTP_PORT={settings.smtp_port}")
     print(f"    SMTP_USER={_configured(settings.smtp_user)}")
@@ -62,6 +63,7 @@ def run_audit(*, strict: bool = False, send_test_to: str | None = None) -> int:
     print(f"    SMTP_FROM_EMAIL={_configured(settings.smtp_from_email)}")
     print(f"    SMTP_FROM_NAME={settings.smtp_from_name!r}")
     print(f"    SMTP_USE_TLS={settings.smtp_use_tls}")
+    print(f"    SMTP_USE_SSL={settings.smtp_use_ssl}")
 
     if not settings.email_enabled:
         results.append(

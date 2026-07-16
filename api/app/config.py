@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal, Self
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,6 +11,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
+        populate_by_name=True,
     )
 
     app_env: Literal["local", "dev", "staging", "production"] = "local"
@@ -35,13 +36,18 @@ class Settings(BaseSettings):
 
     email_enabled: bool = False
     email_dry_run: bool = True
+    email_provider: str = "brevo"
     smtp_host: str | None = None
     smtp_port: int = 587
-    smtp_user: str | None = None
+    smtp_user: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SMTP_USER", "SMTP_USERNAME", "smtp_user"),
+    )
     smtp_password: str | None = None
     smtp_from_email: str | None = None
     smtp_from_name: str = "Service Platform"
     smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
 
     email_verification_token_expire_hours: int = 24
     email_verification_base_url: str = "http://localhost:5173/verify-email"
@@ -112,9 +118,14 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "SMTP_FROM_EMAIL is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
                 )
+            if issue == "SMTP_USERNAME_MISSING":
+                raise ValueError(
+                    "SMTP_USER/SMTP_USERNAME is required when EMAIL_ENABLED=true "
+                    "and EMAIL_DRY_RUN=false"
+                )
             if issue == "SMTP_PASSWORD_MISSING":
                 raise ValueError(
-                    "SMTP_PASSWORD is required when SMTP_USER is set in production"
+                    "SMTP_PASSWORD is required when EMAIL_ENABLED=true and EMAIL_DRY_RUN=false"
                 )
 
     @property
@@ -133,9 +144,26 @@ class Settings(BaseSettings):
         smtp_port = self.smtp_port
         if not isinstance(smtp_port, int) or smtp_port < 1 or smtp_port > 65535:
             issues.append("SMTP_PORT_INVALID")
-        if (self.smtp_user or "").strip() and not (self.smtp_password or "").strip():
+        if not (self.smtp_user or "").strip():
+            issues.append("SMTP_USERNAME_MISSING")
+        if not (self.smtp_password or "").strip():
             issues.append("SMTP_PASSWORD_MISSING")
         return issues
+
+    @property
+    def smtp_is_configured(self) -> bool:
+        """True when required SMTP fields are present (independent of dry-run)."""
+        if not (self.smtp_host or "").strip():
+            return False
+        if not (self.smtp_from_email or "").strip():
+            return False
+        if not (self.smtp_user or "").strip():
+            return False
+        if not (self.smtp_password or "").strip():
+            return False
+        if not isinstance(self.smtp_port, int) or self.smtp_port < 1 or self.smtp_port > 65535:
+            return False
+        return True
 
 
 @lru_cache

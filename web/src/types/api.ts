@@ -391,6 +391,8 @@ export interface MeResponse {
   full_name: string | null;
   role: UserRole;
   email_verified?: boolean;
+  /** True when server can send real outbound email (enabled, not dry-run, SMTP configured). */
+  email_delivery_active?: boolean;
   businesses: MeBusinessItem[];
 }
 

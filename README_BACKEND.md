@@ -144,7 +144,25 @@ Requires a running Postgres matching `DATABASE_URL` in `.env`.
 
 Local and test environments use `EMAIL_ENABLED=false` and `EMAIL_DRY_RUN=true` (see `.env.example`). No real SMTP is required for development; the email service returns static result codes (`EMAIL_DISABLED`, `EMAIL_DRY_RUN`) and logs subject only — never passwords or message bodies.
 
-To enable live SMTP on a VPS, set in `.env`:
+**Brevo SMTP setup** (placeholders only — never commit real credentials):
+
+```bash
+EMAIL_ENABLED=true
+EMAIL_DRY_RUN=false
+EMAIL_PROVIDER=brevo
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USERNAME=your_brevo_smtp_login
+SMTP_PASSWORD=your_brevo_smtp_key
+SMTP_FROM_EMAIL=your_verified_sender@example.com
+SMTP_FROM_NAME=Service Platform
+SMTP_USE_TLS=true
+SMTP_USE_SSL=false
+```
+
+Put real values only in local/server `.env`, then restart the API. See [SMTP_OPERATOR_RUNBOOK.md](./SMTP_OPERATOR_RUNBOOK.md).
+
+Generic SMTP example:
 
 ```bash
 EMAIL_ENABLED=true

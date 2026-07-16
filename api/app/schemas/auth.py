@@ -119,6 +119,7 @@ class MeResponse(BaseModel):
     full_name: str | None
     role: UserRole
     email_verified: bool = False
+    email_delivery_active: bool = False
     businesses: list[MeBusinessItem]
 
 

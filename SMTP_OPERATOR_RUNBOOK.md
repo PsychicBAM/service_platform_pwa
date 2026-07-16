@@ -31,19 +31,22 @@ Configure these in **`.env` on the VPS only** (copy from `.env.production.exampl
 |----------|---------|--------------------------------|
 | `EMAIL_ENABLED` | Master switch for outbound email | `false` → `true` when ready |
 | `EMAIL_DRY_RUN` | Simulate sends without SMTP | `true` → `false` only after live test |
-| `SMTP_HOST` | Mail relay hostname | `smtp.example.com` |
+| `EMAIL_PROVIDER` | Provider label (UI/status) | `brevo` |
+| `SMTP_HOST` | Mail relay hostname | `smtp-relay.brevo.com` |
 | `SMTP_PORT` | Relay port (STARTTLS commonly `587`) | `587` |
-| `SMTP_USER` | SMTP auth username (if required) | `apikey` or mailbox user |
+| `SMTP_USER` / `SMTP_USERNAME` | SMTP auth username | Brevo SMTP login |
 | `SMTP_PASSWORD` | SMTP auth password or API key | **secret — VPS only** |
 | `SMTP_FROM_EMAIL` | Envelope From / sender address | `noreply@your-domain.example` |
 | `SMTP_FROM_NAME` | Display name | `Service Platform` |
 | `SMTP_USE_TLS` | Use STARTTLS on connect | `true` |
+| `SMTP_USE_SSL` | Implicit SSL (usually off for 587) | `false` |
 
 **Secret handling:**
 
 - Secrets belong **only** in `.env` on the server.
 - **Never** commit `.env.production` or paste `SMTP_PASSWORD` into logs, chat, tickets, or issues.
 - Use `check_email_readiness.py` for verification — it prints `set` / `not_set`, not actual values.
+- Admin UI at `/admin/settings` → Email delivery shows status and can send a test email; it never shows or edits SMTP credentials.
 
 **Related public URLs** (also in `.env`, not SMTP secrets):
 
@@ -51,6 +54,37 @@ Configure these in **`.env` on the VPS only** (copy from `.env.production.exampl
 - `PASSWORD_RESET_BASE_URL` — password reset link target
 
 ---
+
+## B2. Brevo SMTP setup
+
+Use Brevo’s SMTP relay with placeholders only in committed examples:
+
+```env
+EMAIL_ENABLED=true
+EMAIL_DRY_RUN=false
+EMAIL_PROVIDER=brevo
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USERNAME=your_brevo_smtp_login
+SMTP_PASSWORD=your_brevo_smtp_key
+SMTP_FROM_EMAIL=your_verified_sender@example.com
+SMTP_FROM_NAME=Service Platform
+SMTP_USE_TLS=true
+SMTP_USE_SSL=false
+```
+
+Notes:
+
+- Never commit real SMTP credentials.
+- Put real values only in local/server `.env`.
+- Restart the API after changing env (`docker compose up -d --build api`).
+- Confirm the sender address is verified in Brevo before live sends.
+- Prefer port `587` + STARTTLS (`SMTP_USE_TLS=true`, `SMTP_USE_SSL=false`).
+
+Admin checks (authenticated business admin / superadmin):
+
+- `GET /api/v1/admin/email/status`
+- `POST /api/v1/admin/email/test` with `{ "to_email": "you@example.com" }`
 
 ## C. Safe activation stages
 
