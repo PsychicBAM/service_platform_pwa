@@ -62,6 +62,93 @@ describe("client account creation flow clarity", () => {
     vi.mocked(meApi.listMyOrders).mockResolvedValue({ data: [], meta: emptyListMeta });
   });
 
+  it("booking form shows clear title helper and guest account guidance", async () => {
+    const defaultDate = generateBookingDates(1)[0]!.date;
+    vi.mocked(publicApi.getPublicService).mockResolvedValue(mockBookingService);
+    vi.mocked(publicApi.getAvailability).mockResolvedValue({
+      date: defaultDate,
+      service_id: BOOKING_SERVICE_ID,
+      slots: [{ starts_at: `${defaultDate}T10:00:00`, ends_at: `${defaultDate}T11:00:00` }],
+    });
+
+    renderRoute(<BookingPage />, {
+      route: `/b/${DEMO_SLUG}/services/${BOOKING_SERVICE_ID}/book`,
+      path: "/b/:slug/services/:serviceId/book",
+    });
+
+    expect(await screen.findByText("Book an appointment")).toBeInTheDocument();
+    expect(
+      screen.getByText(/choose a time and enter your contact details/i),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("public-form-account-hints")).toHaveTextContent(
+      /same email to see this booking/i,
+    );
+    expect(screen.getByRole("button", { name: "Confirm booking" })).toBeInTheDocument();
+  });
+
+  it("signed-in booking form shows account helper and email mismatch warning", async () => {
+    const user = userEvent.setup();
+    const defaultDate = generateBookingDates(1)[0]!.date;
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockClientUser));
+    vi.mocked(publicApi.getPublicService).mockResolvedValue(mockBookingService);
+    vi.mocked(publicApi.getAvailability).mockResolvedValue({
+      date: defaultDate,
+      service_id: BOOKING_SERVICE_ID,
+      slots: [{ starts_at: `${defaultDate}T10:00:00`, ends_at: `${defaultDate}T11:00:00` }],
+    });
+
+    renderRoute(<BookingPage />, {
+      route: `/b/${DEMO_SLUG}/services/${BOOKING_SERVICE_ID}/book`,
+      path: "/b/:slug/services/:serviceId/book",
+    });
+
+    expect(await screen.findByTestId("public-form-signed-in-hint")).toHaveTextContent(
+      `Signed in as ${mockClientUser.email}`,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /10:00/i })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole("button", { name: /10:00/i }));
+    await user.type(screen.getByLabelText(/^email$/i), "different@example.com");
+    expect(await screen.findByTestId("public-form-email-mismatch-hint")).toHaveTextContent(
+      /submitted as guest activity/i,
+    );
+  });
+
+  it("request form uses request language and account guidance", async () => {
+    vi.mocked(publicApi.getPublicService).mockResolvedValue(mockOrderService);
+
+    renderRoute(<OrderRequestPage />, {
+      route: `/b/${DEMO_SLUG}/services/${ORDER_SERVICE_ID}/request`,
+      path: "/b/:slug/services/:serviceId/request",
+    });
+
+    expect(await screen.findByText("Send a service request")).toBeInTheDocument();
+    expect(screen.getByText(/tell the business what you need/i)).toBeInTheDocument();
+    expect(screen.getByTestId("public-form-account-hints")).toHaveTextContent(
+      /appear in your client account/i,
+    );
+    expect(screen.queryByText(/checkout|purchase/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send request" })).toBeInTheDocument();
+  });
+
+  it("signed-in request form warns when typed email differs", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockClientUser));
+    vi.mocked(publicApi.getPublicService).mockResolvedValue(mockOrderService);
+
+    renderRoute(<OrderRequestPage />, {
+      route: `/b/${DEMO_SLUG}/services/${ORDER_SERVICE_ID}/request`,
+      path: "/b/:slug/services/:serviceId/request",
+    });
+
+    expect(await screen.findByTestId("public-form-signed-in-hint")).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/^email$/i), "other@example.com");
+    expect(await screen.findByTestId("public-form-email-mismatch-hint")).toHaveTextContent(
+      /claimed manually/i,
+    );
+  });
+
   it("booking success shows create client account, login, and claim links", async () => {
     const user = userEvent.setup();
     const defaultDate = generateBookingDates(1)[0]!.date;
@@ -103,11 +190,11 @@ describe("client account creation flow clarity", () => {
     await user.type(screen.getByLabelText(/full name/i), "Guest Client");
     await user.type(screen.getByLabelText(/^email$/i), "guest@example.com");
     await user.click(getConsentCheckbox());
-    await user.click(screen.getByRole("button", { name: "Submit booking request" }));
+    await user.click(screen.getByRole("button", { name: "Confirm booking" }));
 
     expect(await screen.findByText("Booking received")).toBeInTheDocument();
     const guidance = await screen.findByTestId("guest-track-activity-card");
-    expect(guidance).toHaveTextContent("save this booking to your account automatically");
+    expect(guidance).toHaveTextContent("save this booking automatically");
     expect(screen.getByTestId("guest-track-create-account")).toHaveAttribute(
       "href",
       `/client/register?type=booking&reference=BKG-2026-0420&business=${DEMO_SLUG}`,
@@ -162,7 +249,7 @@ describe("client account creation flow clarity", () => {
     await user.type(screen.getByLabelText(/full name/i), "Client User");
     await user.type(screen.getByLabelText(/^email$/i), mockClientUser.email);
     await user.click(getConsentCheckbox());
-    await user.click(screen.getByRole("button", { name: "Submit booking request" }));
+    await user.click(screen.getByRole("button", { name: "Confirm booking" }));
 
     expect(await screen.findByText("Saved to your account")).toBeInTheDocument();
     expect(screen.getByTestId("guest-track-view-list")).toHaveAttribute("href", "/me/bookings");
@@ -199,9 +286,9 @@ describe("client account creation flow clarity", () => {
     await screen.findByRole("heading", { level: 1, name: mockOrderService.name });
     await user.type(screen.getByLabelText(/full name/i), "Client User");
     await user.type(screen.getByLabelText(/^email$/i), mockClientUser.email);
-    await user.type(screen.getByLabelText(/project \/ request details/i), "Need a bot");
+    await user.type(screen.getByLabelText(/what do you need/i), "Need a bot");
     await user.click(getConsentCheckbox());
-    await user.click(screen.getByRole("button", { name: "Submit request" }));
+    await user.click(screen.getByRole("button", { name: "Send request" }));
 
     expect(await screen.findByText("Saved to your account")).toBeInTheDocument();
     expect(screen.getByTestId("guest-track-view-list")).toHaveAttribute("href", "/me/orders");
@@ -237,11 +324,11 @@ describe("client account creation flow clarity", () => {
     await screen.findByRole("heading", { level: 1, name: mockOrderService.name });
     await user.type(screen.getByLabelText(/full name/i), "Other Guest");
     await user.type(screen.getByLabelText(/^email$/i), "other@example.com");
-    await user.type(screen.getByLabelText(/project \/ request details/i), "Need a bot");
+    await user.type(screen.getByLabelText(/what do you need/i), "Need a bot");
     await user.click(getConsentCheckbox());
-    await user.click(screen.getByRole("button", { name: "Submit request" }));
+    await user.click(screen.getByRole("button", { name: "Send request" }));
 
-    expect(await screen.findByText("Submitted as guest")).toBeInTheDocument();
+    expect(await screen.findByText("Submitted as guest activity")).toBeInTheDocument();
     expect(screen.getByTestId("guest-track-claim")).toBeInTheDocument();
   });
 
@@ -273,9 +360,9 @@ describe("client account creation flow clarity", () => {
     await screen.findByRole("heading", { level: 1, name: mockOrderService.name });
     await user.type(screen.getByLabelText(/full name/i), "Guest Client");
     await user.type(screen.getByLabelText(/^email$/i), "guest@example.com");
-    await user.type(screen.getByLabelText(/project \/ request details/i), "Need a bot");
+    await user.type(screen.getByLabelText(/what do you need/i), "Need a bot");
     await user.click(getConsentCheckbox());
-    await user.click(screen.getByRole("button", { name: "Submit request" }));
+    await user.click(screen.getByRole("button", { name: "Send request" }));
 
     expect(await screen.findByText("Request sent")).toBeInTheDocument();
     expect(screen.getByTestId("guest-track-create-account")).toHaveAttribute(

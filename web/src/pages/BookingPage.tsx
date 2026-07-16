@@ -22,6 +22,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { PriceLabel } from "@/components/PriceLabel";
 import { SuccessCard } from "@/components/SuccessCard";
 import { GuestTrackActivityCard, type GuestTrackMode } from "@/components/GuestTrackActivityCard";
+import { PublicFormAccountHints } from "@/components/PublicFormAccountHints";
 import { TextAreaField } from "@/components/TextAreaField";
 import { TimeSlotGrid } from "@/components/TimeSlotGrid";
 import { useAuth } from "@/hooks/useAuth";
@@ -86,7 +87,7 @@ function slotKey(slot: AvailabilitySlot): string {
 export function BookingPage() {
   const { slug = "", serviceId = "" } = useParams<{ slug: string; serviceId: string }>();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const defaultDate = useMemo(() => generateBookingDates(1)[0]?.date ?? null, []);
   const [selectedDate, setSelectedDate] = useState<string | null>(defaultDate);
@@ -298,8 +299,10 @@ export function BookingPage() {
           ]}
           note={
             trackMode === "saved"
-              ? "This booking was saved to your account."
-              : "The business will review and confirm your booking. Save your reference to claim it later."
+              ? "The business will review and confirm your booking."
+              : trackMode === "email_mismatch"
+                ? "The business will review and confirm your booking."
+                : "The business will review and confirm your booking. Save your reference below."
           }
         />
         <GuestTrackActivityCard
@@ -334,9 +337,13 @@ export function BookingPage() {
       </Link>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p className="text-xs uppercase tracking-wide text-slate-500">Book appointment</p>
+        <p className="text-xs uppercase tracking-wide text-slate-500">Book an appointment</p>
         <h1 className="mt-1 text-lg font-bold text-slate-900">{service.name}</h1>
-        {preview ? <p className="mt-2 text-sm text-slate-600">{preview}</p> : null}
+        <p className="mt-2 text-sm text-slate-600">
+          Choose a time and enter your contact details. You can create a client account after
+          booking to track it.
+        </p>
+        {preview ? <p className="mt-2 text-sm text-slate-500">{preview}</p> : null}
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <PriceLabel service={service} />
           {duration ? <span className="text-sm text-slate-600">{duration}</span> : null}
@@ -402,6 +409,13 @@ export function BookingPage() {
           )}
         </p>
 
+        <PublicFormAccountHints
+          kind="booking"
+          typedEmail={email}
+          accountEmail={user?.email}
+          isAuthenticated={isAuthenticated}
+        />
+
         <FormField
           name="fullName"
           label="Full name"
@@ -420,7 +434,7 @@ export function BookingPage() {
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          hint="Email or phone is required."
+          hint="Email or phone is required. Prefer an email you can access."
           disabled={!selectedSlot || isSubmitting}
         />
 
@@ -468,7 +482,7 @@ export function BookingPage() {
         <button
           type="submit"
           disabled={!selectedSlot || isSubmitting}
-          className="w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-11 w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
           data-testid={isWaitlistSlot ? "join-waitlist-submit" : "booking-submit"}
         >
           <span>
@@ -476,7 +490,7 @@ export function BookingPage() {
               ? "Submitting…"
               : isWaitlistSlot
                 ? "Join waitlist"
-                : "Submit booking request"}
+                : "Confirm booking"}
           </span>
         </button>
       </form>

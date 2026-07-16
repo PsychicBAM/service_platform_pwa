@@ -12,6 +12,7 @@ import { FormField } from "@/components/FormField";
 import { LoadingState } from "@/components/LoadingState";
 import { PriceLabel } from "@/components/PriceLabel";
 import { GuestTrackActivityCard, type GuestTrackMode } from "@/components/GuestTrackActivityCard";
+import { PublicFormAccountHints } from "@/components/PublicFormAccountHints";
 import { TextAreaField } from "@/components/TextAreaField";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -44,7 +45,7 @@ function validateForm(fullName: string, email: string, phone: string, details: s
     errors.contact = "Enter an email or phone number so the business can reach you.";
   }
   if (!trimmedDetails) {
-    errors.details = "Project details are required.";
+    errors.details = "Please describe what you need.";
   } else if (trimmedDetails.length > DETAILS_MAX_LENGTH) {
     errors.details = `Details must be ${DETAILS_MAX_LENGTH} characters or fewer.`;
   }
@@ -65,7 +66,7 @@ function descriptionPreview(description: string | null): string | null {
 export function OrderRequestPage() {
   const { slug = "", serviceId = "" } = useParams<{ slug: string; serviceId: string }>();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -170,7 +171,7 @@ export function OrderRequestPage() {
           <dl className="mt-4 space-y-3 text-sm">
             <div>
               <dt className="text-emerald-700">Reference</dt>
-              <dd className="font-mono font-semibold text-emerald-900">{order.reference}</dd>
+              <dd className="break-all font-mono font-semibold text-emerald-900">{order.reference}</dd>
             </div>
             <div>
               <dt className="text-emerald-700">Status</dt>
@@ -182,9 +183,8 @@ export function OrderRequestPage() {
             </div>
           </dl>
           <p className="mt-4 text-sm text-emerald-800">
-            {trackMode === "saved"
-              ? "This request was saved to your account."
-              : "The business will review your request and contact you. Save your reference to claim it later."}
+            The business will review your request and can reply, accept, decline, or update the
+            status.
           </p>
         </div>
         <GuestTrackActivityCard
@@ -195,7 +195,7 @@ export function OrderRequestPage() {
         />
         <Link
           to={`/b/${slug}/services`}
-          className="block rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 hover:bg-slate-50"
+          className="block min-h-11 rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 hover:bg-slate-50"
         >
           Back to services
         </Link>
@@ -215,15 +215,25 @@ export function OrderRequestPage() {
       </Link>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p className="text-xs uppercase tracking-wide text-slate-500">Request</p>
+        <p className="text-xs uppercase tracking-wide text-slate-500">Send a service request</p>
         <h1 className="mt-1 text-lg font-bold text-slate-900">{service.name}</h1>
-        {preview ? <p className="mt-2 text-sm text-slate-600">{preview}</p> : null}
+        <p className="mt-2 text-sm text-slate-600">
+          Tell the business what you need. They can reply, accept, decline, or update the status.
+        </p>
+        {preview ? <p className="mt-2 text-sm text-slate-500">{preview}</p> : null}
         <div className="mt-3">
           <PriceLabel service={service} />
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <PublicFormAccountHints
+          kind="request"
+          typedEmail={email}
+          accountEmail={user?.email}
+          isAuthenticated={isAuthenticated}
+        />
+
         <FormField
           name="fullName"
           label="Full name"
@@ -242,7 +252,7 @@ export function OrderRequestPage() {
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          hint="Email or phone is required."
+          hint="Email or phone is required. Prefer an email you can access."
           disabled={orderMutation.isPending}
         />
 
@@ -259,13 +269,13 @@ export function OrderRequestPage() {
 
         <TextAreaField
           name="details"
-          label="Project / request details"
+          label="What do you need?"
           required
           value={details}
           onChange={(event) => setDetails(event.target.value)}
           error={fieldErrors.details}
           maxLength={DETAILS_MAX_LENGTH}
-          hint={`Up to ${DETAILS_MAX_LENGTH} characters.`}
+          hint={`Describe your request (up to ${DETAILS_MAX_LENGTH} characters).`}
           disabled={orderMutation.isPending}
         />
 
@@ -289,9 +299,9 @@ export function OrderRequestPage() {
         <button
           type="submit"
           disabled={orderMutation.isPending}
-          className="w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-11 w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {orderMutation.isPending ? "Submitting…" : "Submit request"}
+          {orderMutation.isPending ? "Submitting…" : "Send request"}
         </button>
       </form>
     </FormPageShell>

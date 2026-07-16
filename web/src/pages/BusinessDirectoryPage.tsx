@@ -193,7 +193,7 @@ export function BusinessDirectoryPage() {
           Find trusted services near you
         </h1>
         <p className="mt-2 text-sm text-slate-600 md:text-base">
-          Explore top-rated businesses and book with confidence.
+          Explore top-rated businesses. Book an appointment or send a service request.
         </p>
 
         <form onSubmit={handleSearchSubmit} className="mt-5 flex flex-col gap-3 lg:flex-row">

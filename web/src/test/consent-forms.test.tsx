@@ -104,7 +104,7 @@ describe("registration consent", () => {
     renderRoute(<RegisterPage />, { route: "/register", path: "/register" });
 
     await fillRegisterForm(user);
-    await user.click(screen.getByRole("button", { name: /create account/i }));
+    await user.click(screen.getByRole("button", { name: /create business account/i }));
 
     expect(await screen.findByText(LEGAL_CONSENT_ERROR_MESSAGE)).toBeInTheDocument();
     expect(authApi.register).not.toHaveBeenCalled();
@@ -132,7 +132,7 @@ describe("registration consent", () => {
 
     await fillRegisterForm(user);
     await acceptLegalConsent(user);
-    await user.click(screen.getByRole("button", { name: /create account/i }));
+    await user.click(screen.getByRole("button", { name: /create business account/i }));
 
     await waitFor(() => {
       expect(authApi.register).toHaveBeenCalledWith(
@@ -173,8 +173,8 @@ describe("order request consent", () => {
     await screen.findByRole("heading", { level: 1, name: mockOrderService.name });
     await user.type(screen.getByLabelText(/full name/i), "Test Client");
     await user.type(screen.getByLabelText(/^email$/i), "client@example.com");
-    await user.type(screen.getByLabelText(/project \/ request details/i), "Need a bot");
-    await user.click(screen.getByRole("button", { name: "Submit request" }));
+    await user.type(screen.getByLabelText(/what do you need/i), "Need a bot");
+    await user.click(screen.getByRole("button", { name: "Send request" }));
 
     expect(await screen.findByText(LEGAL_CONSENT_ERROR_MESSAGE)).toBeInTheDocument();
     expect(publicApi.createPublicOrder).not.toHaveBeenCalled();
@@ -207,9 +207,9 @@ describe("order request consent", () => {
     await screen.findByRole("heading", { level: 1, name: mockOrderService.name });
     await user.type(screen.getByLabelText(/full name/i), "Test Client");
     await user.type(screen.getByLabelText(/^email$/i), "client@example.com");
-    await user.type(screen.getByLabelText(/project \/ request details/i), "Need a bot");
+    await user.type(screen.getByLabelText(/what do you need/i), "Need a bot");
     await acceptLegalConsent(user);
-    await user.click(screen.getByRole("button", { name: "Submit request" }));
+    await user.click(screen.getByRole("button", { name: "Send request" }));
 
     await waitFor(() => {
       expect(publicApi.createPublicOrder).toHaveBeenCalledWith(
@@ -270,7 +270,7 @@ describe("booking consent", () => {
     await selectFirstSlot(user);
     await user.type(screen.getByLabelText(/full name/i), "Test Client");
     await user.type(screen.getByLabelText(/^email$/i), "client@example.com");
-    await user.click(screen.getByRole("button", { name: "Submit booking request" }));
+    await user.click(screen.getByRole("button", { name: "Confirm booking" }));
 
     expect(await screen.findByText(LEGAL_CONSENT_ERROR_MESSAGE)).toBeInTheDocument();
     expect(publicApi.createPublicBooking).not.toHaveBeenCalled();
@@ -305,7 +305,7 @@ describe("booking consent", () => {
     await user.type(screen.getByLabelText(/full name/i), "Test Client");
     await user.type(screen.getByLabelText(/^email$/i), "client@example.com");
     await acceptLegalConsent(user);
-    await user.click(screen.getByRole("button", { name: "Submit booking request" }));
+    await user.click(screen.getByRole("button", { name: "Confirm booking" }));
 
     await waitFor(() => {
       expect(publicApi.createPublicBooking).toHaveBeenCalledWith(

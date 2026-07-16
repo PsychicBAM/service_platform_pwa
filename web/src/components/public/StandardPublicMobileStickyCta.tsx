@@ -20,8 +20,8 @@ function StickyCtaButton({
 }) {
   const className =
     variant === "primary"
-      ? "inline-flex min-w-0 items-center justify-center rounded-xl bg-brand-700 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-800"
-      : "inline-flex min-w-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50";
+      ? "inline-flex min-h-11 min-w-0 items-center justify-center rounded-xl bg-brand-700 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-800"
+      : "inline-flex min-h-11 min-w-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50";
 
   return (
     <a
@@ -63,7 +63,7 @@ export function StandardPublicMobileStickyCta({
         {showBook ? (
           <StickyCtaButton
             href="#services-booking"
-            label="Book online"
+            label="Book appointment"
             variant="primary"
             testId="standard-public-mobile-sticky-book"
             fullWidth={!showBoth}
@@ -72,7 +72,7 @@ export function StandardPublicMobileStickyCta({
         {showRequest ? (
           <StickyCtaButton
             href="#services-requests"
-            label="Request service"
+            label="Send request"
             variant={showBoth ? "secondary" : "primary"}
             testId="standard-public-mobile-sticky-request"
             fullWidth={!showBoth}

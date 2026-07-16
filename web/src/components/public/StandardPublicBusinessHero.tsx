@@ -26,8 +26,8 @@ function HeroCta({
 }) {
   const className =
     variant === "primary"
-      ? "inline-flex w-full items-center justify-center rounded-xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-800 md:w-auto md:py-2.5"
-      : "inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 md:w-auto md:py-2.5";
+      ? "inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-800 md:w-auto md:py-2.5"
+      : "inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 md:w-auto md:py-2.5";
 
   return (
     <a href={href} className={className} data-testid={testId}>
@@ -136,7 +136,7 @@ export function StandardPublicBusinessHero({
             {hasBooking ? (
               <HeroCta
                 href="#services-booking"
-                label="Book online"
+                label="Book appointment"
                 variant="primary"
                 testId="standard-public-business-book-cta"
               />
@@ -144,7 +144,7 @@ export function StandardPublicBusinessHero({
             {hasRequests ? (
               <HeroCta
                 href="#services-requests"
-                label="Request service"
+                label="Send request"
                 variant={hasBooking ? "secondary" : "primary"}
                 testId="standard-public-business-request-cta"
               />

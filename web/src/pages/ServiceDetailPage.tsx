@@ -89,16 +89,16 @@ export function ServiceDetailPage() {
           {isBooking ? (
             <Link
               to={`/b/${slug}/services/${serviceId}/book`}
-              className="block w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700"
+              className="block min-h-11 w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700"
             >
-              📅 Book appointment
+              Book appointment
             </Link>
           ) : (
             <Link
               to={`/b/${slug}/services/${serviceId}/request`}
-              className="block w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700"
+              className="block min-h-11 w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-sm font-medium text-white hover:bg-brand-700"
             >
-              📝 Submit request
+              Send request
             </Link>
           )}
         </>

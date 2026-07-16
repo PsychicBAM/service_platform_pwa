@@ -6,7 +6,7 @@ type StandardPublicBusinessClientActionsProps = {
 };
 
 const CLIENT_ACTION_BUTTON_CLASS =
-  "inline-flex flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 sm:min-w-[8.5rem] sm:flex-none sm:px-4";
+  "inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 sm:min-w-[8.5rem] sm:flex-none sm:px-4";
 
 export function StandardPublicBusinessClientActions({
   operatingMode,
@@ -25,7 +25,7 @@ export function StandardPublicBusinessClientActions({
     >
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
         <p className="text-xs font-medium text-slate-600 sm:text-sm sm:text-slate-700">
-          Already booked with this business?
+          Already worked with this business?
         </p>
         <div className="flex flex-row gap-2 sm:justify-end">
           {showBookings ? (

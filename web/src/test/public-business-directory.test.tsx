@@ -79,7 +79,7 @@ describe("public business directory", () => {
     expect(
       screen.getByRole("heading", { name: /find trusted services near you/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/explore top-rated businesses and book with confidence/i)).toBeInTheDocument();
+    expect(screen.getByText(/explore top-rated businesses\. book an appointment or send a service request/i)).toBeInTheDocument();
     expect(screen.getByTestId("marketplace-search-input")).toBeInTheDocument();
     expect(screen.getByTestId("marketplace-filter-row")).toBeInTheDocument();
     expect(await screen.findByTestId("marketplace-sidebar")).toBeInTheDocument();

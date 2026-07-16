@@ -17,7 +17,7 @@ type StandardPublicServiceCardProps = {
 };
 
 function standardServiceCtaLabel(type: PublicService["type"]): string {
-  return type === "booking" ? "Book now" : "Request now";
+  return type === "booking" ? "Book appointment" : "Send request";
 }
 
 export function StandardPublicServiceCard({ slug, service }: StandardPublicServiceCardProps) {
@@ -82,7 +82,7 @@ export function StandardPublicServiceCard({ slug, service }: StandardPublicServi
         <div className="mt-auto pt-4 md:pt-5">
           <Link
             to={`/b/${slug}/services/${service.id}`}
-            className="block w-full rounded-xl bg-brand-700 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-800"
+            className="block w-full min-h-11 rounded-xl bg-brand-700 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-brand-800"
             data-testid="standard-public-service-card-cta"
           >
             {standardServiceCtaLabel(service.type)}

@@ -47,14 +47,14 @@ describe("RegisterPage", () => {
     expect(screen.getByText(/^Password$/i)).toBeInTheDocument();
     expect(screen.getByText(/^Business name$/i)).toBeInTheDocument();
     expect(screen.getByText(/^Business slug$/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /create account/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /create business account/i })).toBeInTheDocument();
   });
 
   it("B. missing required fields show validation", async () => {
     const user = userEvent.setup();
     renderRoute(<RegisterPage />, { route: "/register", path: "/register" });
 
-    await user.click(screen.getByRole("button", { name: /create account/i }));
+    await user.click(screen.getByRole("button", { name: /create business account/i }));
 
     expect(await screen.findByText("Full name is required.")).toBeInTheDocument();
     expect(screen.getByText("Email is required.")).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe("RegisterPage", () => {
     await user.type(screen.getByLabelText(/business name/i), "New Biz");
     await user.type(screen.getByLabelText(/business slug/i), "new-biz");
     await acceptLegalConsent(user);
-    await user.click(screen.getByRole("button", { name: /create account/i }));
+    await user.click(screen.getByRole("button", { name: /create business account/i }));
 
     await waitFor(() => {
       expect(authApi.register).toHaveBeenCalledWith({
@@ -122,7 +122,7 @@ describe("RegisterPage", () => {
     await user.type(screen.getByLabelText(/business name/i), "Demo Biz");
     await user.type(screen.getByLabelText(/business slug/i), "demo-biz");
     await acceptLegalConsent(user);
-    await user.click(screen.getByRole("button", { name: /create account/i }));
+    await user.click(screen.getByRole("button", { name: /create business account/i }));
 
     expect(await screen.findByText("This email is already registered.")).toBeInTheDocument();
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -160,7 +160,7 @@ describe("RegisterPage", () => {
     await user.type(screen.getByLabelText(/business name/i), "New Biz");
     await user.type(screen.getByLabelText(/business slug/i), "new-biz");
     await acceptLegalConsent(user);
-    await user.click(screen.getByRole("button", { name: /create account/i }));
+    await user.click(screen.getByRole("button", { name: /create business account/i }));
 
     await waitFor(() => {
       expect(authApi.register).toHaveBeenCalledWith(

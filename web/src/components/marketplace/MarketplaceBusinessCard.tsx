@@ -36,7 +36,7 @@ export function MarketplaceBusinessCard({ business }: MarketplaceBusinessCardPro
   const coverGradient = gradientForBusinessSlug(business.slug);
   const description = truncateText(business.description, 110);
   const location = truncateText(formatPublicLocationDisplay(business), 48);
-  const ctaLabel = business.has_booking_service ? "Book now" : "Open business";
+  const ctaLabel = business.has_booking_service ? "Book now" : "View services";
   const serviceChips = business.services_preview.slice(0, 3);
 
   return (
@@ -92,11 +92,11 @@ export function MarketplaceBusinessCard({ business }: MarketplaceBusinessCardPro
           </div>
         ) : null}
 
-        <div className="mt-auto flex items-end justify-between gap-3 pt-4">
+        <div className="mt-auto flex flex-col gap-3 pt-4 sm:flex-row sm:items-end sm:justify-between">
           <p className="text-sm font-medium text-slate-700">{formatStartsAtPrice(business)}</p>
           <Link
             to={businessHref}
-            className="shrink-0 rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800"
+            className="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800 sm:w-auto"
             data-testid="marketplace-business-cta"
           >
             {ctaLabel}

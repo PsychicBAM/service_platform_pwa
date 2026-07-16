@@ -53,7 +53,7 @@ describe("public pages smoke", () => {
     expect(await screen.findByRole("heading", { name: mockPublicBusiness.name })).toBeInTheDocument();
     expect(screen.getByTestId("standard-public-business-home")).toBeInTheDocument();
     expect(screen.getByTestId("standard-public-business-client-actions")).toBeInTheDocument();
-    expect(screen.getByText(/already booked with this business/i)).toBeInTheDocument();
+    expect(screen.getByText(/already worked with this business/i)).toBeInTheDocument();
     expect(screen.getByTestId("standard-public-business-my-bookings")).toHaveAttribute(
       "href",
       "/me/bookings",
@@ -115,7 +115,7 @@ describe("public pages smoke", () => {
       clientActions.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
 
-    expect(screen.getByText(/already booked with this business/i)).toBeInTheDocument();
+    expect(screen.getByText(/already worked with this business/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /my bookings/i })).toHaveAttribute("href", "/me/bookings");
     expect(screen.getByRole("link", { name: /my requests/i })).toHaveAttribute("href", "/me/orders");
   });
@@ -155,7 +155,7 @@ describe("public pages smoke", () => {
     expect(screen.queryByTestId("standard-public-business-hero-cover")).not.toBeInTheDocument();
   });
 
-  it("A1c. standard hero shows only Book online CTA for booking-only services", async () => {
+  it("A1c. standard hero shows only Book appointment CTA for booking-only services", async () => {
     vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
       ...mockPublicBusiness,
       operating_mode: "booking_only",
@@ -174,7 +174,7 @@ describe("public pages smoke", () => {
     expect(screen.queryByTestId("standard-public-business-request-cta")).not.toBeInTheDocument();
   });
 
-  it("A1d. standard hero shows only Request service CTA for request-only services", async () => {
+  it("A1d. standard hero shows only Send request CTA for request-only services", async () => {
     vi.mocked(publicApi.getPublicBusiness).mockResolvedValue({
       ...mockPublicBusiness,
       operating_mode: "orders_only",
@@ -215,7 +215,7 @@ describe("public pages smoke", () => {
       `/b/${DEMO_SLUG}/services/${BOOKING_SERVICE_ID}`,
     );
     expect(within(bookingCard).getByTestId("standard-public-service-card-cta")).toHaveTextContent(
-      "Book now",
+      "Book appointment",
     );
   });
 
@@ -238,7 +238,7 @@ describe("public pages smoke", () => {
       `/b/${DEMO_SLUG}/services/${ORDER_SERVICE_ID}`,
     );
     expect(within(requestCard).getByTestId("standard-public-service-card-cta")).toHaveTextContent(
-      "Request now",
+      "Send request",
     );
   });
 
@@ -718,7 +718,7 @@ describe("public pages smoke", () => {
     });
 
     expect(await screen.findByRole("heading", { level: 1, name: mockOrderService.name })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /submit request/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /send request/i })).toBeInTheDocument();
   });
 
   it("E. validates missing name and details on order request page", async () => {
@@ -731,10 +731,10 @@ describe("public pages smoke", () => {
     });
 
     expect(await screen.findByRole("heading", { level: 1, name: mockOrderService.name })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Submit request" }));
+    await user.click(screen.getByRole("button", { name: "Send request" }));
 
     expect(await screen.findByText("Full name is required.")).toBeInTheDocument();
-    expect(screen.getByText("Project details are required.")).toBeInTheDocument();
+    expect(screen.getByText("Please describe what you need.")).toBeInTheDocument();
   });
 
   it("F. shows date selector and empty slots state on booking page", async () => {

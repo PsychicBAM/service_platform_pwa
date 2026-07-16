@@ -79,9 +79,9 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
           {bookingServices.length > 0 ? (
             <div id="services-booking" className="space-y-3 md:space-y-4" data-testid="standard-public-booking-services">
               <div>
-                <h3 className="text-base font-semibold text-slate-900 md:text-lg">Book online</h3>
+                <h3 className="text-base font-semibold text-slate-900 md:text-lg">Book an appointment</h3>
                 <p className="mt-1 text-sm text-slate-600">
-                  Choose a time and book instantly.
+                  Choose a time and confirm your appointment.
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 2xl:grid-cols-3">
@@ -95,9 +95,9 @@ export function StandardPublicBusinessHome({ business, slug }: StandardPublicBus
           {requestServices.length > 0 ? (
             <div id="services-requests" className="space-y-3 md:space-y-4" data-testid="standard-public-request-services">
               <div>
-                <h3 className="text-base font-semibold text-slate-900 md:text-lg">Request service</h3>
+                <h3 className="text-base font-semibold text-slate-900 md:text-lg">Send a request</h3>
                 <p className="mt-1 text-sm text-slate-600">
-                  Send details and get a response from the business.
+                  Describe what you need and the business will reply.
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 2xl:grid-cols-3">

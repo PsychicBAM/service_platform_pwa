@@ -274,7 +274,7 @@ export function RegisterPage() {
           disabled={loading}
           className="w-full rounded-xl bg-brand-600 px-4 py-3 font-medium text-white hover:bg-brand-700 disabled:opacity-60"
         >
-          {loading ? "Creating account…" : "Create account"}
+          {loading ? "Creating business account…" : "Create business account"}
         </button>
       </form>
       <p className="text-center text-sm text-slate-600">

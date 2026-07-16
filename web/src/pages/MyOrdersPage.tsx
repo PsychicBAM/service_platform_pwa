@@ -64,7 +64,7 @@ export function MyOrdersPage() {
             Log in to view requests linked to your account.
           </p>
         </div>
-        <AuthPrompt description="Log in to view orders linked to your account." />
+        <AuthPrompt description="Log in to view requests linked to your account." />
       </section>
     );
   }
@@ -135,12 +135,12 @@ export function MyOrdersPage() {
         ))}
       </div>
 
-      {ordersQuery.isLoading ? <LoadingState message="Loading orders…" /> : null}
+      {ordersQuery.isLoading ? <LoadingState message="Loading requests…" /> : null}
 
       {ordersQuery.isError ? (
         <ErrorState
-          title="Could not load orders"
-          message={getMeErrorMessage(ordersQuery.error, "Unable to load orders")}
+          title="Could not load requests"
+          message={getMeErrorMessage(ordersQuery.error, "Unable to load requests")}
         />
       ) : null}
 

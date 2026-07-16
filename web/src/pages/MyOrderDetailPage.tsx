@@ -90,8 +90,8 @@ export function MyOrderDetailPage() {
   if (!isAuthenticated) {
     return (
       <section className="space-y-4">
-        <h1 className="text-xl font-bold">Order detail</h1>
-        <AuthPrompt description="Log in to view this order." />
+        <h1 className="text-xl font-bold">Request detail</h1>
+        <AuthPrompt description="Log in to view this request." />
       </section>
     );
   }
@@ -128,12 +128,12 @@ export function MyOrderDetailPage() {
         ← Back to My requests
       </Link>
 
-      {orderQuery.isLoading ? <LoadingState message="Loading order…" /> : null}
+      {orderQuery.isLoading ? <LoadingState message="Loading request…" /> : null}
 
       {orderQuery.isError ? (
         <ErrorState
-          title="Could not load order"
-          message={getMeErrorMessage(orderQuery.error, "Unable to load order")}
+          title="Could not load request"
+          message={getMeErrorMessage(orderQuery.error, "Unable to load request")}
         />
       ) : null}
 
