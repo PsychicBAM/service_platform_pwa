@@ -313,6 +313,6 @@ describe("booking consent", () => {
         expect.objectContaining({ legal_consent_accepted: true }),
       );
     });
-    expect(await screen.findByText("Booking request submitted")).toBeInTheDocument();
+    expect(await screen.findByText("Booking received")).toBeInTheDocument();
   });
 });

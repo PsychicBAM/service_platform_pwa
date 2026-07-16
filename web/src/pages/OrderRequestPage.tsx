@@ -11,6 +11,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { FormField } from "@/components/FormField";
 import { LoadingState } from "@/components/LoadingState";
 import { PriceLabel } from "@/components/PriceLabel";
+import { GuestTrackActivityCard } from "@/components/GuestTrackActivityCard";
 import { TextAreaField } from "@/components/TextAreaField";
 import {
   formatOrderStatus,
@@ -151,7 +152,7 @@ export function OrderRequestPage() {
     return (
       <FormPageShell>
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-emerald-700">Request submitted</p>
+          <p className="text-xs uppercase tracking-wide text-emerald-700">Request sent</p>
           <h1 className="mt-1 text-xl font-bold text-emerald-900">Thank you!</h1>
           <dl className="mt-4 space-y-3 text-sm">
             <div>
@@ -168,12 +169,14 @@ export function OrderRequestPage() {
             </div>
           </dl>
           <p className="mt-4 text-sm text-emerald-800">
-            The business will review your request and contact you.
+            The business will review your request and contact you. Save your reference to claim it
+            later.
           </p>
         </div>
+        <GuestTrackActivityCard kind="order" reference={order.reference} />
         <Link
           to={`/b/${slug}/services`}
-          className="block rounded-xl bg-brand-600 px-4 py-3 text-center font-medium text-white hover:bg-brand-700"
+          className="block rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 hover:bg-slate-50"
         >
           Back to services
         </Link>

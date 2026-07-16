@@ -40,7 +40,8 @@ describe("RegisterPage", () => {
   it("A. register page renders fields", () => {
     renderRoute(<RegisterPage />, { route: "/register", path: "/register" });
 
-    expect(screen.getByRole("heading", { name: /create account/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /register your business/i })).toBeInTheDocument();
+    expect(screen.getByTestId("register-customer-note")).toBeInTheDocument();
     expect(screen.getByText(/^Full name$/i)).toBeInTheDocument();
     expect(screen.getByText(/^Email$/i)).toBeInTheDocument();
     expect(screen.getByText(/^Password$/i)).toBeInTheDocument();

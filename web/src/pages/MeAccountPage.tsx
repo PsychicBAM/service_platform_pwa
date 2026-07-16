@@ -50,18 +50,18 @@ const QUICK_ACTIONS = [
 const HOW_IT_WORKS = [
   {
     step: "1",
-    title: "Create an account or log in",
-    copy: "Use the same email you use when booking or sending requests.",
+    title: "Book or send a request",
+    copy: "Enter your email and phone when booking or contacting a business. This creates a guest booking or request with a reference — not a login account.",
   },
   {
     step: "2",
-    title: "Book or contact a business",
-    copy: "Your bookings and requests appear here when they are linked to your email.",
+    title: "Log in to your account",
+    copy: "Use an existing login. Guest activity does not appear under My bookings or My requests until you claim it.",
   },
   {
     step: "3",
-    title: "Claim guest activity",
-    copy: "If you booked as a guest, use Claim with your booking or request reference to attach it to your account.",
+    title: "Claim guest activity if needed",
+    copy: "Open Claim and enter your booking/request reference plus the same email or phone you used as a guest. That attaches it to your signed-in account.",
   },
 ] as const;
 
@@ -97,11 +97,17 @@ export function MeAccountPage() {
           </p>
         </div>
 
-        <AuthPrompt description="Log in or create an account to open your client dashboard." />
+        <AuthPrompt description="Log in to open your client dashboard, then claim guest bookings or requests with your reference." />
         <p className="text-center text-sm text-slate-600">
-          New here?{" "}
+          Booked as a guest?{" "}
+          <Link to="/me/claim" className="font-medium text-brand-700 hover:underline">
+            Claim a booking or request
+          </Link>
+        </p>
+        <p className="text-center text-sm text-slate-600">
+          Own a business?{" "}
           <Link to="/register" className="font-medium text-brand-700 hover:underline">
-            Create an account
+            Register your business
           </Link>
         </p>
 
@@ -250,20 +256,12 @@ function HowItWorksSection({ showAuthLinks }: { showAuthLinks: boolean }) {
       </ol>
       <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
         {showAuthLinks ? (
-          <>
-            <Link
-              to="/login"
-              className="inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              Log in
-            </Link>
-            <Link
-              to="/register"
-              className="inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              Create account
-            </Link>
-          </>
+          <Link
+            to="/login"
+            className="inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Log in
+          </Link>
         ) : null}
         <Link
           to="/me/claim"

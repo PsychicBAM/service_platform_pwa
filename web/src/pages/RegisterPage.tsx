@@ -122,9 +122,28 @@ export function RegisterPage() {
   return (
     <AuthPageShell className="space-y-6 max-w-lg">
       <div>
-        <h1 className="text-2xl font-bold">Create account</h1>
+        <h1 className="text-2xl font-bold">Register your business</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Register your business. After signup, check your email to verify your account.
+          Create a business owner account to manage services, bookings, and requests. After signup,
+          check your email to verify your account.
+        </p>
+      </div>
+
+      <div
+        className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
+        data-testid="register-customer-note"
+      >
+        <p className="font-medium">Looking to track a booking or request?</p>
+        <p className="mt-1">
+          This page creates a business account. Customers should{" "}
+          <Link to="/login" className="font-medium text-brand-800 underline">
+            log in
+          </Link>{" "}
+          and then{" "}
+          <Link to="/me/claim" className="font-medium text-brand-800 underline">
+            claim guest activity
+          </Link>{" "}
+          with their reference and the same email or phone used as a guest.
         </p>
       </div>
 

@@ -74,6 +74,15 @@ describe("client area mobile UX", () => {
     expect(screen.getByTestId("me-how-it-works")).toHaveTextContent(
       "How your client account works",
     );
+    expect(screen.getByTestId("me-how-it-works")).toHaveTextContent(
+      "Book or send a request",
+    );
+    expect(screen.getByTestId("me-how-it-works")).toHaveTextContent(
+      "does not appear under My bookings or My requests until you claim it",
+    );
+    expect(screen.getByTestId("me-how-it-works")).not.toHaveTextContent(
+      "appear here when they are linked to your email",
+    );
 
     const links = screen.getByTestId("me-account-links");
     expect(links.className).toMatch(/grid-cols-1/);

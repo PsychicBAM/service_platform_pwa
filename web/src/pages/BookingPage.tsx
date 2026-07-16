@@ -21,6 +21,7 @@ import { FormField } from "@/components/FormField";
 import { LoadingState } from "@/components/LoadingState";
 import { PriceLabel } from "@/components/PriceLabel";
 import { SuccessCard } from "@/components/SuccessCard";
+import { GuestTrackActivityCard } from "@/components/GuestTrackActivityCard";
 import { TextAreaField } from "@/components/TextAreaField";
 import { TimeSlotGrid } from "@/components/TimeSlotGrid";
 import {
@@ -277,7 +278,7 @@ export function BookingPage() {
     return (
       <FormPageShell>
         <SuccessCard
-          title="Booking request submitted"
+          title="Booking received"
           subtitle="Thank you!"
           items={[
             { label: "Reference", value: booking.reference },
@@ -285,11 +286,12 @@ export function BookingPage() {
             { label: "Service", value: booking.service.name },
             { label: "Date & time", value: formatDateTimeLabel(booking.starts_at) },
           ]}
-          note="The business will review and confirm your booking."
+          note="The business will review and confirm your booking. Save your reference to claim it later."
         />
+        <GuestTrackActivityCard kind="booking" reference={booking.reference} />
         <Link
           to={`/b/${slug}/services`}
-          className="block rounded-xl bg-brand-600 px-4 py-3 text-center font-medium text-white hover:bg-brand-700"
+          className="block rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 hover:bg-slate-50"
         >
           Back to services
         </Link>

@@ -35,9 +35,10 @@ export function LoginPage() {
   return (
     <AuthPageShell>
       <div>
-        <h1 className="text-2xl font-bold">Sign in</h1>
+        <h1 className="text-2xl font-bold">Log in to your account</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Use demo owner credentials if you ran <code>seed_demo.py</code>.
+          Use the same email you used when booking or sending requests. After you log in, claim
+          guest activity with your reference to see it under My bookings or My requests.
         </p>
       </div>
       {error ? <ErrorState title="Login failed" message={error} /> : null}
@@ -84,9 +85,15 @@ export function LoginPage() {
         </button>
       </form>
       <p className="text-center text-sm text-slate-600">
-        No account?{" "}
+        Booked as a guest?{" "}
+        <Link to="/me/claim" className="font-medium text-brand-700 hover:underline">
+          Claim a booking or request
+        </Link>
+      </p>
+      <p className="text-center text-sm text-slate-600">
+        Own a business?{" "}
         <Link to="/register" className="font-medium text-brand-700 hover:underline">
-          Register
+          Register your business
         </Link>
       </p>
     </AuthPageShell>
