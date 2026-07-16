@@ -151,8 +151,13 @@ describe("Layout email verification banner", () => {
     vi.clearAllMocks();
   });
 
-  it("H. shows non-blocking verify email banner for unverified user", () => {
-    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockUnverifiedClientUser));
+  it("H. when email delivery is active shows please verify copy", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      mockAuthenticatedAuth({
+        ...mockUnverifiedClientUser,
+        email_delivery_active: true,
+      }),
+    );
 
     render(
       <QueryClientProvider client={createTestQueryClient()}>
@@ -162,7 +167,34 @@ describe("Layout email verification banner", () => {
       </QueryClientProvider>,
     );
 
-    expect(screen.getByText(/please verify your email/i)).toBeInTheDocument();
+    const banner = screen.getByTestId("app-layout-verify-banner");
+    expect(banner).toHaveTextContent(/please verify your email/i);
+    expect(banner).not.toHaveTextContent(/email sending is not enabled/i);
+    expect(screen.getByRole("link", { name: /go to check email/i })).toHaveAttribute(
+      "href",
+      "/check-email",
+    );
+  });
+
+  it("H2. when email delivery is inactive shows dry-run environment copy", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      mockAuthenticatedAuth({
+        ...mockUnverifiedClientUser,
+        email_delivery_active: false,
+      }),
+    );
+
+    render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <MemoryRouter>
+          <Layout />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    const banner = screen.getByTestId("app-layout-verify-banner");
+    expect(banner).toHaveTextContent(/email sending is not enabled in this environment/i);
+    expect(screen.queryByText("Please verify your email.")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /go to check email/i })).toHaveAttribute(
       "href",
       "/check-email",

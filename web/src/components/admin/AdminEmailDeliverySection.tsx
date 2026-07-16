@@ -134,7 +134,8 @@ export function AdminEmailDeliverySection() {
           <span className="font-medium text-slate-700">Send test email</span>
           <input
             id="admin-email-test-to"
-            type="email"
+            type="text"
+            inputMode="email"
             autoComplete="email"
             value={toEmail}
             disabled={testMutation.isPending}
@@ -142,14 +143,14 @@ export function AdminEmailDeliverySection() {
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault();
+                event.stopPropagation();
                 handleSubmit();
               }
             }}
             placeholder="you@example.com"
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
             data-testid="admin-email-test-input"
-          />
-        </label>
+          />        </label>
         <button
           type="button"
           disabled={testMutation.isPending}

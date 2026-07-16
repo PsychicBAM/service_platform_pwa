@@ -338,7 +338,13 @@ export function AdminSettingsPage() {
       ) : null}
 
       {!businessQuery.isLoading && !businessQuery.isError && data && form ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
+        <form
+          id="admin-business-settings-form"
+          onSubmit={handleSubmit}
+          className="space-y-4"
+          data-testid="admin-business-settings-form"
+        >
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
             <h3 className="text-sm font-medium text-slate-700">Business profile</h3>
             <div>
@@ -567,9 +573,12 @@ export function AdminSettingsPage() {
               email delivery is configured).
             </p>
           </div>
+        </form>
 
-          <AdminEmailDeliverySection />
+        {/* Outside the settings form so test-email HTML validation cannot block Save settings. */}
+        <AdminEmailDeliverySection />
 
+        <div className="space-y-4">
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
             <h3 className="text-sm font-medium text-slate-700">Billing / plan</h3>
             <p className="text-sm text-slate-600">
@@ -666,12 +675,15 @@ export function AdminSettingsPage() {
 
           <button
             type="submit"
+            form="admin-business-settings-form"
             disabled={saving}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+            data-testid="admin-settings-save"
           >
             {saving ? "Saving…" : "Save settings"}
           </button>
-        </form>
+        </div>
+        </div>
       ) : null}
     </section>
   );

@@ -29,6 +29,10 @@ vi.mock("@/api/miniSiteApi", () => ({
   getMiniSiteConfig: vi.fn(),
   updateMiniSiteConfig: vi.fn(),
 }));
+vi.mock("@/api/marketplaceCoverImageApi", () => ({
+  uploadMarketplaceCoverImage: vi.fn(),
+  removeMarketplaceCoverImage: vi.fn(),
+}));
 
 function renderSettingsPage(page: ReactElement = <AdminSettingsPage />) {
   return renderRoute(
@@ -179,5 +183,75 @@ describe("admin email delivery settings", () => {
     await waitFor(() => {
       expect(section.scrollWidth).toBeLessThanOrEqual(section.clientWidth + 1);
     });
+  });
+
+  it("saves business settings while Email delivery section is rendered", async () => {
+    const user = userEvent.setup();
+    vi.mocked(adminApi.updateBusiness).mockResolvedValue({
+      ...mockAdminBusiness,
+      name: "Updated Business Name",
+    });
+
+    renderSettingsPage();
+    await screen.findByTestId("admin-email-delivery-section");
+
+    const settingsForm = screen.getByTestId("admin-business-settings-form");
+    expect(settingsForm).not.toContainElement(screen.getByTestId("admin-email-delivery-section"));
+    expect(screen.getByTestId("admin-email-test-submit")).toHaveAttribute("type", "button");
+
+    const nameInput = screen.getByLabelText(/business name/i);
+    await user.clear(nameInput);
+    await user.type(nameInput, "Updated Business Name");
+    await user.click(screen.getByTestId("admin-settings-save"));
+
+    await waitFor(() => {
+      expect(adminApi.updateBusiness).toHaveBeenCalledTimes(1);
+    });
+    expect(adminApi.updateBusiness).toHaveBeenCalledWith(
+      mockAdminBusiness.id,
+      expect.objectContaining({ name: "Updated Business Name" }),
+    );
+    expect(await screen.findByText("Settings saved.")).toBeInTheDocument();
+    expect(adminEmailApi.sendAdminTestEmail).not.toHaveBeenCalled();
+  });
+
+  it("does not block settings save when email status fails to load", async () => {
+    const user = userEvent.setup();
+    vi.mocked(adminEmailApi.getAdminEmailStatus).mockRejectedValue(
+      new ApiClientError(500, "HTTP_ERROR", "Could not load email status."),
+    );
+    vi.mocked(adminApi.updateBusiness).mockResolvedValue(mockAdminBusiness);
+
+    renderSettingsPage();
+    expect(await screen.findByText(/could not load email status/i)).toBeInTheDocument();
+
+    const saveButton = screen.getByTestId("admin-settings-save");
+    expect(saveButton).toBeEnabled();
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(adminApi.updateBusiness).toHaveBeenCalledTimes(1);
+    });
+    expect(await screen.findByText("Settings saved.")).toBeInTheDocument();
+  });
+
+  it("typing in test email and pressing Enter does not call updateBusiness", async () => {
+    const user = userEvent.setup();
+    vi.mocked(adminEmailApi.sendAdminTestEmail).mockResolvedValue({
+      ok: true,
+      dry_run: true,
+      message: "Email is in dry-run mode. No email was sent.",
+      message_code: "EMAIL_DRY_RUN",
+    });
+
+    renderSettingsPage();
+    await screen.findByTestId("admin-email-delivery-section");
+
+    const testInput = screen.getByTestId("admin-email-test-input");
+    await user.type(testInput, "test@example.com{Enter}");
+
+    expect(await screen.findByTestId("admin-email-test-feedback")).toHaveTextContent(/dry-run/i);
+    expect(adminApi.updateBusiness).not.toHaveBeenCalled();
+    expect(adminEmailApi.sendAdminTestEmail).toHaveBeenCalledWith("test@example.com");
   });
 });
