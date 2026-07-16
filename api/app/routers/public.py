@@ -104,7 +104,7 @@ async def create_public_booking(
         booking,
         service,
         client,
-        linked_to_account=linked_to_account,
+        linked_to_account=linked_to_account if current_user is not None else None,
     )
 
 
@@ -168,5 +168,5 @@ async def create_public_order(
         order,
         service,
         client,
-        linked_to_account=linked_to_account,
+        linked_to_account=linked_to_account if current_user is not None else None,
     )

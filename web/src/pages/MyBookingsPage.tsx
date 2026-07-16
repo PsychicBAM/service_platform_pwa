@@ -185,7 +185,8 @@ export function MyBookingsPage() {
                       {booking.business.name}
                     </p>
                     <p className="mt-0.5 truncate font-mono text-xs text-slate-500">
-                      Reference: {booking.reference}
+                      <span>Reference:</span>{" "}
+                      <span>{booking.reference}</span>
                     </p>
                   </div>
                   <StatusBadge status={booking.status} kind="booking" />

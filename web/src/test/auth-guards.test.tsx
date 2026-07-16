@@ -51,7 +51,8 @@ describe("auth and client pages smoke", () => {
       path: "/me/orders",
     });
 
-    expect(await screen.findByText(`Reference: ${mockMyOrder.reference}`)).toBeInTheDocument();
+    expect(await screen.findByText("Reference:")).toBeInTheDocument();
+    expect(screen.getByText(mockMyOrder.reference)).toBeInTheDocument();
     expect(screen.getByText(mockMyOrder.service.name)).toBeInTheDocument();
     expect(screen.getByText(mockMyOrder.business.name)).toBeInTheDocument();
   });

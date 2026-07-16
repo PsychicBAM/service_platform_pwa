@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_serializer, model_validator
 
 from app.models.enums import BookingStatus, ServiceType
 from app.schemas.legal_consent import LegalConsentRequiredMixin
@@ -81,7 +81,15 @@ class PublicBookingCreateResponse(BaseModel):
     ends_at: datetime
     payment_required: bool = False
     payment: None = None
-    linked_to_account: bool = False
+    # Present only for authenticated create requests (omitted for guests).
+    linked_to_account: bool | None = None
+
+    @model_serializer(mode="wrap")
+    def _serialize(self, serializer):
+        data = serializer(self)
+        if data.get("linked_to_account") is None:
+            data.pop("linked_to_account", None)
+        return data
 
     @classmethod
     def from_entities(
@@ -90,7 +98,7 @@ class PublicBookingCreateResponse(BaseModel):
         service,
         client,
         *,
-        linked_to_account: bool = False,
+        linked_to_account: bool | None = None,
     ) -> "PublicBookingCreateResponse":
         return cls(
             id=booking.id,

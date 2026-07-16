@@ -192,7 +192,8 @@ export function MyOrdersPage() {
                       {order.business.name}
                     </p>
                     <p className="mt-0.5 truncate font-mono text-xs text-slate-500">
-                      Reference: {order.reference}
+                      <span>Reference:</span>{" "}
+                      <span>{order.reference}</span>
                     </p>
                   </div>
                   <StatusBadge status={order.status} kind="order" />

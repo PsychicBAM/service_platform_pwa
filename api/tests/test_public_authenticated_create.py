@@ -243,7 +243,7 @@ async def test_guest_public_booking_still_creates_unlinked_client(
         json=booking_payload(ctx["service_id"], email=email, phone="+15552005"),
     )
     assert response.status_code == 201
-    assert response.json()["linked_to_account"] is False
+    assert "linked_to_account" not in response.json()
 
     client = (
         await db_session.execute(

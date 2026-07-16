@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_serializer, model_validator
 
 from app.models.enums import OrderMessageSenderType, OrderStatus, PriceType, ServiceType
 from app.schemas.legal_consent import LegalConsentRequiredMixin
@@ -160,7 +160,15 @@ class PublicOrderCreateResponse(BaseModel):
     created_at: datetime
     payment_required: bool = False
     payment: None = None
-    linked_to_account: bool = False
+    # Present only for authenticated create requests (omitted for guests).
+    linked_to_account: bool | None = None
+
+    @model_serializer(mode="wrap")
+    def _serialize(self, serializer):
+        data = serializer(self)
+        if data.get("linked_to_account") is None:
+            data.pop("linked_to_account", None)
+        return data
 
     @classmethod
     def from_entities(
@@ -169,7 +177,7 @@ class PublicOrderCreateResponse(BaseModel):
         service,
         client,
         *,
-        linked_to_account: bool = False,
+        linked_to_account: bool | None = None,
     ) -> "PublicOrderCreateResponse":
         return cls(
             id=order.id,
