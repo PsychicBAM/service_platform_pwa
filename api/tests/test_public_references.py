@@ -14,6 +14,7 @@ from app.models.booking import Booking
 from app.models.client import Client
 from app.models.enums import ClientSource, UserRole
 from app.models.order import Order
+from app.models.public_reference_counter import PublicReferenceCounter
 from app.models.user import User
 from app.services.password_service import hash_password
 from app.utils.references import next_public_reference
@@ -178,6 +179,57 @@ async def test_next_public_reference_year_rollover(db_session, clean_auth_tables
     second = await next_public_reference(db_session, "booking", year=2027)
     assert first == "BKG-26-0001"
     assert second == "BKG-27-0001"
+
+
+async def _seed_counter(
+    db_session,
+    *,
+    kind: str,
+    year: int,
+    last_number: int,
+) -> None:
+    db_session.add(
+        PublicReferenceCounter(
+            kind=kind,
+            year=year,
+            last_number=last_number,
+        )
+    )
+    await db_session.commit()
+
+
+@pytest.mark.asyncio
+async def test_booking_counter_overflow_stays_in_same_year(
+    db_session,
+    clean_auth_tables,
+) -> None:
+    """Counters above 9999 keep the same YY; they do not roll to the next year."""
+    await _seed_counter(db_session, kind="booking", year=2026, last_number=9999)
+    reference = await next_public_reference(db_session, "booking", year=2026)
+    assert reference == "BKG-26-10000"
+
+
+@pytest.mark.asyncio
+async def test_request_counter_overflow_stays_in_same_year(
+    db_session,
+    clean_auth_tables,
+) -> None:
+    await _seed_counter(db_session, kind="request", year=2026, last_number=9999)
+    reference = await next_public_reference(db_session, "request", year=2026)
+    assert reference == "REQ-26-10000"
+
+
+@pytest.mark.asyncio
+async def test_year_change_still_starts_at_0001_after_overflow(
+    db_session,
+    clean_auth_tables,
+) -> None:
+    await _seed_counter(db_session, kind="booking", year=2026, last_number=9999)
+    await _seed_counter(db_session, kind="request", year=2026, last_number=9999)
+    assert await next_public_reference(db_session, "booking", year=2026) == "BKG-26-10000"
+    assert await next_public_reference(db_session, "request", year=2026) == "REQ-26-10000"
+    assert await next_public_reference(db_session, "booking", year=2027) == "BKG-27-0001"
+    assert await next_public_reference(db_session, "request", year=2027) == "REQ-27-0001"
 
 
 @pytest.mark.asyncio
