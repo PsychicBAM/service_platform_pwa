@@ -21,6 +21,7 @@ import { ClaimGuestPage } from "@/pages/ClaimGuestPage";
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { MeAccountPage } from "@/pages/MeAccountPage";
+import { ClientRegisterPage } from "@/pages/ClientRegisterPage";
 import { MyBookingsPage } from "@/pages/MyBookingsPage";
 import { MyOrderDetailPage } from "@/pages/MyOrderDetailPage";
 import { MyOrdersPage } from "@/pages/MyOrdersPage";
@@ -73,6 +74,7 @@ export const routes = [
       { path: "b/:slug/services/:serviceId/request", element: <OrderRequestPage /> },
       { path: "b/:slug/services/:serviceId/book", element: <BookingPage /> },
       { path: "login", element: <LoginPage /> },
+      { path: "client/register", element: <ClientRegisterPage /> },
       { path: "forgot-password", element: <ForgotPasswordPage /> },
       { path: "reset-password", element: <ResetPasswordPage /> },
       { path: "review/:token", element: <ReviewRequestPage /> },

@@ -365,6 +365,17 @@ export interface RegisterResponse {
   tokens: TokenPair;
 }
 
+export interface RegisterClientRequest {
+  email: string;
+  password: string;
+  full_name?: string | null;
+}
+
+export interface RegisterClientResponse {
+  user: UserRead;
+  tokens: TokenPair;
+}
+
 export interface MeBusinessItem {
   id: string;
   name: string;

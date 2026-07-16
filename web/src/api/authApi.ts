@@ -13,6 +13,8 @@ import type {
   PasswordResetRequest,
   PasswordResetRequestResponse,
   RefreshResponse,
+  RegisterClientRequest,
+  RegisterClientResponse,
   RegisterRequest,
   RegisterResponse,
 } from "@/types/api";
@@ -30,6 +32,16 @@ export async function login(payload: LoginRequest) {
 export async function register(payload: RegisterRequest) {
   const response = await apiClient.post<RegisterResponse>(
     "/auth/register",
+    payload,
+    { auth: false },
+  );
+  setTokens(response.tokens);
+  return response;
+}
+
+export async function registerClient(payload: RegisterClientRequest) {
+  const response = await apiClient.post<RegisterClientResponse>(
+    "/auth/register-client",
     payload,
     { auth: false },
   );

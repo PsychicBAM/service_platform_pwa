@@ -23,6 +23,8 @@ from app.schemas.auth import (
     RefreshResponse,
     RegisterBusinessRequest,
     RegisterBusinessResponse,
+    RegisterClientRequest,
+    RegisterClientResponse,
     TokenPair,
 )
 from app.schemas.business import BusinessRead
@@ -112,6 +114,27 @@ class AuthService:
         return RegisterBusinessResponse(
             user=UserRead.model_validate(user),
             business=BusinessRead.model_validate(business),
+            tokens=self._build_token_pair(user),
+        )
+
+    async def register_client(self, data: RegisterClientRequest) -> RegisterClientResponse:
+        if await self.users.get_by_email(data.email):
+            raise EmailAlreadyExistsError(
+                "An account with this email already exists. Log in, then claim your booking or request.",
+            )
+
+        user = await self.users.create(
+            email=data.email,
+            password_hash=hash_password(data.password),
+            full_name=data.full_name,
+            phone=None,
+            role=UserRole.client,
+        )
+        await self.session.commit()
+        await self.session.refresh(user)
+
+        return RegisterClientResponse(
+            user=UserRead.model_validate(user),
             tokens=self._build_token_pair(user),
         )
 

@@ -42,6 +42,25 @@ class RegisterBusinessRequest(LegalConsentRequiredMixin, BaseModel):
         return value.strip().lower()
 
 
+class RegisterClientRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    full_name: str | None = Field(default=None, max_length=255)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+    @field_validator("full_name")
+    @classmethod
+    def normalize_full_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip()
+        return trimmed or None
+
+
 class TokenPair(BaseModel):
     access_token: str
     refresh_token: str
@@ -52,6 +71,11 @@ class TokenPair(BaseModel):
 class RegisterBusinessResponse(BaseModel):
     user: UserRead
     business: BusinessRead
+    tokens: TokenPair
+
+
+class RegisterClientResponse(BaseModel):
+    user: UserRead
     tokens: TokenPair
 
 

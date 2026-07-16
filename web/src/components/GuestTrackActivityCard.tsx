@@ -9,7 +9,19 @@ type GuestTrackActivityCardProps = {
 export function GuestTrackActivityCard({ kind, reference }: GuestTrackActivityCardProps) {
   const { isAuthenticated } = useAuth();
   const isBooking = kind === "booking";
-  const claimPath = isBooking ? "/me/claim?type=booking" : "/me/claim?type=order";
+  const claimType = isBooking ? "booking" : "order";
+  const claimParams = new URLSearchParams({ type: claimType });
+  if (reference) {
+    claimParams.set("reference", reference);
+  }
+  const claimPath = `/me/claim?${claimParams.toString()}`;
+
+  const registerParams = new URLSearchParams({ type: claimType });
+  if (reference) {
+    registerParams.set("reference", reference);
+  }
+  const clientRegisterPath = `/client/register?${registerParams.toString()}`;
+
   const listPath = isBooking ? "/me/bookings" : "/me/orders";
   const listLabel = isBooking ? "View my bookings" : "View my requests";
   const claimLabel = isBooking ? "Claim booking" : "Claim request";
@@ -24,8 +36,8 @@ export function GuestTrackActivityCard({ kind, reference }: GuestTrackActivityCa
       </h2>
       <p className="mt-2 text-sm text-slate-600">
         {isBooking
-          ? "A guest booking is not an account by itself. To manage it in My bookings, log in and claim it with your booking reference and the same email or phone you used."
-          : "A guest request is not an account by itself. To see messages and status in My requests, log in and claim it with your request reference and the same email or phone you used."}
+          ? "Booking as a guest does not create an account automatically. Create a client account, then claim this reference."
+          : "Sending a request as a guest does not create an account automatically. Create a client account, then claim this reference."}
       </p>
       {reference ? (
         <p className="mt-2 break-all rounded-lg bg-slate-50 px-3 py-2 font-mono text-sm font-semibold text-slate-800">
@@ -53,8 +65,15 @@ export function GuestTrackActivityCard({ kind, reference }: GuestTrackActivityCa
         ) : (
           <>
             <Link
-              to="/login"
+              to={clientRegisterPath}
               className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
+              data-testid="guest-track-create-account"
+            >
+              Create client account
+            </Link>
+            <Link
+              to="/login"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               data-testid="guest-track-login"
             >
               Log in
@@ -70,8 +89,7 @@ export function GuestTrackActivityCard({ kind, reference }: GuestTrackActivityCa
         )}
       </div>
       <p className="mt-3 text-xs text-slate-500">
-        Save your reference. Public registration creates a business account — customers track
-        bookings and requests by logging in and claiming them.
+        Save your reference. Customer signup is separate from business registration.
       </p>
     </div>
   );

@@ -136,10 +136,10 @@ export function RegisterPage() {
         <p className="font-medium">Looking to track a booking or request?</p>
         <p className="mt-1">
           This page creates a business account. Customers should{" "}
-          <Link to="/login" className="font-medium text-brand-800 underline">
-            log in
-          </Link>{" "}
-          and then{" "}
+          <Link to="/client/register" className="font-medium text-brand-800 underline">
+            create a client account
+          </Link>
+          , then{" "}
           <Link to="/me/claim" className="font-medium text-brand-800 underline">
             claim guest activity
           </Link>{" "}

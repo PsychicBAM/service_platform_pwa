@@ -67,7 +67,7 @@ export function ClaimGuestPage() {
   const [claimType, setClaimType] = useState<ClaimType>(
     parseClaimType(searchParams.get("type")),
   );
-  const [reference, setReference] = useState("");
+  const [reference, setReference] = useState(searchParams.get("reference")?.trim() ?? "");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -94,14 +94,36 @@ export function ClaimGuestPage() {
   });
 
   if (!isAuthenticated) {
+    const registerParams = new URLSearchParams();
+    registerParams.set("type", claimType);
+    if (reference.trim()) {
+      registerParams.set("reference", reference.trim());
+    }
+    const clientRegisterPath = `/client/register?${registerParams.toString()}`;
+
     return (
       <FormPageShell>
         <h1 className="text-xl font-bold md:text-2xl">Claim a booking or request</h1>
         <p className="text-sm text-slate-600">
-          This links a guest booking or request to your signed-in account so you can manage it
-          here.
+          Create or log in first, then claim your booking or request with the reference.
         </p>
         <AuthPrompt description="Log in to link a guest booking or request to your account." />
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap" data-testid="claim-signed-out-actions">
+          <Link
+            to={clientRegisterPath}
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
+            data-testid="claim-create-client-account"
+          >
+            Create client account
+          </Link>
+          <Link
+            to="/login"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            data-testid="claim-go-login"
+          >
+            Log in
+          </Link>
+        </div>
       </FormPageShell>
     );
   }

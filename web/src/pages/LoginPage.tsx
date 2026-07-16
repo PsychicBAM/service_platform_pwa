@@ -84,18 +84,26 @@ export function LoginPage() {
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
-      <p className="text-center text-sm text-slate-600">
-        Booked as a guest?{" "}
-        <Link to="/me/claim" className="font-medium text-brand-700 hover:underline">
-          Claim a booking or request
-        </Link>
-      </p>
-      <p className="text-center text-sm text-slate-600">
-        Own a business?{" "}
-        <Link to="/register" className="font-medium text-brand-700 hover:underline">
-          Register your business
-        </Link>
-      </p>
+      <div className="space-y-2 text-center text-sm text-slate-600">
+        <p>
+          Don&apos;t have a client account yet?{" "}
+          <Link to="/client/register" className="font-medium text-brand-700 hover:underline">
+            Create client account
+          </Link>
+        </p>
+        <p>
+          Booked as a guest?{" "}
+          <Link to="/me/claim" className="font-medium text-brand-700 hover:underline">
+            Claim a booking or request
+          </Link>
+        </p>
+        <p>
+          Own a business?{" "}
+          <Link to="/register" className="font-medium text-brand-700 hover:underline">
+            Register your business
+          </Link>
+        </p>
+      </div>
     </AuthPageShell>
   );
 }

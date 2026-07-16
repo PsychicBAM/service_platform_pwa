@@ -437,6 +437,10 @@ export function getRegisterErrorMessage(
 ): string {
   if (error instanceof ApiClientError) {
     if (error.code === "EMAIL_ALREADY_EXISTS") {
+      // Client register returns a claim-focused message; keep business register wording stable.
+      if (/claim|log in/i.test(error.message)) {
+        return error.message;
+      }
       return "This email is already registered.";
     }
     if (error.code === "SLUG_ALREADY_EXISTS") {

@@ -5,10 +5,13 @@ import { BookingPage } from "@/pages/BookingPage";
 import { OrderRequestPage } from "@/pages/OrderRequestPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { ClientRegisterPage } from "@/pages/ClientRegisterPage";
 import { MeAccountPage } from "@/pages/MeAccountPage";
+import { ClaimGuestPage } from "@/pages/ClaimGuestPage";
 import { useAuth } from "@/hooks/useAuth";
 import * as meApi from "@/api/meApi";
 import * as publicApi from "@/api/publicApi";
+import * as authApi from "@/api/authApi";
 import {
   BOOKING_SERVICE_ID,
   DEMO_SLUG,
@@ -28,6 +31,14 @@ import { generateBookingDates } from "@/utils/format";
 vi.mock("@/hooks/useAuth");
 vi.mock("@/api/meApi");
 vi.mock("@/api/publicApi");
+vi.mock("@/api/authApi", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/api/authApi")>();
+  return {
+    ...actual,
+    registerClient: vi.fn(),
+    login: vi.fn(),
+  };
+});
 
 function getConsentCheckbox() {
   return screen.getByRole("checkbox", { name: /acknowledge the draft privacy policy/i });
@@ -41,7 +52,7 @@ describe("client account creation flow clarity", () => {
     vi.mocked(meApi.listMyOrders).mockResolvedValue({ data: [], meta: emptyListMeta });
   });
 
-  it("booking success shows account tracking guidance with login and claim links", async () => {
+  it("booking success shows create client account, login, and claim links", async () => {
     const user = userEvent.setup();
     const defaultDate = generateBookingDates(1)[0]!.date;
     const slotStartsAt = `${defaultDate}T10:00:00`;
@@ -86,17 +97,19 @@ describe("client account creation flow clarity", () => {
 
     expect(await screen.findByText("Booking received")).toBeInTheDocument();
     const guidance = await screen.findByTestId("guest-track-activity-card");
-    expect(guidance).toHaveTextContent("Want to track this booking?");
-    expect(guidance).toHaveTextContent("not an account by itself");
+    expect(guidance).toHaveTextContent("does not create an account automatically");
+    expect(screen.getByTestId("guest-track-create-account")).toHaveAttribute(
+      "href",
+      "/client/register?type=booking&reference=BKG-2026-0420",
+    );
     expect(screen.getByTestId("guest-track-login")).toHaveAttribute("href", "/login");
     expect(screen.getByTestId("guest-track-claim")).toHaveAttribute(
       "href",
-      "/me/claim?type=booking",
+      "/me/claim?type=booking&reference=BKG-2026-0420",
     );
-    expect(screen.queryByTestId("guest-track-view-list")).not.toBeInTheDocument();
   });
 
-  it("request success shows account tracking guidance with login and claim links", async () => {
+  it("request success shows create client account, login, and claim links", async () => {
     const user = userEvent.setup();
     vi.mocked(publicApi.getPublicService).mockResolvedValue(mockOrderService);
     vi.mocked(publicApi.createPublicOrder).mockResolvedValue({
@@ -129,24 +142,73 @@ describe("client account creation flow clarity", () => {
     await user.click(screen.getByRole("button", { name: "Submit request" }));
 
     expect(await screen.findByText("Request sent")).toBeInTheDocument();
-    const guidance = await screen.findByTestId("guest-track-activity-card");
-    expect(guidance).toHaveTextContent("Want to track replies and status updates?");
+    expect(screen.getByTestId("guest-track-create-account")).toHaveAttribute(
+      "href",
+      "/client/register?type=order&reference=ORD-2026-0420",
+    );
     expect(screen.getByTestId("guest-track-login")).toHaveAttribute("href", "/login");
     expect(screen.getByTestId("guest-track-claim")).toHaveAttribute(
       "href",
-      "/me/claim?type=order",
+      "/me/claim?type=order&reference=ORD-2026-0420",
     );
   });
 
-  it("login page explains same-email tracking and claim link", () => {
-    renderRoute(<LoginPage />, { route: "/login", path: "/login" });
+  it("client register page validates password confirmation and redirects to claim", async () => {
+    const user = userEvent.setup();
+    vi.mocked(authApi.registerClient).mockResolvedValue({
+      user: {
+        id: "new-client-id",
+        email: "newclient@example.com",
+        full_name: "New Client",
+        role: "client",
+      },
+      tokens: {
+        access_token: "access",
+        refresh_token: "refresh",
+        token_type: "bearer",
+        expires_in: 1800,
+      },
+    });
+
+    renderRoute(<ClientRegisterPage />, {
+      route: "/client/register?type=booking&reference=BKG-1",
+      path: "/client/register",
+    });
 
     expect(
-      screen.getByRole("heading", { name: "Log in to your account" }),
+      screen.getByRole("heading", { name: "Create your client account" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/same email you used when booking or sending requests/i),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("client-register-info")).toHaveTextContent(
+      "same email you used when booking",
+    );
+
+    await user.type(screen.getByLabelText(/^email$/i), "newclient@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "ChangeMe123!");
+    await user.type(screen.getByLabelText(/^confirm password$/i), "Mismatch123!");
+    await user.click(screen.getByRole("button", { name: "Create client account" }));
+    expect(screen.getByText("Passwords do not match.")).toBeInTheDocument();
+    expect(authApi.registerClient).not.toHaveBeenCalled();
+
+    await user.clear(screen.getByLabelText(/^confirm password$/i));
+    await user.type(screen.getByLabelText(/^confirm password$/i), "ChangeMe123!");
+    await user.click(screen.getByRole("button", { name: "Create client account" }));
+
+    await waitFor(() => {
+      expect(authApi.registerClient).toHaveBeenCalledWith({
+        email: "newclient@example.com",
+        password: "ChangeMe123!",
+        full_name: null,
+      });
+    });
+  });
+
+  it("login page separates client signup, business register, and claim", () => {
+    renderRoute(<LoginPage />, { route: "/login", path: "/login" });
+
+    expect(screen.getByRole("link", { name: /create client account/i })).toHaveAttribute(
+      "href",
+      "/client/register",
+    );
     expect(screen.getByRole("link", { name: /claim a booking or request/i })).toHaveAttribute(
       "href",
       "/me/claim",
@@ -157,7 +219,7 @@ describe("client account creation flow clarity", () => {
     );
   });
 
-  it("register page clarifies business signup and points customers to claim", () => {
+  it("register page clarifies business signup and points customers to client register", () => {
     renderRoute(<RegisterPage />, { route: "/register", path: "/register" });
 
     expect(
@@ -165,19 +227,35 @@ describe("client account creation flow clarity", () => {
     ).toBeInTheDocument();
     const note = screen.getByTestId("register-customer-note");
     expect(note).toHaveTextContent("creates a business account");
-    expect(note.querySelector('a[href="/login"]')).toBeTruthy();
+    expect(note.querySelector('a[href="/client/register"]')).toBeTruthy();
     expect(note.querySelector('a[href="/me/claim"]')).toBeTruthy();
   });
 
-  it("/me how-it-works does not claim automatic email linking", async () => {
+  it("/me how-it-works mentions setting own password", async () => {
     vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockClientUser));
 
     renderRoute(<MeAccountPage />, { route: "/me", path: "/me" });
 
     const how = await screen.findByTestId("me-how-it-works");
-    expect(how).toHaveTextContent("Claim guest activity if needed");
-    expect(how).toHaveTextContent("until you claim it");
+    expect(how).toHaveTextContent("Create your client account");
+    expect(how).toHaveTextContent("Set your own password");
+    expect(how).toHaveTextContent("Claim guest activity");
     expect(how).not.toHaveTextContent("automatically");
-    expect(how).not.toHaveTextContent("appear here when they are linked to your email");
+  });
+
+  it("/me/claim signed-out state shows create client account and login", () => {
+    renderRoute(<ClaimGuestPage />, {
+      route: "/me/claim?type=booking&reference=BKG-9",
+      path: "/me/claim",
+    });
+
+    expect(screen.getByTestId("claim-create-client-account")).toHaveAttribute(
+      "href",
+      "/client/register?type=booking&reference=BKG-9",
+    );
+    expect(screen.getByTestId("claim-go-login")).toHaveAttribute("href", "/login");
+    expect(
+      screen.getByText(/create or log in first, then claim your booking or request/i),
+    ).toBeInTheDocument();
   });
 });

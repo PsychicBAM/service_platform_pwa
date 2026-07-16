@@ -19,6 +19,8 @@ from app.schemas.auth import (
     RefreshResponse,
     RegisterBusinessRequest,
     RegisterBusinessResponse,
+    RegisterClientRequest,
+    RegisterClientResponse,
 )
 from app.services.auth_service import AuthService
 from app.services.email_verification_service import EmailVerificationService
@@ -49,6 +51,14 @@ async def register_business_owner(
     auth_service: AuthService = Depends(get_auth_service),
 ) -> RegisterBusinessResponse:
     return await auth_service.register_business_owner(payload)
+
+
+@router.post("/register-client", response_model=RegisterClientResponse, status_code=201)
+async def register_client(
+    payload: RegisterClientRequest,
+    auth_service: AuthService = Depends(get_auth_service),
+) -> RegisterClientResponse:
+    return await auth_service.register_client(payload)
 
 
 @router.post("/login", response_model=LoginResponse)

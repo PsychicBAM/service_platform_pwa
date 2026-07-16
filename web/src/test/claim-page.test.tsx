@@ -29,6 +29,10 @@ describe("ClaimGuestPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Sign in required")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /go to login/i })).toHaveAttribute("href", "/login");
+    expect(screen.getByTestId("claim-create-client-account")).toHaveAttribute(
+      "href",
+      "/client/register?type=booking",
+    );
   });
 
   it("B. authenticated /me/claim renders form", () => {

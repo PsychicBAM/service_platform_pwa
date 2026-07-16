@@ -4,7 +4,7 @@ import { clearTokens, getRefreshToken, setTokens } from "@/utils/authStorage";
 const DEV_BASE_URL = "http://localhost:8000/api/v1";
 const PROD_BASE_URL = "/api/v1";
 
-const NO_REFRESH_PATHS = ["/auth/login", "/auth/register", "/auth/refresh"];
+const NO_REFRESH_PATHS = ["/auth/login", "/auth/register", "/auth/register-client", "/auth/refresh"];
 
 export function getApiBaseUrl(): string {
   const configured = import.meta.env.VITE_API_BASE_URL?.trim();

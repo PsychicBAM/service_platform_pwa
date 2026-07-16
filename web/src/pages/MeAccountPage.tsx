@@ -51,21 +51,21 @@ const HOW_IT_WORKS = [
   {
     step: "1",
     title: "Book or send a request",
-    copy: "Enter your email and phone when booking or contacting a business. This creates a guest booking or request with a reference — not a login account.",
+    copy: "Use your email and phone when booking or contacting a business.",
   },
   {
     step: "2",
-    title: "Log in to your account",
-    copy: "Use an existing login. Guest activity does not appear under My bookings or My requests until you claim it.",
+    title: "Create your client account",
+    copy: "Set your own password using the same email. Guest activity is not an account by itself.",
   },
   {
     step: "3",
-    title: "Claim guest activity if needed",
-    copy: "Open Claim and enter your booking/request reference plus the same email or phone you used as a guest. That attaches it to your signed-in account.",
+    title: "Claim guest activity",
+    copy: "Enter your booking/request reference and the guest email or phone you used.",
   },
 ] as const;
 
-const NEXT_STEPS = [
+const NEXT_STEPS_SIGNED_IN = [
   { to: "/businesses", label: "Book a service", testId: "me-next-browse" },
   { to: "/me/claim", label: "Claim guest booking/request", testId: "me-next-claim" },
   { to: "/me/bookings", label: "Check bookings", testId: "me-next-bookings" },
@@ -97,7 +97,13 @@ export function MeAccountPage() {
           </p>
         </div>
 
-        <AuthPrompt description="Log in to open your client dashboard, then claim guest bookings or requests with your reference." />
+        <AuthPrompt description="Log in or create a client account, then claim guest bookings or requests with your reference." />
+        <p className="text-center text-sm text-slate-600">
+          New customer?{" "}
+          <Link to="/client/register" className="font-medium text-brand-700 hover:underline">
+            Create client account
+          </Link>
+        </p>
         <p className="text-center text-sm text-slate-600">
           Booked as a guest?{" "}
           <Link to="/me/claim" className="font-medium text-brand-700 hover:underline">
@@ -214,7 +220,7 @@ export function MeAccountPage() {
             You do not have upcoming bookings or open requests yet. Here is where to start.
           </p>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            {NEXT_STEPS.map((step) => (
+            {NEXT_STEPS_SIGNED_IN.map((step) => (
               <Link
                 key={step.to}
                 to={step.to}
@@ -256,12 +262,20 @@ function HowItWorksSection({ showAuthLinks }: { showAuthLinks: boolean }) {
       </ol>
       <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
         {showAuthLinks ? (
-          <Link
-            to="/login"
-            className="inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Log in
-          </Link>
+          <>
+            <Link
+              to="/client/register"
+              className="inline-flex min-h-10 items-center rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            >
+              Create client account
+            </Link>
+            <Link
+              to="/login"
+              className="inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Log in
+            </Link>
+          </>
         ) : null}
         <Link
           to="/me/claim"
@@ -271,7 +285,11 @@ function HowItWorksSection({ showAuthLinks }: { showAuthLinks: boolean }) {
         </Link>
         <Link
           to="/businesses"
-          className="inline-flex min-h-10 items-center rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          className={`inline-flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-medium ${
+            showAuthLinks
+              ? "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+              : "bg-brand-600 text-white hover:bg-brand-700"
+          }`}
         >
           Browse businesses
         </Link>

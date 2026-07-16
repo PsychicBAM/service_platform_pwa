@@ -75,13 +75,13 @@ describe("client area mobile UX", () => {
       "How your client account works",
     );
     expect(screen.getByTestId("me-how-it-works")).toHaveTextContent(
-      "Book or send a request",
+      "Create your client account",
     );
     expect(screen.getByTestId("me-how-it-works")).toHaveTextContent(
-      "does not appear under My bookings or My requests until you claim it",
+      "Set your own password",
     );
-    expect(screen.getByTestId("me-how-it-works")).not.toHaveTextContent(
-      "appear here when they are linked to your email",
+    expect(screen.getByTestId("me-how-it-works")).toHaveTextContent(
+      "Claim guest activity",
     );
 
     const links = screen.getByTestId("me-account-links");

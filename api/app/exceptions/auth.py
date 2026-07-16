@@ -34,9 +34,12 @@ class InactiveUserError(AppError):
 
 
 class EmailAlreadyExistsError(AppError):
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        message: str = "Email is already registered.",
+    ) -> None:
         super().__init__(
-            message="Email is already registered.",
+            message=message,
             code="EMAIL_ALREADY_EXISTS",
             status_code=409,
         )
