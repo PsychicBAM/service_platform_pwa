@@ -416,6 +416,151 @@ async def test_e3_duplicate_reference_across_businesses_claims_by_contact(
 
 
 @pytest.mark.asyncio
+async def test_e4_same_contact_duplicate_reference_is_ambiguous_without_business(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    shared_email = "ambig-claim@example.com"
+    ctx_a = await _create_guest_booking(
+        async_client,
+        db_session,
+        "ambig-a",
+        email=shared_email,
+        phone="+15551101",
+    )
+    ctx_b = await _create_guest_booking(
+        async_client,
+        db_session,
+        "ambig-b",
+        email=shared_email,
+        phone="+15551102",
+    )
+    booking_b = (
+        await db_session.execute(
+            select(Booking).where(Booking.id == uuid.UUID(ctx_b["booking_id"]))
+        )
+    ).scalar_one()
+    booking_b.reference = ctx_a["reference"]
+    await db_session.commit()
+
+    user = await _create_client_user(db_session, "ambig-claim")
+    await db_session.commit()
+    headers = await _login_client(async_client, user.email)
+
+    response = await async_client.post(
+        "/api/v1/me/claims/bookings",
+        json={"reference": ctx_a["reference"], "email": shared_email},
+        headers=headers,
+    )
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "CLAIM_AMBIGUOUS"
+
+
+@pytest.mark.asyncio
+async def test_e5_business_scoped_order_claim_links_only_intended_request(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    shared_email = "scoped-order@example.com"
+    ctx_a = await _create_guest_order(
+        async_client,
+        db_session,
+        "scoped-ord-a",
+        email=shared_email,
+        phone="+15551201",
+    )
+    ctx_b = await _create_guest_order(
+        async_client,
+        db_session,
+        "scoped-ord-b",
+        email=shared_email,
+        phone="+15551202",
+    )
+    order_b = (
+        await db_session.execute(
+            select(Order).where(Order.id == uuid.UUID(ctx_b["order_id"]))
+        )
+    ).scalar_one()
+    order_b.reference = ctx_a["reference"]
+    await db_session.commit()
+
+    user = await _create_client_user(db_session, "scoped-ord")
+    await db_session.commit()
+    headers = await _login_client(async_client, user.email)
+
+    response = await async_client.post(
+        "/api/v1/me/claims/orders",
+        json={
+            "reference": ctx_a["reference"],
+            "email": shared_email,
+            "business_slug": ctx_a["slug"],
+        },
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert response.json()["order"]["id"] == ctx_a["order_id"]
+    assert response.json()["order"]["status"] == "submitted"
+
+    listing = await async_client.get(
+        "/api/v1/me/orders",
+        params={"status": "active"},
+        headers=headers,
+    )
+    assert listing.status_code == 200
+    ids = [item["id"] for item in listing.json()["data"]]
+    assert ctx_a["order_id"] in ids
+    assert ctx_b["order_id"] not in ids
+
+
+@pytest.mark.asyncio
+async def test_e6_shared_guest_client_links_prior_orders_for_same_business(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    """Claiming one order links the shared Client row, so prior same-contact orders appear."""
+    email = "shared-client-orders@example.com"
+    phone = "+15551301"
+    ctx = await _setup_order_business(async_client, db_session, "shared-cli")
+    first = await async_client.post(
+        f"/api/v1/public/b/{ctx['slug']}/orders",
+        json=order_payload(ctx["service_id"], email=email, phone=phone),
+    )
+    assert first.status_code == 201
+    second = await async_client.post(
+        f"/api/v1/public/b/{ctx['slug']}/orders",
+        json=order_payload(ctx["service_id"], email=email, phone=phone),
+    )
+    assert second.status_code == 201
+    first_body = first.json()
+    second_body = second.json()
+
+    user = await _create_client_user(db_session, "shared-cli")
+    await db_session.commit()
+    headers = await _login_client(async_client, user.email)
+
+    claim = await async_client.post(
+        "/api/v1/me/claims/orders",
+        json={
+            "reference": second_body["reference"],
+            "email": email,
+            "business_slug": ctx["slug"],
+        },
+        headers=headers,
+    )
+    assert claim.status_code == 200
+
+    listing = await async_client.get(
+        "/api/v1/me/orders",
+        params={"status": "active"},
+        headers=headers,
+    )
+    assert listing.status_code == 200
+    ids = {item["id"] for item in listing.json()["data"]}
+    assert first_body["id"] in ids
+    assert second_body["id"] in ids
+
+
+@pytest.mark.asyncio
 async def test_f_missing_email_and_phone_returns_validation_error(
     async_client: AsyncClient,
     db_session,

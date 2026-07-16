@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.types import Date
 
 from app.models.booking import Booking
+from app.models.business import Business
 from app.models.client import Client
 from app.models.enums import BookingStatus, CancelledBy
 
@@ -194,14 +195,20 @@ class BookingRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def list_bookings_for_claim_by_reference(self, reference: str) -> list[Booking]:
-        """Find bookings by reference across businesses (refs are unique per business only)."""
+    async def list_bookings_for_claim_by_reference(
+        self,
+        reference: str,
+        *,
+        business_slug: str | None = None,
+    ) -> list[Booking]:
+        """Find bookings by reference (optionally scoped to one business slug)."""
         normalized_reference = reference.strip()
         if not normalized_reference:
             return []
         stmt = (
             select(Booking)
             .join(Booking.client)
+            .join(Booking.business)
             .where(Booking.reference == normalized_reference)
             .options(
                 selectinload(Booking.client),
@@ -209,6 +216,8 @@ class BookingRepository:
                 selectinload(Booking.business),
             )
         )
+        if business_slug:
+            stmt = stmt.where(Business.slug == business_slug.strip().lower())
         result = await self.session.execute(stmt)
         return list(result.scalars().unique().all())
 

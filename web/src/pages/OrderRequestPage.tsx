@@ -173,7 +173,7 @@ export function OrderRequestPage() {
             later.
           </p>
         </div>
-        <GuestTrackActivityCard kind="order" reference={order.reference} />
+        <GuestTrackActivityCard kind="order" reference={order.reference} businessSlug={slug} />
         <Link
           to={`/b/${slug}/services`}
           className="block rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 hover:bg-slate-50"

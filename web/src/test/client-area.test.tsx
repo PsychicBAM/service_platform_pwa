@@ -173,10 +173,10 @@ describe("client area mobile UX", () => {
     );
   });
 
-  it("cancel booking opens custom confirm without window.confirm", async () => {
+  it("cancel booking opens app dialog with optional reason and no window.prompt", async () => {
     const user = userEvent.setup();
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("");
+    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("should not be used");
     vi.mocked(meApi.listMyBookings).mockResolvedValue({
       data: [upcomingBooking],
       meta: emptyListMeta,
@@ -201,20 +201,26 @@ describe("client area mobile UX", () => {
 
     await user.click(await screen.findByTestId(`my-booking-cancel-${upcomingBooking.id}`));
     expect(confirmSpy).not.toHaveBeenCalled();
-    expect(await screen.findByTestId("admin-confirm-dialog")).toBeInTheDocument();
+    expect(promptSpy).not.toHaveBeenCalled();
+    expect(await screen.findByTestId("cancel-reason-dialog")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Cancel booking?" })).toBeInTheDocument();
+    expect(screen.getByTestId("cancel-reason-dialog-input")).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("admin-confirm-dialog-cancel"));
-    expect(screen.queryByTestId("admin-confirm-dialog")).not.toBeInTheDocument();
+    await user.click(screen.getByTestId("cancel-reason-dialog-cancel"));
+    expect(screen.queryByTestId("cancel-reason-dialog")).not.toBeInTheDocument();
     expect(meApi.cancelMyBooking).not.toHaveBeenCalled();
 
     await user.click(screen.getByTestId(`my-booking-cancel-${upcomingBooking.id}`));
-    await user.click(screen.getByTestId("admin-confirm-dialog-confirm"));
+    await user.type(screen.getByTestId("cancel-reason-dialog-input"), "Schedule conflict");
+    await user.click(screen.getByTestId("cancel-reason-dialog-confirm"));
 
     await waitFor(() => {
-      expect(meApi.cancelMyBooking).toHaveBeenCalledWith(upcomingBooking.id, undefined);
+      expect(meApi.cancelMyBooking).toHaveBeenCalledWith(
+        upcomingBooking.id,
+        "Schedule conflict",
+      );
     });
-    expect(promptSpy).toHaveBeenCalled();
+    expect(promptSpy).not.toHaveBeenCalled();
 
     confirmSpy.mockRestore();
     promptSpy.mockRestore();
@@ -277,7 +283,7 @@ describe("client area mobile UX", () => {
     );
     expect(screen.getByRole("link", { name: "Claim guest request" })).toHaveAttribute(
       "href",
-      "/me/claim?type=order",
+      "/me/claim?type=request",
     );
   });
 
@@ -295,10 +301,10 @@ describe("client area mobile UX", () => {
     expect(await screen.findByTestId("leave-review-button")).toBeInTheDocument();
   });
 
-  it("cancel request opens custom confirm without window.confirm", async () => {
+  it("cancel request opens app dialog with optional reason and no window.prompt", async () => {
     const user = userEvent.setup();
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("Changed mind");
+    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("should not be used");
     vi.mocked(meApi.listMyOrders).mockResolvedValue({
       data: [mockMyOrder],
       meta: emptyListMeta,
@@ -321,13 +327,17 @@ describe("client area mobile UX", () => {
 
     await user.click(await screen.findByTestId(`my-order-cancel-${ORDER_ID}`));
     expect(confirmSpy).not.toHaveBeenCalled();
-    expect(await screen.findByRole("heading", { name: "Cancel request?" })).toBeInTheDocument();
+    expect(promptSpy).not.toHaveBeenCalled();
+    expect(await screen.findByTestId("cancel-reason-dialog")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Cancel request?" })).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("admin-confirm-dialog-confirm"));
+    await user.type(screen.getByTestId("cancel-reason-dialog-input"), "Changed mind");
+    await user.click(screen.getByTestId("cancel-reason-dialog-confirm"));
 
     await waitFor(() => {
       expect(meApi.cancelMyOrder).toHaveBeenCalledWith(ORDER_ID, "Changed mind");
     });
+    expect(promptSpy).not.toHaveBeenCalled();
 
     confirmSpy.mockRestore();
     promptSpy.mockRestore();

@@ -110,12 +110,12 @@ describe("client account creation flow clarity", () => {
     expect(guidance).toHaveTextContent("save this booking to your account automatically");
     expect(screen.getByTestId("guest-track-create-account")).toHaveAttribute(
       "href",
-      "/client/register?type=booking&reference=BKG-2026-0420",
+      `/client/register?type=booking&reference=BKG-2026-0420&business=${DEMO_SLUG}`,
     );
     expect(screen.getByTestId("guest-track-login")).toHaveAttribute("href", "/login");
     expect(screen.getByTestId("guest-track-claim")).toHaveAttribute(
       "href",
-      "/me/claim?type=booking&reference=BKG-2026-0420",
+      `/me/claim?type=booking&reference=BKG-2026-0420&business=${DEMO_SLUG}`,
     );
     expect(screen.getByTestId("guest-track-claim")).toHaveTextContent("Claim manually");
   });
@@ -155,12 +155,12 @@ describe("client account creation flow clarity", () => {
     expect(await screen.findByText("Request sent")).toBeInTheDocument();
     expect(screen.getByTestId("guest-track-create-account")).toHaveAttribute(
       "href",
-      "/client/register?type=order&reference=ORD-2026-0420",
+      `/client/register?type=request&reference=ORD-2026-0420&business=${DEMO_SLUG}`,
     );
     expect(screen.getByTestId("guest-track-login")).toHaveAttribute("href", "/login");
     expect(screen.getByTestId("guest-track-claim")).toHaveAttribute(
       "href",
-      "/me/claim?type=order&reference=ORD-2026-0420",
+      `/me/claim?type=request&reference=ORD-2026-0420&business=${DEMO_SLUG}`,
     );
   });
 
@@ -204,7 +204,7 @@ describe("client account creation flow clarity", () => {
     });
 
     renderRoute(<ClientRegisterPage />, {
-      route: "/client/register?type=booking&reference=BKG-1",
+      route: `/client/register?type=booking&reference=BKG-1&business=${DEMO_SLUG}`,
       path: "/client/register",
     });
 
@@ -237,10 +237,91 @@ describe("client account creation flow clarity", () => {
       expect(meApi.claimGuestBooking).toHaveBeenCalledWith({
         reference: "BKG-1",
         email: "newclient@example.com",
+        business_slug: DEMO_SLUG,
       });
     });
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/me/bookings");
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/me/bookings",
+        expect.objectContaining({
+          state: expect.objectContaining({
+            message: expect.stringContaining("booking was linked"),
+          }),
+        }),
+      );
+    });
+  });
+
+  it("client register with request type auto-claims and redirects to orders", async () => {
+    const user = userEvent.setup();
+    vi.mocked(authApi.registerClient).mockResolvedValue({
+      user: {
+        id: "new-client-id",
+        email: "newclient@example.com",
+        full_name: "New Client",
+        role: "client",
+      },
+      tokens: {
+        access_token: "access",
+        refresh_token: "refresh",
+        token_type: "bearer",
+        expires_in: 1800,
+      },
+    });
+    vi.mocked(meApi.claimGuestOrder).mockResolvedValue({
+      order: {
+        id: "order-1",
+        reference: "ORD-9",
+        status: "submitted",
+        business: { id: "biz-1", name: "Demo", slug: DEMO_SLUG },
+        service: {
+          id: "svc-1",
+          name: "Request",
+          type: "order",
+          price_cents: null,
+          price_type: "fixed",
+          currency: "USD",
+        },
+        form_data: {},
+        quoted_price_cents: null,
+        decline_reason: null,
+        created_at: "2026-07-16T10:00:00Z",
+        updated_at: "2026-07-16T10:00:00Z",
+        accepted_at: null,
+        completed_at: null,
+        can_cancel: true,
+        has_review: false,
+        can_review: false,
+      },
+      already_linked: false,
+    });
+
+    renderRoute(<ClientRegisterPage />, {
+      route: `/client/register?type=request&reference=ORD-9&business=${DEMO_SLUG}`,
+      path: "/client/register",
+    });
+
+    await user.type(screen.getByLabelText(/^email$/i), "newclient@example.com");
+    await user.type(screen.getByLabelText(/^password$/i), "ChangeMe123!");
+    await user.type(screen.getByLabelText(/^confirm password$/i), "ChangeMe123!");
+    await user.click(screen.getByRole("button", { name: "Create client account" }));
+
+    await waitFor(() => {
+      expect(meApi.claimGuestOrder).toHaveBeenCalledWith({
+        reference: "ORD-9",
+        email: "newclient@example.com",
+        business_slug: DEMO_SLUG,
+      });
+    });
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/me/orders",
+        expect.objectContaining({
+          state: expect.objectContaining({
+            message: expect.stringContaining("request was linked"),
+          }),
+        }),
+      );
     });
   });
 
@@ -265,7 +346,7 @@ describe("client account creation flow clarity", () => {
     );
 
     renderRoute(<ClientRegisterPage />, {
-      route: "/client/register?type=order&reference=ORD-9",
+      route: `/client/register?type=request&reference=ORD-9&business=${DEMO_SLUG}`,
       path: "/client/register",
     });
 
@@ -279,14 +360,15 @@ describe("client account creation flow clarity", () => {
       expect(meApi.claimGuestOrder).toHaveBeenCalledWith({
         reference: "ORD-9",
         email: "newclient@example.com",
+        business_slug: DEMO_SLUG,
       });
     });
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        "/me/claim?type=order&reference=ORD-9&autoClaimFailed=1",
+        `/me/claim?type=request&reference=ORD-9&business=${DEMO_SLUG}&autoClaimFailed=1`,
         expect.objectContaining({
           state: expect.objectContaining({
-            message: expect.stringContaining("could not link this item automatically"),
+            message: expect.stringContaining("could not link this request automatically"),
           }),
         }),
       );

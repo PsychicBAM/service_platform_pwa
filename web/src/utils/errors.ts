@@ -369,6 +369,12 @@ export function getClaimErrorMessage(error: unknown, fallback = "Something went 
         "This booking or request is already linked to another account."
       );
     }
+    if (error.code === "CLAIM_AMBIGUOUS") {
+      return (
+        error.message ||
+        "More than one matching guest item was found for this reference. Open the claim link from your confirmation screen, or include the business."
+      );
+    }
     if (error.code === "CLAIM_NOT_FOUND_OR_MISMATCH") {
       return (
         error.message ||

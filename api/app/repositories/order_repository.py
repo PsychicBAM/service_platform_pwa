@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 from app.models.client import Client
 from app.models.enums import OrderStatus
 from app.models.order import Order
+from app.models.business import Business
 from app.models.service import Service
 
 
@@ -94,14 +95,20 @@ class OrderRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def list_orders_for_claim_by_reference(self, reference: str) -> list[Order]:
-        """Find orders by reference across businesses (refs are unique per business only)."""
+    async def list_orders_for_claim_by_reference(
+        self,
+        reference: str,
+        *,
+        business_slug: str | None = None,
+    ) -> list[Order]:
+        """Find orders by reference (optionally scoped to one business slug)."""
         normalized_reference = reference.strip()
         if not normalized_reference:
             return []
         stmt = (
             select(Order)
             .join(Order.client)
+            .join(Order.business)
             .where(Order.reference == normalized_reference)
             .options(
                 selectinload(Order.client),
@@ -109,6 +116,8 @@ class OrderRepository:
                 selectinload(Order.business),
             )
         )
+        if business_slug:
+            stmt = stmt.where(Business.slug == business_slug.strip().lower())
         result = await self.session.execute(stmt)
         return list(result.scalars().unique().all())
 

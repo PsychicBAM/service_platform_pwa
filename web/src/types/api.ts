@@ -539,12 +539,14 @@ export interface ClaimGuestBookingPayload {
   reference: string;
   email?: string;
   phone?: string;
+  business_slug?: string;
 }
 
 export interface ClaimGuestOrderPayload {
   reference: string;
   email?: string;
   phone?: string;
+  business_slug?: string;
 }
 
 export interface ClaimGuestBookingResponse {

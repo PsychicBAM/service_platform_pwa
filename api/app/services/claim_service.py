@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.exceptions.business import ClaimAlreadyLinkedError, ClaimNotFoundOrMismatchError
+from app.exceptions.business import (
+    ClaimAlreadyLinkedError,
+    ClaimAmbiguousError,
+    ClaimNotFoundOrMismatchError,
+)
 from app.models.booking import Booking
 from app.models.client import Client
 from app.models.enums import ClientSource
@@ -57,6 +61,7 @@ class ClaimService:
     ) -> ClaimGuestBookingResponse:
         candidates = await self.booking_repo.list_bookings_for_claim_by_reference(
             payload.reference,
+            business_slug=payload.business_slug,
         )
         matched = [
             booking
@@ -71,18 +76,17 @@ class ClaimService:
         booking, already_linked = self._resolve_claim_target(
             matched,
             current_user=current_user,
+            scoped=bool(payload.business_slug),
         )
 
         if not already_linked:
-            guests = [item for item in matched if item.client.user_id is None]
-            for item in guests:
-                await self.client_repo.update_client(
-                    item.client,
-                    {
-                        "user_id": current_user.id,
-                        "source": ClientSource.registered,
-                    },
-                )
+            await self.client_repo.update_client(
+                booking.client,
+                {
+                    "user_id": current_user.id,
+                    "source": ClientSource.registered,
+                },
+            )
             await self.session.commit()
 
         claimed = await self.booking_repo.get_for_user(current_user.id, booking.id)
@@ -101,6 +105,7 @@ class ClaimService:
     ) -> ClaimGuestOrderResponse:
         candidates = await self.order_repo.list_orders_for_claim_by_reference(
             payload.reference,
+            business_slug=payload.business_slug,
         )
         matched = [
             order
@@ -115,18 +120,19 @@ class ClaimService:
         order, already_linked = self._resolve_claim_target(
             matched,
             current_user=current_user,
+            scoped=bool(payload.business_slug),
         )
 
         if not already_linked:
-            guests = [item for item in matched if item.client.user_id is None]
-            for item in guests:
-                await self.client_repo.update_client(
-                    item.client,
-                    {
-                        "user_id": current_user.id,
-                        "source": ClientSource.registered,
-                    },
-                )
+            # Linking Client.user_id attaches all guest orders/bookings for that
+            # business+contact profile (shared Client row). That is intentional.
+            await self.client_repo.update_client(
+                order.client,
+                {
+                    "user_id": current_user.id,
+                    "source": ClientSource.registered,
+                },
+            )
             await self.session.commit()
 
         claimed = await self.order_repo.get_for_user(current_user.id, order.id)
@@ -143,6 +149,7 @@ class ClaimService:
         matched: list[Booking] | list[Order],
         *,
         current_user: User,
+        scoped: bool,
     ) -> tuple[Booking | Order, bool]:
         if not matched:
             raise ClaimNotFoundOrMismatchError()
@@ -155,8 +162,13 @@ class ClaimService:
             if item.client.user_id is not None and item.client.user_id != current_user.id
         ]
 
+        # Deduplicate by business so the same Client appearing once is fine, but
+        # multiple businesses with the same reference+contact are ambiguous unless scoped.
+        guest_business_ids = {item.business_id for item in guests}
+        if len(guest_business_ids) > 1 and not scoped:
+            raise ClaimAmbiguousError()
+
         if guests:
-            # Prefer claiming unlinked guest record(s) for this reference + contact.
             return guests[0], False
         if mine:
             return mine[0], True

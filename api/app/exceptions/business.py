@@ -176,6 +176,21 @@ class ClaimAlreadyLinkedError(AppError):
         )
 
 
+class ClaimAmbiguousError(AppError):
+    def __init__(
+        self,
+        message: str = (
+            "More than one matching guest item was found for this reference. "
+            "Open the claim link from your confirmation screen, or include the business."
+        ),
+    ) -> None:
+        super().__init__(
+            message=message,
+            code="CLAIM_AMBIGUOUS",
+            status_code=409,
+        )
+
+
 class ReviewNotAllowedError(AppError):
     def __init__(self, message: str = "Review is not allowed for this item.") -> None:
         super().__init__(message=message, code="REVIEW_NOT_ALLOWED", status_code=400)

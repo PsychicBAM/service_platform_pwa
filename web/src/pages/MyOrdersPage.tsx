@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cancelMyOrder, listMyOrders } from "@/api/meApi";
-import { AdminConfirmDialog } from "@/components/admin/AdminConfirmDialog";
 import { AuthPrompt } from "@/components/AuthPrompt";
+import { CancelWithReasonDialog } from "@/components/CancelWithReasonDialog";
 import { ClientLeaveReviewSection } from "@/components/ClientLeaveReviewSection";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -31,10 +31,15 @@ const actionButtonClass =
 
 export function MyOrdersPage() {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<MyOrderStatusFilter>("active");
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingCancel, setPendingCancel] = useState<PendingCancel | null>(null);
+  const linkedMessage =
+    typeof (location.state as { message?: unknown } | null)?.message === "string"
+      ? (location.state as { message: string }).message
+      : null;
 
   const ordersQuery = useQuery({
     queryKey: ["my-orders", statusFilter],
@@ -64,16 +69,15 @@ export function MyOrdersPage() {
     );
   }
 
-  async function confirmCancel() {
+  async function confirmCancel(reason: string) {
     if (!pendingCancel) {
       return;
     }
     const { id } = pendingCancel;
-    setPendingCancel(null);
     setActionError(null);
-    const reason = window.prompt("Optional reason for cancellation:") ?? undefined;
     try {
       await cancelMutation.mutateAsync({ id, reason: reason || undefined });
+      setPendingCancel(null);
     } catch (error) {
       setActionError(getMeErrorMessage(error, "Could not cancel request."));
     }
@@ -87,15 +91,29 @@ export function MyOrdersPage() {
           Track service requests, business replies, and status updates.
         </p>
       </div>
+      {linkedMessage ? (
+        <div
+          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950"
+          data-testid="my-orders-linked-banner"
+        >
+          {linkedMessage}
+        </div>
+      ) : null}
       <p className="text-sm text-slate-600">
         Submitted a request as a guest?{" "}
         <Link
-          to="/me/claim?type=order"
+          to="/me/claim?type=request"
           className="font-medium text-brand-700 hover:text-brand-800"
         >
           Claim a guest request
         </Link>
       </p>
+      {(ordersQuery.data?.data.length ?? 0) > 1 ? (
+        <p className="text-xs text-slate-500" data-testid="my-orders-shared-profile-note">
+          Linked this guest profile to your account. Other requests made with the same guest contact
+          may also appear.
+        </p>
+      ) : null}
 
       <div
         className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -144,7 +162,7 @@ export function MyOrdersPage() {
               Browse businesses
             </Link>
             <Link
-              to="/me/claim?type=order"
+              to="/me/claim?type=request"
               className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Claim guest request
@@ -222,17 +240,24 @@ export function MyOrdersPage() {
         </div>
       ) : null}
 
-      <AdminConfirmDialog
+      <CancelWithReasonDialog
         open={pendingCancel !== null}
         title="Cancel request?"
-        description="This request will be cancelled."
+        description={
+          pendingCancel
+            ? `This request (${pendingCancel.reference}) will be cancelled.`
+            : "This request will be cancelled."
+        }
         confirmLabel="Cancel request"
         cancelLabel="Keep request"
-        variant="danger"
         isLoading={cancelMutation.isPending}
-        onCancel={() => setPendingCancel(null)}
-        onConfirm={() => {
-          void confirmCancel();
+        onCancel={() => {
+          if (!cancelMutation.isPending) {
+            setPendingCancel(null);
+          }
+        }}
+        onConfirm={(reason) => {
+          void confirmCancel(reason);
         }}
       />
     </section>

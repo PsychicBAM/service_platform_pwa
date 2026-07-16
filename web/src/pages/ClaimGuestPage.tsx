@@ -54,13 +54,20 @@ function validateClaimForm(reference: string, email: string, phone: string): Fie
   return errors;
 }
 
-function buildPayload(reference: string, email: string, phone: string) {
+function buildPayload(
+  reference: string,
+  email: string,
+  phone: string,
+  businessSlug: string,
+) {
   const trimmedEmail = email.trim().toLowerCase();
   const trimmedPhone = phone.trim();
+  const trimmedBusiness = businessSlug.trim();
   return {
     reference: reference.trim(),
     ...(trimmedEmail ? { email: trimmedEmail } : {}),
     ...(trimmedPhone ? { phone: trimmedPhone } : {}),
+    ...(trimmedBusiness ? { business_slug: trimmedBusiness } : {}),
   };
 }
 
@@ -78,6 +85,7 @@ export function ClaimGuestPage() {
     parseClaimType(searchParams.get("type")),
   );
   const [reference, setReference] = useState(searchParams.get("reference")?.trim() ?? "");
+  const [businessSlug] = useState(searchParams.get("business")?.trim() ?? "");
   const [email, setEmail] = useState(() => user?.email ?? "");
   const [phone, setPhone] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -93,7 +101,7 @@ export function ClaimGuestPage() {
 
   const claimMutation = useMutation({
     mutationFn: async (): Promise<ClaimSuccess> => {
-      const payload = buildPayload(reference, email, phone);
+      const payload = buildPayload(reference, email, phone, businessSlug);
       if (claimType === "booking") {
         const response: ClaimGuestBookingResponse = await claimGuestBooking(payload);
         return {
@@ -120,9 +128,12 @@ export function ClaimGuestPage() {
 
   if (!isAuthenticated) {
     const registerParams = new URLSearchParams();
-    registerParams.set("type", claimType);
+    registerParams.set("type", claimType === "order" ? "request" : "booking");
     if (reference.trim()) {
       registerParams.set("reference", reference.trim());
+    }
+    if (businessSlug) {
+      registerParams.set("business", businessSlug);
     }
     const clientRegisterPath = `/client/register?${registerParams.toString()}`;
 
@@ -186,6 +197,10 @@ export function ClaimGuestPage() {
             />
           </div>
           <p className="mt-2 text-sm text-slate-600">{success.item.service.name}</p>
+          <p className="mt-2 text-xs text-slate-500">
+            Linked this guest profile to your account. Other requests or bookings made with the same
+            guest contact at this business may also appear.
+          </p>
           <Link
             to={listPath}
             className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700"

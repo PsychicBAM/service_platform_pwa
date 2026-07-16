@@ -8,6 +8,7 @@ class ClaimGuestBookingRequest(BaseModel):
     reference: str
     email: str | None = None
     phone: str | None = None
+    business_slug: str | None = None
 
     @field_validator("reference")
     @classmethod
@@ -33,6 +34,14 @@ class ClaimGuestBookingRequest(BaseModel):
         stripped = value.strip()
         return stripped if stripped else None
 
+    @field_validator("business_slug")
+    @classmethod
+    def normalize_business_slug(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip().lower()
+        return stripped if stripped else None
+
     @model_validator(mode="after")
     def require_email_or_phone(self) -> "ClaimGuestBookingRequest":
         if not self.email and not self.phone:
@@ -44,6 +53,7 @@ class ClaimGuestOrderRequest(BaseModel):
     reference: str
     email: str | None = None
     phone: str | None = None
+    business_slug: str | None = None
 
     @field_validator("reference")
     @classmethod
@@ -67,6 +77,14 @@ class ClaimGuestOrderRequest(BaseModel):
         if value is None:
             return None
         stripped = value.strip()
+        return stripped if stripped else None
+
+    @field_validator("business_slug")
+    @classmethod
+    def normalize_business_slug(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip().lower()
         return stripped if stripped else None
 
     @model_validator(mode="after")

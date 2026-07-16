@@ -288,7 +288,7 @@ export function BookingPage() {
           ]}
           note="The business will review and confirm your booking. Save your reference to claim it later."
         />
-        <GuestTrackActivityCard kind="booking" reference={booking.reference} />
+        <GuestTrackActivityCard kind="booking" reference={booking.reference} businessSlug={slug} />
         <Link
           to={`/b/${slug}/services`}
           className="block rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 hover:bg-slate-50"

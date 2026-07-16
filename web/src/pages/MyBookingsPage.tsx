@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cancelMyBooking, listMyBookings } from "@/api/meApi";
-import { AdminConfirmDialog } from "@/components/admin/AdminConfirmDialog";
 import { AuthPrompt } from "@/components/AuthPrompt";
+import { CancelWithReasonDialog } from "@/components/CancelWithReasonDialog";
 import { ClientLeaveReviewSection } from "@/components/ClientLeaveReviewSection";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -30,10 +30,15 @@ const actionButtonClass =
 
 export function MyBookingsPage() {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<MyBookingStatusFilter>("upcoming");
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingCancel, setPendingCancel] = useState<PendingCancel | null>(null);
+  const linkedMessage =
+    typeof (location.state as { message?: unknown } | null)?.message === "string"
+      ? (location.state as { message: string }).message
+      : null;
 
   const bookingsQuery = useQuery({
     queryKey: ["my-bookings", statusFilter],
@@ -63,16 +68,15 @@ export function MyBookingsPage() {
     );
   }
 
-  async function confirmCancel() {
+  async function confirmCancel(reason: string) {
     if (!pendingCancel) {
       return;
     }
     const { id } = pendingCancel;
-    setPendingCancel(null);
     setActionError(null);
-    const reason = window.prompt("Optional reason for cancellation:") ?? undefined;
     try {
       await cancelMutation.mutateAsync({ id, reason: reason || undefined });
+      setPendingCancel(null);
     } catch (error) {
       setActionError(getMeErrorMessage(error, "Could not cancel booking."));
     }
@@ -86,6 +90,14 @@ export function MyBookingsPage() {
           Upcoming and past appointments linked to your account.
         </p>
       </div>
+      {linkedMessage ? (
+        <div
+          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950"
+          data-testid="my-bookings-linked-banner"
+        >
+          {linkedMessage}
+        </div>
+      ) : null}
       <p className="text-sm text-slate-600">
         Made a booking as a guest?{" "}
         <Link
@@ -217,17 +229,24 @@ export function MyBookingsPage() {
         </div>
       ) : null}
 
-      <AdminConfirmDialog
+      <CancelWithReasonDialog
         open={pendingCancel !== null}
         title="Cancel booking?"
-        description="This booking will be marked as cancelled."
+        description={
+          pendingCancel
+            ? `This booking (${pendingCancel.reference}) will be marked as cancelled.`
+            : "This booking will be marked as cancelled."
+        }
         confirmLabel="Cancel booking"
         cancelLabel="Keep booking"
-        variant="danger"
         isLoading={cancelMutation.isPending}
-        onCancel={() => setPendingCancel(null)}
-        onConfirm={() => {
-          void confirmCancel();
+        onCancel={() => {
+          if (!cancelMutation.isPending) {
+            setPendingCancel(null);
+          }
+        }}
+        onConfirm={(reason) => {
+          void confirmCancel(reason);
         }}
       />
     </section>

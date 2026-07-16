@@ -9,15 +9,26 @@ import { getRegisterErrorMessage } from "@/utils/errors";
 
 const MIN_PASSWORD_LENGTH = 8;
 
-const AUTO_CLAIM_FAILED_MESSAGE =
-  "Your account was created. We could not link this item automatically. Please confirm the guest email or phone used when booking.";
+function parseClaimType(value: string | null): "booking" | "order" {
+  if (value === "order" || value === "request") {
+    return "order";
+  }
+  return "booking";
+}
+
+const AUTO_CLAIM_FAILED_BOOKING =
+  "Your account was created. We could not link this booking automatically. Please confirm the guest email or phone used when booking.";
+const AUTO_CLAIM_FAILED_REQUEST =
+  "Your account was created. We could not link this request automatically. Please confirm the guest email or phone used when sending it.";
 
 export function ClientRegisterPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const reference = searchParams.get("reference")?.trim() || "";
-  const claimType = searchParams.get("type") === "order" ? "order" : "booking";
+  const businessSlug = searchParams.get("business")?.trim() || "";
+  const claimType = parseClaimType(searchParams.get("type"));
+  const typeParam = claimType === "order" ? "request" : "booking";
 
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -29,9 +40,12 @@ export function ClientRegisterPage() {
 
   function buildClaimPath(extra?: Record<string, string>): string {
     const params = new URLSearchParams();
-    params.set("type", claimType);
+    params.set("type", typeParam);
     if (reference) {
       params.set("reference", reference);
+    }
+    if (businessSlug) {
+      params.set("business", businessSlug);
     }
     if (extra) {
       for (const [key, value] of Object.entries(extra)) {
@@ -41,17 +55,20 @@ export function ClientRegisterPage() {
     return `/me/claim?${params.toString()}`;
   }
 
-  async function tryAutoClaim(claimEmail: string): Promise<boolean> {
+  async function tryAutoClaim(claimEmail: string): Promise<void> {
     if (!reference) {
-      return false;
+      return;
     }
-    const payload = { reference, email: claimEmail };
+    const payload = {
+      reference,
+      email: claimEmail,
+      ...(businessSlug ? { business_slug: businessSlug } : {}),
+    };
     if (claimType === "booking") {
       await claimGuestBooking(payload);
-    } else {
-      await claimGuestOrder(payload);
+      return;
     }
-    return true;
+    await claimGuestOrder(payload);
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -87,11 +104,24 @@ export function ClientRegisterPage() {
       if (reference) {
         try {
           await tryAutoClaim(normalizedEmail);
-          navigate(claimType === "booking" ? "/me/bookings" : "/me/orders");
+          await queryClient.invalidateQueries({
+            queryKey: claimType === "booking" ? ["my-bookings"] : ["my-orders"],
+          });
+          navigate(claimType === "booking" ? "/me/bookings" : "/me/orders", {
+            state: {
+              message:
+                claimType === "booking"
+                  ? "Your booking was linked to this account."
+                  : "Your request was linked to this account.",
+            },
+          });
           return;
         } catch {
           navigate(buildClaimPath({ autoClaimFailed: "1" }), {
-            state: { message: AUTO_CLAIM_FAILED_MESSAGE },
+            state: {
+              message:
+                claimType === "booking" ? AUTO_CLAIM_FAILED_BOOKING : AUTO_CLAIM_FAILED_REQUEST,
+            },
           });
           return;
         }

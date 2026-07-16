@@ -4,21 +4,32 @@ import { useAuth } from "@/hooks/useAuth";
 type GuestTrackActivityCardProps = {
   kind: "booking" | "order";
   reference?: string;
+  businessSlug?: string;
 };
 
-export function GuestTrackActivityCard({ kind, reference }: GuestTrackActivityCardProps) {
+export function GuestTrackActivityCard({
+  kind,
+  reference,
+  businessSlug,
+}: GuestTrackActivityCardProps) {
   const { isAuthenticated } = useAuth();
   const isBooking = kind === "booking";
-  const claimType = isBooking ? "booking" : "order";
+  const claimType = isBooking ? "booking" : "request";
   const claimParams = new URLSearchParams({ type: claimType });
   if (reference) {
     claimParams.set("reference", reference);
+  }
+  if (businessSlug) {
+    claimParams.set("business", businessSlug);
   }
   const claimPath = `/me/claim?${claimParams.toString()}`;
 
   const registerParams = new URLSearchParams({ type: claimType });
   if (reference) {
     registerParams.set("reference", reference);
+  }
+  if (businessSlug) {
+    registerParams.set("business", businessSlug);
   }
   const clientRegisterPath = `/client/register?${registerParams.toString()}`;
 
