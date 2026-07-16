@@ -268,7 +268,7 @@ export function ClaimGuestPage() {
           name="reference"
           value={reference}
           onChange={(event) => setReference(event.target.value)}
-          placeholder="e.g. BKG-2026-0001"
+          placeholder="e.g. BKG-26-0001"
           autoComplete="off"
           error={fieldErrors.reference}
           required

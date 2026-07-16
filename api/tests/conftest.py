@@ -47,6 +47,7 @@ _AUTH_TABLES = (
     "business_members",
     "businesses",
     "users",
+    "public_reference_counters",
 )
 
 

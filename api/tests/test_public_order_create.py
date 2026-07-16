@@ -1,4 +1,5 @@
 import uuid
+import re
 from datetime import UTC, datetime
 from unittest.mock import patch
 
@@ -85,7 +86,9 @@ async def test_public_order_can_be_created(
     body = response.json()
     assert body["status"] == "submitted"
     year = datetime.now(UTC).year
-    assert body["reference"].startswith(f"ORD-{year}-")
+    yy = year % 100
+    assert body["reference"].startswith(f"REQ-{yy:02d}-")
+    assert re.fullmatch(rf"REQ-{yy:02d}-\d{{4}}", body["reference"]) is not None
     assert body["service"]["type"] == "order"
     assert body["form_data"]["brief"] == "Need a logo redesign"
     assert body["payment_required"] is False

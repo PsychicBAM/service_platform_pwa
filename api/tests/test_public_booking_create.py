@@ -1,4 +1,5 @@
 import uuid
+import re
 from datetime import datetime
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
@@ -57,7 +58,8 @@ async def test_public_booking_can_be_created(
     assert response.status_code == 201
     body = response.json()
     assert body["status"] == "pending"
-    assert body["reference"].startswith("BKG-2026-")
+    assert body["reference"].startswith("BKG-26-")
+    assert re.fullmatch(r"BKG-26-\d{4}", body["reference"]) is not None
     assert body["service"]["type"] == "booking"
     assert body["payment_required"] is False
     assert body["payment"] is None

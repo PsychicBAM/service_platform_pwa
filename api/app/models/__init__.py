@@ -30,6 +30,7 @@ from app.models.enums import (
 )
 from app.models.order import Order
 from app.models.order_message import OrderMessage
+from app.models.public_reference_counter import PublicReferenceCounter
 from app.models.review import Review
 from app.models.service import Service
 from app.models.service_slot_capacity_override import ServiceSlotCapacityOverride
@@ -61,6 +62,7 @@ __all__ = [
     "OrderMessage",
     "OrderMessageSenderType",
     "OrderStatus",
+    "PublicReferenceCounter",
     "ReviewStatus",
     "Review",
     "PriceType",

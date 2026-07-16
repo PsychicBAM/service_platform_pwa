@@ -181,10 +181,11 @@ async def test_order_message_repository_create_and_list(db_session) -> None:
 
 
 @pytest.mark.asyncio
-async def test_generate_order_reference_format(db_session) -> None:
+async def test_generate_order_reference_format(db_session, clean_auth_tables) -> None:
     ctx = await _create_order_context(db_session, "ref")
     reference = await generate_order_reference(db_session, ctx["business_id"], 2026)
-    assert re.fullmatch(r"ORD-2026-\d{4}", reference) is not None
+    assert re.fullmatch(r"REQ-26-\d{4}", reference) is not None
+    assert reference == "REQ-26-0001"
 
     order = Order(
         business_id=ctx["business_id"],
@@ -196,7 +197,7 @@ async def test_generate_order_reference_format(db_session) -> None:
     await db_session.commit()
 
     next_reference = await generate_order_reference(db_session, ctx["business_id"], 2026)
-    assert next_reference == "ORD-2026-0002"
+    assert next_reference == "REQ-26-0002"
 
 
 @pytest.mark.asyncio
