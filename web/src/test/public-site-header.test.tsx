@@ -19,8 +19,13 @@ describe("public site header", () => {
     vi.mocked(useAuth).mockReturnValue(mockUnauthenticatedAuth());
   });
 
-  it("renders mobile hamburger and keeps desktop nav with desktop classes", async () => {
+  it("renders sticky mobile hamburger and keeps desktop nav with desktop classes", async () => {
     renderRoute(<PublicSiteHeader active="home" />, { route: "/", path: "/" });
+
+    const header = screen.getByTestId("public-site-header");
+    expect(header.className).toMatch(/sticky/);
+    expect(header.className).toMatch(/top-0/);
+    expect(header.className).toMatch(/z-50/);
 
     const menuButton = screen.getByTestId("public-site-mobile-menu-button");
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
@@ -65,11 +70,20 @@ describe("public site header", () => {
     expect(backdrop.className).toMatch(/inset-0/);
 
     expect(drawer).toHaveTextContent("Home");
-    expect(drawer).toHaveTextContent("Marketplace");
+    expect(drawer).toHaveTextContent("Browse businesses");
     expect(drawer).toHaveTextContent("Pricing");
     expect(drawer).toHaveTextContent("How it works");
+    expect(screen.getByTestId("public-site-mobile-link-marketplace")).toHaveAttribute(
+      "href",
+      "/businesses",
+    );
     expect(screen.queryByTestId("public-site-mobile-link-bookings")).not.toBeInTheDocument();
     expect(screen.getByTestId("public-site-mobile-link-signin")).toHaveAttribute("href", "/login");
+    expect(screen.getByTestId("public-site-mobile-link-signin")).toHaveTextContent("Log in");
+    expect(screen.getByTestId("public-site-mobile-link-register-business")).toHaveAttribute(
+      "href",
+      "/register",
+    );
     expect(screen.getByTestId("public-site-mobile-link-get-started")).toHaveAttribute(
       "href",
       "/pricing",
@@ -119,7 +133,7 @@ describe("public site header", () => {
     expect(screen.queryByTestId("public-site-mobile-menu")).not.toBeInTheDocument();
   });
 
-  it("shows My bookings and Dashboard in mobile drawer when authenticated", async () => {
+  it("shows Account, My bookings and Dashboard in mobile drawer when authenticated", async () => {
     vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
     const user = userEvent.setup();
 
@@ -127,6 +141,7 @@ describe("public site header", () => {
 
     await user.click(screen.getByTestId("public-site-mobile-menu-button"));
 
+    expect(screen.getByTestId("public-site-mobile-link-account")).toHaveAttribute("href", "/me");
     expect(screen.getByTestId("public-site-mobile-link-bookings")).toHaveAttribute(
       "href",
       "/me/bookings",

@@ -99,13 +99,98 @@ describe("client area mobile UX", () => {
     expect(screen.getByTestId("me-account-summary")).toHaveTextContent("Open requests");
   });
 
-  it("client nav shows Account, Bookings, and Requests", () => {
+  it("client nav shows Account, Bookings, and Requests on desktop and hamburger on mobile", async () => {
+    const user = userEvent.setup();
     renderRoute(<Layout />, { route: "/me", path: "/me" });
 
-    expect(screen.getByRole("link", { name: "Account" })).toHaveAttribute("href", "/me");
-    expect(screen.getByRole("link", { name: "Bookings" })).toHaveAttribute("href", "/me/bookings");
-    expect(screen.getByRole("link", { name: "Requests" })).toHaveAttribute("href", "/me/orders");
+    const header = screen.getByTestId("app-layout-header");
+    expect(header.className).toMatch(/sticky/);
+    expect(header.className).toMatch(/top-0/);
+    expect(header.className).toMatch(/z-50/);
+
+    const desktopNav = screen.getByTestId("app-layout-desktop-nav");
+    expect(desktopNav.className).toMatch(/hidden/);
+    expect(desktopNav.className).toMatch(/md:flex/);
+    expect(within(desktopNav).getByRole("link", { name: "Account" })).toHaveAttribute(
+      "href",
+      "/me",
+    );
+    expect(within(desktopNav).getByRole("link", { name: "Bookings" })).toHaveAttribute(
+      "href",
+      "/me/bookings",
+    );
+    expect(within(desktopNav).getByRole("link", { name: "Requests" })).toHaveAttribute(
+      "href",
+      "/me/orders",
+    );
     expect(screen.queryByRole("link", { name: "Orders" })).not.toBeInTheDocument();
+
+    const menuButton = screen.getByTestId("app-layout-mobile-menu-button");
+    expect(menuButton.className).toMatch(/md:hidden/);
+    expect(menuButton).toHaveAttribute("aria-label", "Open menu");
+
+    await user.click(menuButton);
+    const drawer = screen.getByTestId("app-layout-mobile-menu");
+    expect(drawer).toHaveTextContent("Account");
+    expect(drawer).toHaveTextContent("Bookings");
+    expect(drawer).toHaveTextContent("Requests");
+    expect(drawer).toHaveTextContent("Browse businesses");
+    expect(drawer).toHaveTextContent("Claim booking/request");
+    expect(screen.getByTestId("app-layout-mobile-link-account")).toHaveAttribute("href", "/me");
+    expect(screen.getByTestId("app-layout-mobile-link-bookings")).toHaveAttribute(
+      "href",
+      "/me/bookings",
+    );
+    expect(screen.getByTestId("app-layout-mobile-link-requests")).toHaveAttribute(
+      "href",
+      "/me/orders",
+    );
+    expect(screen.getByTestId("app-layout-mobile-link-businesses")).toHaveAttribute(
+      "href",
+      "/businesses",
+    );
+    expect(screen.getByTestId("app-layout-mobile-link-claim")).toHaveAttribute(
+      "href",
+      "/me/claim",
+    );
+    expect(screen.getByTestId("app-layout-mobile-logout")).toBeInTheDocument();
+  });
+
+  it("client mobile drawer closes after clicking a link and keeps logout available", async () => {
+    const user = userEvent.setup();
+    const logout = vi.fn();
+    vi.mocked(useAuth).mockReturnValue({
+      ...mockAuthenticatedAuth(mockClientUser),
+      logout,
+    });
+
+    renderRoute(<Layout />, { route: "/me", path: "/me" });
+
+    await user.click(screen.getByTestId("app-layout-mobile-menu-button"));
+    expect(screen.getByTestId("app-layout-mobile-menu")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("app-layout-mobile-link-account"));
+    expect(screen.queryByTestId("app-layout-mobile-menu")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("app-layout-mobile-menu-button"));
+    await user.click(screen.getByTestId("app-layout-mobile-logout"));
+    expect(logout).toHaveBeenCalled();
+  });
+
+  it("verify email banner stays below sticky header for unverified clients", () => {
+    vi.mocked(useAuth).mockReturnValue(
+      mockAuthenticatedAuth({ ...mockClientUser, email_verified: false }),
+    );
+
+    renderRoute(<Layout />, { route: "/me", path: "/me" });
+
+    expect(screen.getByTestId("app-layout-verify-banner")).toHaveTextContent(
+      /please verify your email/i,
+    );
+    expect(screen.getByTestId("app-layout-user-email")).toHaveTextContent(mockClientUser.email);
+    expect(screen.getByTestId("app-layout-header")).not.toContainElement(
+      screen.getByTestId("app-layout-verify-banner"),
+    );
   });
 
   it("renders mobile-friendly booking cards with business, service, time, status, and cancel", async () => {
