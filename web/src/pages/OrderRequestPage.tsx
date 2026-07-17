@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createPublicOrder, getPublicService } from "@/api/publicApi";
 import { FormPageShell } from "@/components/FormPageShell";
+import { FollowUpEmailConsentCheckbox } from "@/components/FollowUpEmailConsentCheckbox";
 import {
   LEGAL_CONSENT_ERROR_MESSAGE,
   LegalConsentCheckbox,
@@ -73,6 +74,7 @@ export function OrderRequestPage() {
   const [phone, setPhone] = useState("");
   const [details, setDetails] = useState("");
   const [legalConsent, setLegalConsent] = useState(false);
+  const [followUpEmailConsent, setFollowUpEmailConsent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -88,6 +90,7 @@ export function OrderRequestPage() {
         service_id: serviceId,
         form_data: { details: details.trim() },
         legal_consent_accepted: true,
+        follow_up_email_consent: followUpEmailConsent,
         client: {
           full_name: fullName.trim(),
           email: email.trim() || null,
@@ -284,6 +287,13 @@ export function OrderRequestPage() {
           checked={legalConsent}
           onChange={setLegalConsent}
           error={fieldErrors.legalConsent}
+          disabled={orderMutation.isPending}
+        />
+
+        <FollowUpEmailConsentCheckbox
+          id="order-follow-up-email-consent"
+          checked={followUpEmailConsent}
+          onChange={setFollowUpEmailConsent}
           disabled={orderMutation.isPending}
         />
 

@@ -10,6 +10,7 @@ import {
 import { ApiClientError } from "@/api/client";
 import type { AvailabilitySlot } from "@/types/api";
 import { FormPageShell } from "@/components/FormPageShell";
+import { FollowUpEmailConsentCheckbox } from "@/components/FollowUpEmailConsentCheckbox";
 import {
   LEGAL_CONSENT_ERROR_MESSAGE,
   LegalConsentCheckbox,
@@ -97,6 +98,7 @@ export function BookingPage() {
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
   const [legalConsent, setLegalConsent] = useState(false);
+  const [followUpEmailConsent, setFollowUpEmailConsent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successView, setSuccessView] = useState<SuccessView>(null);
@@ -121,6 +123,7 @@ export function BookingPage() {
         starts_at: selectedSlot!.starts_at,
         client_notes: note.trim() || null,
         legal_consent_accepted: true,
+        follow_up_email_consent: followUpEmailConsent,
         client: {
           full_name: fullName.trim(),
           email: email.trim() || null,
@@ -468,6 +471,14 @@ export function BookingPage() {
             error={fieldErrors.legalConsent}
             disabled={!selectedSlot || isSubmitting}
           />
+          <div className="mt-3">
+            <FollowUpEmailConsentCheckbox
+              id="booking-follow-up-email-consent"
+              checked={followUpEmailConsent}
+              onChange={setFollowUpEmailConsent}
+              disabled={!selectedSlot || isSubmitting}
+            />
+          </div>
         </div>
 
         {submitError ? (

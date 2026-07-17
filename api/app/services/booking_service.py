@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -119,6 +119,7 @@ class BookingService:
             starts_at=starts_at,
         )
 
+        follow_up_consent = bool(payload.follow_up_email_consent)
         booking = Booking(
             business_id=business.id,
             service_id=service.id,
@@ -128,6 +129,8 @@ class BookingService:
             ends_at=ends_at,
             status=status,
             client_notes=payload.client_notes,
+            follow_up_email_consent=follow_up_consent,
+            follow_up_email_consent_at=datetime.now(UTC) if follow_up_consent else None,
         )
         await self.booking_repo.create(booking)
         consent_service = LegalConsentService(self.session)

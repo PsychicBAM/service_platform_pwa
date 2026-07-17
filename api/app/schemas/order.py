@@ -126,6 +126,7 @@ class PublicOrderCreate(LegalConsentRequiredMixin, BaseModel):
     service_id: uuid.UUID
     form_data: dict[str, Any] = Field(default_factory=dict)
     client: PublicOrderClientInput
+    follow_up_email_consent: bool = False
 
     @field_validator("form_data")
     @classmethod
@@ -233,6 +234,7 @@ class AdminOrderRead(BaseModel):
     client: OrderClientSummary
     created_at: datetime
     updated_at: datetime
+    follow_up_email_consent: bool = False
 
     @classmethod
     def from_order(cls, order) -> "AdminOrderRead":
@@ -263,6 +265,7 @@ class AdminOrderRead(BaseModel):
             ),
             created_at=order.created_at,
             updated_at=order.updated_at,
+            follow_up_email_consent=bool(order.follow_up_email_consent),
         )
 
 
@@ -278,6 +281,7 @@ class AdminOrderListItem(BaseModel):
     updated_at: datetime
     has_review: bool = False
     can_review: bool = False
+    follow_up_email_consent: bool = False
 
     @classmethod
     def from_order(cls, order, *, has_review: bool = False) -> "AdminOrderListItem":
@@ -294,6 +298,7 @@ class AdminOrderListItem(BaseModel):
             updated_at=order.updated_at,
             has_review=has_review,
             can_review=can_review,
+            follow_up_email_consent=bool(order.follow_up_email_consent),
         )
 
 

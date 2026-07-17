@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { listAdminBookings } from "@/api/adminApi";
 import { AdminBookingDetailPanel } from "@/components/admin/AdminBookingDetailPanel";
 import { AdminReviewLinkAction } from "@/components/admin/AdminReviewLinkAction";
+import { AdminReviewRequestEmailAction } from "@/components/admin/AdminReviewRequestEmailAction";
 import { AdminWaitlistView } from "@/components/admin/AdminWaitlistView";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -249,14 +250,26 @@ export function AdminBookingsPage() {
                         View details
                       </button>
                       {businessId ? (
-                        <AdminReviewLinkAction
-                          businessId={businessId}
-                          bookingId={booking.id}
-                          canReview={booking.can_review}
-                          hasReview={booking.has_review}
-                          onCopied={setSuccessMessage}
-                          onError={setActionError}
-                        />
+                        <>
+                          <AdminReviewLinkAction
+                            businessId={businessId}
+                            bookingId={booking.id}
+                            canReview={booking.can_review}
+                            hasReview={booking.has_review}
+                            onCopied={setSuccessMessage}
+                            onError={setActionError}
+                          />
+                          <AdminReviewRequestEmailAction
+                            businessId={businessId}
+                            bookingId={booking.id}
+                            canReview={booking.can_review}
+                            hasReview={booking.has_review}
+                            followUpEmailConsent={booking.follow_up_email_consent}
+                            clientEmail={booking.client_email}
+                            onSent={setSuccessMessage}
+                            onError={setActionError}
+                          />
+                        </>
                       ) : null}
                     </div>
                   </article>

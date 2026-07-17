@@ -145,6 +145,13 @@ export interface ReviewRequestLinkResponse {
   already_reviewed: boolean;
 }
 
+export interface ReviewRequestEmailResponse {
+  sent: boolean;
+  dry_run: boolean;
+  message: string;
+  message_code: string | null;
+}
+
 export interface ReviewRequestContext {
   business_name: string;
   service_name: string | null;
@@ -201,6 +208,7 @@ export interface PublicBookingCreate {
   client_notes?: string | null;
   client: PublicBookingClientInput;
   legal_consent_accepted: boolean;
+  follow_up_email_consent?: boolean;
 }
 
 export type WaitlistStatus = "waiting" | "contacted" | "cancelled" | "resolved";
@@ -281,6 +289,7 @@ export interface PublicOrderCreate {
   form_data?: Record<string, unknown>;
   client: PublicBookingClientInput;
   legal_consent_accepted: boolean;
+  follow_up_email_consent?: boolean;
 }
 
 export type OrderStatus =
@@ -744,6 +753,7 @@ export interface AdminBookingListItem {
   client_phone: string | null;
   has_review: boolean;
   can_review: boolean;
+  follow_up_email_consent: boolean;
 }
 
 export interface AdminBookingListResponse {
@@ -783,6 +793,7 @@ export interface AdminBookingRead {
   updated_at: string;
   has_review: boolean;
   can_review: boolean;
+  follow_up_email_consent: boolean;
 }
 
 export type AdminBookingUpdatePayload = {
@@ -806,6 +817,7 @@ export interface AdminOrderListItem {
   updated_at: string;
   has_review: boolean;
   can_review: boolean;
+  follow_up_email_consent: boolean;
 }
 
 export interface AdminOrderListResponse {
@@ -844,6 +856,7 @@ export interface AdminOrderRead {
   client: AdminOrderClientSummary;
   created_at: string;
   updated_at: string;
+  follow_up_email_consent: boolean;
 }
 
 export interface AdminOrderUpdatePayload {

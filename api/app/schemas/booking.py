@@ -56,6 +56,7 @@ class PublicBookingCreate(LegalConsentRequiredMixin, BaseModel):
     starts_at: datetime
     client_notes: str | None = None
     client: PublicBookingClientInput
+    follow_up_email_consent: bool = False
 
 
 class PublicBookingServiceSummary(BaseModel):
@@ -155,6 +156,7 @@ class AdminBookingRead(BaseModel):
     updated_at: datetime
     has_review: bool = False
     can_review: bool = False
+    follow_up_email_consent: bool = False
 
     @classmethod
     def from_booking(cls, booking, *, has_review: bool = False) -> "AdminBookingRead":
@@ -187,6 +189,7 @@ class AdminBookingRead(BaseModel):
             updated_at=booking.updated_at,
             has_review=has_review,
             can_review=can_review,
+            follow_up_email_consent=bool(booking.follow_up_email_consent),
         )
 
 
@@ -202,6 +205,7 @@ class AdminBookingListItem(BaseModel):
     client_phone: str | None
     has_review: bool = False
     can_review: bool = False
+    follow_up_email_consent: bool = False
 
     @classmethod
     def from_booking(cls, booking, *, has_review: bool = False) -> "AdminBookingListItem":
@@ -218,6 +222,7 @@ class AdminBookingListItem(BaseModel):
             client_phone=booking.client.phone,
             has_review=has_review,
             can_review=can_review,
+            follow_up_email_consent=bool(booking.follow_up_email_consent),
         )
 
 

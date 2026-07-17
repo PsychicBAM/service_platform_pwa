@@ -4,12 +4,14 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.exceptions.business import (
     BusinessNotFoundError,
     NotFoundError,
     ReviewDuplicateError,
     ReviewNotAllowedError,
     ReviewRequestTokenInvalidError,
+    ValidationAppError,
 )
 from app.models.booking import Booking
 from app.models.order import Order
@@ -34,10 +36,18 @@ from app.schemas.review import (
     PublicReviewsResponse,
     ReviewRead,
     ReviewRequestContext,
+    ReviewRequestEmailCreate,
+    ReviewRequestEmailResponse,
     ReviewRequestLinkCreate,
     ReviewRequestLinkResponse,
     ReviewRequestSubmit,
 )
+from app.services.email_service import (
+    EMAIL_CONFIG_INVALID,
+    EMAIL_SEND_FAILED,
+    EmailService,
+)
+from app.services.email_templates import build_client_review_request_email
 from app.services.review_request_token_service import (
     ReviewRequestTokenClaims,
     build_review_request_url,
@@ -283,6 +293,100 @@ class ReviewService:
         return ReviewRequestLinkResponse(
             review_url=build_review_request_url(token),
             expires_at=expires_at,
+        )
+
+    async def send_review_request_email(
+        self,
+        business_id: uuid.UUID,
+        payload: ReviewRequestEmailCreate,
+    ) -> ReviewRequestEmailResponse:
+        business = await self.business_repo.get_by_id(business_id)
+        if business is None:
+            raise NotFoundError("Business not found.")
+
+        if payload.booking_id is not None:
+            booking = await self.booking_repo.get_detail_for_business(
+                business_id,
+                payload.booking_id,
+            )
+            if booking is None or booking.client is None:
+                raise NotFoundError("Booking not found.")
+            if booking.status != BookingStatus.completed:
+                raise ValidationAppError("This booking is not completed yet.")
+            if not booking.follow_up_email_consent:
+                raise ValidationAppError(
+                    "This client did not agree to follow-up emails."
+                )
+            client_email = (booking.client.email or "").strip()
+            if not client_email:
+                raise ValidationAppError("No email address is available for this client.")
+            existing = await self.review_repo.get_for_booking_reference(
+                business_id,
+                booking.reference,
+            )
+            if existing is not None:
+                raise ValidationAppError("A review already exists for this booking.")
+
+            token, _expires_at = create_review_request_token(
+                business_id=business_id,
+                target_type="booking",
+                target_id=booking.id,
+            )
+            review_url = build_review_request_url(token)
+            recipient_name = booking.client.full_name
+            reference = booking.reference
+        else:
+            assert payload.order_id is not None
+            order = await self.order_repo.get_detail_for_business(
+                business_id,
+                payload.order_id,
+            )
+            if order is None or order.client is None:
+                raise NotFoundError("Order not found.")
+            if order.status != OrderStatus.completed:
+                raise ValidationAppError("This request is not completed yet.")
+            if not order.follow_up_email_consent:
+                raise ValidationAppError(
+                    "This client did not agree to follow-up emails."
+                )
+            client_email = (order.client.email or "").strip()
+            if not client_email:
+                raise ValidationAppError("No email address is available for this client.")
+            existing = await self.review_repo.get_for_order_reference(
+                business_id,
+                order.reference,
+            )
+            if existing is not None:
+                raise ValidationAppError("A review already exists for this request.")
+
+            token, _expires_at = create_review_request_token(
+                business_id=business_id,
+                target_type="order",
+                target_id=order.id,
+            )
+            review_url = build_review_request_url(token)
+            recipient_name = order.client.full_name
+            reference = order.reference
+
+        settings = get_settings()
+        message = build_client_review_request_email(
+            to_email=client_email,
+            recipient_name=recipient_name,
+            business_name=business.name,
+            reference=reference,
+            review_url=review_url,
+            expire_days=settings.review_request_token_expire_days,
+        )
+        result = EmailService(settings).send_email(message)
+        if result.message_code in {EMAIL_CONFIG_INVALID, EMAIL_SEND_FAILED}:
+            raise ValidationAppError(
+                "Could not send the review request email. Check email delivery settings."
+            )
+        return ReviewRequestEmailResponse(
+            sent=result.sent or result.dry_run,
+            dry_run=result.dry_run,
+            message="Review request sent.",
+            message_code=result.message_code,
         )
 
     async def get_review_request_context(self, token: str) -> ReviewRequestContext:

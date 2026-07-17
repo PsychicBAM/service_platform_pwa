@@ -75,6 +75,7 @@ class OrderService:
         reference = await generate_order_reference(self.session, business.id, year)
 
         # TODO: set payment_required and start payment flow in Phase 4 when require_payment is true.
+        follow_up_consent = bool(payload.follow_up_email_consent)
         order = Order(
             business_id=business.id,
             service_id=service.id,
@@ -83,6 +84,8 @@ class OrderService:
             status=OrderStatus.submitted,
             form_data=payload.form_data,
             quoted_price_cents=None,
+            follow_up_email_consent=follow_up_consent,
+            follow_up_email_consent_at=datetime.now(UTC) if follow_up_consent else None,
         )
         await self.order_repo.create(order)
         consent_service = LegalConsentService(self.session)

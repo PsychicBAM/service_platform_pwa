@@ -51,6 +51,7 @@ const mockAdminOrder: AdminOrderRead = {
   },
   created_at: "2026-06-30T10:00:00Z",
   updated_at: "2026-06-30T10:00:00Z",
+  follow_up_email_consent: false,
 };
 
 describe("order message notifications", () => {

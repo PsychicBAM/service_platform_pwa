@@ -423,3 +423,13 @@ export function createReviewRequestLink(
     payload,
   );
 }
+
+export function sendReviewRequestEmail(
+  businessId: string,
+  payload: { booking_id?: string; order_id?: string },
+) {
+  return apiClient.post<import("@/types/api").ReviewRequestEmailResponse>(
+    `/businesses/${encodeURIComponent(businessId)}/reviews/request-email`,
+    payload,
+  );
+}

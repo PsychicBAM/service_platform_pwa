@@ -53,6 +53,7 @@ const mockCompletedAdminBooking = {
   client_phone: null,
   has_review: false,
   can_review: true,
+  follow_up_email_consent: false,
 };
 
 const mockReviewedAdminBooking = {
@@ -75,6 +76,7 @@ const mockCompletedAdminOrder = {
   updated_at: "2026-06-20T12:00:00Z",
   has_review: false,
   can_review: true,
+  follow_up_email_consent: false,
 };
 
 function renderAdminPage(page: ReactElement, route: string, path: string) {

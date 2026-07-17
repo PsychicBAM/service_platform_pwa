@@ -7,7 +7,14 @@ from app.database import get_db
 from app.dependencies.business import get_business_for_admin_or_403
 from app.models.business import Business
 from app.models.enums import ReviewStatus
-from app.schemas.review import AdminReviewStatusUpdate, ReviewRead, ReviewRequestLinkCreate, ReviewRequestLinkResponse
+from app.schemas.review import (
+    AdminReviewStatusUpdate,
+    ReviewRead,
+    ReviewRequestEmailCreate,
+    ReviewRequestEmailResponse,
+    ReviewRequestLinkCreate,
+    ReviewRequestLinkResponse,
+)
 from app.services.review_service import ReviewService
 
 router = APIRouter(prefix="/businesses", tags=["reviews"])
@@ -56,4 +63,20 @@ async def create_review_request_link(
     if business.id != business_id:
         raise ValueError("business mismatch")  # pragma: no cover
     return await ReviewService(db).create_review_request_link(business_id, payload)
+
+
+@router.post(
+    "/{business_id}/reviews/request-email",
+    response_model=ReviewRequestEmailResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def send_review_request_email(
+    business_id: uuid.UUID,
+    payload: ReviewRequestEmailCreate,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> ReviewRequestEmailResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    return await ReviewService(db).send_review_request_email(business_id, payload)
 

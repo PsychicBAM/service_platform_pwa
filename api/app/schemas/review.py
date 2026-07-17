@@ -139,6 +139,26 @@ class ReviewRequestLinkResponse(BaseModel):
     already_reviewed: bool = False
 
 
+class ReviewRequestEmailCreate(BaseModel):
+    booking_id: uuid.UUID | None = None
+    order_id: uuid.UUID | None = None
+
+    @model_validator(mode="after")
+    def validate_target(self) -> "ReviewRequestEmailCreate":
+        has_booking = self.booking_id is not None
+        has_order = self.order_id is not None
+        if has_booking == has_order:
+            raise ValueError("Provide either booking_id or order_id.")
+        return self
+
+
+class ReviewRequestEmailResponse(BaseModel):
+    sent: bool
+    dry_run: bool
+    message: str
+    message_code: str | None = None
+
+
 ReviewRequestTargetType = Literal["booking", "order"]
 
 

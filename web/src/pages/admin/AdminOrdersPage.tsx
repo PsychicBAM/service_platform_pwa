@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { listAdminOrders } from "@/api/adminApi";
 import { AdminOrderDetailPanel } from "@/components/admin/AdminOrderDetailPanel";
 import { AdminReviewLinkAction } from "@/components/admin/AdminReviewLinkAction";
+import { AdminReviewRequestEmailAction } from "@/components/admin/AdminReviewRequestEmailAction";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -179,14 +180,26 @@ export function AdminOrdersPage() {
                     View details
                   </button>
                   {businessId ? (
-                    <AdminReviewLinkAction
-                      businessId={businessId}
-                      orderId={order.id}
-                      canReview={order.can_review}
-                      hasReview={order.has_review}
-                      onCopied={setSuccessMessage}
-                      onError={setActionError}
-                    />
+                    <>
+                      <AdminReviewLinkAction
+                        businessId={businessId}
+                        orderId={order.id}
+                        canReview={order.can_review}
+                        hasReview={order.has_review}
+                        onCopied={setSuccessMessage}
+                        onError={setActionError}
+                      />
+                      <AdminReviewRequestEmailAction
+                        businessId={businessId}
+                        orderId={order.id}
+                        canReview={order.can_review}
+                        hasReview={order.has_review}
+                        followUpEmailConsent={order.follow_up_email_consent}
+                        clientEmail={order.client_email}
+                        onSent={setSuccessMessage}
+                        onError={setActionError}
+                      />
+                    </>
                   ) : null}
                 </div>
               </article>
