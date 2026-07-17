@@ -29,6 +29,8 @@ const baseDetail: SuperadminBusinessDetail = {
     booking_buffer_minutes: 0,
     require_payment_default: false,
     notification_email_enabled: true,
+    auto_review_request_enabled: false,
+    auto_review_request_delay_minutes: 1440,
   },
   selected_plan_intent: null,
   selected_plan_intent_source: null,

@@ -58,6 +58,7 @@ describe("AdminBookingsPage waitlist", () => {
           has_review: false,
           can_review: false,
           follow_up_email_consent: false,
+          review_request_email_sent_at: null,
         },
       ],
       meta: emptyListMeta,
@@ -97,6 +98,7 @@ describe("AdminBookingsPage waitlist", () => {
         has_review: false,
         can_review: false,
         follow_up_email_consent: false,
+          review_request_email_sent_at: null,
       },
       waitlist_entry: {
         ...mockWaitlistEntries[0],
@@ -296,6 +298,7 @@ describe("AdminBookingsPage waitlist", () => {
       has_review: false,
       can_review: false,
       follow_up_email_consent: false,
+          review_request_email_sent_at: null,
     });
     vi.mocked(adminApi.updateAdminBooking).mockResolvedValue({
       id: "booking-1",
@@ -326,6 +329,7 @@ describe("AdminBookingsPage waitlist", () => {
       has_review: false,
       can_review: false,
       follow_up_email_consent: false,
+          review_request_email_sent_at: null,
     });
 
     renderBookingsPage();

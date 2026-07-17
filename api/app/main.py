@@ -7,6 +7,7 @@ from pathlib import Path
 from app.config import get_settings
 from app.exceptions.auth import AppError
 from app.routers import admin_email, auth, billing, bookings, businesses, claims, clients, health, me_bookings, me_orders, orders, public, public_directory, review_requests, reviews, schedule, services, superadmin, waitlist
+from app.services.review_request_email_scheduler import app_lifespan
 
 settings = get_settings()
 
@@ -16,6 +17,7 @@ app = FastAPI(
     docs_url="/docs" if settings.docs_enabled else None,
     redoc_url="/redoc" if settings.docs_enabled else None,
     openapi_url="/openapi.json" if settings.docs_enabled else None,
+    lifespan=app_lifespan,
 )
 
 

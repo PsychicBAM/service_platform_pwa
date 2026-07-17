@@ -81,6 +81,7 @@ def assert_response_status(response, expected: int, *, context: str) -> None:
 @pytest.fixture(autouse=True)
 def reset_settings_cache(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("JWT_SECRET_KEY", TEST_JWT_SECRET_KEY)
+    monkeypatch.setenv("REVIEW_REQUEST_EMAIL_SCHEDULER_ENABLED", "false")
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()

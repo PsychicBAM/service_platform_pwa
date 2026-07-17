@@ -603,6 +603,8 @@ export interface BusinessSettingsRead {
   booking_buffer_minutes: number;
   require_payment_default: boolean;
   notification_email_enabled: boolean;
+  auto_review_request_enabled: boolean;
+  auto_review_request_delay_minutes: number;
   selected_plan_intent?: SubscriptionPlan | null;
 }
 
@@ -616,6 +618,8 @@ export interface BusinessSettingsUpdatePayload {
   booking_buffer_minutes?: number;
   require_payment_default?: boolean;
   notification_email_enabled?: boolean;
+  auto_review_request_enabled?: boolean;
+  auto_review_request_delay_minutes?: number;
 }
 
 export interface BusinessUpdatePayload {
@@ -754,6 +758,7 @@ export interface AdminBookingListItem {
   has_review: boolean;
   can_review: boolean;
   follow_up_email_consent: boolean;
+  review_request_email_sent_at: string | null;
 }
 
 export interface AdminBookingListResponse {
@@ -794,6 +799,7 @@ export interface AdminBookingRead {
   has_review: boolean;
   can_review: boolean;
   follow_up_email_consent: boolean;
+  review_request_email_sent_at: string | null;
 }
 
 export type AdminBookingUpdatePayload = {
@@ -818,6 +824,7 @@ export interface AdminOrderListItem {
   has_review: boolean;
   can_review: boolean;
   follow_up_email_consent: boolean;
+  review_request_email_sent_at: string | null;
 }
 
 export interface AdminOrderListResponse {
@@ -857,6 +864,7 @@ export interface AdminOrderRead {
   created_at: string;
   updated_at: string;
   follow_up_email_consent: boolean;
+  review_request_email_sent_at: string | null;
 }
 
 export interface AdminOrderUpdatePayload {

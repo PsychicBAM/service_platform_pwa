@@ -254,6 +254,7 @@ describe("follow-up email consent and review request email", () => {
           has_review: false,
           can_review: true,
           follow_up_email_consent: true,
+          review_request_email_sent_at: null,
         },
       ],
       meta: emptyListMeta,
@@ -283,6 +284,42 @@ describe("follow-up email consent and review request email", () => {
     );
   });
 
+  it("admin completed booking shows sent state when email already sent", async () => {
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
+    vi.mocked(adminApi.listAdminBookings).mockResolvedValue({
+      data: [
+        {
+          id: "booking-completed-sent",
+          reference: "BKG-SENT",
+          status: "completed",
+          starts_at: "2026-06-20T10:00:00Z",
+          ends_at: "2026-06-20T11:00:00Z",
+          service_name: "Arabic Lesson",
+          client_name: "Client Demo",
+          client_email: "client@example.com",
+          client_phone: null,
+          has_review: false,
+          can_review: true,
+          follow_up_email_consent: true,
+          review_request_email_sent_at: "2026-06-21T12:00:00Z",
+        },
+      ],
+      meta: emptyListMeta,
+    });
+
+    renderRoute(
+      <AdminBusinessProvider businesses={mockOwnerUser.businesses}>
+        <AdminBookingsPage />
+      </AdminBusinessProvider>,
+      { route: "/admin/bookings", path: "/admin/bookings" },
+    );
+
+    expect(await screen.findByTestId("review-request-email-sent")).toHaveTextContent(
+      "Review request sent",
+    );
+    expect(screen.queryByTestId("send-review-request-button")).not.toBeInTheDocument();
+  });
+
   it("admin completed booking without consent shows note", async () => {
     vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
     vi.mocked(adminApi.listAdminBookings).mockResolvedValue({
@@ -300,6 +337,7 @@ describe("follow-up email consent and review request email", () => {
           has_review: false,
           can_review: true,
           follow_up_email_consent: false,
+          review_request_email_sent_at: null,
         },
       ],
       meta: emptyListMeta,
@@ -335,6 +373,7 @@ describe("follow-up email consent and review request email", () => {
           has_review: false,
           can_review: false,
           follow_up_email_consent: true,
+          review_request_email_sent_at: null,
         },
       ],
       meta: emptyListMeta,
@@ -370,6 +409,7 @@ describe("follow-up email consent and review request email", () => {
           has_review: false,
           can_review: true,
           follow_up_email_consent: true,
+          review_request_email_sent_at: null,
         },
       ],
       meta: emptyListMeta,
@@ -416,6 +456,7 @@ describe("follow-up email consent and review request email", () => {
           has_review: false,
           can_review: true,
           follow_up_email_consent: false,
+          review_request_email_sent_at: null,
         },
       ],
       meta: emptyListMeta,
@@ -451,6 +492,7 @@ describe("follow-up email consent and review request email", () => {
           has_review: false,
           can_review: true,
           follow_up_email_consent: true,
+          review_request_email_sent_at: null,
         },
       ],
       meta: emptyListMeta,

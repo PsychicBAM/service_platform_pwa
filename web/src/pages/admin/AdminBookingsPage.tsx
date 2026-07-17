@@ -266,6 +266,7 @@ export function AdminBookingsPage() {
                             hasReview={booking.has_review}
                             followUpEmailConsent={booking.follow_up_email_consent}
                             clientEmail={booking.client_email}
+                            reviewRequestEmailSentAt={booking.review_request_email_sent_at}
                             onSent={setSuccessMessage}
                             onError={setActionError}
                           />

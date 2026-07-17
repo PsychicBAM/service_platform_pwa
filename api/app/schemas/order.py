@@ -235,6 +235,7 @@ class AdminOrderRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     follow_up_email_consent: bool = False
+    review_request_email_sent_at: datetime | None = None
 
     @classmethod
     def from_order(cls, order) -> "AdminOrderRead":
@@ -266,6 +267,7 @@ class AdminOrderRead(BaseModel):
             created_at=order.created_at,
             updated_at=order.updated_at,
             follow_up_email_consent=bool(order.follow_up_email_consent),
+            review_request_email_sent_at=order.review_request_email_sent_at,
         )
 
 
@@ -282,6 +284,7 @@ class AdminOrderListItem(BaseModel):
     has_review: bool = False
     can_review: bool = False
     follow_up_email_consent: bool = False
+    review_request_email_sent_at: datetime | None = None
 
     @classmethod
     def from_order(cls, order, *, has_review: bool = False) -> "AdminOrderListItem":
@@ -299,6 +302,7 @@ class AdminOrderListItem(BaseModel):
             has_review=has_review,
             can_review=can_review,
             follow_up_email_consent=bool(order.follow_up_email_consent),
+            review_request_email_sent_at=order.review_request_email_sent_at,
         )
 
 

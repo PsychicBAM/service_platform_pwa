@@ -157,6 +157,7 @@ class AdminBookingRead(BaseModel):
     has_review: bool = False
     can_review: bool = False
     follow_up_email_consent: bool = False
+    review_request_email_sent_at: datetime | None = None
 
     @classmethod
     def from_booking(cls, booking, *, has_review: bool = False) -> "AdminBookingRead":
@@ -190,6 +191,7 @@ class AdminBookingRead(BaseModel):
             has_review=has_review,
             can_review=can_review,
             follow_up_email_consent=bool(booking.follow_up_email_consent),
+            review_request_email_sent_at=booking.review_request_email_sent_at,
         )
 
 
@@ -206,6 +208,7 @@ class AdminBookingListItem(BaseModel):
     has_review: bool = False
     can_review: bool = False
     follow_up_email_consent: bool = False
+    review_request_email_sent_at: datetime | None = None
 
     @classmethod
     def from_booking(cls, booking, *, has_review: bool = False) -> "AdminBookingListItem":
@@ -223,6 +226,7 @@ class AdminBookingListItem(BaseModel):
             has_review=has_review,
             can_review=can_review,
             follow_up_email_consent=bool(booking.follow_up_email_consent),
+            review_request_email_sent_at=booking.review_request_email_sent_at,
         )
 
 

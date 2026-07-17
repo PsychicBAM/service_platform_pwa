@@ -22,6 +22,7 @@ from app.schemas.booking import (
     AdminBookingUpdate,
 )
 from app.services.email_notification_service import EmailNotificationService
+from app.services.review_service import ReviewService
 
 
 ALLOWED_STATUS_TRANSITIONS: dict[BookingStatus, set[BookingStatus]] = {
@@ -157,6 +158,13 @@ class AdminBookingService:
                 booking,
                 business=business,
             )
+        elif new_status == BookingStatus.completed:
+            await ReviewService(self.session).schedule_auto_review_request_for_booking(
+                business,
+                booking,
+            )
+            booking = await self.repo.get_detail_for_business(business.id, booking_id)
+            assert booking is not None
         return AdminBookingRead.from_booking(booking)
 
     async def cancel_admin_booking(

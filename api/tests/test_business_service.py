@@ -15,6 +15,13 @@ def test_business_settings_read_uses_defaults_for_missing_keys() -> None:
     settings = BusinessSettingsRead.from_settings({"cancellation_hours": 12})
     assert settings.cancellation_hours == 12
     assert settings.slot_interval_minutes == DEFAULT_BUSINESS_SETTINGS["slot_interval_minutes"]
+    assert settings.auto_review_request_enabled is False
+    assert settings.auto_review_request_delay_minutes == 1440
+
+
+def test_business_settings_update_rejects_invalid_auto_review_delay() -> None:
+    with pytest.raises(ValueError, match="auto_review_request_delay_minutes"):
+        BusinessSettingsUpdate(auto_review_request_delay_minutes=15)
 
 
 def test_business_settings_update_rejects_invalid_cancellation_hours() -> None:

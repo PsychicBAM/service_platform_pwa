@@ -19,6 +19,8 @@ from app.models.subscription import Subscription
 from app.models.user import User
 from app.utils.public_directory_sort import normalize_directory_sort
 
+ALLOWED_AUTO_REVIEW_REQUEST_DELAY_MINUTES = frozenset({0, 60, 1440, 2880, 10080})
+
 DEFAULT_BUSINESS_SETTINGS: dict[str, Any] = {
     "auto_confirm_bookings": False,
     "cancellation_hours": 24,
@@ -29,6 +31,8 @@ DEFAULT_BUSINESS_SETTINGS: dict[str, Any] = {
     "booking_buffer_minutes": 0,
     "require_payment_default": False,
     "notification_email_enabled": True,
+    "auto_review_request_enabled": False,
+    "auto_review_request_delay_minutes": 1440,
 }
 
 

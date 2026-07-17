@@ -196,6 +196,7 @@ export function AdminOrdersPage() {
                         hasReview={order.has_review}
                         followUpEmailConsent={order.follow_up_email_consent}
                         clientEmail={order.client_email}
+                        reviewRequestEmailSentAt={order.review_request_email_sent_at}
                         onSent={setSuccessMessage}
                         onError={setActionError}
                       />

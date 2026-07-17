@@ -74,6 +74,15 @@ class Order(Base, TimestampMixin):
         DateTime(timezone=True),
         nullable=True,
     )
+    review_request_email_due_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    review_request_email_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    review_request_email_last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     business: Mapped["Business"] = relationship(back_populates="orders")
     service: Mapped["Service"] = relationship(back_populates="orders")

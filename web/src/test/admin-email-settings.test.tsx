@@ -74,6 +74,50 @@ describe("admin email delivery settings", () => {
     expect(screen.queryByText(/SMTP_PASSWORD/i)).not.toBeInTheDocument();
   });
 
+  it("renders automatic review request settings off by default", async () => {
+    renderSettingsPage();
+
+    const section = await screen.findByTestId("admin-auto-review-request-settings");
+    expect(within(section).getByText("Review request emails")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-auto-review-request-enabled")).not.toBeChecked();
+    expect(
+      within(section).getByText(
+        /only sent for completed bookings\/requests when the client agreed to follow-up emails/i,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("can enable auto review emails, select delay, and save", async () => {
+    const user = userEvent.setup();
+    vi.mocked(adminApi.updateBusiness).mockResolvedValue({
+      ...mockAdminBusiness,
+      settings: {
+        ...mockAdminBusiness.settings,
+        auto_review_request_enabled: true,
+        auto_review_request_delay_minutes: 60,
+      },
+    });
+
+    renderSettingsPage();
+    await screen.findByTestId("admin-auto-review-request-settings");
+
+    await user.click(screen.getByTestId("admin-auto-review-request-enabled"));
+    await user.selectOptions(screen.getByTestId("admin-auto-review-request-delay"), "60");
+    await user.click(screen.getByTestId("admin-settings-save"));
+
+    await waitFor(() => {
+      expect(adminApi.updateBusiness).toHaveBeenCalledWith(
+        mockAdminBusiness.id,
+        expect.objectContaining({
+          settings: expect.objectContaining({
+            auto_review_request_enabled: true,
+            auto_review_request_delay_minutes: 60,
+          }),
+        }),
+      );
+    });
+  });
+
   it("shows Disabled status pill", async () => {
     renderSettingsPage();
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { sendReviewRequestEmail } from "@/api/adminApi";
 import { getAdminBookingErrorMessage } from "@/utils/errors";
+import { formatDateTimeLabel } from "@/utils/format";
 
 type AdminReviewRequestEmailActionProps = {
   businessId: string;
@@ -11,6 +12,7 @@ type AdminReviewRequestEmailActionProps = {
   hasReview: boolean;
   followUpEmailConsent: boolean;
   clientEmail: string | null;
+  reviewRequestEmailSentAt?: string | null;
   onSent?: (message: string) => void;
   onError?: (message: string) => void;
 };
@@ -23,6 +25,7 @@ export function AdminReviewRequestEmailAction({
   hasReview,
   followUpEmailConsent,
   clientEmail,
+  reviewRequestEmailSentAt = null,
   onSent,
   onError,
 }: AdminReviewRequestEmailActionProps) {
@@ -48,7 +51,25 @@ export function AdminReviewRequestEmailAction({
     },
   });
 
-  if (hasReview || !canReview) {
+  if (hasReview) {
+    return null;
+  }
+
+  if (reviewRequestEmailSentAt) {
+    return (
+      <p
+        className="text-xs font-medium leading-snug text-emerald-700"
+        data-testid="review-request-email-sent"
+      >
+        Review request sent
+        <span className="block font-normal text-slate-500">
+          {formatDateTimeLabel(reviewRequestEmailSentAt)}
+        </span>
+      </p>
+    );
+  }
+
+  if (!canReview) {
     return null;
   }
 

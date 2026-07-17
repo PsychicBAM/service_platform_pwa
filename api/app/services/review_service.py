@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import logging
 import uuid
+from datetime import UTC, datetime, timedelta
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.config import get_settings
 from app.exceptions.business import (
@@ -14,6 +18,7 @@ from app.exceptions.business import (
     ValidationAppError,
 )
 from app.models.booking import Booking
+from app.models.business import Business
 from app.models.order import Order
 from app.models.enums import (
     BookingStatus,
@@ -24,7 +29,10 @@ from app.models.enums import (
 from app.models.review import Review
 from app.models.user import User
 from app.repositories.booking_repository import BookingRepository
-from app.repositories.business_repository import BusinessRepository
+from app.repositories.business_repository import (
+    DEFAULT_BUSINESS_SETTINGS,
+    BusinessRepository,
+)
 from app.repositories.order_repository import OrderRepository
 from app.repositories.review_repository import ReviewRepository
 from app.schemas.review import (
@@ -54,6 +62,10 @@ from app.services.review_request_token_service import (
     create_review_request_token,
     decode_review_request_token,
 )
+
+logger = logging.getLogger(__name__)
+
+_SAFE_SEND_ERROR = "Email delivery failed."
 
 
 def _contact_matches(email_a: str | None, phone_a: str | None, *, email: str | None, phone: str | None) -> bool:
@@ -295,80 +307,246 @@ class ReviewService:
             expires_at=expires_at,
         )
 
+    @staticmethod
+    def _auto_review_settings(business: Business) -> tuple[bool, int]:
+        merged = {**DEFAULT_BUSINESS_SETTINGS, **(business.settings or {})}
+        enabled = bool(merged.get("auto_review_request_enabled", False))
+        delay = int(merged.get("auto_review_request_delay_minutes", 1440))
+        return enabled, delay
+
+    async def schedule_auto_review_request_for_booking(
+        self,
+        business: Business,
+        booking: Booking,
+        *,
+        send_immediately_if_due: bool = True,
+    ) -> bool:
+        enabled, delay_minutes = self._auto_review_settings(business)
+        if not enabled:
+            return False
+        if booking.status != BookingStatus.completed:
+            return False
+        if booking.review_request_email_sent_at is not None:
+            return False
+        if not booking.follow_up_email_consent:
+            return False
+        client = booking.client
+        if client is None or not (client.email or "").strip():
+            return False
+        existing = await self.review_repo.get_for_booking_reference(
+            business.id,
+            booking.reference,
+        )
+        if existing is not None:
+            return False
+
+        due_at = datetime.now(UTC) + timedelta(minutes=delay_minutes)
+        booking.review_request_email_due_at = due_at
+        booking.review_request_email_last_error = None
+        await self.session.commit()
+
+        if send_immediately_if_due and due_at <= datetime.now(UTC):
+            await self.send_review_request_email_for_booking(
+                business.id,
+                booking.id,
+                raise_on_error=False,
+            )
+        return True
+
+    async def schedule_auto_review_request_for_order(
+        self,
+        business: Business,
+        order: Order,
+        *,
+        send_immediately_if_due: bool = True,
+    ) -> bool:
+        enabled, delay_minutes = self._auto_review_settings(business)
+        if not enabled:
+            return False
+        if order.status != OrderStatus.completed:
+            return False
+        if order.review_request_email_sent_at is not None:
+            return False
+        if not order.follow_up_email_consent:
+            return False
+        client = order.client
+        if client is None or not (client.email or "").strip():
+            return False
+        existing = await self.review_repo.get_for_order_reference(
+            business.id,
+            order.reference,
+        )
+        if existing is not None:
+            return False
+
+        due_at = datetime.now(UTC) + timedelta(minutes=delay_minutes)
+        order.review_request_email_due_at = due_at
+        order.review_request_email_last_error = None
+        await self.session.commit()
+
+        if send_immediately_if_due and due_at <= datetime.now(UTC):
+            await self.send_review_request_email_for_order(
+                business.id,
+                order.id,
+                raise_on_error=False,
+            )
+        return True
+
     async def send_review_request_email(
         self,
         business_id: uuid.UUID,
         payload: ReviewRequestEmailCreate,
     ) -> ReviewRequestEmailResponse:
-        business = await self.business_repo.get_by_id(business_id)
-        if business is None:
-            raise NotFoundError("Business not found.")
-
         if payload.booking_id is not None:
-            booking = await self.booking_repo.get_detail_for_business(
+            return await self.send_review_request_email_for_booking(
                 business_id,
                 payload.booking_id,
+                raise_on_error=True,
             )
-            if booking is None or booking.client is None:
+        assert payload.order_id is not None
+        return await self.send_review_request_email_for_order(
+            business_id,
+            payload.order_id,
+            raise_on_error=True,
+        )
+
+    async def send_review_request_email_for_booking(
+        self,
+        business_id: uuid.UUID,
+        booking_id: uuid.UUID,
+        *,
+        raise_on_error: bool = True,
+    ) -> ReviewRequestEmailResponse | None:
+        business = await self.business_repo.get_by_id(business_id)
+        if business is None:
+            if raise_on_error:
+                raise NotFoundError("Business not found.")
+            return None
+
+        booking = await self.booking_repo.get_detail_for_business(business_id, booking_id)
+        if booking is None or booking.client is None:
+            if raise_on_error:
                 raise NotFoundError("Booking not found.")
-            if booking.status != BookingStatus.completed:
+            return None
+        if booking.status != BookingStatus.completed:
+            if raise_on_error:
                 raise ValidationAppError("This booking is not completed yet.")
-            if not booking.follow_up_email_consent:
+            return None
+        if booking.review_request_email_sent_at is not None:
+            if raise_on_error:
+                raise ValidationAppError(
+                    "A review request email was already sent for this booking."
+                )
+            return None
+        if not booking.follow_up_email_consent:
+            if raise_on_error:
                 raise ValidationAppError(
                     "This client did not agree to follow-up emails."
                 )
-            client_email = (booking.client.email or "").strip()
-            if not client_email:
+            return None
+        client_email = (booking.client.email or "").strip()
+        if not client_email:
+            if raise_on_error:
                 raise ValidationAppError("No email address is available for this client.")
-            existing = await self.review_repo.get_for_booking_reference(
-                business_id,
-                booking.reference,
-            )
-            if existing is not None:
+            return None
+        existing = await self.review_repo.get_for_booking_reference(
+            business_id,
+            booking.reference,
+        )
+        if existing is not None:
+            if raise_on_error:
                 raise ValidationAppError("A review already exists for this booking.")
+            return None
 
-            token, _expires_at = create_review_request_token(
-                business_id=business_id,
-                target_type="booking",
-                target_id=booking.id,
-            )
-            review_url = build_review_request_url(token)
-            recipient_name = booking.client.full_name
-            reference = booking.reference
-        else:
-            assert payload.order_id is not None
-            order = await self.order_repo.get_detail_for_business(
-                business_id,
-                payload.order_id,
-            )
-            if order is None or order.client is None:
+        return await self._deliver_review_request_email(
+            target=booking,
+            business=business,
+            client_email=client_email,
+            recipient_name=booking.client.full_name,
+            reference=booking.reference,
+            target_type="booking",
+            target_id=booking.id,
+            raise_on_error=raise_on_error,
+        )
+
+    async def send_review_request_email_for_order(
+        self,
+        business_id: uuid.UUID,
+        order_id: uuid.UUID,
+        *,
+        raise_on_error: bool = True,
+    ) -> ReviewRequestEmailResponse | None:
+        business = await self.business_repo.get_by_id(business_id)
+        if business is None:
+            if raise_on_error:
+                raise NotFoundError("Business not found.")
+            return None
+
+        order = await self.order_repo.get_detail_for_business(business_id, order_id)
+        if order is None or order.client is None:
+            if raise_on_error:
                 raise NotFoundError("Order not found.")
-            if order.status != OrderStatus.completed:
+            return None
+        if order.status != OrderStatus.completed:
+            if raise_on_error:
                 raise ValidationAppError("This request is not completed yet.")
-            if not order.follow_up_email_consent:
+            return None
+        if order.review_request_email_sent_at is not None:
+            if raise_on_error:
+                raise ValidationAppError(
+                    "A review request email was already sent for this request."
+                )
+            return None
+        if not order.follow_up_email_consent:
+            if raise_on_error:
                 raise ValidationAppError(
                     "This client did not agree to follow-up emails."
                 )
-            client_email = (order.client.email or "").strip()
-            if not client_email:
+            return None
+        client_email = (order.client.email or "").strip()
+        if not client_email:
+            if raise_on_error:
                 raise ValidationAppError("No email address is available for this client.")
-            existing = await self.review_repo.get_for_order_reference(
-                business_id,
-                order.reference,
-            )
-            if existing is not None:
+            return None
+        existing = await self.review_repo.get_for_order_reference(
+            business_id,
+            order.reference,
+        )
+        if existing is not None:
+            if raise_on_error:
                 raise ValidationAppError("A review already exists for this request.")
+            return None
 
-            token, _expires_at = create_review_request_token(
-                business_id=business_id,
-                target_type="order",
-                target_id=order.id,
-            )
-            review_url = build_review_request_url(token)
-            recipient_name = order.client.full_name
-            reference = order.reference
+        return await self._deliver_review_request_email(
+            target=order,
+            business=business,
+            client_email=client_email,
+            recipient_name=order.client.full_name,
+            reference=order.reference,
+            target_type="order",
+            target_id=order.id,
+            raise_on_error=raise_on_error,
+        )
 
+    async def _deliver_review_request_email(
+        self,
+        *,
+        target: Booking | Order,
+        business: Business,
+        client_email: str,
+        recipient_name: str,
+        reference: str,
+        target_type: str,
+        target_id: uuid.UUID,
+        raise_on_error: bool,
+    ) -> ReviewRequestEmailResponse | None:
         settings = get_settings()
+        token, _expires_at = create_review_request_token(
+            business_id=business.id,
+            target_type=target_type,  # type: ignore[arg-type]
+            target_id=target_id,
+        )
+        review_url = build_review_request_url(token)
         message = build_client_review_request_email(
             to_email=client_email,
             recipient_name=recipient_name,
@@ -379,15 +557,91 @@ class ReviewService:
         )
         result = EmailService(settings).send_email(message)
         if result.message_code in {EMAIL_CONFIG_INVALID, EMAIL_SEND_FAILED}:
-            raise ValidationAppError(
-                "Could not send the review request email. Check email delivery settings."
-            )
+            target.review_request_email_last_error = _SAFE_SEND_ERROR
+            await self.session.commit()
+            if raise_on_error:
+                raise ValidationAppError(
+                    "Could not send the review request email. Check email delivery settings."
+                )
+            return None
+
+        target.review_request_email_sent_at = datetime.now(UTC)
+        target.review_request_email_last_error = None
+        await self.session.commit()
         return ReviewRequestEmailResponse(
             sent=result.sent or result.dry_run,
             dry_run=result.dry_run,
             message="Review request sent.",
             message_code=result.message_code,
         )
+
+    async def process_due_review_request_emails(self, *, limit: int = 50) -> int:
+        now = datetime.now(UTC)
+        sent_count = 0
+
+        booking_stmt = (
+            select(Booking)
+            .options(selectinload(Booking.client))
+            .where(
+                Booking.status == BookingStatus.completed,
+                Booking.follow_up_email_consent.is_(True),
+                Booking.review_request_email_sent_at.is_(None),
+                Booking.review_request_email_due_at.is_not(None),
+                Booking.review_request_email_due_at <= now,
+            )
+            .order_by(Booking.review_request_email_due_at.asc())
+            .limit(limit)
+        )
+        bookings = list((await self.session.execute(booking_stmt)).scalars().all())
+        for booking in bookings:
+            business = await self.business_repo.get_by_id(booking.business_id)
+            if business is None:
+                continue
+            enabled, _delay = self._auto_review_settings(business)
+            if not enabled:
+                continue
+            result = await self.send_review_request_email_for_booking(
+                booking.business_id,
+                booking.id,
+                raise_on_error=False,
+            )
+            if result is not None:
+                sent_count += 1
+
+        remaining = max(limit - len(bookings), 0)
+        if remaining == 0:
+            return sent_count
+
+        order_stmt = (
+            select(Order)
+            .options(selectinload(Order.client))
+            .where(
+                Order.status == OrderStatus.completed,
+                Order.follow_up_email_consent.is_(True),
+                Order.review_request_email_sent_at.is_(None),
+                Order.review_request_email_due_at.is_not(None),
+                Order.review_request_email_due_at <= now,
+            )
+            .order_by(Order.review_request_email_due_at.asc())
+            .limit(remaining)
+        )
+        orders = list((await self.session.execute(order_stmt)).scalars().all())
+        for order in orders:
+            business = await self.business_repo.get_by_id(order.business_id)
+            if business is None:
+                continue
+            enabled, _delay = self._auto_review_settings(business)
+            if not enabled:
+                continue
+            result = await self.send_review_request_email_for_order(
+                order.business_id,
+                order.id,
+                raise_on_error=False,
+            )
+            if result is not None:
+                sent_count += 1
+
+        return sent_count
 
     async def get_review_request_context(self, token: str) -> ReviewRequestContext:
         claims = decode_review_request_token(token)

@@ -5,7 +5,10 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.models.enums import BusinessStatus, OperatingMode, PublicPageVariant, SubscriptionPlan, SubscriptionStatus
-from app.repositories.business_repository import DEFAULT_BUSINESS_SETTINGS
+from app.repositories.business_repository import (
+    ALLOWED_AUTO_REVIEW_REQUEST_DELAY_MINUTES,
+    DEFAULT_BUSINESS_SETTINGS,
+)
 from app.schemas.mini_site import MiniSiteConfig
 from app.schemas.service_image import ServiceImageMedia
 from app.utils.public_location import PublicLocation, PublicLocationWrite
@@ -44,6 +47,8 @@ class BusinessSettingsRead(BaseModel):
     booking_buffer_minutes: int
     require_payment_default: bool
     notification_email_enabled: bool
+    auto_review_request_enabled: bool
+    auto_review_request_delay_minutes: int
 
     @classmethod
     def from_settings(cls, settings: dict[str, Any] | None) -> "BusinessSettingsRead":
@@ -58,6 +63,10 @@ class BusinessSettingsRead(BaseModel):
             booking_buffer_minutes=int(merged["booking_buffer_minutes"]),
             require_payment_default=bool(merged["require_payment_default"]),
             notification_email_enabled=bool(merged["notification_email_enabled"]),
+            auto_review_request_enabled=bool(merged["auto_review_request_enabled"]),
+            auto_review_request_delay_minutes=int(
+                merged["auto_review_request_delay_minutes"]
+            ),
         )
 
 
@@ -71,6 +80,8 @@ class BusinessSettingsUpdate(BaseModel):
     booking_buffer_minutes: int | None = None
     require_payment_default: bool | None = None
     notification_email_enabled: bool | None = None
+    auto_review_request_enabled: bool | None = None
+    auto_review_request_delay_minutes: int | None = None
 
     @field_validator("cancellation_hours")
     @classmethod
@@ -107,6 +118,16 @@ class BusinessSettingsUpdate(BaseModel):
     def validate_booking_buffer_minutes(cls, value: int | None) -> int | None:
         if value is not None and not 0 <= value <= 240:
             raise ValueError("booking_buffer_minutes must be between 0 and 240")
+        return value
+
+    @field_validator("auto_review_request_delay_minutes")
+    @classmethod
+    def validate_auto_review_request_delay_minutes(cls, value: int | None) -> int | None:
+        if value is not None and value not in ALLOWED_AUTO_REVIEW_REQUEST_DELAY_MINUTES:
+            raise ValueError(
+                "auto_review_request_delay_minutes must be one of "
+                "0, 60, 1440, 2880, 10080"
+            )
         return value
 
 

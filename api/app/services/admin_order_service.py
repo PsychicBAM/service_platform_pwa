@@ -25,6 +25,7 @@ from app.schemas.order import (
     AdminOrderUpdate,
 )
 from app.services.email_notification_service import EmailNotificationService
+from app.services.review_service import ReviewService
 
 
 ALLOWED_STATUS_TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
@@ -263,6 +264,11 @@ class AdminOrderService:
             OrderStatus.completed,
             business=business,
         )
+        await ReviewService(self.session).schedule_auto_review_request_for_order(
+            business,
+            order,
+        )
+        order = await self._get_order_or_404(business.id, order_id)
         return AdminOrderRead.from_order(order)
 
     async def cancel_admin_order(

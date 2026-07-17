@@ -58,6 +58,8 @@ class Settings(BaseSettings):
 
     review_request_token_expire_days: int = 30
     review_request_base_url: str = "http://localhost:5173/review"
+    review_request_email_scheduler_enabled: bool = True
+    review_request_email_scheduler_interval_seconds: int = 300
 
     stripe_enabled: bool = False
     stripe_secret_key: str | None = None

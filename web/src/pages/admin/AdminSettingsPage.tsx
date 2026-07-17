@@ -70,7 +70,17 @@ type SettingsFormState = {
   booking_buffer_minutes: string;
   require_payment_default: boolean;
   notification_email_enabled: boolean;
+  auto_review_request_enabled: boolean;
+  auto_review_request_delay_minutes: number;
 };
+
+const AUTO_REVIEW_DELAY_OPTIONS: Array<{ value: number; label: string }> = [
+  { value: 0, label: "Immediately after completion" },
+  { value: 60, label: "1 hour" },
+  { value: 1440, label: "24 hours" },
+  { value: 2880, label: "2 days" },
+  { value: 10080, label: "7 days" },
+];
 
 function formFromBusiness(data: BusinessAdminRead): SettingsFormState {
   return {
@@ -90,6 +100,8 @@ function formFromBusiness(data: BusinessAdminRead): SettingsFormState {
     booking_buffer_minutes: String(data.settings.booking_buffer_minutes),
     require_payment_default: data.settings.require_payment_default,
     notification_email_enabled: data.settings.notification_email_enabled,
+    auto_review_request_enabled: data.settings.auto_review_request_enabled,
+    auto_review_request_delay_minutes: data.settings.auto_review_request_delay_minutes,
   };
 }
 
@@ -189,6 +201,8 @@ function buildUpdatePayload(form: SettingsFormState): BusinessUpdatePayload {
       booking_buffer_minutes: Number(form.booking_buffer_minutes),
       require_payment_default: form.require_payment_default,
       notification_email_enabled: form.notification_email_enabled,
+      auto_review_request_enabled: form.auto_review_request_enabled,
+      auto_review_request_delay_minutes: form.auto_review_request_delay_minutes,
     },
   };
 }
@@ -581,6 +595,52 @@ export function AdminSettingsPage() {
               When enabled, this business can receive booking/request notification emails (if server
               email delivery is configured).
             </p>
+
+            <div
+              className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3"
+              data-testid="admin-auto-review-request-settings"
+            >
+              <h3 className="text-sm font-semibold text-slate-800">Review request emails</h3>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={form.auto_review_request_enabled}
+                  disabled={saving}
+                  onChange={(event) =>
+                    updateForm("auto_review_request_enabled", event.target.checked)
+                  }
+                  className="rounded border-slate-300"
+                  data-testid="admin-auto-review-request-enabled"
+                />
+                Automatically send review request emails
+              </label>
+              <div className="space-y-1">
+                <FieldLabel htmlFor="auto-review-delay">Delay after completion</FieldLabel>
+                <select
+                  id="auto-review-delay"
+                  value={form.auto_review_request_delay_minutes}
+                  disabled={saving || !form.auto_review_request_enabled}
+                  onChange={(event) =>
+                    updateForm(
+                      "auto_review_request_delay_minutes",
+                      Number(event.target.value),
+                    )
+                  }
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 disabled:opacity-60"
+                  data-testid="admin-auto-review-request-delay"
+                >
+                  {AUTO_REVIEW_DELAY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-xs text-slate-500">
+                Only sent for completed bookings/requests when the client agreed to follow-up
+                emails.
+              </p>
+            </div>
           </div>
 
           <button
