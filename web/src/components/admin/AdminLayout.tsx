@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const NAV_ITEMS: Array<{ to: string; label: string; end?: boolean }> = [
   { to: "/admin", label: "Dashboard", end: true },
+  { to: "/admin/analytics", label: "Analytics" },
   { to: "/admin/services", label: "Services" },
   { to: "/admin/bookings", label: "Bookings" },
   { to: "/admin/orders", label: "Orders" },

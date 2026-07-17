@@ -4,6 +4,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SuperadminGuard } from "@/components/SuperadminGuard";
 import { SuperadminLayout } from "@/components/superadmin/SuperadminLayout";
 import { Layout } from "@/components/Layout";
+import { AdminAnalyticsPage } from "@/pages/admin/AdminAnalyticsPage";
 import { AdminBookingsPage } from "@/pages/admin/AdminBookingsPage";
 import { AdminClientsPage } from "@/pages/admin/AdminClientsPage";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
@@ -103,6 +104,7 @@ export const routes = [
         element: <AdminLayout />,
         children: [
           { index: true, element: <AdminDashboardPage /> },
+          { path: "analytics", element: <AdminAnalyticsPage /> },
           { path: "services", element: <AdminServicesPage /> },
           { path: "bookings", element: <AdminBookingsPage /> },
           { path: "orders", element: <AdminOrdersPage /> },
