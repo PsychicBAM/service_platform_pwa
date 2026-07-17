@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import re
-
+from email_validator import EmailNotValidError, validate_email
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 from app.config import get_settings
 from app.dependencies.auth import get_current_user
@@ -22,10 +21,26 @@ from app.services.email_service import (
 
 router = APIRouter(prefix="/admin/email", tags=["admin-email"])
 
-_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
+MAX_EMAIL_LENGTH = 254
 TEST_EMAIL_SUBJECT = "Service Platform test email"
 TEST_EMAIL_BODY = "This is a test email from Service Platform."
+
+
+def normalize_admin_test_email(value: object) -> str:
+    """Validate and normalize a recipient email without DNS/deliverability checks."""
+    if not isinstance(value, str):
+        raise ValidationAppError("Enter a valid email address.")
+
+    trimmed = value.strip()
+    if not trimmed or len(trimmed) > MAX_EMAIL_LENGTH:
+        raise ValidationAppError("Enter a valid email address.")
+
+    try:
+        result = validate_email(trimmed, check_deliverability=False)
+    except EmailNotValidError as exc:
+        raise ValidationAppError("Enter a valid email address.") from exc
+
+    return str(result.normalized)
 
 
 class AdminEmailStatusResponse(BaseModel):
@@ -41,7 +56,7 @@ class AdminEmailStatusResponse(BaseModel):
 
 
 class AdminEmailTestRequest(BaseModel):
-    to_email: EmailStr = Field(..., min_length=3, max_length=320)
+    to_email: str = Field(..., min_length=1, max_length=MAX_EMAIL_LENGTH)
 
 
 class AdminEmailTestResponse(BaseModel):
@@ -80,9 +95,7 @@ async def send_admin_test_email(
     payload: AdminEmailTestRequest,
     _admin: User = Depends(require_business_admin_or_superadmin),
 ) -> AdminEmailTestResponse:
-    to_email = str(payload.to_email).strip()
-    if not _EMAIL_PATTERN.match(to_email):
-        raise ValidationAppError("Enter a valid email address.")
+    to_email = normalize_admin_test_email(payload.to_email)
 
     settings = get_settings()
     service = EmailService(settings)

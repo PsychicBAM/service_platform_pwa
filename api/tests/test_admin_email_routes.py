@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.config import Settings, get_settings
+from app.exceptions.business import ValidationAppError
 from app.services.email_service import EMAIL_DRY_RUN, EMAIL_SENT, EmailService
 from app.services.password_service import hash_password
 from app.models.enums import UserRole
@@ -221,6 +222,84 @@ async def test_test_email_requires_auth(async_client: AsyncClient) -> None:
         json={"to_email": "test@example.com"},
     )
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_test_email_invalid_address_returns_friendly_error(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    await _create_business_admin(db_session, "owner-invalid-email@example.com")
+    headers = await _login(async_client, "owner-invalid-email@example.com")
+
+    response = await async_client.post(
+        "/api/v1/admin/email/test",
+        headers=headers,
+        json={"to_email": "not-an-email"},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["message"] == "Enter a valid email address."
+    assert "password" not in response.text
+
+
+@pytest.mark.asyncio
+async def test_test_email_rejects_crafted_long_suspicious_input_quickly(
+    async_client: AsyncClient,
+    db_session,
+) -> None:
+    await _create_business_admin(db_session, "owner-long-email@example.com")
+    headers = await _login(async_client, "owner-long-email@example.com")
+
+    crafted = "!@!." + ("!." * 200)
+    assert len(crafted) > 254
+
+    response = await async_client.post(
+        "/api/v1/admin/email/test",
+        headers=headers,
+        json={"to_email": crafted},
+    )
+
+    assert response.status_code in {400, 422}
+    assert "brevo-secret-key" not in response.text
+    assert "smtp_password" not in response.text.lower()
+
+
+@pytest.mark.asyncio
+async def test_test_email_trims_whitespace_for_valid_address(
+    async_client: AsyncClient,
+    db_session,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("EMAIL_ENABLED", "true")
+    monkeypatch.setenv("EMAIL_DRY_RUN", "true")
+    get_settings.cache_clear()
+
+    await _create_business_admin(db_session, "owner-trim-email@example.com")
+    headers = await _login(async_client, "owner-trim-email@example.com")
+
+    with patch("app.services.email_service.smtplib.SMTP") as smtp_mock:
+        response = await async_client.post(
+            "/api/v1/admin/email/test",
+            headers=headers,
+            json={"to_email": "  test@example.com  "},
+        )
+
+    get_settings.cache_clear()
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    assert body["dry_run"] is True
+    assert "password" not in body
+    smtp_mock.assert_not_called()
+
+
+def test_normalize_admin_test_email_rejects_oversized_without_regex() -> None:
+    from app.routers.admin_email import normalize_admin_test_email
+
+    crafted = "!@!." + ("!." * 200)
+    with pytest.raises(ValidationAppError, match="Enter a valid email address"):
+        normalize_admin_test_email(crafted)
 
 
 def test_delivery_status_ready_for_brevo_settings() -> None:
