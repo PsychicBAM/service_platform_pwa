@@ -1,12 +1,18 @@
 import { useEffect, useState, type FormEvent, type HTMLAttributes } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createBillingCheckoutSession } from "@/api/billingApi";
 import { getBusiness, updateBusiness } from "@/api/adminApi";
 import { PlanFeatureComparison } from "@/components/admin/PlanFeatureComparison";
-import { AdminEmailDeliverySection } from "@/components/admin/AdminEmailDeliverySection";
+import { AdminEmailDeliveryExperience } from "@/components/admin/AdminEmailDeliveryExperience";
 import { AdminMarketplaceCoverSection } from "@/components/admin/AdminMarketplaceCoverSection";
 import { AdminBusinessLocationSection } from "@/components/admin/AdminBusinessLocationSection";
 import { AdminBusinessMapPinSection } from "@/components/admin/AdminBusinessMapPinSection";
+import { AdminSettingsSectionCard } from "@/components/admin/AdminSettingsSectionCard";
+import {
+  AdminSettingsTabs,
+  type AdminSettingsTabId,
+} from "@/components/admin/AdminSettingsTabs";
 import { ProToolsComingSoonCard } from "@/components/admin/ProToolsComingSoonCard";
 import { PublicProfileSettingsCard } from "@/components/admin/PublicProfileSettingsCard";
 import { ErrorState } from "@/components/ErrorState";
@@ -22,6 +28,23 @@ import type {
 import { getAdminSettingsErrorMessage, getBillingCheckoutErrorMessage } from "@/utils/errors";
 import { formatPlanLabel } from "@/utils/planManagement";
 import { normalizeServiceImageMedia, type ServiceImageMedia } from "@/lib/serviceImage";
+
+const VALID_SETTINGS_TABS = new Set<AdminSettingsTabId>([
+  "business",
+  "services",
+  "team",
+  "notifications",
+  "email-delivery",
+  "payments",
+  "appearance",
+]);
+
+function parseSettingsTab(value: string | null): AdminSettingsTabId {
+  if (value && VALID_SETTINGS_TABS.has(value as AdminSettingsTabId)) {
+    return value as AdminSettingsTabId;
+  }
+  return "business";
+}
 
 const CHECKOUT_PLANS: Array<{ id: CheckoutPlanId; label: string }> = [
   { id: "starter", label: "Starter" },
@@ -73,14 +96,6 @@ type SettingsFormState = {
   auto_review_request_enabled: boolean;
   auto_review_request_delay_minutes: number;
 };
-
-const AUTO_REVIEW_DELAY_OPTIONS: Array<{ value: number; label: string }> = [
-  { value: 0, label: "Immediately after completion" },
-  { value: 60, label: "1 hour" },
-  { value: 1440, label: "24 hours" },
-  { value: 2880, label: "2 days" },
-  { value: 10080, label: "7 days" },
-];
 
 function formFromBusiness(data: BusinessAdminRead): SettingsFormState {
   return {
@@ -264,12 +279,24 @@ function TextInput({
 export function AdminSettingsPage() {
   const { businessId } = useAdminBusiness();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = parseSettingsTab(searchParams.get("tab"));
   const [form, setForm] = useState<SettingsFormState | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [billingMessage, setBillingMessage] = useState<string | null>(null);
   const [checkoutLoadingPlan, setCheckoutLoadingPlan] = useState<CheckoutPlanId | null>(null);
   const [marketplaceCoverImage, setMarketplaceCoverImage] = useState<ServiceImageMedia | null>(null);
+
+  function setActiveTab(tab: AdminSettingsTabId) {
+    const next = new URLSearchParams(searchParams);
+    if (tab === "business") {
+      next.delete("tab");
+    } else {
+      next.set("tab", tab);
+    }
+    setSearchParams(next, { replace: true });
+  }
 
   const businessQuery = useQuery({
     queryKey: ["admin-business", businessId],
@@ -338,8 +365,15 @@ export function AdminSettingsPage() {
   const saving = saveMutation.isPending;
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-bold">Settings</h2>
+    <section className="w-full max-w-none space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight text-gray-900">Settings</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Manage business profile, notifications, email delivery, and billing.
+        </p>
+      </div>
+
+      <AdminSettingsTabs activeTab={activeTab} onChange={setActiveTab} />
 
       {successMessage ? (
         <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
@@ -358,399 +392,418 @@ export function AdminSettingsPage() {
       ) : null}
 
       {!businessQuery.isLoading && !businessQuery.isError && data && form ? (
-        <div className="space-y-4">
-        <form
-          id="admin-business-settings-form"
-          onSubmit={handleSubmit}
-          className="space-y-4"
-          data-testid="admin-business-settings-form"
-          noValidate
-        >
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
-            <h3 className="text-sm font-medium text-slate-700">Business profile</h3>
-            <div>
-              <FieldLabel htmlFor="businessName" required>
-                Business name
-              </FieldLabel>
-              <TextInput
-                id="businessName"
-                value={form.name}
-                disabled={saving}
-                required
-                onChange={(value) => updateForm("name", value)}
-              />
-            </div>
-            <TextAreaField
-              name="description"
-              label="Description"
-              value={form.description}
-              disabled={saving}
-              onChange={(event) => updateForm("description", event.target.value)}
-            />
-            <div>
-              <FieldLabel htmlFor="logoUrl">Logo URL</FieldLabel>
-              <TextInput
-                id="logoUrl"
-                value={form.logo_url}
-                disabled={saving}
-                placeholder="https://…"
-                onChange={(value) => updateForm("logo_url", value)}
-              />
-            </div>
-            <AdminMarketplaceCoverSection
-              businessId={businessId!}
-              image={marketplaceCoverImage}
-              disabled={saving}
-              onImageChange={(nextImage) => {
-                setMarketplaceCoverImage(nextImage);
-                void queryClient.invalidateQueries({ queryKey: ["admin-business", businessId] });
-              }}
-            />
-            <AdminBusinessLocationSection
-              businessId={businessId!}
-              publicLocation={businessQuery.data?.public_location}
-              disabled={saving}
-            />
-            <AdminBusinessMapPinSection
-              businessId={businessId!}
-              publicLocation={businessQuery.data?.public_location}
-              disabled={saving}
-            />
-            <div>
-              <FieldLabel htmlFor="contactEmail">Contact email</FieldLabel>
-              <TextInput
-                id="contactEmail"
-                type="text"
-                inputMode="email"
-                autoComplete="email"
-                value={form.contact_email}
-                disabled={saving}
-                onChange={(value) => updateForm("contact_email", value)}
-              />
-            </div>
-            <div>
-              <FieldLabel htmlFor="contactPhone">Contact phone</FieldLabel>
-              <TextInput
-                id="contactPhone"
-                value={form.contact_phone}
-                disabled={saving}
-                onChange={(value) => updateForm("contact_phone", value)}
-              />
-            </div>
-            <div>
-              <FieldLabel htmlFor="timezone" required>
-                Timezone
-              </FieldLabel>
-              <TextInput
-                id="timezone"
-                value={form.timezone}
-                disabled={saving}
-                required
-                placeholder="Europe/Moscow, UTC, America/New_York"
-                onChange={(value) => updateForm("timezone", value)}
-              />
-              <p className="mt-1 text-xs text-slate-500">
-                IANA timezone name, e.g. Europe/Moscow, UTC, America/New_York
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-            <h3 className="text-sm font-medium text-slate-700">Operating mode</h3>
-            <label htmlFor="operatingMode" className="block text-sm">
-              <span className="font-medium text-slate-700">Mode</span>
-              <select
-                id="operatingMode"
-                value={form.operating_mode}
-                disabled={saving}
-                onChange={(event) =>
-                  updateForm("operating_mode", event.target.value as OperatingMode)
-                }
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
-              >
-                {OPERATING_MODE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p className="text-xs text-slate-500">
-              {
-                OPERATING_MODE_OPTIONS.find((option) => option.value === form.operating_mode)
-                  ?.hint
-              }
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
-            <h3 className="text-sm font-medium text-slate-700">Booking settings</h3>
-
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={form.auto_confirm_bookings}
-                disabled={saving}
-                onChange={(event) => updateForm("auto_confirm_bookings", event.target.checked)}
-                className="rounded border-slate-300"
-              />
-              Auto-confirm bookings
-            </label>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <FieldLabel htmlFor="cancellationHours">Cancellation hours</FieldLabel>
-                <TextInput
-                  id="cancellationHours"
-                  type="number"
-                  value={form.cancellation_hours}
-                  disabled={saving}
-                  onChange={(value) => updateForm("cancellation_hours", value)}
-                />
-              </div>
-              <div>
-                <FieldLabel htmlFor="maxAdvanceDays">Max advance booking days</FieldLabel>
-                <TextInput
-                  id="maxAdvanceDays"
-                  type="number"
-                  value={form.max_advance_booking_days}
-                  disabled={saving}
-                  onChange={(value) => updateForm("max_advance_booking_days", value)}
-                />
-              </div>
-              <div>
-                <FieldLabel htmlFor="minAdvanceHours">Min advance booking hours</FieldLabel>
-                <TextInput
-                  id="minAdvanceHours"
-                  type="number"
-                  value={form.min_advance_booking_hours}
-                  disabled={saving}
-                  onChange={(value) => updateForm("min_advance_booking_hours", value)}
-                />
-              </div>
-              <div>
-                <FieldLabel htmlFor="bookingBuffer">Booking buffer minutes</FieldLabel>
-                <TextInput
-                  id="bookingBuffer"
-                  type="number"
-                  value={form.booking_buffer_minutes}
-                  disabled={saving}
-                  onChange={(value) => updateForm("booking_buffer_minutes", value)}
-                />
-              </div>
-            </div>
-
-            <label htmlFor="slotInterval" className="block text-sm">
-              <span className="font-medium text-slate-700">Slot interval (minutes)</span>
-              <select
-                id="slotInterval"
-                value={form.slot_interval_minutes}
-                disabled={saving}
-                onChange={(event) => updateForm("slot_interval_minutes", event.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
-              >
-                {SLOT_INTERVAL_OPTIONS.map((minutes) => (
-                  <option key={minutes} value={String(minutes)}>
-                    {minutes} minutes
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={form.allow_guest_checkout}
-                disabled={saving}
-                onChange={(event) => updateForm("allow_guest_checkout", event.target.checked)}
-                className="rounded border-slate-300"
-              />
-              Allow guest checkout
-            </label>
-
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={form.require_payment_default}
-                disabled={saving}
-                onChange={(event) => updateForm("require_payment_default", event.target.checked)}
-                className="rounded border-slate-300"
-              />
-              Require payment by default for new services
-            </label>
-
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={form.notification_email_enabled}
-                disabled={saving}
-                onChange={(event) =>
-                  updateForm("notification_email_enabled", event.target.checked)
-                }
-                className="rounded border-slate-300"
-              />
-              Notification email enabled
-            </label>
-            <p className="text-xs text-slate-500">
-              When enabled, this business can receive booking/request notification emails (if server
-              email delivery is configured).
-            </p>
-
-            <div
-              className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3"
-              data-testid="admin-auto-review-request-settings"
+        <div className="space-y-5">
+          {activeTab === "business" ? (
+            <form
+              id="admin-business-settings-form"
+              onSubmit={handleSubmit}
+              className="space-y-4"
+              data-testid="admin-business-settings-form"
+              noValidate
             >
-              <h3 className="text-sm font-semibold text-slate-800">Review request emails</h3>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={form.auto_review_request_enabled}
-                  disabled={saving}
-                  onChange={(event) =>
-                    updateForm("auto_review_request_enabled", event.target.checked)
-                  }
-                  className="rounded border-slate-300"
-                  data-testid="admin-auto-review-request-enabled"
-                />
-                Automatically send review request emails
-              </label>
-              <div className="space-y-1">
-                <FieldLabel htmlFor="auto-review-delay">Delay after completion</FieldLabel>
-                <select
-                  id="auto-review-delay"
-                  value={form.auto_review_request_delay_minutes}
-                  disabled={saving || !form.auto_review_request_enabled}
-                  onChange={(event) =>
-                    updateForm(
-                      "auto_review_request_delay_minutes",
-                      Number(event.target.value),
-                    )
-                  }
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 disabled:opacity-60"
-                  data-testid="admin-auto-review-request-delay"
-                >
-                  {AUTO_REVIEW_DELAY_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <p className="text-xs text-slate-500">
-                Only sent for completed bookings/requests when the client agreed to follow-up
-                emails.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
-            data-testid="admin-settings-save"
-          >
-            {saving ? "Saving…" : "Save settings"}
-          </button>
-        </form>
-
-        {/* Outside the settings form so test-email controls cannot interfere with Save. */}
-        <AdminEmailDeliverySection />
-
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
-            <h3 className="text-sm font-medium text-slate-700">Billing / plan</h3>
-            <p className="text-sm text-slate-600">
-              Stripe checkout is optional and may be disabled in this environment. After a
-              successful payment, your plan is activated by the billing webhook — not from this
-              page directly.
-            </p>
-
-            {data.subscription ? (
-              <dl className="grid gap-2 text-sm sm:grid-cols-2">
-                <div>
-                  <dt className="text-slate-500">Current active plan</dt>
-                  <dd className="font-medium text-slate-900">
-                    {formatPlanLabel(data.subscription.plan)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-slate-500">Subscription status</dt>
-                  <dd className="font-medium text-slate-900">
-                    {formatPlanLabel(data.subscription.status)}
-                  </dd>
-                </div>
-                {data.settings.selected_plan_intent ? (
-                  <div className="sm:col-span-2">
-                    <dt className="text-slate-500">Signup plan intent</dt>
-                    <dd className="font-medium text-slate-900">
-                      {formatPlanLabel(data.settings.selected_plan_intent)}
-                    </dd>
+              <AdminSettingsSectionCard title="Business profile">
+                <div className="space-y-4">
+                  <div>
+                    <FieldLabel htmlFor="businessName" required>
+                      Business name
+                    </FieldLabel>
+                    <TextInput
+                      id="businessName"
+                      value={form.name}
+                      disabled={saving}
+                      required
+                      onChange={(value) => updateForm("name", value)}
+                    />
                   </div>
-                ) : null}
-              </dl>
-            ) : (
-              <p className="text-sm text-slate-500">No subscription summary available.</p>
-            )}
-
-            <PlanFeatureComparison currentPlan={data.subscription?.plan} />
-
-            <ProToolsComingSoonCard currentPlan={data.subscription?.plan} />
-
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              {CHECKOUT_PLANS.map((plan) => (
-                <button
-                  key={plan.id}
-                  type="button"
-                  disabled={saving || checkoutLoadingPlan !== null}
-                  onClick={() => handleStartCheckout(plan.id)}
-                  className="rounded-lg border border-brand-600 px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-60"
-                >
-                  {checkoutLoadingPlan === plan.id
-                    ? "Starting checkout…"
-                    : `Start ${plan.label} checkout`}
-                </button>
-              ))}
-            </div>
-
-            {billingMessage ? (
-              <p
-                role="alert"
-                className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
-              >
-                {billingMessage}
-              </p>
-            ) : null}
-          </div>
-
-          <PublicProfileSettingsCard
-            businessId={businessId!}
-            businessName={data.name}
-            currentPlan={data.subscription?.plan}
-          />
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-sm">
-            <h3 className="font-medium text-slate-700">Read-only</h3>
-            <dl className="space-y-2">
-              <div>
-                <dt className="text-slate-500">Slug</dt>
-                <dd className="font-mono text-slate-900">{data.slug}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Status</dt>
-                <dd className="text-slate-900">{data.status}</dd>
-              </div>
-              {data.subscription ? (
-                <div>
-                  <dt className="text-slate-500">Usage</dt>
-                  <dd className="text-slate-900">
-                    {data.subscription.usage_bookings_count} bookings ·{" "}
-                    {data.subscription.usage_orders_count} orders
-                  </dd>
+                  <TextAreaField
+                    name="description"
+                    label="Description"
+                    value={form.description}
+                    disabled={saving}
+                    onChange={(event) => updateForm("description", event.target.value)}
+                  />
+                  <div>
+                    <FieldLabel htmlFor="logoUrl">Logo URL</FieldLabel>
+                    <TextInput
+                      id="logoUrl"
+                      value={form.logo_url}
+                      disabled={saving}
+                      placeholder="https://…"
+                      onChange={(value) => updateForm("logo_url", value)}
+                    />
+                  </div>
+                  <AdminMarketplaceCoverSection
+                    businessId={businessId!}
+                    image={marketplaceCoverImage}
+                    disabled={saving}
+                    onImageChange={(nextImage) => {
+                      setMarketplaceCoverImage(nextImage);
+                      void queryClient.invalidateQueries({
+                        queryKey: ["admin-business", businessId],
+                      });
+                    }}
+                  />
+                  <AdminBusinessLocationSection
+                    businessId={businessId!}
+                    publicLocation={businessQuery.data?.public_location}
+                    disabled={saving}
+                  />
+                  <AdminBusinessMapPinSection
+                    businessId={businessId!}
+                    publicLocation={businessQuery.data?.public_location}
+                    disabled={saving}
+                  />
+                  <div>
+                    <FieldLabel htmlFor="contactEmail">Contact email</FieldLabel>
+                    <TextInput
+                      id="contactEmail"
+                      type="text"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={form.contact_email}
+                      disabled={saving}
+                      onChange={(value) => updateForm("contact_email", value)}
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="contactPhone">Contact phone</FieldLabel>
+                    <TextInput
+                      id="contactPhone"
+                      value={form.contact_phone}
+                      disabled={saving}
+                      onChange={(value) => updateForm("contact_phone", value)}
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="timezone" required>
+                      Timezone
+                    </FieldLabel>
+                    <TextInput
+                      id="timezone"
+                      value={form.timezone}
+                      disabled={saving}
+                      required
+                      placeholder="Europe/Moscow, UTC, America/New_York"
+                      onChange={(value) => updateForm("timezone", value)}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      IANA timezone name, e.g. Europe/Moscow, UTC, America/New_York
+                    </p>
+                  </div>
                 </div>
-              ) : null}
-            </dl>
-          </div>
-        </div>
+              </AdminSettingsSectionCard>
+
+              <AdminSettingsSectionCard title="Operating mode">
+                <label htmlFor="operatingMode" className="block text-sm">
+                  <span className="font-medium text-gray-700">Mode</span>
+                  <select
+                    id="operatingMode"
+                    value={form.operating_mode}
+                    disabled={saving}
+                    onChange={(event) =>
+                      updateForm("operating_mode", event.target.value as OperatingMode)
+                    }
+                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm disabled:opacity-60"
+                  >
+                    {OPERATING_MODE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="mt-2 text-xs text-gray-500">
+                  {
+                    OPERATING_MODE_OPTIONS.find((option) => option.value === form.operating_mode)
+                      ?.hint
+                  }
+                </p>
+              </AdminSettingsSectionCard>
+
+              <AdminSettingsSectionCard title="Booking settings">
+                <div className="space-y-4">
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={form.auto_confirm_bookings}
+                      disabled={saving}
+                      onChange={(event) =>
+                        updateForm("auto_confirm_bookings", event.target.checked)
+                      }
+                      className="rounded border-gray-300"
+                    />
+                    Auto-confirm bookings
+                  </label>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <FieldLabel htmlFor="cancellationHours">Cancellation hours</FieldLabel>
+                      <TextInput
+                        id="cancellationHours"
+                        type="number"
+                        value={form.cancellation_hours}
+                        disabled={saving}
+                        onChange={(value) => updateForm("cancellation_hours", value)}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel htmlFor="maxAdvanceDays">Max advance booking days</FieldLabel>
+                      <TextInput
+                        id="maxAdvanceDays"
+                        type="number"
+                        value={form.max_advance_booking_days}
+                        disabled={saving}
+                        onChange={(value) => updateForm("max_advance_booking_days", value)}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel htmlFor="minAdvanceHours">Min advance booking hours</FieldLabel>
+                      <TextInput
+                        id="minAdvanceHours"
+                        type="number"
+                        value={form.min_advance_booking_hours}
+                        disabled={saving}
+                        onChange={(value) => updateForm("min_advance_booking_hours", value)}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel htmlFor="bookingBuffer">Booking buffer minutes</FieldLabel>
+                      <TextInput
+                        id="bookingBuffer"
+                        type="number"
+                        value={form.booking_buffer_minutes}
+                        disabled={saving}
+                        onChange={(value) => updateForm("booking_buffer_minutes", value)}
+                      />
+                    </div>
+                  </div>
+
+                  <label htmlFor="slotInterval" className="block text-sm">
+                    <span className="font-medium text-gray-700">Slot interval (minutes)</span>
+                    <select
+                      id="slotInterval"
+                      value={form.slot_interval_minutes}
+                      disabled={saving}
+                      onChange={(event) => updateForm("slot_interval_minutes", event.target.value)}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm disabled:opacity-60"
+                    >
+                      {SLOT_INTERVAL_OPTIONS.map((minutes) => (
+                        <option key={minutes} value={String(minutes)}>
+                          {minutes} minutes
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={form.allow_guest_checkout}
+                      disabled={saving}
+                      onChange={(event) => updateForm("allow_guest_checkout", event.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    Allow guest checkout
+                  </label>
+
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={form.require_payment_default}
+                      disabled={saving}
+                      onChange={(event) =>
+                        updateForm("require_payment_default", event.target.checked)
+                      }
+                      className="rounded border-gray-300"
+                    />
+                    Require payment by default for new services
+                  </label>
+                </div>
+              </AdminSettingsSectionCard>
+
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm">
+                <h3 className="font-semibold text-gray-800">Read-only</h3>
+                <dl className="mt-3 space-y-2">
+                  <div>
+                    <dt className="text-gray-500">Slug</dt>
+                    <dd className="font-mono text-gray-900">{data.slug}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Status</dt>
+                    <dd className="text-gray-900">{data.status}</dd>
+                  </div>
+                  {data.subscription ? (
+                    <div>
+                      <dt className="text-gray-500">Usage</dt>
+                      <dd className="text-gray-900">
+                        {data.subscription.usage_bookings_count} bookings ·{" "}
+                        {data.subscription.usage_orders_count} orders
+                      </dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </div>
+
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                data-testid="admin-settings-save"
+              >
+                {saving ? "Saving…" : "Save settings"}
+              </button>
+            </form>
+          ) : null}
+
+          {activeTab === "services" ? (
+            <AdminSettingsSectionCard
+              title="Services"
+              subtitle="Manage your bookable services and request offerings from the Services page."
+            >
+              <Link
+                to="/admin/services"
+                className="inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                Open Services
+              </Link>
+            </AdminSettingsSectionCard>
+          ) : null}
+
+          {activeTab === "team" ? (
+            <AdminSettingsSectionCard
+              title="Team"
+              subtitle="Team member management will live here. For now, account access is managed from your business owner login."
+            >
+              <p className="text-sm text-gray-500">
+                Invite and role controls are planned for a later release.
+              </p>
+            </AdminSettingsSectionCard>
+          ) : null}
+
+          {activeTab === "notifications" ? (
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              <AdminSettingsSectionCard
+                title="Notifications"
+                subtitle="Control operational notification emails for this business."
+              >
+                <label className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50/80 p-4 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={form.notification_email_enabled}
+                    disabled={saving}
+                    onChange={(event) =>
+                      updateForm("notification_email_enabled", event.target.checked)
+                    }
+                    className="mt-0.5 rounded border-gray-300"
+                  />
+                  <span>
+                    <span className="block font-semibold text-gray-900">
+                      Notification email enabled
+                    </span>
+                    <span className="mt-1 block text-xs leading-relaxed text-gray-500">
+                      When enabled, this business can receive booking/request notification emails
+                      (if server email delivery is configured).
+                    </span>
+                  </span>
+                </label>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {saving ? "Saving…" : "Save changes"}
+                </button>
+              </AdminSettingsSectionCard>
+            </form>
+          ) : null}
+
+          {activeTab === "email-delivery" ? (
+            <AdminEmailDeliveryExperience
+              enabled={form.auto_review_request_enabled}
+              delayMinutes={form.auto_review_request_delay_minutes}
+              saving={saving}
+              onEnabledChange={(enabled) => updateForm("auto_review_request_enabled", enabled)}
+              onDelayChange={(delayMinutes) =>
+                updateForm("auto_review_request_delay_minutes", delayMinutes)
+              }
+              onSave={handleSubmit}
+            />
+          ) : null}
+
+          {activeTab === "payments" ? (
+            <AdminSettingsSectionCard title="Billing / plan">
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Stripe checkout is optional and may be disabled in this environment. After a
+                  successful payment, your plan is activated by the billing webhook — not from this
+                  page directly.
+                </p>
+
+                {data.subscription ? (
+                  <dl className="grid gap-2 text-sm sm:grid-cols-2">
+                    <div>
+                      <dt className="text-gray-500">Current active plan</dt>
+                      <dd className="font-medium text-gray-900">
+                        {formatPlanLabel(data.subscription.plan)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-gray-500">Subscription status</dt>
+                      <dd className="font-medium text-gray-900">
+                        {formatPlanLabel(data.subscription.status)}
+                      </dd>
+                    </div>
+                    {data.settings.selected_plan_intent ? (
+                      <div className="sm:col-span-2">
+                        <dt className="text-gray-500">Signup plan intent</dt>
+                        <dd className="font-medium text-gray-900">
+                          {formatPlanLabel(data.settings.selected_plan_intent)}
+                        </dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                ) : (
+                  <p className="text-sm text-gray-500">No subscription summary available.</p>
+                )}
+
+                <PlanFeatureComparison currentPlan={data.subscription?.plan} />
+                <ProToolsComingSoonCard currentPlan={data.subscription?.plan} />
+
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  {CHECKOUT_PLANS.map((plan) => (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      disabled={saving || checkoutLoadingPlan !== null}
+                      onClick={() => handleStartCheckout(plan.id)}
+                      className="rounded-lg border border-blue-600 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-60"
+                    >
+                      {checkoutLoadingPlan === plan.id
+                        ? "Starting checkout…"
+                        : `Start ${plan.label} checkout`}
+                    </button>
+                  ))}
+                </div>
+
+                {billingMessage ? (
+                  <p
+                    role="alert"
+                    className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+                  >
+                    {billingMessage}
+                  </p>
+                ) : null}
+              </div>
+            </AdminSettingsSectionCard>
+          ) : null}
+
+          {activeTab === "appearance" ? (
+            <PublicProfileSettingsCard
+              businessId={businessId!}
+              businessName={data.name}
+              currentPlan={data.subscription?.plan}
+            />
+          ) : null}
         </div>
       ) : null}
     </section>

@@ -34,12 +34,15 @@ vi.mock("@/api/marketplaceCoverImageApi", () => ({
   removeMarketplaceCoverImage: vi.fn(),
 }));
 
-function renderSettingsPage(page: ReactElement = <AdminSettingsPage />) {
+function renderSettingsPage(
+  page: ReactElement = <AdminSettingsPage />,
+  route = "/admin/settings?tab=email-delivery",
+) {
   return renderRoute(
     <AdminBusinessProvider businesses={mockOwnerUser.businesses}>
       {page}
     </AdminBusinessProvider>,
-    { route: "/admin/settings", path: "/admin/settings" },
+    { route, path: "/admin/settings" },
   );
 }
 
@@ -66,7 +69,7 @@ describe("admin email delivery settings", () => {
     renderSettingsPage();
 
     const section = await screen.findByTestId("admin-email-delivery-section");
-    expect(within(section).getByText("Email delivery")).toBeInTheDocument();
+    expect(within(section).getByText("Server email delivery")).toBeInTheDocument();
     expect(
       within(section).getByText(/controlled by server environment variables/i),
     ).toBeInTheDocument();
@@ -103,7 +106,7 @@ describe("admin email delivery settings", () => {
 
     await user.click(screen.getByTestId("admin-auto-review-request-enabled"));
     await user.selectOptions(screen.getByTestId("admin-auto-review-request-delay"), "60");
-    await user.click(screen.getByTestId("admin-settings-save"));
+    await user.click(screen.getByTestId("admin-email-delivery-save"));
 
     await waitFor(() => {
       expect(adminApi.updateBusiness).toHaveBeenCalledWith(
@@ -229,23 +232,28 @@ describe("admin email delivery settings", () => {
     });
   });
 
-  it("saves business settings while Email delivery section is rendered", async () => {
+  it("saves business settings while Email delivery section stays outside business form", async () => {
     const user = userEvent.setup();
     vi.mocked(adminApi.updateBusiness).mockResolvedValue({
       ...mockAdminBusiness,
       name: "Updated Business Name",
     });
 
-    renderSettingsPage();
-    await screen.findByTestId("admin-email-delivery-section");
+    renderSettingsPage(<AdminSettingsPage />, "/admin/settings");
+    await screen.findByTestId("admin-business-settings-form");
 
     const settingsForm = screen.getByTestId("admin-business-settings-form");
-    expect(settingsForm).not.toContainElement(screen.getByTestId("admin-email-delivery-section"));
     expect(settingsForm).toContainElement(screen.getByTestId("admin-settings-save"));
     expect(screen.getByTestId("admin-settings-save")).toHaveAttribute("type", "submit");
-    expect(screen.getByTestId("admin-email-test-submit")).toHaveAttribute("type", "button");
+    expect(screen.queryByTestId("admin-email-delivery-section")).not.toBeInTheDocument();
 
-    const nameInput = screen.getByLabelText(/business name/i);
+    await user.click(screen.getByTestId("admin-settings-tab-email-delivery"));
+    expect(await screen.findByTestId("admin-email-delivery-section")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-email-test-submit")).toHaveAttribute("type", "button");
+    expect(screen.queryByTestId("admin-business-settings-form")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("admin-settings-tab-business"));
+    const nameInput = await screen.findByLabelText(/business name/i);
     await user.clear(nameInput);
     await user.type(nameInput, "Updated Business Name");
     await user.click(screen.getByTestId("admin-settings-save"));
@@ -271,7 +279,7 @@ describe("admin email delivery settings", () => {
     renderSettingsPage();
     expect(await screen.findByText(/could not load email status/i)).toBeInTheDocument();
 
-    const saveButton = screen.getByTestId("admin-settings-save");
+    const saveButton = screen.getByTestId("admin-email-delivery-save");
     expect(saveButton).toBeEnabled();
     await user.click(saveButton);
 

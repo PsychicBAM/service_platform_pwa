@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getAdminEmailStatus, sendAdminTestEmail } from "@/api/adminEmailApi";
+import { AdminSettingsSectionCard } from "@/components/admin/AdminSettingsSectionCard";
 import { getApiErrorMessage } from "@/utils/errors";
 
 function statusPillClass(status: string): string {
@@ -71,105 +72,104 @@ export function AdminEmailDeliverySection() {
   const status = statusQuery.data;
 
   return (
-    <div
-      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4"
-      data-testid="admin-email-delivery-section"
-    >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h3 className="text-sm font-medium text-slate-700">Email delivery</h3>
-          <p className="mt-1 text-xs text-slate-500">
-            Email sending is controlled by server environment variables.
+    <div data-testid="admin-email-delivery-section">
+      <AdminSettingsSectionCard
+        title="Server email delivery"
+        subtitle="SMTP / Brevo sending is controlled by server environment variables. Use this section to check status and send a test email."
+        headerRight={
+          status ? (
+            <span
+              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusPillClass(status.status)}`}
+              data-testid="admin-email-status-pill"
+            >
+              {statusLabel(status.status)}
+            </span>
+          ) : null
+        }
+      >
+        {statusQuery.isLoading ? (
+          <p className="text-sm text-gray-500">Loading email status…</p>
+        ) : null}
+
+        {statusQuery.isError ? (
+          <p className="text-sm text-red-700" role="alert">
+            {getApiErrorMessage(statusQuery.error, "Could not load email status.")}
           </p>
-        </div>
+        ) : null}
+
         {status ? (
-          <span
-            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusPillClass(status.status)}`}
-            data-testid="admin-email-status-pill"
+          <dl
+            className="mb-4 grid gap-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4 text-sm sm:grid-cols-2"
+            data-testid="admin-email-status-details"
           >
-            {statusLabel(status.status)}
-          </span>
+            <div>
+              <dt className="text-gray-500">Provider</dt>
+              <dd className="font-medium text-gray-900">
+                {status.provider === "brevo" ? "Brevo SMTP" : status.provider}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">Configured</dt>
+              <dd className="font-medium text-gray-900">{status.configured ? "Yes" : "No"}</dd>
+            </div>
+            {status.host ? (
+              <div>
+                <dt className="text-gray-500">Host</dt>
+                <dd className="break-all font-medium text-gray-900">{status.host}</dd>
+              </div>
+            ) : null}
+            {status.from_email ? (
+              <div>
+                <dt className="text-gray-500">From email</dt>
+                <dd className="break-all font-medium text-gray-900">{status.from_email}</dd>
+              </div>
+            ) : null}
+          </dl>
         ) : null}
-      </div>
 
-      {statusQuery.isLoading ? (
-        <p className="text-sm text-slate-500">Loading email status…</p>
-      ) : null}
-
-      {statusQuery.isError ? (
-        <p className="text-sm text-red-700" role="alert">
-          {getApiErrorMessage(statusQuery.error, "Could not load email status.")}
-        </p>
-      ) : null}
-
-      {status ? (
-        <dl className="grid gap-2 text-sm sm:grid-cols-2" data-testid="admin-email-status-details">
-          <div>
-            <dt className="text-slate-500">Provider</dt>
-            <dd className="font-medium text-slate-900">
-              {status.provider === "brevo" ? "Brevo SMTP" : status.provider}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Configured</dt>
-            <dd className="font-medium text-slate-900">{status.configured ? "Yes" : "No"}</dd>
-          </div>
-          {status.host ? (
-            <div>
-              <dt className="text-slate-500">Host</dt>
-              <dd className="break-all font-medium text-slate-900">{status.host}</dd>
-            </div>
-          ) : null}
-          {status.from_email ? (
-            <div>
-              <dt className="text-slate-500">From email</dt>
-              <dd className="break-all font-medium text-slate-900">{status.from_email}</dd>
-            </div>
-          ) : null}
-        </dl>
-      ) : null}
-
-      <div className="space-y-3 border-t border-slate-100 pt-3">
-        <label htmlFor="admin-email-test-to" className="block text-sm">
-          <span className="font-medium text-slate-700">Send test email</span>
-          <input
-            id="admin-email-test-to"
-            type="text"
-            inputMode="email"
-            autoComplete="email"
-            value={toEmail}
+        <div className="space-y-3 border-t border-gray-100 pt-4">
+          <label htmlFor="admin-email-test-to" className="block text-sm">
+            <span className="font-semibold text-gray-800">Send test email</span>
+            <input
+              id="admin-email-test-to"
+              type="text"
+              inputMode="email"
+              autoComplete="email"
+              value={toEmail}
+              disabled={testMutation.isPending}
+              onChange={(event) => setToEmail(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  handleSubmit();
+                }
+              }}
+              placeholder="you@example.com"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm disabled:opacity-60"
+              data-testid="admin-email-test-input"
+            />
+          </label>
+          <button
+            type="button"
             disabled={testMutation.isPending}
-            onChange={(event) => setToEmail(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                event.stopPropagation();
-                handleSubmit();
-              }
-            }}
-            placeholder="you@example.com"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
-            data-testid="admin-email-test-input"
-          />        </label>
-        <button
-          type="button"
-          disabled={testMutation.isPending}
-          onClick={handleSubmit}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 sm:w-auto"
-          data-testid="admin-email-test-submit"
-        >
-          {testMutation.isPending ? "Sending…" : "Send test email"}
-        </button>
-        {feedback ? (
-          <p
-            className={`text-sm ${feedback.kind === "ok" ? "text-emerald-700" : "text-red-700"}`}
-            role="status"
-            data-testid="admin-email-test-feedback"
+            onClick={handleSubmit}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
+            data-testid="admin-email-test-submit"
           >
-            {feedback.text}
-          </p>
-        ) : null}
-      </div>
+            {testMutation.isPending ? "Sending…" : "Send test email"}
+          </button>
+          {feedback ? (
+            <p
+              className={`text-sm ${feedback.kind === "ok" ? "text-emerald-700" : "text-red-700"}`}
+              role="status"
+              data-testid="admin-email-test-feedback"
+            >
+              {feedback.text}
+            </p>
+          ) : null}
+        </div>
+      </AdminSettingsSectionCard>
     </div>
   );
 }

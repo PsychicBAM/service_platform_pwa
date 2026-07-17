@@ -31,12 +31,15 @@ vi.mock("@/api/miniSiteApi", () => ({
   updateMiniSiteConfig: vi.fn(),
 }));
 
-function renderSettingsPage(page: ReactElement = <AdminSettingsPage />) {
+function renderSettingsPage(
+  page: ReactElement = <AdminSettingsPage />,
+  route = "/admin/settings?tab=payments",
+) {
   return renderRoute(
     <AdminBusinessProvider businesses={mockOwnerUser.businesses}>
       {page}
     </AdminBusinessProvider>,
-    { route: "/admin/settings", path: "/admin/settings" },
+    { route, path: "/admin/settings" },
   );
 }
 
@@ -75,6 +78,7 @@ describe("admin billing checkout", () => {
   });
 
   it("A. admin settings renders billing/plan section", async () => {
+    const user = userEvent.setup();
     renderSettingsPage();
 
     expect(await screen.findByRole("heading", { name: "Settings" })).toBeInTheDocument();
@@ -87,13 +91,15 @@ describe("admin billing checkout", () => {
     expect(screen.getByTestId("plan-feature-card-free")).toHaveAttribute("data-current", "true");
     expect(screen.getByTestId("pro-tools-coming-soon-card")).toBeInTheDocument();
     expect(screen.getByText(/Pro tools are being prepared/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Public profile" })).toBeInTheDocument();
-    expect(screen.getByTestId("public-profile-settings-card")).toBeInTheDocument();
-    expect(await screen.findByTestId("public-profile-save-button")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Start Starter checkout" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start Business checkout" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start Pro checkout" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Free checkout/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("admin-settings-tab-appearance"));
+    expect(screen.getByRole("heading", { name: "Public profile" })).toBeInTheDocument();
+    expect(screen.getByTestId("public-profile-settings-card")).toBeInTheDocument();
+    expect(await screen.findByTestId("public-profile-save-button")).toBeEnabled();
   });
 
   it("B. paid plan checkout button calls API", async () => {

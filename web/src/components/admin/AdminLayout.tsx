@@ -19,8 +19,8 @@ const NAV_ITEMS: Array<{ to: string; label: string; end?: boolean }> = [
 function navClass(isActive: boolean): string {
   return `whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium ${
     isActive
-      ? "bg-brand-600 text-white"
-      : "text-slate-700 hover:bg-slate-100"
+      ? "bg-blue-50 text-blue-700"
+      : "text-gray-700 hover:bg-gray-50"
   }`;
 }
 
@@ -65,9 +65,9 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-5xl flex-col">
+    <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-3 px-4 py-3 xl:px-8">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-slate-500">Admin</p>
             <h1 className="truncate text-lg font-semibold text-slate-900">
@@ -182,27 +182,40 @@ export function AdminLayout() {
           )
         : null}
 
-      <div className="flex flex-1 flex-col lg:flex-row">
-        <aside
-          className="hidden w-48 shrink-0 border-r border-slate-200 bg-slate-50 p-4 lg:block"
-          data-testid="admin-desktop-sidebar"
-        >
-          <nav className="flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) => navClass(isActive)}
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-        </aside>
-        <main className="flex-1 px-4 py-6 md:px-6 md:py-8">
-          <Outlet />
-        </main>
+      <div className="flex w-full flex-1 flex-col">
+        {/* Top zone: sidebar + page content side-by-side only */}
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col bg-gray-50/40 lg:flex-row">
+          <aside
+            className="hidden w-60 shrink-0 border-r border-gray-200 bg-white px-3 py-5 lg:block"
+            data-testid="admin-desktop-sidebar"
+          >
+            <p className="mb-4 px-3 text-sm font-bold tracking-tight text-blue-600">
+              ServicePlatform
+            </p>
+            <nav className="flex flex-col gap-0.5">
+              {NAV_ITEMS.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => navClass(isActive)}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+          </aside>
+          <main className="min-w-0 flex-1 px-4 py-6 md:px-6 md:py-8 xl:px-8 xl:py-8 2xl:px-10">
+            <Outlet />
+          </main>
+        </div>
+
+        {/*
+          Full-shell-width slot BELOW the entire top zone (sidebar + main).
+          Email Delivery showcase portals here so it starts at the page left edge,
+          not trapped to the right of the sidebar.
+        */}
+        <div id="admin-layout-shell-breakout" data-testid="admin-layout-shell-breakout" />
       </div>
     </div>
   );
