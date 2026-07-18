@@ -164,6 +164,7 @@ describe("review request links", () => {
   });
 
   it("admin completed booking shows Copy review link", async () => {
+    const user = userEvent.setup();
     vi.mocked(adminApi.listAdminBookings).mockResolvedValue({
       data: [mockCompletedAdminBooking],
       meta: { page: 1, limit: 20, total: 1 },
@@ -171,6 +172,8 @@ describe("review request links", () => {
 
     renderAdminPage(<AdminBookingsPage />, "/admin/bookings", "/admin/bookings");
 
+    await user.click(await screen.findByTestId("admin-booking-actions-menu"));
+    expect(await screen.findByTestId("admin-booking-actions-menu-panel")).toBeInTheDocument();
     expect(await screen.findByTestId("copy-review-link-button")).toBeInTheDocument();
   });
 
@@ -188,6 +191,8 @@ describe("review request links", () => {
 
     renderAdminPage(<AdminBookingsPage />, "/admin/bookings", "/admin/bookings");
 
+    await user.click(await screen.findByTestId("admin-booking-actions-menu"));
+    expect(await screen.findByTestId("admin-booking-actions-menu-panel")).toBeInTheDocument();
     await user.click(await screen.findByTestId("copy-review-link-button"));
 
     await waitFor(() => {

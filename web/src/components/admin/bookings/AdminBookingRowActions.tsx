@@ -59,6 +59,7 @@ export function AdminBookingRowActions({
   const menuRef = useRef<HTMLDivElement>(null);
   const [fallbackReviewUrl, setFallbackReviewUrl] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
+  const [sendSuccessMessage, setSendSuccessMessage] = useState<string | null>(null);
 
   const showConfirm = canConfirm(booking.status);
   const showComplete = canComplete(booking.status);
@@ -66,6 +67,19 @@ export function AdminBookingRowActions({
 
   const canCopyReviewLink =
     Boolean(businessId) && booking.can_review && !booking.has_review;
+
+  const sendDisabledReason =
+    Boolean(businessId) &&
+    booking.can_review &&
+    !booking.has_review &&
+    !booking.review_request_email_sent_at
+      ? !booking.follow_up_email_consent
+        ? "Client did not agree to follow-up emails."
+        : !booking.client_email?.trim()
+          ? "No client email available."
+          : null
+      : null;
+
   const canSendReviewRequest =
     Boolean(businessId) &&
     booking.can_review &&
@@ -74,7 +88,8 @@ export function AdminBookingRowActions({
     booking.follow_up_email_consent &&
     Boolean(booking.client_email?.trim());
 
-  const showMenu = showCancel || canCopyReviewLink || canSendReviewRequest;
+  const showMenu =
+    showCancel || canCopyReviewLink || canSendReviewRequest || Boolean(sendDisabledReason);
 
   useLayoutEffect(() => {
     if (!menuOpen) {
@@ -114,7 +129,7 @@ export function AdminBookingRowActions({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [menuOpen, canCopyReviewLink, canSendReviewRequest, showCancel]);
+  }, [menuOpen, canCopyReviewLink, canSendReviewRequest, showCancel, sendDisabledReason]);
 
   const copyLinkMutation = useMutation({
     mutationFn: () =>
@@ -144,11 +159,14 @@ export function AdminBookingRowActions({
         booking_id: booking.id,
       }),
     onSuccess: async (result) => {
-      onReviewSent(result.message || "Review request sent.");
+      const message = result.message || "Review request sent.";
+      setSendSuccessMessage(message);
+      onReviewSent(message);
       await queryClient.invalidateQueries({ queryKey: ["admin-bookings", businessId] });
       onCloseMenu();
     },
     onError: (error: unknown) => {
+      setSendSuccessMessage(null);
       onReviewError(getAdminBookingErrorMessage(error, "Could not send review request."));
     },
   });
@@ -199,19 +217,32 @@ export function AdminBookingRowActions({
               className={`${actionBtn} w-9 border border-gray-200 bg-white px-0 text-gray-600 hover:bg-gray-50`}
               aria-label="More actions"
               aria-expanded={menuOpen}
-              onClick={onToggleMenu}
+              data-testid="admin-booking-actions-menu"
+              onClick={() => {
+                setSendSuccessMessage(null);
+                onToggleMenu();
+              }}
             >
               ▾
             </button>
-            {menuOpen && menuPosition ? (
+            {menuOpen ? (
               <div
                 ref={menuRef}
-                className="fixed z-40 w-52 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg"
-                style={{
-                  top: menuPosition.top,
-                  bottom: menuPosition.bottom,
-                  right: menuPosition.right,
-                }}
+                className={
+                  menuPosition
+                    ? "fixed z-40 w-52 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg"
+                    : "absolute right-0 top-full z-40 mt-1 w-52 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg"
+                }
+                style={
+                  menuPosition
+                    ? {
+                        top: menuPosition.top,
+                        bottom: menuPosition.bottom,
+                        right: menuPosition.right,
+                      }
+                    : undefined
+                }
+                data-testid="admin-booking-actions-menu-panel"
               >
                 {canCopyReviewLink ? (
                   <button
@@ -231,12 +262,24 @@ export function AdminBookingRowActions({
                     className={`${menuItemBtn} text-gray-700`}
                     data-testid="send-review-request-button"
                     disabled={sendReviewMutation.isPending}
-                    onClick={() => sendReviewMutation.mutate()}
+                    onClick={() => {
+                      setSendSuccessMessage(null);
+                      sendReviewMutation.mutate();
+                    }}
                   >
                     <span data-testid="admin-booking-send-review-request">
                       {sendReviewMutation.isPending ? "Sending…" : "Send review request"}
                     </span>
                   </button>
+                ) : null}
+
+                {sendDisabledReason ? (
+                  <p
+                    className="px-3 py-2 text-left text-xs leading-snug text-slate-500"
+                    data-testid="send-review-request-disabled-note"
+                  >
+                    {sendDisabledReason}
+                  </p>
                 ) : null}
 
                 {showCancel ? (
@@ -276,6 +319,15 @@ export function AdminBookingRowActions({
           <span className="font-normal text-emerald-600/80">
             · {formatDateTimeLabel(reviewSentAt)}
           </span>
+        </p>
+      ) : null}
+
+      {sendSuccessMessage ? (
+        <p
+          className="text-[11px] font-medium text-emerald-700"
+          data-testid="send-review-request-success"
+        >
+          {sendSuccessMessage}
         </p>
       ) : null}
 
