@@ -92,9 +92,11 @@ class BusinessService:
         limit: int = 20,
     ) -> PublicBusinessDirectoryResponse:
         keywords = category_keywords(category)
+        category_id = category if category and category != "all" else None
         rows = await self.repo.list_public_directory(
             q=q,
             location=location,
+            category=category_id,
             category_keywords=keywords or None,
             rating_min=rating_min,
             bookable=bookable,
@@ -108,6 +110,7 @@ class BusinessService:
         total = await self.repo.count_public_directory(
             q=q,
             location=location,
+            category=category_id,
             category_keywords=keywords or None,
             rating_min=rating_min,
             bookable=bookable,

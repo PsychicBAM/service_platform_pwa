@@ -172,6 +172,7 @@ export interface PublicService {
   id: string;
   name: string;
   description: string | null;
+  category?: string | null;
   type: ServiceType;
   duration_minutes: number | null;
   price_cents: number | null;
@@ -667,6 +668,7 @@ export interface AdminServiceRead {
   business_id: string;
   name: string;
   description: string | null;
+  category?: string | null;
   type: ServiceType;
   duration_minutes: number | null;
   price_cents: number | null;
@@ -714,6 +716,7 @@ export interface ServiceSlotCapacityOverrideCreatePayload {
 export interface ServiceCreatePayload {
   name: string;
   description?: string | null;
+  category?: string | null;
   type: ServiceType;
   duration_minutes?: number | null;
   price_cents?: number | null;
@@ -732,6 +735,7 @@ export interface ServiceCreatePayload {
 export interface ServiceUpdatePayload {
   name?: string;
   description?: string | null;
+  category?: string | null;
   duration_minutes?: number | null;
   price_cents?: number | null;
   currency?: string;

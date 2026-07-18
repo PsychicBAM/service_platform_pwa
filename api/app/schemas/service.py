@@ -10,11 +10,24 @@ from app.schemas.service_image import ServiceImageMedia
 from app.utils.service_image import read_service_image
 
 
+ALLOWED_SERVICE_CATEGORIES = {
+    "health-wellness",
+    "home-services",
+    "tutors-classes",
+    "coaching-courses",
+    "beauty-salon",
+    "events-photography",
+    "design-creative",
+    "automotive",
+}
+
+
 class ServiceRead(BaseModel):
     id: uuid.UUID
     business_id: uuid.UUID
     name: str
     description: str | None
+    category: str | None = None
     type: ServiceType
     duration_minutes: int | None
     price_cents: int | None
@@ -44,6 +57,7 @@ class ServiceRead(BaseModel):
             business_id=service.business_id,
             name=service.name,
             description=service.description,
+            category=service.category,
             type=service.type,
             duration_minutes=service.duration_minutes,
             price_cents=price_cents,
@@ -67,6 +81,7 @@ class PublicServiceRead(BaseModel):
     id: uuid.UUID
     name: str
     description: str | None
+    category: str | None = None
     type: ServiceType
     duration_minutes: int | None = None
     price_cents: int | None
@@ -92,6 +107,7 @@ class PublicServiceRead(BaseModel):
             id=service.id,
             name=service.name,
             description=service.description,
+            category=service.category,
             type=service.type,
             duration_minutes=duration,
             price_cents=price_cents,
@@ -107,6 +123,7 @@ class PublicServiceRead(BaseModel):
 class ServiceCreate(BaseModel):
     name: str
     description: str | None = None
+    category: str | None = None
     type: ServiceType
     duration_minutes: int | None = None
     price_cents: int | None = None
@@ -150,6 +167,16 @@ class ServiceCreate(BaseModel):
         if not value.strip():
             raise ValueError("name must not be empty")
         return value.strip()
+
+    @field_validator("category")
+    @classmethod
+    def category_allowed(cls, value: str | None) -> str | None:
+        if value is None or not value.strip():
+            return None
+        normalized = value.strip().lower()
+        if normalized not in ALLOWED_SERVICE_CATEGORIES:
+            raise ValueError("category is not a supported marketplace category")
+        return normalized
 
     @field_validator("currency")
     @classmethod
@@ -196,6 +223,7 @@ class ServiceCreate(BaseModel):
 class ServiceUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
+    category: str | None = None
     duration_minutes: int | None = None
     price_cents: int | None = None
     currency: str | None = None
@@ -208,6 +236,16 @@ class ServiceUpdate(BaseModel):
     booking_window_days: int | None = None
     waitlist_enabled: bool | None = None
     metadata: dict[str, Any] | None = None
+
+    @field_validator("category")
+    @classmethod
+    def category_allowed(cls, value: str | None) -> str | None:
+        if value is None or not str(value).strip():
+            return None
+        normalized = str(value).strip().lower()
+        if normalized not in ALLOWED_SERVICE_CATEGORIES:
+            raise ValueError("category is not a supported marketplace category")
+        return normalized
 
     @field_validator("booking_min_notice_minutes")
     @classmethod

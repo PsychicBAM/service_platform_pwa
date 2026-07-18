@@ -135,6 +135,7 @@ class ServiceService:
             business_id=business.id,
             name=payload.name,
             description=payload.description,
+            category=payload.category,
             type=payload.type,
             duration_minutes=duration,
             price_cents=payload.price_cents,

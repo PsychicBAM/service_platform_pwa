@@ -188,6 +188,7 @@ class BusinessRepository:
         *,
         q: str | None = None,
         location: str | None = None,
+        category: str | None = None,
         category_keywords: list[str] | None = None,
         rating_min: float | None = None,
         bookable: bool | None = None,
@@ -226,21 +227,28 @@ class BusinessRepository:
                     Business.address.ilike(term),
                 )
             )
-        if category_keywords:
-            keyword_clauses = []
-            for keyword in category_keywords:
-                term = f"%{keyword}%"
-                service_match = select(Service.business_id).where(
+        if category or category_keywords:
+            category_clauses = []
+            if category:
+                explicit_match = select(Service.business_id).where(
                     Service.is_active.is_(True),
-                    or_(
-                        Service.name.ilike(term),
-                        Service.description.ilike(term),
-                    ),
+                    Service.category == category,
                 )
-                keyword_clauses.append(Business.name.ilike(term))
-                keyword_clauses.append(Business.description.ilike(term))
-                keyword_clauses.append(Business.id.in_(service_match))
-            stmt = stmt.where(or_(*keyword_clauses))
+                category_clauses.append(Business.id.in_(explicit_match))
+            if category_keywords:
+                for keyword in category_keywords:
+                    term = f"%{keyword}%"
+                    service_match = select(Service.business_id).where(
+                        Service.is_active.is_(True),
+                        or_(
+                            Service.name.ilike(term),
+                            Service.description.ilike(term),
+                        ),
+                    )
+                    category_clauses.append(Business.name.ilike(term))
+                    category_clauses.append(Business.description.ilike(term))
+                    category_clauses.append(Business.id.in_(service_match))
+            stmt = stmt.where(or_(*category_clauses))
         if rating_min is not None and review_subq is not None:
             stmt = stmt.where(review_subq.c.avg_rating >= rating_min)
         if bookable:
@@ -331,6 +339,7 @@ class BusinessRepository:
         *,
         q: str | None = None,
         location: str | None = None,
+        category: str | None = None,
         category_keywords: list[str] | None = None,
         rating_min: float | None = None,
         bookable: bool | None = None,
@@ -363,6 +372,7 @@ class BusinessRepository:
             stmt,
             q=q,
             location=location,
+            category=category,
             category_keywords=category_keywords,
             rating_min=rating_min,
             bookable=bookable,
@@ -391,6 +401,7 @@ class BusinessRepository:
         *,
         q: str | None = None,
         location: str | None = None,
+        category: str | None = None,
         category_keywords: list[str] | None = None,
         rating_min: float | None = None,
         bookable: bool | None = None,
@@ -419,6 +430,7 @@ class BusinessRepository:
             stmt,
             q=q,
             location=location,
+            category=category,
             category_keywords=category_keywords,
             rating_min=rating_min,
             bookable=bookable,

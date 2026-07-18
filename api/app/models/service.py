@@ -17,6 +17,7 @@ class Service(Base, TimestampMixin):
         Index("ix_services_business_id_type", "business_id", "type"),
         Index("ix_services_business_id_is_active", "business_id", "is_active"),
         Index("ix_services_business_id_sort_order", "business_id", "sort_order"),
+        Index("ix_services_business_id_category", "business_id", "category"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -31,6 +32,7 @@ class Service(Base, TimestampMixin):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    category: Mapped[str | None] = mapped_column(String(64), nullable=True)
     type: Mapped[ServiceType] = mapped_column(
         Enum(ServiceType, name="service_type", native_enum=True),
         nullable=False,
