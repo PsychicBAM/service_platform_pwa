@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MyOrderDetailPage } from "@/pages/MyOrderDetailPage";
 import { AdminOrderDetailPanel } from "@/components/admin/AdminOrderDetailPanel";
 import { useAuth } from "@/hooks/useAuth";
@@ -137,6 +138,7 @@ describe("order message notifications", () => {
         meta: listMeta,
       });
 
+    const user = userEvent.setup();
     const { queryClient } = renderRoute(
       <AdminOrderDetailPanel
         businessId={BUSINESS_ID}
@@ -148,6 +150,7 @@ describe("order message notifications", () => {
       { route: "/", path: "/" },
     );
 
+    await user.click(await screen.findByRole("button", { name: /messages/i }));
     await screen.findByText(adminMessage.body);
     expect(screen.queryByText("New message from client")).not.toBeInTheDocument();
 

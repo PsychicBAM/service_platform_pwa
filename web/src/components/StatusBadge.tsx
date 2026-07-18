@@ -36,16 +36,37 @@ function statusClasses(status: string, kind: StatusBadgeProps["kind"]): string {
     }
   }
 
+  if (kind === "order") {
+    if (status === "submitted" || status === "pending_payment") {
+      return "bg-sky-100 text-sky-800 ring-1 ring-inset ring-sky-200/80";
+    }
+    if (status === "accepted") {
+      return "bg-teal-100 text-teal-800 ring-1 ring-inset ring-teal-200/80";
+    }
+    if (status === "in_progress") {
+      return "bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-200/80";
+    }
+    if (status === "completed") {
+      return "bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-200/80";
+    }
+    if (status === "cancelled" || status === "declined") {
+      return "bg-red-100 text-red-800 ring-1 ring-inset ring-red-200/80";
+    }
+  }
+
   if (status === "cancelled" || status === "declined") {
     return "bg-red-100 text-red-800";
   }
-  if (status === "confirmed") {
+  if (status === "confirmed" || status === "accepted") {
     return "bg-teal-100 text-teal-800";
   }
   if (status === "completed" || status === "resolved") {
     return "bg-emerald-100 text-emerald-800";
   }
-  if (status === "pending" || status === "submitted" || status === "pending_payment" || status === "waiting") {
+  if (status === "submitted") {
+    return "bg-sky-100 text-sky-800";
+  }
+  if (status === "pending" || status === "pending_payment" || status === "waiting") {
     return "bg-amber-100 text-amber-800";
   }
   if (status === "contacted") {
@@ -57,8 +78,8 @@ function statusClasses(status: string, kind: StatusBadgeProps["kind"]): string {
   if (status === "no_show") {
     return "bg-stone-100 text-stone-600";
   }
-  if (status === "in_progress" || status === "accepted") {
-    return kind === "order" ? "bg-sky-100 text-sky-800" : "bg-brand-100 text-brand-800";
+  if (status === "in_progress") {
+    return "bg-amber-100 text-amber-800";
   }
   return "bg-slate-100 text-slate-700";
 }

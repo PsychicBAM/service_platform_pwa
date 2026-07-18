@@ -218,6 +218,7 @@ describe("review request links", () => {
   });
 
   it("admin completed order shows Copy review link", async () => {
+    const user = userEvent.setup();
     vi.mocked(adminApi.listAdminOrders).mockResolvedValue({
       data: [mockCompletedAdminOrder],
       meta: { page: 1, limit: 20, total: 1 },
@@ -225,6 +226,8 @@ describe("review request links", () => {
 
     renderAdminPage(<AdminOrdersPage />, "/admin/orders", "/admin/orders");
 
+    await user.click(await screen.findByTestId("admin-order-actions-menu"));
+    expect(await screen.findByTestId("admin-order-actions-menu-panel")).toBeInTheDocument();
     expect(await screen.findByTestId("copy-review-link-button")).toBeInTheDocument();
   });
 });

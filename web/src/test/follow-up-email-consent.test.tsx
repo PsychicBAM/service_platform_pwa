@@ -433,6 +433,8 @@ describe("follow-up email consent and review request email", () => {
       { route: "/admin/orders", path: "/admin/orders" },
     );
 
+    await user.click(await screen.findByTestId("admin-order-actions-menu"));
+    expect(await screen.findByTestId("admin-order-actions-menu-panel")).toBeInTheDocument();
     await user.click(await screen.findByTestId("send-review-request-button"));
     await waitFor(() => {
       expect(adminApi.sendReviewRequestEmail).toHaveBeenCalledWith(BUSINESS_ID, {
@@ -445,6 +447,7 @@ describe("follow-up email consent and review request email", () => {
   });
 
   it("admin completed order without consent shows note", async () => {
+    const user = userEvent.setup();
     vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockOwnerUser));
     vi.mocked(adminApi.listAdminOrders).mockResolvedValue({
       data: [
@@ -474,6 +477,8 @@ describe("follow-up email consent and review request email", () => {
       { route: "/admin/orders", path: "/admin/orders" },
     );
 
+    await user.click(await screen.findByTestId("admin-order-actions-menu"));
+    expect(await screen.findByTestId("admin-order-actions-menu-panel")).toBeInTheDocument();
     expect(await screen.findByTestId("send-review-request-disabled-note")).toHaveTextContent(
       "Client did not agree to follow-up emails.",
     );
