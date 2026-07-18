@@ -31,6 +31,10 @@ function renderAdminLegalConsentsPage(page: ReactElement = <AdminLegalConsentsPa
   );
 }
 
+async function openConsentRecordsTab(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByTestId("admin-legal-consent-tab-records"));
+}
+
 describe("AdminLegalConsentsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -42,9 +46,10 @@ describe("AdminLegalConsentsPage", () => {
 
     renderAdminLegalConsentsPage();
 
-    expect(
-      await screen.findByRole("heading", { name: "Legal consent records" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Legal consent" })).toBeInTheDocument();
+    expect(screen.getByTestId("admin-legal-consent-page")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-legal-consent-tab-forms")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-legal-consent-tab-records")).toBeInTheDocument();
     expect(
       screen.getByText(/audit summary only\. legal text is still pending final review\./i),
     ).toBeInTheDocument();
@@ -59,27 +64,37 @@ describe("AdminLegalConsentsPage", () => {
   });
 
   it("C. shows empty state", async () => {
+    const user = userEvent.setup();
     vi.mocked(adminApi.getBusinessLegalConsents).mockResolvedValue({
       data: [],
       meta: { page: 1, limit: 25, total: 0 },
     });
 
     renderAdminLegalConsentsPage();
+    await screen.findByTestId("admin-legal-consent-tab-records");
+    await openConsentRecordsTab(user);
 
     expect(await screen.findByText("No consent records match this filter")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-consent-records-table")).toBeInTheDocument();
   });
 
   it("D. table renders data-minimized fields", async () => {
+    const user = userEvent.setup();
     vi.mocked(adminApi.getBusinessLegalConsents).mockResolvedValue(mockLegalConsentRecords);
 
     renderAdminLegalConsentsPage();
+    await screen.findByTestId("admin-legal-consent-tab-records");
+    await openConsentRecordsTab(user);
 
     expect(await screen.findByText("booking-id-001")).toBeInTheDocument();
     expect(screen.getAllByText("Public booking").length).toBeGreaterThan(0);
     expect(screen.getAllByText("draft-placeholder-v1").length).toBeGreaterThan(0);
+    expect(screen.getByTestId("admin-consent-records-table")).toBeInTheDocument();
+    expect(screen.getAllByTestId("admin-consent-record-row").length).toBeGreaterThan(0);
   });
 
   it("E. table does not render sensitive fields from mocked response", async () => {
+    const user = userEvent.setup();
     vi.mocked(adminApi.getBusinessLegalConsents).mockResolvedValue({
       data: [
         {
@@ -97,6 +112,8 @@ describe("AdminLegalConsentsPage", () => {
     });
 
     renderAdminLegalConsentsPage();
+    await screen.findByTestId("admin-legal-consent-tab-records");
+    await openConsentRecordsTab(user);
 
     await screen.findByText("draft-placeholder-v1");
     expect(screen.queryByText("hidden-hash")).not.toBeInTheDocument();
@@ -109,6 +126,8 @@ describe("AdminLegalConsentsPage", () => {
     vi.mocked(adminApi.getBusinessLegalConsents).mockResolvedValue(mockLegalConsentRecords);
 
     renderAdminLegalConsentsPage();
+    await screen.findByTestId("admin-legal-consent-tab-records");
+    await openConsentRecordsTab(user);
     await screen.findByText("booking-id-001");
 
     await user.selectOptions(screen.getByLabelText("Source"), "public_booking");
@@ -128,6 +147,8 @@ describe("AdminLegalConsentsPage", () => {
     vi.mocked(adminApi.getBusinessLegalConsents).mockResolvedValue(mockLegalConsentRecords);
 
     renderAdminLegalConsentsPage();
+    await screen.findByTestId("admin-legal-consent-tab-records");
+    await openConsentRecordsTab(user);
     await screen.findByText("booking-id-001");
 
     await user.selectOptions(screen.getByLabelText("Entity type"), "order");
@@ -150,6 +171,8 @@ describe("AdminLegalConsentsPage", () => {
     });
 
     renderAdminLegalConsentsPage();
+    await screen.findByTestId("admin-legal-consent-tab-records");
+    await openConsentRecordsTab(user);
     await screen.findByText("booking-id-001");
 
     await user.click(screen.getByRole("button", { name: "Next" }));
