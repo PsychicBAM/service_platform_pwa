@@ -79,6 +79,8 @@ describe("AdminReviewsPage", () => {
     const user = userEvent.setup();
     renderAdminPage(<AdminReviewsPage />);
 
+    await user.click(await screen.findByTestId("admin-review-actions-menu"));
+    expect(await screen.findByTestId("admin-review-actions-menu-panel")).toBeInTheDocument();
     await user.click(await screen.findByTestId("admin-review-hide-review-1"));
 
     await waitFor(() => {

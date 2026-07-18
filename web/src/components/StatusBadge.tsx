@@ -11,7 +11,7 @@ function statusClasses(status: string, kind: StatusBadgeProps["kind"]): string {
       return "bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-200/70";
     }
     if (status === "hidden") {
-      return "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200/70";
+      return "bg-rose-100 text-rose-800 ring-1 ring-inset ring-rose-200/70";
     }
   }
 
