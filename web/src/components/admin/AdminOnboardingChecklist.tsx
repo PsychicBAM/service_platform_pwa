@@ -40,7 +40,7 @@ function ChecklistAction({
       <span className="flex shrink-0 items-center gap-2">
         <button
           type="button"
-          className="text-xs font-semibold text-brand-700 hover:text-brand-800"
+          className="text-xs font-semibold text-emerald-700 hover:text-emerald-800"
           data-testid={`admin-onboarding-action-${item.id}`}
           onClick={async () => {
             const copied = await copyTextToClipboard(publicUrl);
@@ -52,7 +52,7 @@ function ChecklistAction({
         {copyStatus === "failed" && item.href ? (
           <Link
             to={item.href}
-            className="text-xs font-semibold text-slate-600 underline hover:text-brand-700"
+            className="text-xs font-semibold text-gray-600 underline hover:text-emerald-700"
             data-testid="admin-onboarding-action-share-fallback"
           >
             Open
@@ -69,7 +69,7 @@ function ChecklistAction({
   return (
     <Link
       to={item.href}
-      className="shrink-0 text-xs font-semibold text-brand-700 hover:text-brand-800"
+      className="shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-800"
       data-testid={`admin-onboarding-action-${item.id}`}
     >
       {item.complete ? "Open" : "Start"}
@@ -81,7 +81,7 @@ function DismissButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-white/70 hover:text-gray-600"
       aria-label="Hide onboarding checklist"
       data-testid="admin-onboarding-hide"
       onClick={onClick}
@@ -102,6 +102,7 @@ export function AdminOnboardingChecklist({
   const items = buildAdminOnboardingItems({ business, services, schedule });
   const completedCount = items.filter((item) => item.complete).length;
   const isComplete = completedCount === items.length && items.length > 0;
+  const progressPct = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
   const publicUrl =
     business.slug?.trim() && typeof window !== "undefined"
       ? `${window.location.origin}/b/${business.slug.trim()}`
@@ -138,48 +139,53 @@ export function AdminOnboardingChecklist({
 
   return (
     <section
-      className="rounded-xl border border-slate-200/70 bg-slate-50/40 p-3"
+      className="rounded-xl border border-slate-200/70 bg-slate-50/40 p-4"
       data-testid="admin-onboarding-checklist"
     >
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-slate-800">
-              Complete your business profile
-            </h3>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-gray-900">Complete your business profile</h3>
             <p
-              className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200/80"
+              className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-semibold text-gray-600 ring-1 ring-gray-200/80"
               data-testid="admin-onboarding-progress"
             >
               {completedCount} of {items.length} completed
             </p>
           </div>
-          <p className="mt-0.5 truncate text-xs text-slate-500">
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/80 ring-1 ring-gray-200/70">
+            <div
+              className="h-full rounded-full bg-emerald-500 transition-[width]"
+              style={{ width: `${progressPct}%` }}
+              aria-hidden="true"
+            />
+          </div>
+          <p className="mt-1.5 text-xs text-gray-500">
             Finish setup so customers can find you and book with confidence.
           </p>
         </div>
         <DismissButton onClick={handleDismiss} />
       </div>
 
-      <ul className="mt-2 divide-y divide-slate-200/60">
+      <ul className="mt-3 divide-y divide-gray-200/60">
         {items.map((item) => (
           <li
             key={item.id}
-            className="flex items-center gap-2 py-1.5"
+            className="flex items-center gap-2 py-2"
             data-testid={`admin-onboarding-item-${item.id}`}
             data-complete={item.complete ? "true" : "false"}
           >
             <span
-              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
                 item.complete
                   ? "bg-emerald-100 text-emerald-700"
-                  : "bg-white text-slate-400 ring-1 ring-slate-200"
+                  : "bg-white text-gray-400 ring-1 ring-gray-200"
               }`}
               aria-hidden="true"
             >
               {item.complete ? "✓" : "○"}
             </span>
-            <p className="min-w-0 flex-1 truncate text-sm text-slate-700">{item.label}</p>
+            <p className="min-w-0 flex-1 truncate text-sm text-gray-700">{item.label}</p>
             <ChecklistAction item={item} publicUrl={publicUrl} />
           </li>
         ))}

@@ -102,15 +102,15 @@ export function buildAdminOnboardingItems(input: {
   return [
     {
       id: "services",
-      label: "Add services",
+      label: "Add service",
       description: "Publish at least one active service customers can book or request.",
       complete: hasServices,
       href: `/admin/services?focus=${ADMIN_ONBOARDING_FOCUS.addService}`,
     },
     {
       id: "location",
-      label: "Add business location",
-      description: "Help customers find you in the marketplace.",
+      label: "Add business details",
+      description: "Help customers find you with location and profile details.",
       complete: hasLocation,
       href: `/admin/settings?focus=${ADMIN_ONBOARDING_FOCUS.businessLocation}`,
     },

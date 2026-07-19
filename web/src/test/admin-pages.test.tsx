@@ -159,7 +159,7 @@ describe("admin pages smoke", () => {
     expect(screen.getByTestId("current-plan-badge")).toHaveTextContent("Free");
     expect(screen.getByRole("link", { name: "View plan details" })).toHaveAttribute(
       "href",
-      "/admin/settings",
+      "/admin/settings?tab=payments",
     );
     expect(screen.getByTestId("public-business-url")).toHaveTextContent(
       `/b/${mockAdminBusiness.slug}`,

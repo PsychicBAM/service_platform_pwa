@@ -63,7 +63,7 @@ describe("CurrentPlanCard", () => {
 
     expect(screen.getByRole("link", { name: "View plan details" })).toHaveAttribute(
       "href",
-      "/admin/settings",
+      "/admin/settings?tab=payments",
     );
   });
 

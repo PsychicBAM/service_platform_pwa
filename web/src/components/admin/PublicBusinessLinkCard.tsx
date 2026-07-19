@@ -4,6 +4,8 @@ import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 type PublicBusinessLinkCardProps = {
   businessName?: string;
   businessSlug?: string;
+  /** When false, omit the embedded QR (e.g. dashboard shows a dedicated QR card). Default true. */
+  showQr?: boolean;
 };
 
 type CopyStatus = "idle" | "copied" | "failed";
@@ -68,6 +70,7 @@ async function sharePublicUrl(payload: ShareData): Promise<"opened" | "unavailab
 export function PublicBusinessLinkCard({
   businessName,
   businessSlug,
+  showQr = true,
 }: PublicBusinessLinkCardProps) {
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
   const [shareStatus, setShareStatus] = useState<ShareStatus>("idle");
@@ -130,18 +133,27 @@ export function PublicBusinessLinkCard({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div
+      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+      data-testid="public-business-link-card"
+    >
       {businessSlug && publicUrl && publicPath ? (
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+        <div
+          className={
+            showQr
+              ? "grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start"
+              : "space-y-3"
+          }
+        >
           <div className="min-w-0 space-y-3">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">Public business page</h3>
-              <p className="mt-1 text-sm text-slate-600">
+              <h3 className="text-lg font-semibold text-gray-900">Public business page</h3>
+              <p className="mt-1 text-sm text-gray-500">
                 Send this link to clients so they can book services or submit requests.
               </p>
             </div>
             <p
-              className="break-all rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-800"
+              className="break-all rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 font-mono text-sm text-gray-800"
               data-testid="public-business-url"
             >
               {publicUrl}
@@ -152,7 +164,7 @@ export function PublicBusinessLinkCard({
                 onClick={() => {
                   void handleCopyLink();
                 }}
-                className="inline-flex rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className="inline-flex h-10 items-center rounded-xl border border-gray-200 bg-white px-3.5 text-sm font-semibold text-gray-700 outline-none hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-emerald-500/30"
               >
                 {copyStatus === "copied" ? "Copied" : "Copy link"}
               </button>
@@ -161,7 +173,7 @@ export function PublicBusinessLinkCard({
                 onClick={() => {
                   void handleShare();
                 }}
-                className="inline-flex rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className="inline-flex h-10 items-center rounded-xl border border-gray-200 bg-white px-3.5 text-sm font-semibold text-gray-700 outline-none hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-emerald-500/30"
               >
                 Share
               </button>
@@ -169,13 +181,14 @@ export function PublicBusinessLinkCard({
                 href={publicPath}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex rounded-lg border border-brand-300 px-3 py-1.5 text-sm font-medium text-brand-700 hover:bg-brand-50"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 text-sm font-semibold text-emerald-800 outline-none hover:bg-emerald-100 focus-visible:ring-2 focus-visible:ring-emerald-500/30"
               >
+                <span aria-hidden="true">👁</span>
                 Preview page
               </a>
             </div>
             {copyStatus === "copied" ? (
-              <p className="text-sm text-green-700" role="status">
+              <p className="text-sm text-emerald-700" role="status">
                 Link copied
               </p>
             ) : null}
@@ -185,7 +198,7 @@ export function PublicBusinessLinkCard({
               </p>
             ) : null}
             {shareStatus === "opened" ? (
-              <p className="text-sm text-green-700" role="status">
+              <p className="text-sm text-emerald-700" role="status">
                 Share dialog opened
               </p>
             ) : null}
@@ -200,43 +213,45 @@ export function PublicBusinessLinkCard({
               </p>
             ) : null}
           </div>
-          <div
-            className="flex w-fit max-w-full shrink-0 flex-col gap-2 border-t border-slate-100 pt-3 md:border-l md:border-t-0 md:pl-4 md:pt-0"
-            data-testid="public-business-qr-section"
-          >
-            <p className="text-sm font-medium text-slate-700">QR code</p>
-            <p className="text-xs text-slate-500">Scan to open page</p>
-            <div className="flex w-fit flex-col items-stretch gap-2">
-              <div className="rounded-lg border border-slate-200 bg-white p-1.5">
-                <QRCodeSVG
-                  value={publicUrl}
-                  size={QR_CODE_SIZE}
-                  title="QR code for public business page"
-                  aria-label="QR code for public business page"
-                />
+          {showQr ? (
+            <div
+              className="flex w-fit max-w-full shrink-0 flex-col gap-2 border-t border-gray-100 pt-3 md:border-l md:border-t-0 md:pl-4 md:pt-0"
+              data-testid="public-business-qr-section"
+            >
+              <p className="text-sm font-medium text-gray-700">QR code</p>
+              <p className="text-xs text-gray-500">Scan to open page</p>
+              <div className="flex w-fit flex-col items-stretch gap-2">
+                <div className="rounded-lg border border-gray-200 bg-white p-1.5">
+                  <QRCodeSVG
+                    value={publicUrl}
+                    size={QR_CODE_SIZE}
+                    title="QR code for public business page"
+                    aria-label="QR code for public business page"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDownloadQr}
+                  className="inline-flex w-full justify-center rounded-xl border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                  Download QR
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleDownloadQr}
-                className="inline-flex w-full justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Download QR
-              </button>
+              {qrDownloadStatus === "failed" ? (
+                <p className="max-w-[11rem] text-xs text-amber-700 sm:text-sm" role="status">
+                  QR download failed. You can still use the public link.
+                </p>
+              ) : null}
+              <div className="sr-only" aria-hidden="true">
+                <QRCodeCanvas ref={qrCanvasRef} value={publicUrl} size={QR_CODE_SIZE} />
+              </div>
             </div>
-            {qrDownloadStatus === "failed" ? (
-              <p className="max-w-[11rem] text-xs text-amber-700 sm:text-sm" role="status">
-                QR download failed. You can still use the public link.
-              </p>
-            ) : null}
-            <div className="sr-only" aria-hidden="true">
-              <QRCodeCanvas ref={qrCanvasRef} value={publicUrl} size={QR_CODE_SIZE} />
-            </div>
-          </div>
+          ) : null}
         </div>
       ) : (
         <>
-          <h3 className="text-lg font-semibold text-slate-900">Public business page</h3>
-          <p className="mt-1 text-sm text-slate-600">
+          <h3 className="text-lg font-semibold text-gray-900">Public business page</h3>
+          <p className="mt-1 text-sm text-gray-500">
             Send this link to clients so they can book services or submit requests.
           </p>
           <p className="mt-3 text-sm text-amber-700" role="status">
