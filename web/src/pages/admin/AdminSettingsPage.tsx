@@ -3,17 +3,16 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createBillingCheckoutSession } from "@/api/billingApi";
 import { getBusiness, updateBusiness } from "@/api/adminApi";
-import { PlanFeatureComparison } from "@/components/admin/PlanFeatureComparison";
 import { AdminEmailDeliveryExperience } from "@/components/admin/AdminEmailDeliveryExperience";
 import { AdminMarketplaceCoverSection } from "@/components/admin/AdminMarketplaceCoverSection";
 import { AdminBusinessLocationSection } from "@/components/admin/AdminBusinessLocationSection";
 import { AdminBusinessMapPinSection } from "@/components/admin/AdminBusinessMapPinSection";
+import { AdminPaymentsBillingPanel } from "@/components/admin/payments/AdminPaymentsBillingPanel";
 import { AdminSettingsSectionCard } from "@/components/admin/AdminSettingsSectionCard";
 import {
   AdminSettingsTabs,
   type AdminSettingsTabId,
 } from "@/components/admin/AdminSettingsTabs";
-import { ProToolsComingSoonCard } from "@/components/admin/ProToolsComingSoonCard";
 import { PublicProfileSettingsCard } from "@/components/admin/PublicProfileSettingsCard";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -26,7 +25,6 @@ import type {
   OperatingMode,
 } from "@/types/api";
 import { getAdminSettingsErrorMessage, getBillingCheckoutErrorMessage } from "@/utils/errors";
-import { formatPlanLabel } from "@/utils/planManagement";
 import { normalizeServiceImageMedia, type ServiceImageMedia } from "@/lib/serviceImage";
 
 const VALID_SETTINGS_TABS = new Set<AdminSettingsTabId>([
@@ -45,12 +43,6 @@ function parseSettingsTab(value: string | null): AdminSettingsTabId {
   }
   return "business";
 }
-
-const CHECKOUT_PLANS: Array<{ id: CheckoutPlanId; label: string }> = [
-  { id: "starter", label: "Starter" },
-  { id: "business", label: "Business" },
-  { id: "pro", label: "Pro" },
-];
 
 const SLOT_INTERVAL_OPTIONS = [5, 10, 15, 20, 30, 45, 60] as const;
 
@@ -369,7 +361,15 @@ export function AdminSettingsPage() {
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-gray-900">Settings</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Manage business profile, notifications, email delivery, and billing.
+          {activeTab === "payments" ? (
+            <>
+              <span className="text-gray-400">Settings</span>
+              <span className="mx-1.5 text-gray-300">›</span>
+              <span className="font-medium text-emerald-700">Payments &amp; Billing</span>
+            </>
+          ) : (
+            "Manage business profile, notifications, email delivery, and billing."
+          )}
         </p>
       </div>
 
@@ -731,70 +731,15 @@ export function AdminSettingsPage() {
           ) : null}
 
           {activeTab === "payments" ? (
-            <AdminSettingsSectionCard title="Billing / plan">
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600">
-                  Stripe checkout is optional and may be disabled in this environment. After a
-                  successful payment, your plan is activated by the billing webhook — not from this
-                  page directly.
-                </p>
-
-                {data.subscription ? (
-                  <dl className="grid gap-2 text-sm sm:grid-cols-2">
-                    <div>
-                      <dt className="text-gray-500">Current active plan</dt>
-                      <dd className="font-medium text-gray-900">
-                        {formatPlanLabel(data.subscription.plan)}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-gray-500">Subscription status</dt>
-                      <dd className="font-medium text-gray-900">
-                        {formatPlanLabel(data.subscription.status)}
-                      </dd>
-                    </div>
-                    {data.settings.selected_plan_intent ? (
-                      <div className="sm:col-span-2">
-                        <dt className="text-gray-500">Signup plan intent</dt>
-                        <dd className="font-medium text-gray-900">
-                          {formatPlanLabel(data.settings.selected_plan_intent)}
-                        </dd>
-                      </div>
-                    ) : null}
-                  </dl>
-                ) : (
-                  <p className="text-sm text-gray-500">No subscription summary available.</p>
-                )}
-
-                <PlanFeatureComparison currentPlan={data.subscription?.plan} />
-                <ProToolsComingSoonCard currentPlan={data.subscription?.plan} />
-
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  {CHECKOUT_PLANS.map((plan) => (
-                    <button
-                      key={plan.id}
-                      type="button"
-                      disabled={saving || checkoutLoadingPlan !== null}
-                      onClick={() => handleStartCheckout(plan.id)}
-                      className="rounded-lg border border-blue-600 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-60"
-                    >
-                      {checkoutLoadingPlan === plan.id
-                        ? "Starting checkout…"
-                        : `Start ${plan.label} checkout`}
-                    </button>
-                  ))}
-                </div>
-
-                {billingMessage ? (
-                  <p
-                    role="alert"
-                    className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
-                  >
-                    {billingMessage}
-                  </p>
-                ) : null}
-              </div>
-            </AdminSettingsSectionCard>
+            <AdminPaymentsBillingPanel
+              businessId={businessId!}
+              business={data}
+              checkoutLoadingPlan={checkoutLoadingPlan}
+              billingMessage={billingMessage}
+              onStartCheckout={(plan) => {
+                void handleStartCheckout(plan);
+              }}
+            />
           ) : null}
 
           {activeTab === "appearance" ? (

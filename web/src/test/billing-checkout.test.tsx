@@ -18,6 +18,7 @@ vi.mock("@/hooks/useAuth");
 vi.mock("@/api/adminApi", () => ({
   getBusiness: vi.fn(),
   updateBusiness: vi.fn(),
+  listAdminServices: vi.fn(),
 }));
 vi.mock("@/api/adminEmailApi", () => ({
   getAdminEmailStatus: vi.fn(),
@@ -56,6 +57,10 @@ describe("admin billing checkout", () => {
         selected_plan_intent: "business",
       },
     });
+    vi.mocked(adminApi.listAdminServices).mockResolvedValue({
+      data: [],
+      meta: { page: 1, limit: 100, total: 0 },
+    });
     vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue(DEFAULT_MINI_SITE_CONFIG);
     vi.mocked(adminEmailApi.getAdminEmailStatus).mockResolvedValue({
       enabled: false,
@@ -77,23 +82,28 @@ describe("admin billing checkout", () => {
     });
   });
 
-  it("A. admin settings renders billing/plan section", async () => {
+  it("A. admin settings renders payments & billing redesign", async () => {
     const user = userEvent.setup();
     renderSettingsPage();
 
     expect(await screen.findByRole("heading", { name: "Settings" })).toBeInTheDocument();
-    expect(await screen.findByText("Billing / plan")).toBeInTheDocument();
-    expect(screen.getByText(/Current active plan/i)).toBeInTheDocument();
-    expect(screen.getByText(/Signup plan intent/i)).toBeInTheDocument();
-    expect(screen.getByText(/Stripe checkout is optional/i)).toBeInTheDocument();
-    expect(screen.getByText("Plan features")).toBeInTheDocument();
-    expect(screen.getByText(/Feature limits are being prepared/i)).toBeInTheDocument();
-    expect(screen.getByTestId("plan-feature-card-free")).toHaveAttribute("data-current", "true");
-    expect(screen.getByTestId("pro-tools-coming-soon-card")).toBeInTheDocument();
-    expect(screen.getByText(/Pro tools are being prepared/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Start Starter checkout" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Start Business checkout" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Start Pro checkout" })).toBeInTheDocument();
+    expect(await screen.findByTestId("admin-payments-billing-page")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-payments-upgrade-hero")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-payments-plan-card-free")).toHaveAttribute(
+      "data-current",
+      "true",
+    );
+    expect(screen.getByTestId("admin-payments-plan-card-starter")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-payments-plan-card-business")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-payments-plan-card-pro")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-payments-current-subscription")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-payments-payment-method")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-payments-billing-history")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-payments-usage")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-payments-security-note")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-payments-plan-cta-starter")).toHaveTextContent(
+      "Upgrade to Starter",
+    );
     expect(screen.queryByRole("button", { name: /Free checkout/i })).not.toBeInTheDocument();
 
     await user.click(screen.getByTestId("admin-settings-tab-appearance"));
@@ -124,8 +134,8 @@ describe("admin billing checkout", () => {
     });
 
     renderSettingsPage();
-    await screen.findByRole("button", { name: "Start Business checkout" });
-    await user.click(screen.getByRole("button", { name: "Start Business checkout" }));
+    await screen.findByTestId("admin-payments-plan-cta-business");
+    await user.click(screen.getByTestId("admin-payments-plan-cta-business"));
 
     await waitFor(() => {
       expect(billingApi.createBillingCheckoutSession).toHaveBeenCalledWith(
@@ -143,7 +153,7 @@ describe("admin billing checkout", () => {
     );
 
     renderSettingsPage();
-    await user.click(await screen.findByRole("button", { name: "Start Starter checkout" }));
+    await user.click(await screen.findByTestId("admin-payments-plan-cta-starter"));
 
     expect(
       await screen.findByText(
@@ -174,19 +184,27 @@ describe("admin billing checkout", () => {
     });
 
     renderSettingsPage();
-    await user.click(await screen.findByRole("button", { name: "Start Pro checkout" }));
+    await user.click(await screen.findByTestId("admin-payments-plan-cta-pro"));
 
     await waitFor(() => {
-      expect(hrefValue).toBe("https://checkout.stripe.test/pro-session");
+      expect(billingApi.createBillingCheckoutSession).toHaveBeenCalledWith(
+        mockAdminBusiness.id,
+        "pro",
+      );
     });
+    expect(hrefValue).toBe("https://checkout.stripe.test/pro-session");
   });
 
-  it("E. free plan has no checkout button", async () => {
+  it("E. free plan has no checkout as current plan", async () => {
     renderSettingsPage();
 
-    await screen.findByText("Billing / plan");
+    await screen.findByTestId("admin-payments-billing-page");
+    expect(screen.getByTestId("admin-payments-plan-card-free")).toHaveAttribute(
+      "data-current",
+      "true",
+    );
+    expect(screen.getByTestId("admin-payments-plan-cta-free")).toBeDisabled();
     expect(screen.queryByRole("button", { name: /Start Free checkout/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /free checkout/i })).not.toBeInTheDocument();
   });
 
   it("F. failed checkout shows friendly error", async () => {
@@ -196,7 +214,7 @@ describe("admin billing checkout", () => {
     );
 
     renderSettingsPage();
-    await user.click(await screen.findByRole("button", { name: "Start Pro checkout" }));
+    await user.click(await screen.findByTestId("admin-payments-plan-cta-pro"));
 
     expect(
       await screen.findByText("You do not have access to billing for this business."),

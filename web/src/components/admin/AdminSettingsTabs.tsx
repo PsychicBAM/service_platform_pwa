@@ -13,7 +13,7 @@ const SETTINGS_TABS: Array<{ id: AdminSettingsTabId; label: string }> = [
   { id: "team", label: "Team" },
   { id: "notifications", label: "Notifications" },
   { id: "email-delivery", label: "Email Delivery" },
-  { id: "payments", label: "Payments" },
+  { id: "payments", label: "Payments & Billing" },
   { id: "appearance", label: "Appearance" },
 ];
 
@@ -38,7 +38,7 @@ export function AdminSettingsTabs({ activeTab, onChange }: AdminSettingsTabsProp
               onClick={() => onChange(tab.id)}
               className={`shrink-0 border-b-2 px-3.5 py-3 text-sm font-medium transition-colors sm:px-4 ${
                 isActive
-                  ? "border-blue-600 text-blue-600"
+                  ? "border-emerald-600 text-emerald-700"
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
               }`}
               data-testid={`admin-settings-tab-${tab.id}`}
