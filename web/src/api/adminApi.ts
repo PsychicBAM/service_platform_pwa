@@ -21,6 +21,8 @@ import type {
   OrderMessageCreatePayload,
   OrderMessageListResponse,
   OrderMessageRead,
+  PlanChangeRequestCreatePayload,
+  PlanChangeRequestRead,
   ScheduleRead,
   ServiceCreatePayload,
   ServiceSlotCapacityOverrideCreatePayload,
@@ -58,6 +60,16 @@ export function getBusiness(businessId: string) {
 export function updateBusiness(businessId: string, payload: BusinessUpdatePayload) {
   return apiClient.patch<BusinessAdminRead>(
     `/businesses/${encodeURIComponent(businessId)}`,
+    payload,
+  );
+}
+
+export function createPlanChangeRequest(
+  businessId: string,
+  payload: PlanChangeRequestCreatePayload,
+) {
+  return apiClient.post<PlanChangeRequestRead>(
+    `/businesses/${encodeURIComponent(businessId)}/plan-change-requests`,
     payload,
   );
 }

@@ -1043,6 +1043,45 @@ export type SubscriptionPlan = "free" | "starter" | "business" | "pro";
 
 export type CheckoutPlanId = "starter" | "business" | "pro";
 
+export type PlanChangeDirection = "upgrade" | "downgrade" | "change";
+
+export type PlanChangeRequestStatus = "pending" | "approved" | "rejected" | "cancelled";
+
+export interface PlanChangeRequestCreatePayload {
+  requested_plan: SubscriptionPlan;
+  note?: string | null;
+}
+
+export interface PlanChangeRequestRead {
+  id: string;
+  business_id: string;
+  requested_by_user_id: string | null;
+  current_plan: SubscriptionPlan;
+  requested_plan: SubscriptionPlan;
+  direction: PlanChangeDirection;
+  status: PlanChangeRequestStatus;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+  resolved_by_user_id: string | null;
+}
+
+export interface SuperadminPlanChangeRequestRead extends PlanChangeRequestRead {
+  business_name: string;
+  business_slug: string;
+}
+
+export interface SuperadminPlanChangeRequestListResponse {
+  data: SuperadminPlanChangeRequestRead[];
+  meta: ListMeta;
+}
+
+export interface PlanChangeRequestResolveResponse {
+  request: SuperadminPlanChangeRequestRead;
+  business_plan: SubscriptionPlan;
+}
+
 export interface BillingCheckoutRequest {
   plan: CheckoutPlanId;
 }

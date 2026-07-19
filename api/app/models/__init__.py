@@ -22,6 +22,8 @@ from app.models.enums import (
     OperatingMode,
     OrderMessageSenderType,
     OrderStatus,
+    PlanChangeDirection,
+    PlanChangeRequestStatus,
     PriceType,
     ServiceType,
     SubscriptionPlan,
@@ -30,6 +32,7 @@ from app.models.enums import (
 )
 from app.models.order import Order
 from app.models.order_message import OrderMessage
+from app.models.plan_change_request import PlanChangeRequest
 from app.models.public_reference_counter import PublicReferenceCounter
 from app.models.review import Review
 from app.models.service import Service
@@ -62,6 +65,9 @@ __all__ = [
     "OrderMessage",
     "OrderMessageSenderType",
     "OrderStatus",
+    "PlanChangeDirection",
+    "PlanChangeRequest",
+    "PlanChangeRequestStatus",
     "PublicReferenceCounter",
     "ReviewStatus",
     "Review",

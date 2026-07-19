@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listSuperadminBusinesses } from "@/api/superadminApi";
 import { SuperadminBusinessDetailPanel } from "@/components/superadmin/SuperadminBusinessDetailPanel";
+import { SuperadminPlanChangeRequestsSection } from "@/components/superadmin/SuperadminPlanChangeRequestsSection";
 import { PlanRequestBadge } from "@/components/superadmin/PlanRequestBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -90,6 +91,22 @@ export function SuperadminBusinessesPage() {
       ) : null}
 
       {actionError ? <ErrorState title="Action failed" message={actionError} /> : null}
+
+      <SuperadminPlanChangeRequestsSection
+        onOpenBusiness={(businessId) => {
+          setSelectedBusinessId(businessId);
+          setSuccessMessage(null);
+          setActionError(null);
+        }}
+        onSuccess={(message) => {
+          setSuccessMessage(message);
+          setActionError(null);
+        }}
+        onError={(message) => {
+          setActionError(message);
+          setSuccessMessage(null);
+        }}
+      />
 
       <label htmlFor="businessSearch" className="block text-sm">
         <span className="font-medium text-slate-700">Search</span>

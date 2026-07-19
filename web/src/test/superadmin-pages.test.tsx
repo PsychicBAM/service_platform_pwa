@@ -1,12 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { SuperadminGuard } from "@/components/SuperadminGuard";
 import { SuperadminBusinessDetailPanel } from "@/components/superadmin/SuperadminBusinessDetailPanel";
 import { SuperadminBusinessesPage } from "@/pages/superadmin/SuperadminBusinessesPage";
 import { SuperadminAuditLogsPage } from "@/pages/superadmin/SuperadminAuditLogsPage";
 import { useAuth } from "@/hooks/useAuth";
 import * as superadminApi from "@/api/superadminApi";
-import type { SuperadminBusinessDetail, SuperadminBusinessListItem } from "@/types/api";
+import type {
+  SuperadminBusinessDetail,
+  SuperadminBusinessListItem,
+  SuperadminPlanChangeRequestRead,
+} from "@/types/api";
 import {
   emptyListMeta,
   mockAuditLog,
@@ -73,11 +78,18 @@ vi.mock("@/api/superadminApi", () => ({
   listAuditLogs: vi.fn(),
   getSuperadminBusiness: vi.fn(),
   updateSuperadminBusiness: vi.fn(),
+  listSuperadminPlanChangeRequests: vi.fn(),
+  approveSuperadminPlanChangeRequest: vi.fn(),
+  rejectSuperadminPlanChangeRequest: vi.fn(),
 }));
 
 describe("superadmin pages smoke", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(superadminApi.listSuperadminPlanChangeRequests).mockResolvedValue({
+      data: [],
+      meta: { ...emptyListMeta, total: 0 },
+    });
   });
 
   it("N. owner user cannot access /superadmin", () => {
@@ -157,5 +169,54 @@ describe("superadmin pages smoke", () => {
     expect(screen.getByText(/customer requested business during signup/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/set active plan manually/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /save manual plan change/i })).toBeInTheDocument();
+  });
+
+  it("S. businesses page shows pending plan change requests with approve/reject", async () => {
+    const user = userEvent.setup();
+    const pendingRequest: SuperadminPlanChangeRequestRead = {
+      id: "pcr-ui-1",
+      business_id: mockSuperadminBusiness.id,
+      requested_by_user_id: "owner-1",
+      current_plan: "free",
+      requested_plan: "starter",
+      direction: "upgrade",
+      status: "pending",
+      note: null,
+      created_at: "2026-07-19T10:00:00Z",
+      updated_at: "2026-07-19T10:00:00Z",
+      resolved_at: null,
+      resolved_by_user_id: null,
+      business_name: mockSuperadminBusiness.name,
+      business_slug: mockSuperadminBusiness.slug,
+    };
+
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockSuperadminUser));
+    vi.mocked(superadminApi.listSuperadminBusinesses).mockResolvedValue({
+      data: [mockSuperadminBusiness],
+      meta: { ...emptyListMeta, total: 1 },
+    });
+    vi.mocked(superadminApi.listSuperadminPlanChangeRequests).mockResolvedValue({
+      data: [pendingRequest],
+      meta: { ...emptyListMeta, total: 1 },
+    });
+    vi.mocked(superadminApi.approveSuperadminPlanChangeRequest).mockResolvedValue({
+      request: { ...pendingRequest, status: "approved" },
+      business_plan: "starter",
+    });
+
+    renderRoute(<SuperadminBusinessesPage />, {
+      route: "/superadmin/businesses",
+      path: "/superadmin/businesses",
+    });
+
+    expect(await screen.findByTestId("superadmin-plan-change-requests")).toBeInTheDocument();
+    expect(screen.getByText("Plan change requests")).toBeInTheDocument();
+    expect(await screen.findByText(/1 pending/i)).toBeInTheDocument();
+    expect(
+      await screen.findByTestId(`superadmin-plan-change-row-${pendingRequest.id}`),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByTestId(`superadmin-plan-change-approve-${pendingRequest.id}`));
+    expect(superadminApi.approveSuperadminPlanChangeRequest).toHaveBeenCalledWith(pendingRequest.id);
   });
 });

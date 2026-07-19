@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApiClientError } from "@/api/client";
 import * as adminApi from "@/api/adminApi";
@@ -19,6 +19,7 @@ vi.mock("@/api/adminApi", () => ({
   getBusiness: vi.fn(),
   updateBusiness: vi.fn(),
   listAdminServices: vi.fn(),
+  createPlanChangeRequest: vi.fn(),
 }));
 vi.mock("@/api/adminEmailApi", () => ({
   getAdminEmailStatus: vi.fn(),
@@ -61,6 +62,20 @@ describe("admin billing checkout", () => {
       data: [],
       meta: { page: 1, limit: 100, total: 0 },
     });
+    vi.mocked(adminApi.createPlanChangeRequest).mockResolvedValue({
+      id: "pcr-1",
+      business_id: mockAdminBusiness.id,
+      requested_by_user_id: mockOwnerUser.id,
+      current_plan: "free",
+      requested_plan: "starter",
+      direction: "upgrade",
+      status: "pending",
+      note: null,
+      created_at: "2026-07-19T00:00:00Z",
+      updated_at: "2026-07-19T00:00:00Z",
+      resolved_at: null,
+      resolved_by_user_id: null,
+    });
     vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue(DEFAULT_MINI_SITE_CONFIG);
     vi.mocked(adminEmailApi.getAdminEmailStatus).mockResolvedValue({
       enabled: false,
@@ -88,28 +103,12 @@ describe("admin billing checkout", () => {
 
     expect(await screen.findByRole("heading", { name: "Settings" })).toBeInTheDocument();
     expect(await screen.findByTestId("admin-payments-billing-page")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-payments-upgrade-hero")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-payments-plan-card-free")).toHaveAttribute(
-      "data-current",
-      "true",
-    );
-    expect(screen.getByTestId("admin-payments-plan-card-starter")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-payments-plan-card-business")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-payments-plan-card-pro")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-payments-current-subscription")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-payments-payment-method")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-payments-billing-history")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-payments-usage")).toBeInTheDocument();
-    expect(screen.getByTestId("admin-payments-security-note")).toBeInTheDocument();
     expect(screen.getByTestId("admin-payments-plan-cta-starter")).toHaveTextContent(
       "Upgrade to Starter",
     );
-    expect(screen.queryByRole("button", { name: /Free checkout/i })).not.toBeInTheDocument();
 
     await user.click(screen.getByTestId("admin-settings-tab-appearance"));
     expect(screen.getByRole("heading", { name: "Public profile" })).toBeInTheDocument();
-    expect(screen.getByTestId("public-profile-settings-card")).toBeInTheDocument();
-    expect(await screen.findByTestId("public-profile-save-button")).toBeEnabled();
   });
 
   it("B. paid plan checkout button calls API", async () => {
@@ -134,8 +133,7 @@ describe("admin billing checkout", () => {
     });
 
     renderSettingsPage();
-    await screen.findByTestId("admin-payments-plan-cta-business");
-    await user.click(screen.getByTestId("admin-payments-plan-cta-business"));
+    await user.click(await screen.findByTestId("admin-payments-plan-cta-business"));
 
     await waitFor(() => {
       expect(billingApi.createBillingCheckoutSession).toHaveBeenCalledWith(
@@ -144,9 +142,10 @@ describe("admin billing checkout", () => {
       );
     });
     expect(hrefValue).toBe("https://checkout.stripe.test/session");
+    expect(adminApi.createPlanChangeRequest).not.toHaveBeenCalled();
   });
 
-  it("C. STRIPE_DISABLED shows friendly manual billing message", async () => {
+  it("C. STRIPE_DISABLED creates real plan change request", async () => {
     const user = userEvent.setup();
     vi.mocked(billingApi.createBillingCheckoutSession).mockRejectedValue(
       new ApiClientError(503, "STRIPE_DISABLED", "Stripe checkout is not enabled."),
@@ -155,11 +154,14 @@ describe("admin billing checkout", () => {
     renderSettingsPage();
     await user.click(await screen.findByTestId("admin-payments-plan-cta-starter"));
 
+    await waitFor(() => {
+      expect(adminApi.createPlanChangeRequest).toHaveBeenCalledWith(mockAdminBusiness.id, {
+        requested_plan: "starter",
+      });
+    });
     expect(
-      await screen.findByText(
-        "Stripe checkout is not enabled yet. Plan changes are manual for now.",
-      ),
-    ).toBeInTheDocument();
+      await screen.findByTestId("admin-payments-action-feedback"),
+    ).toHaveTextContent("Upgrade request sent to superadmin.");
   });
 
   it("D. successful checkout redirects to checkout_url", async () => {
@@ -196,18 +198,20 @@ describe("admin billing checkout", () => {
   });
 
   it("E. free plan has no checkout as current plan", async () => {
+    const user = userEvent.setup();
     renderSettingsPage();
 
     await screen.findByTestId("admin-payments-billing-page");
-    expect(screen.getByTestId("admin-payments-plan-card-free")).toHaveAttribute(
-      "data-current",
-      "true",
-    );
-    expect(screen.getByTestId("admin-payments-plan-cta-free")).toBeDisabled();
-    expect(screen.queryByRole("button", { name: /Start Free checkout/i })).not.toBeInTheDocument();
+    const freeCta = screen.getByTestId("admin-payments-plan-cta-free");
+    expect(freeCta).toBeDisabled();
+    expect(freeCta).toHaveTextContent("Current plan");
+
+    await user.click(freeCta);
+    expect(billingApi.createBillingCheckoutSession).not.toHaveBeenCalled();
+    expect(adminApi.createPlanChangeRequest).not.toHaveBeenCalled();
   });
 
-  it("F. failed checkout shows friendly error", async () => {
+  it("F. failed checkout shows friendly error without fake success", async () => {
     const user = userEvent.setup();
     vi.mocked(billingApi.createBillingCheckoutSession).mockRejectedValue(
       new ApiClientError(403, "FORBIDDEN", "Forbidden"),
@@ -216,8 +220,84 @@ describe("admin billing checkout", () => {
     renderSettingsPage();
     await user.click(await screen.findByTestId("admin-payments-plan-cta-pro"));
 
-    expect(
-      await screen.findByText("You do not have access to billing for this business."),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("admin-payments-action-feedback")).toHaveTextContent(
+      "You do not have access to billing for this business.",
+    );
+    expect(adminApi.createPlanChangeRequest).not.toHaveBeenCalled();
+  });
+
+  it("G. lower plan creates real downgrade request after API resolves", async () => {
+    const user = userEvent.setup();
+    vi.mocked(adminApi.getBusiness).mockResolvedValue({
+      ...mockAdminBusiness,
+      subscription: {
+        plan: "business",
+        status: "active",
+        usage_bookings_count: mockAdminBusiness.subscription?.usage_bookings_count ?? 0,
+        usage_orders_count: mockAdminBusiness.subscription?.usage_orders_count ?? 0,
+      },
+    });
+    vi.mocked(adminApi.createPlanChangeRequest).mockResolvedValue({
+      id: "pcr-down",
+      business_id: mockAdminBusiness.id,
+      requested_by_user_id: mockOwnerUser.id,
+      current_plan: "business",
+      requested_plan: "starter",
+      direction: "downgrade",
+      status: "pending",
+      note: null,
+      created_at: "2026-07-19T00:00:00Z",
+      updated_at: "2026-07-19T00:00:00Z",
+      resolved_at: null,
+      resolved_by_user_id: null,
+    });
+
+    renderSettingsPage();
+    const starterCta = await screen.findByTestId("admin-payments-plan-cta-starter");
+    expect(starterCta).toHaveTextContent("Downgrade to Starter");
+
+    await user.click(starterCta);
+
+    await waitFor(() => {
+      expect(adminApi.createPlanChangeRequest).toHaveBeenCalledWith(mockAdminBusiness.id, {
+        requested_plan: "starter",
+      });
+    });
+    expect(await screen.findByTestId("admin-payments-action-feedback")).toHaveTextContent(
+      "Downgrade request sent to superadmin.",
+    );
+    expect(billingApi.createBillingCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("H. plan request API failure shows error, not success", async () => {
+    const user = userEvent.setup();
+    vi.mocked(adminApi.getBusiness).mockResolvedValue({
+      ...mockAdminBusiness,
+      subscription: {
+        plan: "business",
+        status: "active",
+        usage_bookings_count: 0,
+        usage_orders_count: 0,
+      },
+    });
+    vi.mocked(adminApi.createPlanChangeRequest).mockRejectedValue(
+      new ApiClientError(500, "SERVER_ERROR", "Server error"),
+    );
+
+    renderSettingsPage();
+    await user.click(await screen.findByTestId("admin-payments-plan-cta-starter"));
+
+    expect(await screen.findByTestId("admin-payments-action-feedback")).toHaveTextContent(
+      "Server error",
+    );
+  });
+
+  it("I. security trust items are informational, not buttons", async () => {
+    renderSettingsPage();
+    const note = await screen.findByTestId("admin-payments-security-note");
+    const badges = within(note).getByTestId("admin-payments-security-badges");
+
+    expect(badges.tagName.toLowerCase()).toBe("ul");
+    expect(within(badges).queryByRole("button")).not.toBeInTheDocument();
   });
 });

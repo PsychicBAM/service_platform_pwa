@@ -41,6 +41,19 @@ class SubscriptionStatus(str, enum.Enum):
     trialing = "trialing"
 
 
+class PlanChangeDirection(str, enum.Enum):
+    upgrade = "upgrade"
+    downgrade = "downgrade"
+    change = "change"
+
+
+class PlanChangeRequestStatus(str, enum.Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+    cancelled = "cancelled"
+
+
 class PublicPageVariant(str, enum.Enum):
     standard = "standard"
     mini_site = "mini_site"

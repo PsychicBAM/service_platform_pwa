@@ -2,9 +2,12 @@ import { apiClient } from "@/api/client";
 import type {
   AuditLogListResponse,
   LegalConsentRecordListResponse,
+  PlanChangeRequestResolveResponse,
+  PlanChangeRequestStatus,
   SuperadminBusinessDetail,
   SuperadminBusinessListResponse,
   SuperadminBusinessUpdatePayload,
+  SuperadminPlanChangeRequestListResponse,
 } from "@/types/api";
 
 function buildQuery(params?: Record<string, string | number | boolean | undefined>): string {
@@ -54,5 +57,27 @@ export function getSuperadminLegalConsents(
 ) {
   return apiClient.get<LegalConsentRecordListResponse>(
     `/superadmin/legal-consents${buildQuery(params)}`,
+  );
+}
+
+export function listSuperadminPlanChangeRequests(params?: {
+  status?: PlanChangeRequestStatus;
+  page?: number;
+  limit?: number;
+}) {
+  return apiClient.get<SuperadminPlanChangeRequestListResponse>(
+    `/superadmin/plan-change-requests${buildQuery(params)}`,
+  );
+}
+
+export function approveSuperadminPlanChangeRequest(requestId: string) {
+  return apiClient.post<PlanChangeRequestResolveResponse>(
+    `/superadmin/plan-change-requests/${encodeURIComponent(requestId)}/approve`,
+  );
+}
+
+export function rejectSuperadminPlanChangeRequest(requestId: string) {
+  return apiClient.post<PlanChangeRequestResolveResponse>(
+    `/superadmin/plan-change-requests/${encodeURIComponent(requestId)}/reject`,
   );
 }

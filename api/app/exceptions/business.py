@@ -135,6 +135,32 @@ class BusinessNotFoundError(AppError):
         super().__init__(message=message, code="NOT_FOUND", status_code=404)
 
 
+class PlanChangeRequestNotFoundError(AppError):
+    def __init__(self, message: str = "Plan change request not found.") -> None:
+        super().__init__(message=message, code="NOT_FOUND", status_code=404)
+
+
+class PlanChangeRequestInvalidError(AppError):
+    def __init__(self, message: str = "Invalid plan change request.") -> None:
+        super().__init__(
+            message=message,
+            code="INVALID_PLAN_CHANGE_REQUEST",
+            status_code=400,
+        )
+
+
+class PlanChangeRequestNotPendingError(AppError):
+    def __init__(
+        self,
+        message: str = "Only pending plan change requests can be updated.",
+    ) -> None:
+        super().__init__(
+            message=message,
+            code="PLAN_CHANGE_REQUEST_NOT_PENDING",
+            status_code=409,
+        )
+
+
 class InvalidBusinessSettingsError(AppError):
     def __init__(self, message: str = "Invalid business settings.") -> None:
         super().__init__(

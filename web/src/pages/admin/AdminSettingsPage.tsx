@@ -1,13 +1,17 @@
 import { useEffect, useState, type FormEvent, type HTMLAttributes } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ApiClientError } from "@/api/client";
 import { createBillingCheckoutSession } from "@/api/billingApi";
 import { getBusiness, updateBusiness } from "@/api/adminApi";
 import { AdminEmailDeliveryExperience } from "@/components/admin/AdminEmailDeliveryExperience";
 import { AdminMarketplaceCoverSection } from "@/components/admin/AdminMarketplaceCoverSection";
 import { AdminBusinessLocationSection } from "@/components/admin/AdminBusinessLocationSection";
 import { AdminBusinessMapPinSection } from "@/components/admin/AdminBusinessMapPinSection";
-import { AdminPaymentsBillingPanel } from "@/components/admin/payments/AdminPaymentsBillingPanel";
+import {
+  AdminPaymentsBillingPanel,
+  type CheckoutActionResult,
+} from "@/components/admin/payments/AdminPaymentsBillingPanel";
 import { AdminSettingsSectionCard } from "@/components/admin/AdminSettingsSectionCard";
 import {
   AdminSettingsTabs,
@@ -276,7 +280,6 @@ export function AdminSettingsPage() {
   const [form, setForm] = useState<SettingsFormState | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [billingMessage, setBillingMessage] = useState<string | null>(null);
   const [checkoutLoadingPlan, setCheckoutLoadingPlan] = useState<CheckoutPlanId | null>(null);
   const [marketplaceCoverImage, setMarketplaceCoverImage] = useState<ServiceImageMedia | null>(null);
 
@@ -337,17 +340,29 @@ export function AdminSettingsPage() {
     }
   }
 
-  async function handleStartCheckout(plan: CheckoutPlanId) {
+  async function handleStartCheckout(plan: CheckoutPlanId): Promise<CheckoutActionResult> {
     if (!businessId) {
-      return;
+      return {
+        outcome: "error",
+        message: "Could not start checkout. Please try again.",
+      };
     }
-    setBillingMessage(null);
     setCheckoutLoadingPlan(plan);
     try {
       const response = await createBillingCheckoutSession(businessId, plan);
       window.location.href = response.checkout_url;
+      return { outcome: "redirect", message: "Upgrade checkout started." };
     } catch (error) {
-      setBillingMessage(getBillingCheckoutErrorMessage(error));
+      if (error instanceof ApiClientError && error.code === "STRIPE_DISABLED") {
+        return {
+          outcome: "manual_upgrade",
+          message: "Stripe checkout is not enabled; creating a plan change request.",
+        };
+      }
+      return {
+        outcome: "error",
+        message: getBillingCheckoutErrorMessage(error, "Could not start checkout. Please try again."),
+      };
     } finally {
       setCheckoutLoadingPlan(null);
     }
@@ -735,10 +750,7 @@ export function AdminSettingsPage() {
               businessId={businessId!}
               business={data}
               checkoutLoadingPlan={checkoutLoadingPlan}
-              billingMessage={billingMessage}
-              onStartCheckout={(plan) => {
-                void handleStartCheckout(plan);
-              }}
+              onStartCheckout={handleStartCheckout}
             />
           ) : null}
 
