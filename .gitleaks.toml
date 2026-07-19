@@ -1,5 +1,6 @@
 # Minimal Gitleaks config — skip build/cache paths only (not source or env files).
 # Do not allowlist .env or broad secret patterns.
+# Historical findings below are documented test/doc placeholders (full-history scan).
 
 title = "service_platform_pwa gitleaks"
 
@@ -22,18 +23,43 @@ paths = [
   '''(?:^|/)\.venv/''',
 ]
 
-# Historical false positives (pre-Slice-13 docs/tests). Current tree uses safe placeholders.
-# Do not add live secret patterns or .env paths here.
+# README_BACKEND.md historically used literal Bearer CLIENT_TOKEN / SUPERADMIN_TOKEN
+# in curl examples (not live credentials). Current tree removed Authorization headers.
 [[allowlists]]
-description = "Historical doc/test token placeholders"
+description = "README_BACKEND.md historical curl Bearer doc placeholders only"
+paths = [
+  '''(?:^|/)README_BACKEND\.md$''',
+]
 regexes = [
-  '''(?i)CLIENT_TOKEN''',
-  '''(?i)SUPERADMIN_TOKEN''',
-  '''0123456789abcdef0123456789abcdef0123456789ab''',
+  '''^CLIENT_TOKEN$''',
+  '''^SUPERADMIN_TOKEN$''',
 ]
 
-# Historical false positives: STRIPE_TEST_MODE_RUNBOOK.md used sk_test_/whsec_ placeholders
-# before safe <STRIPE_*_FROM_DASHBOARD> tokens. Current tree uses safe placeholders only.
+# Pre-placeholder-hardening unit fixtures used a fixed hex JWT string.
+# Current tests use test-jwt-placeholder-thirty-two-characters-min instead.
+[[allowlists]]
+description = "Production env/security test historical hex JWT fixtures only"
+paths = [
+  '''(?:^|/)api/tests/test_production_env_script\.py$''',
+  '''(?:^|/)api/tests/test_production_security\.py$''',
+]
+regexes = [
+  '''^0123456789abcdef0123456789abcdef0123456789ab$''',
+]
+
+# STRIPE_TEST_MODE_RUNBOOK.md briefly used sk_test_placeholder before
+# <STRIPE_TEST_SECRET_KEY_FROM_DASHBOARD> wording. Test-only placeholder, not a live key.
+[[allowlists]]
+description = "STRIPE_TEST_MODE_RUNBOOK.md historical sk_test_placeholder only"
+paths = [
+  '''(?:^|/)STRIPE_TEST_MODE_RUNBOOK\.md$''',
+]
+regexes = [
+  '''^sk_test_placeholder$''',
+]
+
+# Commit-level allowlist for the same Stripe runbook placeholder revisions
+# (defense in depth for full-history scans).
 [[allowlists]]
 description = "STRIPE_TEST_MODE_RUNBOOK.md historical Stripe placeholder commits"
 commits = [
