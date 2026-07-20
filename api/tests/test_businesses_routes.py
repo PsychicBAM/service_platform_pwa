@@ -245,11 +245,27 @@ async def test_public_business_returns_safe_fields_only(
         "cover_image_url",
         "public_page_variant",
         "mini_site_config",
+        # Safe public display config for service price / tax notes.
+        "service_currency",
+        "tax_mode",
+        "tax_rate_percent",
+        "show_tax_note_to_customers",
     }
     assert body["mini_site_config"] is None
     assert body["name"] == "Joe's Salon"
     assert body["review_count"] == 0
     assert body["average_rating"] is None
+    assert body["service_currency"] == "USD"
+    assert body["tax_mode"] == "none"
+    assert body["tax_rate_percent"] == 0
+    assert body["show_tax_note_to_customers"] is True
+    # Sensitive / admin-only fields must remain absent.
+    assert "settings" not in body
+    assert "subscription" not in body
+    assert "stripe_account_id" not in body
+    assert "contact_email" not in body
+    assert "status" not in body
+    assert "timezone" not in body
 
 
 @pytest.mark.asyncio
