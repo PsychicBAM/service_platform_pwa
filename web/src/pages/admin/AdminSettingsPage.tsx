@@ -11,6 +11,7 @@ import {
   type CheckoutActionResult,
 } from "@/components/admin/payments/AdminPaymentsBillingPanel";
 import { AdminServicesSettingsPanel } from "@/components/admin/AdminServicesSettingsPanel";
+import { AdminTeamSettingsPanel } from "@/components/admin/AdminTeamSettingsPanel";
 import { AdminSettingsSectionCard } from "@/components/admin/AdminSettingsSectionCard";
 import {
   AdminSettingsTabs,
@@ -20,6 +21,7 @@ import { PublicProfileSettingsCard } from "@/components/admin/PublicProfileSetti
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { useAdminBusiness } from "@/hooks/useAdminBusiness";
+import { useAuth } from "@/hooks/useAuth";
 import type {
   BusinessAdminRead,
   BusinessUpdatePayload,
@@ -432,7 +434,12 @@ function buildUpdatePayload(form: SettingsFormState): BusinessUpdatePayload {
 }
 
 export function AdminSettingsPage() {
-  const { businessId } = useAdminBusiness();
+  const { businessId, businessName, businesses } = useAdminBusiness();
+  const { user } = useAuth();
+  const membershipRole =
+    businesses.find((item) => item.id === businessId)?.role ??
+    user?.businesses.find((item) => item.id === businessId)?.role ??
+    null;
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = parseSettingsTab(searchParams.get("tab"));
@@ -637,6 +644,8 @@ export function AdminSettingsPage() {
             "Manage how your services are displayed, booked, and delivered."
           ) : activeTab === "business" ? (
             "Manage your business profile, contact details, booking defaults, and security."
+          ) : activeTab === "team" ? (
+            "Manage team members, roles, and permissions."
           ) : (
             "Manage business profile, notifications, email delivery, and billing."
           )}
@@ -708,14 +717,11 @@ export function AdminSettingsPage() {
           ) : null}
 
           {activeTab === "team" ? (
-            <AdminSettingsSectionCard
-              title="Team"
-              subtitle="Team member management will live here. For now, account access is managed from your business owner login."
-            >
-              <p className="text-sm text-gray-500">
-                Invite and role controls are planned for a later release.
-              </p>
-            </AdminSettingsSectionCard>
+            <AdminTeamSettingsPanel
+              user={user}
+              membershipRole={membershipRole}
+              businessName={businessName}
+            />
           ) : null}
 
           {activeTab === "notifications" ? (

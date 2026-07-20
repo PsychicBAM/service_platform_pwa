@@ -42,7 +42,11 @@ export function AdminSettingsTabs({ activeTab, onChange }: AdminSettingsTabsProp
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
               }`}
               data-testid={
-                tab.id === "services" ? "admin-settings-services-tab" : `admin-settings-tab-${tab.id}`
+                tab.id === "services"
+                  ? "admin-settings-services-tab"
+                  : tab.id === "team"
+                    ? "admin-settings-team-tab"
+                    : `admin-settings-tab-${tab.id}`
               }
               aria-current={isActive ? "page" : undefined}
             >
