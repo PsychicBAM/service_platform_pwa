@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getPublicBusiness, listPublicServices } from "@/api/publicApi";
 import { ProMiniSiteLayout } from "@/components/public/ProMiniSiteLayout";
 import { StandardPublicBusinessHome } from "@/components/public/StandardPublicBusinessHome";
+import { PublicServiceTaxFromBusiness } from "@/components/PublicServiceTaxProvider";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { getApiErrorMessage, isNotFoundError } from "@/utils/errors";
@@ -51,16 +52,22 @@ function BusinessHomeContent({ slug }: { slug: string }) {
     }
 
     return (
-      <ProMiniSiteLayout
-        business={data}
-        publicSlug={slug}
-        services={servicesQuery.data ?? []}
-        config={data.miniSiteConfig}
-      />
+      <PublicServiceTaxFromBusiness business={data}>
+        <ProMiniSiteLayout
+          business={data}
+          publicSlug={slug}
+          services={servicesQuery.data ?? []}
+          config={data.miniSiteConfig}
+        />
+      </PublicServiceTaxFromBusiness>
     );
   }
 
-  return <StandardPublicBusinessHome business={data} slug={slug} />;
+  return (
+    <PublicServiceTaxFromBusiness business={data}>
+      <StandardPublicBusinessHome business={data} slug={slug} />
+    </PublicServiceTaxFromBusiness>
+  );
 }
 
 export function PublicHomePage() {

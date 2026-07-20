@@ -1,6 +1,10 @@
 import type { PublicService } from "@/types/api";
+import { formatServiceMoneyCents, normalizeServiceCurrency } from "@/lib/serviceCurrency";
 
-export function formatPrice(service: Pick<PublicService, "price_type" | "price_cents" | "currency">): string {
+export function formatPrice(
+  service: Pick<PublicService, "price_type" | "price_cents" | "currency">,
+  displayCurrency?: string | null,
+): string {
   if (service.price_type === "free") {
     return "Free";
   }
@@ -10,11 +14,11 @@ export function formatPrice(service: Pick<PublicService, "price_type" | "price_c
   if (service.price_cents == null) {
     return "Quote";
   }
-  const currency = service.currency || "USD";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-  }).format(service.price_cents / 100);
+  const currency = normalizeServiceCurrency(displayCurrency || service.currency || "USD");
+  return formatServiceMoneyCents(service.price_cents, currency, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 export function formatDuration(minutes: number | null | undefined): string | null {

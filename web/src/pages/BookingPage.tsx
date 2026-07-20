@@ -21,6 +21,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { FormField } from "@/components/FormField";
 import { LoadingState } from "@/components/LoadingState";
 import { PriceLabel } from "@/components/PriceLabel";
+import { PublicBusinessTaxGate } from "@/components/PublicBusinessTaxGate";
 import { SuccessCard } from "@/components/SuccessCard";
 import { GuestTrackActivityCard, type GuestTrackMode } from "@/components/GuestTrackActivityCard";
 import { PublicFormAccountHints } from "@/components/PublicFormAccountHints";
@@ -331,6 +332,7 @@ export function BookingPage() {
     availabilityQuery.isLoading && availabilitySlots.length === 0;
 
   return (
+    <PublicBusinessTaxGate slug={slug}>
     <FormPageShell className="space-y-5">
       <Link
         to={`/b/${slug}/services/${serviceId}`}
@@ -506,5 +508,6 @@ export function BookingPage() {
         </button>
       </form>
     </FormPageShell>
+    </PublicBusinessTaxGate>
   );
 }

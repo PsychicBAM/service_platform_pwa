@@ -9,6 +9,7 @@ import {
   type DateRangeOption as AnalyticsDateRangeOption,
 } from "@/components/admin/analytics/adminAnalyticsHelpers";
 import { categoryLabel } from "@/components/admin/services/serviceCategories";
+import { formatServiceMoneyCents } from "@/lib/serviceCurrency";
 import type { AdminServiceRead, ServiceType } from "@/types/api";
 import { formatDuration } from "@/utils/format";
 
@@ -82,15 +83,10 @@ export function serviceDurationLabel(service: AdminServiceRead): string {
 export function formatServiceMoney(cents: number | null | undefined, currency: string): string {
   if (cents == null) return "—";
   const amount = cents / 100;
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: currency || "USD",
-      maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
-    }).format(amount);
-  } catch {
-    return `${currency || "USD"} ${amount.toFixed(2)}`;
-  }
+  return formatServiceMoneyCents(cents, currency || "USD", {
+    minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
+  });
 }
 
 export function formatServiceDateTime(iso: string): string {

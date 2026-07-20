@@ -24,8 +24,16 @@ from app.services.order_service import OrderService
 from app.services.service_service import ServiceService
 from app.services.waitlist_service import WaitlistService
 from app.services.review_service import ReviewService
+from app.utils.service_currency import resolve_service_currency
 
 router = APIRouter(prefix="/public/b", tags=["public"])
+
+
+def _public_service_read(business: Business, service) -> PublicServiceRead:
+    return PublicServiceRead.from_service(
+        service,
+        display_currency=resolve_service_currency(business.settings),
+    )
 
 
 @router.get("/{slug}", response_model=PublicBusinessRead)
@@ -49,7 +57,7 @@ async def list_public_services(
     if business.slug != slug.lower():
         raise ValueError("slug mismatch")  # pragma: no cover
     services = await ServiceService(db).list_public(business, type=type)
-    return [PublicServiceRead.from_service(s) for s in services]
+    return [_public_service_read(business, s) for s in services]
 
 
 @router.get("/{slug}/services/{service_id}", response_model=PublicServiceRead)
@@ -62,7 +70,7 @@ async def get_public_service(
     if business.slug != slug.lower():
         raise ValueError("slug mismatch")  # pragma: no cover
     service = await ServiceService(db).get_public(business, service_id)
-    return PublicServiceRead.from_service(service)
+    return _public_service_read(business, service)
 
 
 @router.get("/{slug}/availability", response_model=AvailabilityResponse)

@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.enums import ServiceType
@@ -123,3 +123,13 @@ class ServiceRepository:
         service.is_active = False
         await self.session.flush()
         return service
+
+    async def set_currency_for_business(self, business_id: uuid.UUID, currency: str) -> int:
+        stmt = (
+            update(Service)
+            .where(Service.business_id == business_id)
+            .values(currency=currency)
+        )
+        result = await self.session.execute(stmt)
+        await self.session.flush()
+        return int(result.rowcount or 0)

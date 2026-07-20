@@ -4,6 +4,7 @@ import {
   gradientForBusinessSlug,
   truncatePublicText,
 } from "@/lib/businessCardMedia";
+import { formatServiceMoneyCents } from "@/lib/serviceCurrency";
 import { formatPublicLocationDisplay } from "@/lib/publicLocation";
 import { StarRating } from "@/components/marketplace/StarRating";
 
@@ -20,10 +21,10 @@ function formatStartsAtPrice(business: PublicBusinessDirectoryItem): string {
     return "Starts at Free";
   }
   const currency = business.starts_at_currency || "USD";
-  const formatted = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-  }).format(business.starts_at_price_cents / 100);
+  const formatted = formatServiceMoneyCents(business.starts_at_price_cents, currency, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
   return `Starts at ${formatted}`;
 }
 

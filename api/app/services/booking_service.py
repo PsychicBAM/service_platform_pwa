@@ -34,6 +34,7 @@ from app.utils.booking_rules import (
     SLOT_OUTSIDE_WINDOW_MESSAGE,
     SLOT_TOO_SOON_MESSAGE,
     assert_slot_booking_rules,
+    resolve_booking_status_for_auto_confirm,
 )
 from app.utils.booking_slots import normalize_starts_at, slot_starts_match
 from app.utils.public_client_attach import resolve_attach_user_id
@@ -102,8 +103,7 @@ class BookingService:
             attach_user_id is not None and client.user_id == attach_user_id
         )
         settings = business.settings or {}
-        auto_confirm = bool(settings.get("auto_confirm_bookings", False))
-        status = BookingStatus.confirmed if auto_confirm else BookingStatus.pending
+        status = resolve_booking_status_for_auto_confirm(settings, starts_at=starts_at)
 
         reference = await generate_booking_reference(
             self.session,

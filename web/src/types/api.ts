@@ -29,6 +29,10 @@ export interface PublicBusiness {
   cover_image_url?: string | null;
   public_page_variant: PublicPageVariant;
   miniSiteConfig: MiniSiteConfig | null;
+  service_currency?: string;
+  tax_mode?: "none" | "inclusive" | "exclusive" | string;
+  tax_rate_percent?: number;
+  show_tax_note_to_customers?: boolean;
 }
 
 export interface PublicBusinessDirectoryServicePreview {
@@ -615,6 +619,25 @@ export interface BusinessSettingsRead {
   notification_email_enabled: boolean;
   auto_review_request_enabled: boolean;
   auto_review_request_delay_minutes: number;
+  service_currency?: string;
+  price_display?: string;
+  tax_mode?: string;
+  tax_rate_percent?: number;
+  show_tax_note_to_customers?: boolean;
+  service_visibility?: string;
+  show_service_duration?: boolean;
+  show_service_description?: boolean;
+  show_service_capacity?: boolean;
+  show_service_images?: boolean;
+  show_service_categories?: boolean;
+  require_service_category?: boolean;
+  duration_unit?: string;
+  default_duration_minutes?: number;
+  duration_increment_minutes?: number;
+  auto_confirm_within_hours?: number;
+  service_addons_enabled?: boolean;
+  service_addon_selection_mode?: string;
+  service_addon_display?: string;
   selected_plan_intent?: SubscriptionPlan | null;
 }
 
@@ -630,6 +653,25 @@ export interface BusinessSettingsUpdatePayload {
   notification_email_enabled?: boolean;
   auto_review_request_enabled?: boolean;
   auto_review_request_delay_minutes?: number;
+  service_currency?: string;
+  price_display?: string;
+  tax_mode?: string;
+  tax_rate_percent?: number;
+  show_tax_note_to_customers?: boolean;
+  service_visibility?: string;
+  show_service_duration?: boolean;
+  show_service_description?: boolean;
+  show_service_capacity?: boolean;
+  show_service_images?: boolean;
+  show_service_categories?: boolean;
+  require_service_category?: boolean;
+  duration_unit?: string;
+  default_duration_minutes?: number;
+  duration_increment_minutes?: number;
+  auto_confirm_within_hours?: number;
+  service_addons_enabled?: boolean;
+  service_addon_selection_mode?: string;
+  service_addon_display?: string;
 }
 
 export interface BusinessUpdatePayload {

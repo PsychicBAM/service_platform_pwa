@@ -22,8 +22,16 @@ from app.schemas.service_slot_capacity_override import (
 )
 from app.services.service_service import ServiceService
 from app.services.service_slot_capacity_override_service import ServiceSlotCapacityOverrideService
+from app.utils.service_currency import resolve_service_currency
 
 router = APIRouter(prefix="/businesses", tags=["services"])
+
+
+def _service_read(business: Business, service) -> ServiceRead:
+    return ServiceRead.from_service(
+        service,
+        display_currency=resolve_service_currency(business.settings),
+    )
 
 
 @router.get("/{business_id}/services", response_model=ServiceListResponse)
@@ -47,7 +55,7 @@ async def list_services(
         limit=limit,
     )
     return ServiceListResponse(
-        data=[ServiceRead.from_service(s) for s in services],
+        data=[_service_read(business, s) for s in services],
         meta=ServiceListMeta(page=page, limit=limit, total=total),
     )
 
@@ -62,7 +70,7 @@ async def get_service(
     if business.id != business_id:
         raise ValueError("business mismatch")  # pragma: no cover
     service = await ServiceService(db).get_for_business(business, service_id)
-    return ServiceRead.from_service(service)
+    return _service_read(business, service)
 
 
 @router.post(
@@ -79,7 +87,7 @@ async def create_service(
     if business.id != business_id:
         raise ValueError("business mismatch")  # pragma: no cover
     service = await ServiceService(db).create(business, payload)
-    return ServiceRead.from_service(service)
+    return _service_read(business, service)
 
 
 @router.patch("/{business_id}/services/{service_id}", response_model=ServiceRead)
@@ -93,7 +101,7 @@ async def update_service(
     if business.id != business_id:
         raise ValueError("business mismatch")  # pragma: no cover
     service = await ServiceService(db).update(business, service_id, payload)
-    return ServiceRead.from_service(service)
+    return _service_read(business, service)
 
 
 @router.delete("/{business_id}/services/{service_id}", response_model=ServiceRead)
@@ -106,7 +114,7 @@ async def delete_service(
     if business.id != business_id:
         raise ValueError("business mismatch")  # pragma: no cover
     service = await ServiceService(db).soft_delete(business, service_id)
-    return ServiceRead.from_service(service)
+    return _service_read(business, service)
 
 
 @router.post(

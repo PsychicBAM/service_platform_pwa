@@ -30,7 +30,7 @@ from app.services import availability_service
 from app.services.availability_service import AvailabilityService
 from app.services.booking_capacity import SlotCapacityResolver, assert_slot_has_capacity
 from app.services.email_notification_service import EmailNotificationService
-from app.utils.booking_rules import assert_slot_booking_rules
+from app.utils.booking_rules import assert_slot_booking_rules, resolve_booking_status_for_auto_confirm
 from app.utils.booking_slots import normalize_starts_at
 from app.utils.references import generate_booking_reference
 
@@ -173,8 +173,7 @@ class WaitlistService:
         )
 
         settings = business.settings or {}
-        auto_confirm = bool(settings.get("auto_confirm_bookings", False))
-        status = BookingStatus.confirmed if auto_confirm else BookingStatus.pending
+        status = resolve_booking_status_for_auto_confirm(settings, starts_at=starts_at)
 
         reference = await generate_booking_reference(
             self.session,

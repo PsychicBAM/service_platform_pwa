@@ -48,10 +48,16 @@ class ServiceRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
-    def from_service(cls, service: Service) -> "ServiceRead":
+    def from_service(
+        cls,
+        service: Service,
+        *,
+        display_currency: str | None = None,
+    ) -> "ServiceRead":
         price_cents = service.price_cents
         if service.price_type == PriceType.free and price_cents is None:
             price_cents = 0
+        currency = (display_currency or service.currency or "USD").strip().upper()
         return cls(
             id=service.id,
             business_id=service.business_id,
@@ -61,7 +67,7 @@ class ServiceRead(BaseModel):
             type=service.type,
             duration_minutes=service.duration_minutes,
             price_cents=price_cents,
-            currency=service.currency,
+            currency=currency,
             price_type=service.price_type,
             require_payment=service.require_payment,
             is_active=service.is_active,
@@ -93,7 +99,12 @@ class PublicServiceRead(BaseModel):
     image: ServiceImageMedia | None = None
 
     @classmethod
-    def from_service(cls, service: Service) -> "PublicServiceRead":
+    def from_service(
+        cls,
+        service: Service,
+        *,
+        display_currency: str | None = None,
+    ) -> "PublicServiceRead":
         price_cents = service.price_cents
         if service.price_type == PriceType.free and price_cents is None:
             price_cents = 0
@@ -103,6 +114,7 @@ class PublicServiceRead(BaseModel):
             else None
         )
         capacity = service.capacity if service.type == ServiceType.booking else None
+        currency = (display_currency or service.currency or "USD").strip().upper()
         return cls(
             id=service.id,
             name=service.name,
@@ -111,7 +123,7 @@ class PublicServiceRead(BaseModel):
             type=service.type,
             duration_minutes=duration,
             price_cents=price_cents,
-            currency=service.currency,
+            currency=currency,
             price_type=service.price_type,
             require_payment=service.require_payment,
             sort_order=service.sort_order,

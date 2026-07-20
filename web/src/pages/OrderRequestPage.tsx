@@ -12,6 +12,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { FormField } from "@/components/FormField";
 import { LoadingState } from "@/components/LoadingState";
 import { PriceLabel } from "@/components/PriceLabel";
+import { PublicBusinessTaxGate } from "@/components/PublicBusinessTaxGate";
 import { GuestTrackActivityCard, type GuestTrackMode } from "@/components/GuestTrackActivityCard";
 import { PublicFormAccountHints } from "@/components/PublicFormAccountHints";
 import { TextAreaField } from "@/components/TextAreaField";
@@ -209,6 +210,7 @@ export function OrderRequestPage() {
   const preview = descriptionPreview(service.description);
 
   return (
+    <PublicBusinessTaxGate slug={slug}>
     <FormPageShell>
       <Link
         to={`/b/${slug}/services/${serviceId}`}
@@ -315,5 +317,6 @@ export function OrderRequestPage() {
         </button>
       </form>
     </FormPageShell>
+    </PublicBusinessTaxGate>
   );
 }

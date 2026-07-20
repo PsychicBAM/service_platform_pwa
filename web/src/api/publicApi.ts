@@ -37,6 +37,10 @@ export type PublicBusinessWire = {
   cover_image_url?: string | null;
   public_page_variant: PublicPageVariant;
   mini_site_config: MiniSiteConfigWire | null;
+  service_currency?: string | null;
+  tax_mode?: string | null;
+  tax_rate_percent?: number | null;
+  show_tax_note_to_customers?: boolean | null;
 };
 
 export function mapPublicBusinessFromWire(wire: PublicBusinessWire): PublicBusiness {
@@ -57,6 +61,10 @@ export function mapPublicBusinessFromWire(wire: PublicBusinessWire): PublicBusin
     miniSiteConfig: wire.mini_site_config
       ? mapMiniSiteConfigFromWire(wire.mini_site_config)
       : null,
+    service_currency: (wire.service_currency || "USD").toUpperCase(),
+    tax_mode: wire.tax_mode ?? "none",
+    tax_rate_percent: Number(wire.tax_rate_percent ?? 0) || 0,
+    show_tax_note_to_customers: wire.show_tax_note_to_customers !== false,
   };
 }
 

@@ -41,7 +41,9 @@ export function AdminSettingsTabs({ activeTab, onChange }: AdminSettingsTabsProp
                   ? "border-emerald-600 text-emerald-700"
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
               }`}
-              data-testid={`admin-settings-tab-${tab.id}`}
+              data-testid={
+                tab.id === "services" ? "admin-settings-services-tab" : `admin-settings-tab-${tab.id}`
+              }
               aria-current={isActive ? "page" : undefined}
             >
               {tab.label}

@@ -1,15 +1,42 @@
-from __future__ import annotations
-
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from app.exceptions.business import SlotUnavailableError
 from app.models.business import Business
+from app.models.enums import BookingStatus
 from app.models.service import Service
 
 SLOT_TOO_SOON_MESSAGE = "This time slot is too soon to book."
 SLOT_OUTSIDE_WINDOW_MESSAGE = "This time slot is outside the booking window."
 
 MAX_BOOKING_MIN_NOTICE_MINUTES = 43200
+
+
+def resolve_booking_status_for_auto_confirm(
+    business_settings: dict | None,
+    *,
+    starts_at: datetime,
+    now: datetime | None = None,
+) -> BookingStatus:
+    """Return confirmed only when auto-confirm is enabled and within optional window."""
+    settings = business_settings or {}
+    if not bool(settings.get("auto_confirm_bookings", False)):
+        return BookingStatus.pending
+
+    within_hours = int(settings.get("auto_confirm_within_hours", 0) or 0)
+    if within_hours <= 0:
+        return BookingStatus.confirmed
+
+    reference = now or datetime.now(UTC)
+    if starts_at.tzinfo is None:
+        starts = starts_at.replace(tzinfo=UTC)
+    else:
+        starts = starts_at
+    if reference.tzinfo is None:
+        reference = reference.replace(tzinfo=UTC)
+
+    if starts <= reference + timedelta(hours=within_hours):
+        return BookingStatus.confirmed
+    return BookingStatus.pending
 
 
 def _business_min_notice_minutes(business_settings: dict | None) -> int:

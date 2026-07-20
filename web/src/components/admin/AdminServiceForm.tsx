@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { FormField } from "@/components/FormField";
 import { TextAreaField } from "@/components/TextAreaField";
 import { AdminServiceImageSection } from "@/components/admin/AdminServiceImageSection";
@@ -27,6 +27,8 @@ type FieldErrors = Record<string, string>;
 type AdminServiceFormProps = {
   mode: FormMode;
   businessId?: string;
+  /** Settings → Services currency used as create default / display source of truth. */
+  defaultCurrency?: string;
   initial?: AdminServiceRead;
   submitting?: boolean;
   submitError?: string | null;
@@ -78,7 +80,7 @@ type SectionId =
   | "marketplace"
   | "gallery";
 
-function defaultFormState(initial?: AdminServiceRead): FormState {
+function defaultFormState(initial?: AdminServiceRead, defaultCurrency = "USD"): FormState {
   const initialCategory = initial?.category ?? "";
   return {
     name: initial?.name ?? "",
@@ -98,7 +100,7 @@ function defaultFormState(initial?: AdminServiceRead): FormState {
     waitlistEnabled: initial?.waitlist_enabled ?? false,
     priceType: initial?.price_type ?? "fixed",
     priceCents: initial?.price_cents != null ? String(initial.price_cents) : "",
-    currency: initial?.currency ?? "USD",
+    currency: (initial?.currency || defaultCurrency || "USD").toUpperCase(),
     requirePayment: initial?.require_payment ?? false,
     isActive: initial?.is_active ?? true,
     sortOrder: initial?.sort_order != null ? String(initial.sort_order) : "0",
@@ -271,6 +273,7 @@ function AccordionSection({
 export function AdminServiceForm({
   mode,
   businessId,
+  defaultCurrency = "USD",
   initial,
   submitting = false,
   submitError,
@@ -286,8 +289,19 @@ export function AdminServiceForm({
   onDelete,
 }: AdminServiceFormProps) {
   const serviceType = initial?.type ?? undefined;
-  const [form, setForm] = useState<FormState>(() => defaultFormState(initial));
+  const [form, setForm] = useState<FormState>(() => defaultFormState(initial, defaultCurrency));
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  useEffect(() => {
+    if (mode !== "create" || initial) {
+      return;
+    }
+    setForm((prev) => ({
+      ...prev,
+      currency: (defaultCurrency || "USD").toUpperCase(),
+    }));
+  }, [defaultCurrency, initial, mode]);
+
   const [openSections, setOpenSections] = useState<Record<SectionId, boolean>>(() => ({
     avatar: true,
     basic: true,

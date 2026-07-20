@@ -128,8 +128,14 @@ class ServiceService:
     ) -> Service:
         await self._enforce_free_plan_limit(business.id)
         self._validate_type_for_operating_mode(business, payload.type)
+        self._validate_required_category(business, payload.category)
         duration = self._resolve_duration(payload.type, payload.duration_minutes)
         self._validate_price(payload.price_type, payload.price_cents)
+
+        from app.utils.service_currency import resolve_service_currency
+
+        # Business Settings → Services currency is the global source of truth.
+        currency = resolve_service_currency(business.settings)
 
         service = Service(
             business_id=business.id,
@@ -139,7 +145,7 @@ class ServiceService:
             type=payload.type,
             duration_minutes=duration,
             price_cents=payload.price_cents,
-            currency=payload.currency,
+            currency=currency,
             price_type=payload.price_type,
             require_payment=payload.require_payment,
             is_active=payload.is_active,
@@ -189,6 +195,13 @@ class ServiceService:
         price_type = data.get("price_type", service.price_type)
         price_cents = data.get("price_cents", service.price_cents)
         self._validate_price(price_type, price_cents)
+
+        next_category = data["category"] if "category" in data else service.category
+        self._validate_required_category(business, next_category)
+
+        from app.utils.service_currency import resolve_service_currency
+
+        data["currency"] = resolve_service_currency(business.settings)
 
         await self.repo.update(service, data)
         await self.session.commit()
@@ -315,6 +328,19 @@ class ServiceService:
             raise ValidationAppError(
                 f"Service type '{service_type.value}' is not allowed for "
                 f"operating mode '{business.operating_mode.value}'."
+            )
+
+    def _validate_required_category(
+        self,
+        business: Business,
+        category: str | None,
+    ) -> None:
+        settings = business.settings or {}
+        if not bool(settings.get("require_service_category", False)):
+            return
+        if not (category or "").strip():
+            raise ValidationAppError(
+                "A service category is required by your business settings."
             )
 
     def _resolve_duration(

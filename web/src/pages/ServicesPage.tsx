@@ -5,6 +5,7 @@ import { listPublicServices } from "@/api/publicApi";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
+import { PublicBusinessTaxGate } from "@/components/PublicBusinessTaxGate";
 import { ServiceCard } from "@/components/ServiceCard";
 import type { ServiceType } from "@/types/api";
 import { getApiErrorMessage, isNotFoundError } from "@/utils/errors";
@@ -45,6 +46,7 @@ export function ServicesPage() {
   const showFilters = showBookingFilter || showOrderFilter;
 
   return (
+    <PublicBusinessTaxGate slug={slug}>
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold md:text-2xl">Services</h1>
@@ -110,6 +112,7 @@ export function ServicesPage() {
         </>
       ) : null}
     </section>
+    </PublicBusinessTaxGate>
   );
 }
 

@@ -340,6 +340,15 @@ export function AdminServicesPage() {
     enabled: Boolean(businessId),
   });
 
+  const businessQuery = useQuery({
+    queryKey: ["admin-business", businessId],
+    queryFn: () => getBusiness(businessId!),
+    enabled: Boolean(businessId),
+  });
+
+  const serviceCurrency =
+    (businessQuery.data?.settings?.service_currency || "USD").toUpperCase();
+
   const bookingsQuery = useQuery({
     queryKey: ["admin-bookings", businessId, "service-counts"],
     queryFn: () => listAdminBookings(businessId!),
@@ -505,8 +514,7 @@ export function AdminServicesPage() {
       dateScopedServices.map((s) => s.category).filter((value): value is string => Boolean(value)),
     ).size;
     const avgPrice = averageServicePriceCents(dateScopedServices);
-    const currency =
-      dateScopedServices.find((s) => s.price_type === "fixed" && s.currency)?.currency ?? "USD";
+    const currency = serviceCurrency;
 
     const prevTotal = compareServices.length;
     const prevActive = compareServices.filter((s) => s.is_active).length;
@@ -531,7 +539,7 @@ export function AdminServicesPage() {
         hidden: percentChange(hidden, prevHidden),
       },
     };
-  }, [compareServices, dateScopedServices]);
+  }, [compareServices, dateScopedServices, serviceCurrency]);
 
   const tabCounts = useMemo(() => {
     const base = dateScopedServices.filter((service) => {
@@ -1154,7 +1162,7 @@ export function AdminServicesPage() {
                           </td>
                           <td className="overflow-hidden px-2 py-2.5 align-middle text-sm font-semibold text-gray-900">
                             <div className="truncate">
-                              <PriceLabel service={service} />
+                              <PriceLabel service={service} currency={serviceCurrency} />
                             </div>
                           </td>
                           <td className="whitespace-nowrap px-2 py-2.5 align-middle text-sm text-gray-700">
@@ -1225,6 +1233,7 @@ export function AdminServicesPage() {
                 <AdminServiceForm
                   mode="create"
                   businessId={businessId ?? undefined}
+                  defaultCurrency={serviceCurrency}
                   pendingImageFile={pendingCreateImageFile}
                   onPendingImageFileChange={setPendingCreateImageFile}
                   pendingSlotCapacityOverrides={pendingCreateOverrides}
@@ -1258,6 +1267,7 @@ export function AdminServicesPage() {
               <AdminServiceForm
                 mode="edit"
                 businessId={businessId ?? undefined}
+                defaultCurrency={serviceCurrency}
                 initial={editingService}
                 submitting={updateMutation.isPending}
                 submitError={formSubmitError}

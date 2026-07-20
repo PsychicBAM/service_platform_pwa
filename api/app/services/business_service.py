@@ -77,6 +77,7 @@ from app.utils.public_location import (
 )
 from app.utils.public_cover_image import resolve_public_cover_image_url
 from app.utils.marketplace_categories import category_keywords
+from app.utils.service_currency import resolve_service_currency
 from app.utils.service_image import read_service_image, SERVICE_IMAGE_MAX_BYTES, SERVICE_IMAGE_MAX_SIZE_MESSAGE
 
 
@@ -155,7 +156,11 @@ class BusinessService:
         return image.thumbnail_url or image.url
 
     @staticmethod
-    def _starts_at_price(services) -> tuple[int | None, str | None]:
+    def _starts_at_price(
+        services,
+        *,
+        display_currency: str,
+    ) -> tuple[int | None, str | None]:
         priced = []
         for service in services:
             if service.price_type in (PriceType.fixed, PriceType.free):
@@ -163,11 +168,10 @@ class BusinessService:
                 if service.price_type == PriceType.free and cents is None:
                     cents = 0
                 if cents is not None:
-                    priced.append((cents, service.currency))
+                    priced.append(cents)
         if not priced:
             return None, None
-        cents, currency = min(priced, key=lambda item: item[0])
-        return cents, currency
+        return min(priced), display_currency
 
     def _to_directory_item(
         self,
@@ -176,6 +180,7 @@ class BusinessService:
         review_count: int,
         services,
     ) -> PublicBusinessDirectoryItem:
+        display_currency = resolve_service_currency(business.settings)
         previews: list[PublicBusinessDirectoryServicePreview] = []
         has_booking_service = False
         for service in services:
@@ -190,7 +195,7 @@ class BusinessService:
                     name=service.name,
                     type=service.type.value,
                     price_cents=price_cents,
-                    currency=service.currency,
+                    currency=display_currency,
                     price_type=service.price_type.value,
                     duration_minutes=service.duration_minutes,
                     image_url=image_url,
@@ -201,7 +206,10 @@ class BusinessService:
             services=services,
             service_image_url=self._service_image_url,
         )
-        starts_at_price_cents, starts_at_currency = self._starts_at_price(services)
+        starts_at_price_cents, starts_at_currency = self._starts_at_price(
+            services,
+            display_currency=display_currency,
+        )
         public_location = read_public_location(business.settings)
         return PublicBusinessDirectoryItem(
             name=business.name,
@@ -252,7 +260,14 @@ class BusinessService:
                 data["address"] = display_address
 
         if settings_patch is not None:
+            previous_currency = resolve_service_currency(business.settings)
             await self.repo.update_settings(business, settings_patch)
+            next_currency = resolve_service_currency(business.settings)
+            if next_currency != previous_currency or "service_currency" in settings_patch:
+                await ServiceRepository(self.session).set_currency_for_business(
+                    business.id,
+                    next_currency,
+                )
 
         if data:
             await self.repo.update_business(business, data)
@@ -490,6 +505,7 @@ class BusinessService:
             service_image_url=self._service_image_url,
         )
         public_location = read_public_location(business.settings)
+        settings_read = BusinessSettingsRead.from_settings(business.settings)
         return PublicBusinessRead(
             id=business.id,
             name=business.name,
@@ -505,6 +521,10 @@ class BusinessService:
             cover_image_url=cover_image_url,
             public_page_variant=public_page_variant,
             mini_site_config=mini_site_config,
+            service_currency=settings_read.service_currency,
+            tax_mode=settings_read.tax_mode,
+            tax_rate_percent=settings_read.tax_rate_percent,
+            show_tax_note_to_customers=settings_read.show_tax_note_to_customers,
         )
 
     @staticmethod

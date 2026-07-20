@@ -34,6 +34,10 @@ export const mockPublicBusiness: PublicBusiness = {
   review_count: 24,
   public_page_variant: "standard",
   miniSiteConfig: null,
+  service_currency: "USD",
+  tax_mode: "none",
+  tax_rate_percent: 0,
+  show_tax_note_to_customers: true,
 };
 
 export const mockBookingService: PublicService = {
@@ -251,6 +255,22 @@ export const mockAdminBusiness: BusinessAdminRead = {
     notification_email_enabled: true,
     auto_review_request_enabled: false,
     auto_review_request_delay_minutes: 1440,
+    service_currency: "USD",
+    price_display: "including_tax",
+    tax_mode: "none",
+    tax_rate_percent: 0,
+    show_tax_note_to_customers: true,
+    service_visibility: "all_visible",
+    show_service_duration: true,
+    show_service_description: true,
+    show_service_capacity: false,
+    show_service_images: true,
+    show_service_categories: true,
+    require_service_category: false,
+    duration_unit: "minutes",
+    default_duration_minutes: 60,
+    duration_increment_minutes: 15,
+    auto_confirm_within_hours: 0,
   },
   subscription: {
     plan: "free",

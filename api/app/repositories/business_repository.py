@@ -21,6 +21,19 @@ from app.utils.public_directory_sort import normalize_directory_sort
 
 ALLOWED_AUTO_REVIEW_REQUEST_DELAY_MINUTES = frozenset({0, 60, 1440, 2880, 10080})
 
+ALLOWED_SERVICE_CURRENCIES = frozenset(
+    {"USD", "EUR", "GBP", "CAD", "AUD", "SAR", "AED", "RUB"}
+)
+ALLOWED_PRICE_DISPLAY_MODES = frozenset({"including_tax", "excluding_tax", "hide_tax"})
+ALLOWED_SERVICE_VISIBILITY_MODES = frozenset({"all_visible", "active_only"})
+ALLOWED_DURATION_UNITS = frozenset({"minutes"})
+ALLOWED_DURATION_INCREMENTS = frozenset({5, 10, 15, 20, 30, 45, 60})
+ALLOWED_TAX_MODES = frozenset({"none", "inclusive", "exclusive"})
+ALLOWED_SERVICE_ADDON_SELECTION_MODES = frozenset(
+    {"customer_choice", "preselected_none", "required"}
+)
+ALLOWED_SERVICE_ADDON_DISPLAY_MODES = frozenset({"service_page", "checkout", "both"})
+
 DEFAULT_BUSINESS_SETTINGS: dict[str, Any] = {
     "auto_confirm_bookings": False,
     "cancellation_hours": 24,
@@ -33,6 +46,27 @@ DEFAULT_BUSINESS_SETTINGS: dict[str, Any] = {
     "notification_email_enabled": True,
     "auto_review_request_enabled": False,
     "auto_review_request_delay_minutes": 1440,
+    # Global service configuration (Settings → Services)
+    "service_currency": "USD",
+    "price_display": "including_tax",  # legacy; prefer show_tax_note_to_customers
+    "tax_mode": "none",
+    "tax_rate_percent": 0.0,
+    "show_tax_note_to_customers": True,
+    "service_visibility": "all_visible",
+    "show_service_duration": True,
+    "show_service_description": True,
+    "show_service_capacity": False,
+    "show_service_images": True,
+    "show_service_categories": True,
+    "require_service_category": False,
+    "duration_unit": "minutes",
+    "default_duration_minutes": 60,
+    "duration_increment_minutes": 15,
+    # 0 = no window limit when auto_confirm_bookings is enabled
+    "auto_confirm_within_hours": 0,
+    "service_addons_enabled": False,
+    "service_addon_selection_mode": "customer_choice",
+    "service_addon_display": "service_page",
 }
 
 
