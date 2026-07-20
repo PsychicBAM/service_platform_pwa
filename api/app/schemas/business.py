@@ -19,6 +19,10 @@ from app.repositories.business_repository import (
 )
 from app.schemas.mini_site import MiniSiteConfig
 from app.schemas.service_image import ServiceImageMedia
+from app.utils.notification_templates import (
+    normalize_notification_templates_patch,
+    resolve_notification_templates,
+)
 from app.utils.public_location import PublicLocation, PublicLocationWrite
 
 
@@ -69,6 +73,7 @@ class BusinessSettingsRead(BaseModel):
     notification_email_enabled: bool
     auto_review_request_enabled: bool
     auto_review_request_delay_minutes: int
+    notification_templates: dict[str, Any]
     service_currency: str
     price_display: str
     tax_mode: str
@@ -107,6 +112,7 @@ class BusinessSettingsRead(BaseModel):
             auto_review_request_delay_minutes=int(
                 merged["auto_review_request_delay_minutes"]
             ),
+            notification_templates=resolve_notification_templates(merged),
             service_currency=str(merged["service_currency"]).upper(),
             price_display=str(merged["price_display"]),
             tax_mode=str(merged["tax_mode"]),
@@ -141,6 +147,7 @@ class BusinessSettingsUpdate(BaseModel):
     notification_email_enabled: bool | None = None
     auto_review_request_enabled: bool | None = None
     auto_review_request_delay_minutes: int | None = None
+    notification_templates: dict[str, Any] | None = None
     service_currency: str | None = None
     price_display: str | None = None
     tax_mode: str | None = None
@@ -207,6 +214,13 @@ class BusinessSettingsUpdate(BaseModel):
                 "0, 60, 1440, 2880, 10080"
             )
         return value
+
+    @field_validator("notification_templates")
+    @classmethod
+    def validate_notification_templates(
+        cls, value: dict[str, Any] | None
+    ) -> dict[str, Any] | None:
+        return normalize_notification_templates_patch(value)
 
     @field_validator("service_currency")
     @classmethod

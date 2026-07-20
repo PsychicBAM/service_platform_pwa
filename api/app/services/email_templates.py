@@ -252,28 +252,46 @@ def build_client_review_request_email(
     reference: str | None,
     review_url: str,
     expire_days: int,
+    service_name: str | None = None,
+    target_type: str = "booking",
+    custom_subject: str | None = None,
+    custom_body: str | None = None,
+    business_public_url: str | None = None,
 ) -> EmailMessage:
-    greeting_name = recipient_name.strip() or "there"
-    subject = f"How was your visit with {business_name}?"
-    reference_line = f"Reference: {reference}\n" if reference else ""
-    text_body = (
-        f"Hello {greeting_name},\n\n"
-        f"Thank you for choosing {business_name}. "
-        "We would appreciate a short review when you have a moment.\n\n"
-        f"{reference_line}"
-        f"Leave your review here:\n{review_url}\n\n"
-        f"This link expires in {expire_days} days.\n\n"
-        "If you were not expecting this email, you can ignore it.\n"
+    from app.utils.notification_templates import (
+        DEFAULT_REVIEW_REQUEST_BODY,
+        DEFAULT_REVIEW_REQUEST_SUBJECT,
+        build_review_request_variable_map,
+        plaintext_to_simple_html,
+        render_template,
     )
-    html_body = (
-        f"<p>Hello {greeting_name},</p>"
-        f"<p>Thank you for choosing <strong>{business_name}</strong>. "
-        "We would appreciate a short review when you have a moment.</p>"
-        + (f"<p>Reference: {reference}</p>" if reference else "")
-        + f'<p><a href="{review_url}">Leave your review</a></p>'
-        f"<p>This link expires in {expire_days} days.</p>"
-        "<p>If you were not expecting this email, you can ignore it.</p>"
+
+    values = build_review_request_variable_map(
+        business_name=business_name,
+        client_name=recipient_name,
+        service_name=service_name,
+        review_url=review_url,
+        reference=reference,
+        target_type=target_type,
+        expire_days=expire_days,
+        business_public_url=business_public_url,
     )
+
+    subject_template = (custom_subject or "").strip() or DEFAULT_REVIEW_REQUEST_SUBJECT
+    body_template = (custom_body or "").strip() or DEFAULT_REVIEW_REQUEST_BODY
+    subject = render_template(subject_template, values).strip() or (
+        f"How was your visit with {business_name}?"
+    )
+    text_body = render_template(body_template, values)
+    if not text_body.endswith("\n"):
+        text_body += "\n"
+    html_body = plaintext_to_simple_html(text_body)
+    # Keep the review URL clickable in HTML when present as plain text.
+    if review_url and review_url in html_body:
+        html_body = html_body.replace(
+            review_url,
+            f'<a href="{review_url}">Leave your review</a>',
+        )
     return EmailMessage(
         to_email=to_email,
         subject=subject,

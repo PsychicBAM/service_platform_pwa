@@ -12,7 +12,12 @@ import {
 } from "@/components/admin/payments/AdminPaymentsBillingPanel";
 import { AdminServicesSettingsPanel } from "@/components/admin/AdminServicesSettingsPanel";
 import { AdminTeamSettingsPanel } from "@/components/admin/AdminTeamSettingsPanel";
-import { AdminSettingsSectionCard } from "@/components/admin/AdminSettingsSectionCard";
+import { AdminNotificationsSettingsPanel } from "@/components/admin/AdminNotificationsSettingsPanel";
+import {
+  findUnknownTemplateVariables,
+  resolveNotificationTemplates,
+  type NotificationTemplatesMap,
+} from "@/lib/notificationTemplates";
 import {
   AdminSettingsTabs,
   type AdminSettingsTabId,
@@ -69,6 +74,7 @@ type SettingsFormState = {
   notification_email_enabled: boolean;
   auto_review_request_enabled: boolean;
   auto_review_request_delay_minutes: number;
+  notification_templates: NotificationTemplatesMap;
   service_currency: string;
   tax_mode: string;
   tax_rate_percent: string;
@@ -130,6 +136,7 @@ function formFromBusiness(data: BusinessAdminRead): SettingsFormState {
     notification_email_enabled: settings.notification_email_enabled,
     auto_review_request_enabled: settings.auto_review_request_enabled,
     auto_review_request_delay_minutes: settings.auto_review_request_delay_minutes,
+    notification_templates: resolveNotificationTemplates(settings.notification_templates),
     service_currency: settings.service_currency ?? SERVICES_SETTINGS_DEFAULTS.service_currency,
     tax_mode: settings.tax_mode ?? SERVICES_SETTINGS_DEFAULTS.tax_mode,
     tax_rate_percent: String(
@@ -405,6 +412,13 @@ function buildUpdatePayload(form: SettingsFormState): BusinessUpdatePayload {
       notification_email_enabled: form.notification_email_enabled,
       auto_review_request_enabled: form.auto_review_request_enabled,
       auto_review_request_delay_minutes: form.auto_review_request_delay_minutes,
+      notification_templates: {
+        review_request: {
+          subject: form.notification_templates.review_request.subject,
+          body: form.notification_templates.review_request.body,
+          enabled: form.notification_templates.review_request.enabled,
+        },
+      },
       service_currency: form.service_currency,
       tax_mode: form.tax_mode,
       tax_rate_percent:
@@ -447,6 +461,8 @@ export function AdminSettingsPage() {
   const [baselineForm, setBaselineForm] = useState<SettingsFormState | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [templateSuccess, setTemplateSuccess] = useState<string | null>(null);
+  const [templateError, setTemplateError] = useState<string | null>(null);
   const [servicesFieldErrors, setServicesFieldErrors] = useState<
     Partial<Record<keyof SettingsFormState, string>>
   >({});
@@ -463,6 +479,8 @@ export function AdminSettingsPage() {
     setSearchParams(next, { replace: true });
     setSuccessMessage(null);
     setActionError(null);
+    setTemplateSuccess(null);
+    setTemplateError(null);
     setServicesFieldErrors({});
   }
 
@@ -646,6 +664,8 @@ export function AdminSettingsPage() {
             "Manage your business profile, contact details, booking defaults, and security."
           ) : activeTab === "team" ? (
             "Manage team members, roles, and permissions."
+          ) : activeTab === "notifications" ? (
+            "Manage notification channels, event preferences, and customer message templates."
           ) : (
             "Manage business profile, notifications, email delivery, and billing."
           )}
@@ -654,13 +674,13 @@ export function AdminSettingsPage() {
 
       <AdminSettingsTabs activeTab={activeTab} onChange={setActiveTab} />
 
-      {activeTab !== "services" && successMessage ? (
+      {activeTab !== "services" && activeTab !== "notifications" && successMessage ? (
         <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           {successMessage}
         </p>
       ) : null}
 
-      {activeTab !== "services" && actionError ? (
+      {activeTab !== "services" && activeTab !== "notifications" && actionError ? (
         <ErrorState title="Could not save settings" message={actionError} />
       ) : null}
 
@@ -725,40 +745,69 @@ export function AdminSettingsPage() {
           ) : null}
 
           {activeTab === "notifications" ? (
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              <AdminSettingsSectionCard
-                title="Notifications"
-                subtitle="Control operational notification emails for this business."
-              >
-                <label className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50/80 p-4 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={form.notification_email_enabled}
-                    disabled={saving}
-                    onChange={(event) =>
-                      updateForm("notification_email_enabled", event.target.checked)
-                    }
-                    className="mt-0.5 rounded border-gray-300"
-                  />
-                  <span>
-                    <span className="block font-semibold text-gray-900">
-                      Notification email enabled
-                    </span>
-                    <span className="mt-1 block text-xs leading-relaxed text-gray-500">
-                      When enabled, this business can receive booking/request notification emails
-                      (if server email delivery is configured).
-                    </span>
-                  </span>
-                </label>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-                >
-                  {saving ? "Saving…" : "Save changes"}
-                </button>
-              </AdminSettingsSectionCard>
-            </form>
+            <AdminNotificationsSettingsPanel
+              businessName={form.name || businessName || "Your Business"}
+              notificationEmailEnabled={form.notification_email_enabled}
+              autoReviewRequestEnabled={form.auto_review_request_enabled}
+              templates={form.notification_templates}
+              saving={saving}
+              emailDeliveryActive={user?.email_delivery_active ?? null}
+              onNotificationEmailEnabledChange={(enabled) =>
+                updateForm("notification_email_enabled", enabled)
+              }
+              onTemplatesChange={(templates) => updateForm("notification_templates", templates)}
+              onSaveNotifications={(event) => {
+                setTemplateSuccess(null);
+                setTemplateError(null);
+                void handleSubmit(event);
+              }}
+              onSaveTemplates={() => {
+                if (!form) {
+                  return;
+                }
+                const unknown = [
+                  ...findUnknownTemplateVariables(form.notification_templates.review_request.subject),
+                  ...findUnknownTemplateVariables(form.notification_templates.review_request.body),
+                ];
+                if (unknown.length > 0) {
+                  setTemplateSuccess(null);
+                  setTemplateError(
+                    `Unknown variables: ${[...new Set(unknown)].map((name) => `{${name}}`).join(", ")}`,
+                  );
+                  return;
+                }
+                if (
+                  !form.notification_templates.review_request.subject.trim() ||
+                  !form.notification_templates.review_request.body.trim()
+                ) {
+                  setTemplateSuccess(null);
+                  setTemplateError("Subject and body are required.");
+                  return;
+                }
+                setTemplateError(null);
+                setActionError(null);
+                saveMutation.mutate(buildUpdatePayload(form), {
+                  onSuccess: () => {
+                    setTemplateSuccess("Review request template saved.");
+                    setSuccessMessage(null);
+                  },
+                  onError: (error) => {
+                    setTemplateSuccess(null);
+                    setTemplateError(
+                      getAdminSettingsErrorMessage(error, "Could not save template"),
+                    );
+                  },
+                });
+              }}
+              notificationsSuccess={
+                activeTab === "notifications" && !templateSuccess ? successMessage : null
+              }
+              notificationsError={
+                activeTab === "notifications" && !templateError ? actionError : null
+              }
+              templateSuccess={templateSuccess}
+              templateError={templateError}
+            />
           ) : null}
 
           {activeTab === "email-delivery" ? (

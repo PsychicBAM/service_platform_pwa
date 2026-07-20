@@ -46,7 +46,9 @@ export function AdminSettingsTabs({ activeTab, onChange }: AdminSettingsTabsProp
                   ? "admin-settings-services-tab"
                   : tab.id === "team"
                     ? "admin-settings-team-tab"
-                    : `admin-settings-tab-${tab.id}`
+                    : tab.id === "notifications"
+                      ? "admin-settings-notifications-tab"
+                      : `admin-settings-tab-${tab.id}`
               }
               aria-current={isActive ? "page" : undefined}
             >

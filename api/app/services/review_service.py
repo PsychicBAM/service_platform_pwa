@@ -547,6 +547,15 @@ class ReviewService:
             target_id=target_id,
         )
         review_url = build_review_request_url(token)
+        from app.utils.notification_templates import (
+            REVIEW_REQUEST_TEMPLATE_KEY,
+            resolve_notification_templates,
+        )
+
+        templates = resolve_notification_templates(business.settings)
+        review_template = templates.get(REVIEW_REQUEST_TEMPLATE_KEY) or {}
+        service = getattr(target, "service", None)
+        service_name = getattr(service, "name", None) if service is not None else None
         message = build_client_review_request_email(
             to_email=client_email,
             recipient_name=recipient_name,
@@ -554,6 +563,10 @@ class ReviewService:
             reference=reference,
             review_url=review_url,
             expire_days=settings.review_request_token_expire_days,
+            service_name=service_name,
+            target_type=target_type,
+            custom_subject=str(review_template.get("subject") or "") or None,
+            custom_body=str(review_template.get("body") or "") or None,
         )
         result = EmailService(settings).send_email(message)
         if result.message_code in {EMAIL_CONFIG_INVALID, EMAIL_SEND_FAILED}:

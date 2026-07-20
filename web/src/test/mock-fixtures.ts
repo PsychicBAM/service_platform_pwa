@@ -255,6 +255,13 @@ export const mockAdminBusiness: BusinessAdminRead = {
     notification_email_enabled: true,
     auto_review_request_enabled: false,
     auto_review_request_delay_minutes: 1440,
+    notification_templates: {
+      review_request: {
+        subject: "Review your experience with {business_name}",
+        body: "Hi {client_name},\n\nThank you for choosing {business_name}.\n\nPlease leave a review for your recent {service_name}.\n\nReview link:\n{review_link}\n\nThank you,\n{business_name}",
+        enabled: true,
+      },
+    },
     service_currency: "USD",
     price_display: "including_tax",
     tax_mode: "none",

@@ -619,6 +619,13 @@ export interface BusinessSettingsRead {
   notification_email_enabled: boolean;
   auto_review_request_enabled: boolean;
   auto_review_request_delay_minutes: number;
+  notification_templates?: {
+    review_request?: {
+      subject?: string;
+      body?: string;
+      enabled?: boolean;
+    };
+  };
   service_currency?: string;
   price_display?: string;
   tax_mode?: string;
@@ -653,6 +660,13 @@ export interface BusinessSettingsUpdatePayload {
   notification_email_enabled?: boolean;
   auto_review_request_enabled?: boolean;
   auto_review_request_delay_minutes?: number;
+  notification_templates?: {
+    review_request?: {
+      subject?: string;
+      body?: string;
+      enabled?: boolean;
+    };
+  };
   service_currency?: string;
   price_display?: string;
   tax_mode?: string;
