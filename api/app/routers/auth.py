@@ -5,6 +5,8 @@ from app.database import get_db
 from app.dependencies.auth import require_active_user
 from app.models.user import User
 from app.schemas.auth import (
+    ChangePasswordRequest,
+    ChangePasswordResponse,
     EmailVerificationResendResponse,
     EmailVerifyRequest,
     EmailVerifyResponse,
@@ -24,6 +26,7 @@ from app.schemas.auth import (
 )
 from app.services.auth_service import AuthService
 from app.services.email_verification_service import EmailVerificationService
+from app.services.password_change_service import PasswordChangeService
 from app.services.password_reset_service import PasswordResetService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -124,3 +127,17 @@ async def reset_password(
 ) -> PasswordResetConfirmResponse:
     await reset_service.reset_password(payload.token, payload.new_password)
     return PasswordResetConfirmResponse(reset=True)
+
+
+@router.post("/change-password", response_model=ChangePasswordResponse)
+async def change_password(
+    payload: ChangePasswordRequest,
+    current_user: User = Depends(require_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> ChangePasswordResponse:
+    await PasswordChangeService(db).change_password(
+        current_user,
+        current_password=payload.current_password,
+        new_password=payload.new_password,
+    )
+    return ChangePasswordResponse(changed=True)

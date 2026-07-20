@@ -31,11 +31,21 @@ from app.schemas.business import (
 )
 from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite, MiniSiteTemplate
 from app.schemas.mini_site_media import MiniSiteImageMedia, MiniSiteMediaRemoveResponse, MiniSiteMediaUploadResponse
+from app.schemas.business_logo_image import (
+    BusinessLogoImageRemoveResponse,
+    BusinessLogoImageUploadResponse,
+)
 from app.schemas.marketplace_cover_image import (
     MarketplaceCoverImageRemoveResponse,
     MarketplaceCoverImageUploadResponse,
 )
 from app.schemas.service_image import ServiceImageMedia
+from app.services.business_logo_image_optimizer import optimize_business_logo_image
+from app.services.business_logo_image_storage import (
+    business_logo_upload_dir,
+    delete_business_logo_upload_file_if_owned,
+    extension_for_content_type as business_logo_extension_for_content_type,
+)
 from app.services.marketplace_cover_image_optimizer import optimize_marketplace_cover_image
 from app.services.marketplace_cover_image_storage import (
     delete_marketplace_cover_image_files_if_owned,
@@ -357,6 +367,44 @@ class BusinessService:
         await self.session.refresh(business)
 
         return MiniSiteMediaRemoveResponse(template=template, slot=slot, removed=True)
+
+    async def upload_business_logo_image(
+        self,
+        business: Business,
+        *,
+        content: bytes,
+        content_type: str,
+        original_filename: str = "upload",
+    ) -> BusinessLogoImageUploadResponse:
+        _ = original_filename
+        if not content:
+            raise ValidationAppError("Image file is required.")
+        if len(content) > SERVICE_IMAGE_MAX_BYTES:
+            raise ValidationAppError(SERVICE_IMAGE_MAX_SIZE_MESSAGE)
+
+        business_logo_extension_for_content_type(content_type)
+        business_logo_upload_dir(business.id)
+
+        delete_business_logo_upload_file_if_owned(business.id, business.logo_url)
+
+        optimized = optimize_business_logo_image(business.id, content=content)
+        business.logo_url = optimized.url
+        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(business)
+
+        return BusinessLogoImageUploadResponse(logo_url=optimized.url)
+
+    async def remove_business_logo_image(
+        self,
+        business: Business,
+    ) -> BusinessLogoImageRemoveResponse:
+        delete_business_logo_upload_file_if_owned(business.id, business.logo_url)
+        business.logo_url = None
+        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(business)
+        return BusinessLogoImageRemoveResponse(removed=True)
 
     async def upload_marketplace_cover_image(
         self,

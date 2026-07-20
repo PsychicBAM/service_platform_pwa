@@ -438,6 +438,15 @@ export interface PasswordResetConfirmResponse {
   reset: boolean;
 }
 
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface ChangePasswordResponse {
+  changed: boolean;
+}
+
 export type MyBookingStatusFilter = "upcoming" | "past" | "cancelled";
 export type MyOrderStatusFilter = "active" | "completed" | "declined" | "cancelled";
 

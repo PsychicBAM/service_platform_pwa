@@ -79,3 +79,21 @@ class PasswordResetTokenInvalidError(AppError):
             code="PASSWORD_RESET_TOKEN_INVALID",
             status_code=400,
         )
+
+
+class InvalidCurrentPasswordError(AppError):
+    def __init__(self, message: str = "Current password is incorrect.") -> None:
+        super().__init__(
+            message=message,
+            code="INVALID_CURRENT_PASSWORD",
+            status_code=400,
+        )
+
+
+class PasswordChangeValidationError(AppError):
+    def __init__(self, message: str) -> None:
+        super().__init__(
+            message=message,
+            code="PASSWORD_CHANGE_VALIDATION_ERROR",
+            status_code=400,
+        )

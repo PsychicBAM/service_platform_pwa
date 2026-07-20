@@ -114,9 +114,23 @@ export function AdminMarketplaceCoverSection({
       </div>
 
       <div
-        className="rounded-lg border border-slate-200 bg-white px-3 py-2.5"
+        className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5"
         data-testid="admin-marketplace-cover-status"
       >
+        <div className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-slate-50">
+          {normalizedImage ? (
+            <img
+              src={normalizedImage.url}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <path d="m3 15 5-4 4 3 3-2 6 5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </div>
         {normalizedImage ? (
           <p className="text-xs text-slate-700">
             Current file:{" "}

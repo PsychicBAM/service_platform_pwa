@@ -9,6 +9,10 @@ from app.models.business import Business
 from app.models.enums import ConsentEntityType, ConsentSource
 from app.schemas.business import BusinessAdminRead, BusinessUpdate
 from app.schemas.legal_consent_records import LegalConsentRecordListResponse
+from app.schemas.business_logo_image import (
+    BusinessLogoImageRemoveResponse,
+    BusinessLogoImageUploadResponse,
+)
 from app.schemas.marketplace_cover_image import (
     MarketplaceCoverImageRemoveResponse,
     MarketplaceCoverImageUploadResponse,
@@ -113,6 +117,42 @@ async def remove_mini_site_media(
         template=template,
         slot=slot,
     )
+
+
+@router.post(
+    "/{business_id}/logo-image",
+    response_model=BusinessLogoImageUploadResponse,
+)
+async def upload_business_logo_image(
+    business_id: uuid.UUID,
+    file: UploadFile = File(...),
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> BusinessLogoImageUploadResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    content = await file.read()
+    content_type = file.content_type or ""
+    return await BusinessService(db).upload_business_logo_image(
+        business,
+        content=content,
+        content_type=content_type,
+        original_filename=file.filename or "upload",
+    )
+
+
+@router.delete(
+    "/{business_id}/logo-image",
+    response_model=BusinessLogoImageRemoveResponse,
+)
+async def remove_business_logo_image(
+    business_id: uuid.UUID,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> BusinessLogoImageRemoveResponse:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    return await BusinessService(db).remove_business_logo_image(business)
 
 
 @router.post(

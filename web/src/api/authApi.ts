@@ -2,6 +2,8 @@ import { apiClient } from "@/api/client";
 import { refreshAccessToken as refreshAccessTokenRequest } from "@/api/authRefresh";
 import { clearTokens, setTokens } from "@/utils/authStorage";
 import type {
+  ChangePasswordRequest,
+  ChangePasswordResponse,
   EmailVerificationResendResponse,
   EmailVerifyRequest,
   EmailVerifyResponse,
@@ -91,4 +93,12 @@ export function resetPassword(token: string, newPassword: string) {
     payload,
     { auth: false },
   );
+}
+
+export function changePassword(currentPassword: string, newPassword: string) {
+  const payload: ChangePasswordRequest = {
+    current_password: currentPassword,
+    new_password: newPassword,
+  };
+  return apiClient.post<ChangePasswordResponse>("/auth/change-password", payload);
 }
