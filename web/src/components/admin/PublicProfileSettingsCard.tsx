@@ -14,22 +14,25 @@ export const PUBLIC_PROFILE_MEDIA_PLACEHOLDER =
 type PublicProfileSettingsCardProps = {
   businessId: string;
   businessName?: string;
+  businessSlug?: string;
   currentPlan?: string;
 };
 
 export function PublicProfileSettingsCard({
   businessId,
   businessName,
+  businessSlug,
   currentPlan,
 }: PublicProfileSettingsCardProps) {
   const onPro = isProPlan(currentPlan);
 
   return (
     <div
-      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4"
+      className="space-y-4"
       data-testid="public-profile-settings-card"
+      data-appearance-tab="admin-settings-appearance-tab"
     >
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-sm font-medium text-slate-700">{PUBLIC_PROFILE_TITLE}</h3>
           {onPro ? (
@@ -44,7 +47,11 @@ export function PublicProfileSettingsCard({
         </p>
       </div>
 
-      <MiniSiteEditorCard businessId={businessId} businessName={businessName} />
+      <MiniSiteEditorCard
+        businessId={businessId}
+        businessName={businessName}
+        businessSlug={businessSlug}
+      />
     </div>
   );
 }

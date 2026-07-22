@@ -666,6 +666,8 @@ export function AdminSettingsPage() {
             "Manage team members, roles, and permissions."
           ) : activeTab === "notifications" ? (
             "Manage notification channels, event preferences, and customer message templates."
+          ) : activeTab === "appearance" ? (
+            "Manage how your Pro mini-site looks and feels."
           ) : (
             "Manage business profile, notifications, email delivery, and billing."
           )}
@@ -833,11 +835,14 @@ export function AdminSettingsPage() {
           ) : null}
 
           {activeTab === "appearance" ? (
-            <PublicProfileSettingsCard
-              businessId={businessId!}
-              businessName={data.name}
-              currentPlan={data.subscription?.plan}
-            />
+            <div data-testid="admin-settings-appearance-tab">
+              <PublicProfileSettingsCard
+                businessId={businessId!}
+                businessName={data.name}
+                businessSlug={data.slug}
+                currentPlan={data.subscription?.plan}
+              />
+            </div>
           ) : null}
         </div>
       ) : null}
