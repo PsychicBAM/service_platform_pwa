@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import io
+import uuid
 
 import pytest
 from httpx import AsyncClient
 from PIL import Image
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
+from app.models.enums import SubscriptionPlan, SubscriptionStatus
+from app.repositories.business_repository import BusinessRepository
 from tests.conftest import BOOKING_SERVICE_PAYLOAD, activate_business, register_and_get_context
 
 
@@ -50,6 +54,22 @@ async def _setup_active_business(async_client: AsyncClient, db_session, suffix: 
     ctx = await register_and_get_context(async_client, suffix)
     await activate_business(db_session, ctx["slug"])
     return ctx
+
+
+async def _set_subscription_plan(
+    db_session: AsyncSession,
+    business_id: str,
+    plan: SubscriptionPlan,
+) -> None:
+    repo = BusinessRepository(db_session)
+    subscription = await repo.get_subscription(uuid.UUID(business_id))
+    assert subscription is not None
+    await repo.update_subscription(
+        subscription,
+        {"plan": plan, "status": SubscriptionStatus.active},
+    )
+    await db_session.commit()
+    db_session.expire_all()
 
 
 async def _create_service(async_client: AsyncClient, ctx: dict) -> str:
@@ -100,7 +120,9 @@ async def test_public_directory_falls_back_to_mini_site_hero_image(
     db_session,
     upload_root,
 ) -> None:
+    # Clean mini-site media upload requires Business (Clean) or Pro; Free/Starter are gated.
     ctx = await _setup_active_business(async_client, db_session, "marketplace-cover-hero-fallback")
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.business)
 
     hero_upload = await async_client.post(
         f"/api/v1/businesses/{ctx['business_id']}/mini-site-media/upload",
