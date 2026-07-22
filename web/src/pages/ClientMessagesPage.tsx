@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listMyBookings, listMyOrders } from "@/api/meApi";
 import {
@@ -9,6 +9,7 @@ import {
   sendMyMessage,
 } from "@/api/messagesApi";
 import { AuthPrompt } from "@/components/AuthPrompt";
+import { ChatAvatar } from "@/components/ChatAvatar";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
@@ -21,15 +22,6 @@ const FILTER_TABS: Array<{ id: ConversationFilter; label: string }> = [
   { id: "all", label: "All" },
   { id: "archived", label: "Archived" },
 ];
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 function MessageBubble({
   message,
@@ -68,12 +60,31 @@ function MessageBubble({
 export function ClientMessagesPage() {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const threadScrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<ConversationFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [sendError, setSendError] = useState<string | null>(null);
   const [mobileShowThread, setMobileShowThread] = useState(false);
   const [startBusinessId, setStartBusinessId] = useState("");
+
+  function focusComposer() {
+    requestAnimationFrame(() => {
+      composerRef.current?.focus();
+    });
+  }
+
+  function scrollThreadToBottom() {
+    requestAnimationFrame(() => {
+      const scroller = threadScrollRef.current;
+      if (!scroller) {
+        return;
+      }
+      scroller.scrollTop = scroller.scrollHeight;
+    });
+  }
 
   const listQuery = useQuery({
     queryKey: ["client-messages", filter],
@@ -113,6 +124,13 @@ export function ClientMessagesPage() {
     }
   }, [detailQuery.dataUpdatedAt, detailQuery.isSuccess, queryClient]);
 
+  useEffect(() => {
+    if (!selectedId || !detailQuery.data) {
+      return;
+    }
+    scrollThreadToBottom();
+  }, [selectedId, detailQuery.data?.messages.length, detailQuery.dataUpdatedAt]);
+
   const knownBusinesses = useMemo(() => {
     const map = new Map<string, string>();
     for (const booking of bookingsQuery.data?.data ?? []) {
@@ -136,9 +154,12 @@ export function ClientMessagesPage() {
       setSendError(null);
       await queryClient.invalidateQueries({ queryKey: ["client-messages-detail", selectedId] });
       await queryClient.invalidateQueries({ queryKey: ["client-messages"] });
+      scrollThreadToBottom();
+      focusComposer();
     },
     onError: (error) => {
       setSendError(getMeErrorMessage(error, "Could not send message."));
+      focusComposer();
     },
   });
 
@@ -164,6 +185,7 @@ export function ClientMessagesPage() {
   const conversations = listQuery.data?.items ?? [];
   const selected = detailQuery.data;
   const businessName = selected?.business?.name ?? "Business";
+  const businessLogo = selected?.business?.logo_url ?? null;
 
   function handleSelect(id: string) {
     setSelectedId(id);
@@ -188,8 +210,11 @@ export function ClientMessagesPage() {
   }
 
   return (
-    <section className="space-y-4 overflow-x-hidden" data-testid="client-messages-page">
-      <div>
+    <section
+      className="flex h-full min-h-0 flex-1 flex-col gap-3 overflow-hidden"
+      data-testid="client-messages-page"
+    >
+      <div className="shrink-0">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Messages</h1>
         <p className="mt-1 text-sm text-slate-500">
           Chat with businesses about your bookings and requests.
@@ -201,14 +226,17 @@ export function ClientMessagesPage() {
         ) : null}
       </div>
 
-      <div className="grid min-h-[480px] grid-cols-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:grid-cols-[260px_minmax(0,1fr)]">
+      <div
+        className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:flex-row"
+        data-testid="client-messages-inbox"
+      >
         <div
-          className={`flex min-h-0 flex-col border-slate-200 md:border-r ${
+          className={`flex min-h-0 w-full flex-col overflow-hidden border-slate-200 md:w-[260px] md:shrink-0 md:border-r ${
             mobileShowThread ? "hidden md:flex" : "flex"
           }`}
           data-testid="client-messages-conversation-list"
         >
-          <div className="flex gap-1 border-b border-slate-100 p-2">
+          <div className="flex shrink-0 gap-1 border-b border-slate-100 p-2">
             {FILTER_TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -226,7 +254,7 @@ export function ClientMessagesPage() {
           </div>
 
           {knownBusinesses.length > 0 ? (
-            <div className="space-y-2 border-b border-slate-100 p-2">
+            <div className="shrink-0 space-y-2 border-b border-slate-100 p-2">
               <label className="block text-xs font-medium text-slate-600" htmlFor="start-convo-business">
                 Start or open a conversation
               </label>
@@ -256,7 +284,7 @@ export function ClientMessagesPage() {
             </div>
           ) : null}
 
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             {listQuery.isLoading ? <LoadingState message="Loading messages…" /> : null}
             {listQuery.isError ? (
               <ErrorState
@@ -289,9 +317,12 @@ export function ClientMessagesPage() {
                     active ? "bg-emerald-50/70" : "hover:bg-slate-50"
                   }`}
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-800">
-                    {initials(name) || "B"}
-                  </span>
+                  <ChatAvatar
+                    name={name}
+                    logoUrl={conversation.business?.logo_url}
+                    testId="client-messages-business-avatar"
+                    fallbackTestId="client-messages-business-avatar-fallback"
+                  />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center justify-between gap-2">
                       <span className="truncate text-sm font-semibold text-slate-900">{name}</span>
@@ -312,7 +343,9 @@ export function ClientMessagesPage() {
         </div>
 
         <div
-          className={`flex min-h-0 flex-col ${mobileShowThread ? "flex" : "hidden md:flex"}`}
+          className={`relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${
+            mobileShowThread ? "flex" : "hidden md:flex"
+          }`}
           data-testid="client-messages-thread"
         >
           {!selectedId ? (
@@ -327,8 +360,8 @@ export function ClientMessagesPage() {
               message={getMeErrorMessage(detailQuery.error, "Unable to load conversation.")}
             />
           ) : selected ? (
-            <>
-              <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
+            <div className="absolute inset-0 flex min-h-0 flex-col overflow-hidden">
+              <div className="flex shrink-0 items-center gap-3 border-b border-slate-100 px-4 py-3">
                 <button
                   type="button"
                   className="rounded-md px-2 py-1 text-sm text-slate-600 hover:bg-slate-50 md:hidden"
@@ -336,14 +369,27 @@ export function ClientMessagesPage() {
                 >
                   ← Back
                 </button>
+                <ChatAvatar
+                  name={businessName}
+                  logoUrl={businessLogo}
+                  size="sm"
+                  testId="client-messages-thread-business-avatar"
+                  fallbackTestId="client-messages-thread-business-avatar-fallback"
+                />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-900">{businessName}</p>
                   <p className="text-xs text-slate-500">
-                    {selected.context_type === "general" ? "General conversation" : selected.context_type}
+                    {selected.context_type === "general"
+                      ? "General conversation"
+                      : selected.context_type}
                   </p>
                 </div>
               </div>
-              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-slate-50/80 px-4 py-4">
+              <div
+                ref={threadScrollRef}
+                className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-slate-50/80 px-4 py-4"
+                data-testid="client-messages-thread-scroll"
+              >
                 {selected.messages.map((message) => (
                   <MessageBubble
                     key={message.id}
@@ -351,59 +397,63 @@ export function ClientMessagesPage() {
                     side={message.sender_type === "client" ? "right" : "left"}
                   />
                 ))}
+                <div ref={messagesEndRef} aria-hidden="true" />
               </div>
               <div
-                className="border-t border-slate-100 bg-white p-3"
-                data-testid="client-messages-composer"
+                className="shrink-0 border-t border-slate-100 bg-white p-3"
+                data-testid="client-messages-composer-shell"
               >
-                {sendError ? (
-                  <p className="mb-2 text-xs text-red-600" role="alert">
-                    {sendError}
-                  </p>
-                ) : null}
-                <textarea
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  onKeyDown={handleComposerKeyDown}
-                  rows={3}
-                  maxLength={5000}
-                  placeholder="Type your message…"
-                  disabled={sendMutation.isPending}
-                  className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                />
-                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex gap-2">
+                <div data-testid="client-messages-composer">
+                  {sendError ? (
+                    <p className="mb-2 text-xs text-red-600" role="alert">
+                      {sendError}
+                    </p>
+                  ) : null}
+                  <textarea
+                    ref={composerRef}
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    onKeyDown={handleComposerKeyDown}
+                    rows={3}
+                    maxLength={5000}
+                    placeholder="Type your message…"
+                    disabled={sendMutation.isPending}
+                    className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                  />
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        disabled
+                        title="Photo/video attachments coming soon"
+                        className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-400"
+                        data-testid="client-messages-attach-image"
+                      >
+                        Photo · Coming soon
+                      </button>
+                      <button
+                        type="button"
+                        disabled
+                        title="Photo/video attachments coming soon"
+                        className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-400"
+                        data-testid="client-messages-attach-video"
+                      >
+                        Video · Coming soon
+                      </button>
+                    </div>
                     <button
                       type="button"
-                      disabled
-                      title="Photo/video attachments coming soon"
-                      className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-400"
-                      data-testid="client-messages-attach-image"
+                      onClick={handleSend}
+                      disabled={!draft.trim() || sendMutation.isPending}
+                      className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                      data-testid="client-messages-send"
                     >
-                      Photo · Coming soon
-                    </button>
-                    <button
-                      type="button"
-                      disabled
-                      title="Photo/video attachments coming soon"
-                      className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-400"
-                      data-testid="client-messages-attach-video"
-                    >
-                      Video · Coming soon
+                      {sendMutation.isPending ? "Sending…" : "Send"}
                     </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleSend}
-                    disabled={!draft.trim() || sendMutation.isPending}
-                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-                    data-testid="client-messages-send"
-                  >
-                    {sendMutation.isPending ? "Sending…" : "Send"}
-                  </button>
                 </div>
               </div>
-            </>
+            </div>
           ) : null}
         </div>
       </div>

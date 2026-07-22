@@ -70,7 +70,15 @@ describe("admin layout mobile drawer", () => {
     expect(drawer).toHaveTextContent("Orders");
     expect(drawer).toHaveTextContent("Settings");
     expect(drawer).toHaveTextContent("Public page");
+    expect(drawer).toHaveTextContent("Client area");
     expect(drawer).toHaveTextContent("Logout");
+  });
+
+  it("exposes Client area links to /me", () => {
+    renderAdminLayout();
+
+    expect(screen.getByTestId("admin-client-area-link")).toHaveAttribute("href", "/me");
+    expect(screen.getByTestId("admin-sidebar-client-area-link")).toHaveAttribute("href", "/me");
   });
 
   it("closes drawer via backdrop, close button, Escape, and nav link", async () => {

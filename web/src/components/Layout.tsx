@@ -1,5 +1,5 @@
 import { useCallback, useId, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { ClientFloatingMessagesButton } from "@/components/ClientFloatingMessagesButton";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -12,9 +12,15 @@ import {
 
 export function Layout() {
   const { isAuthenticated, user, logout } = useAuth();
+  const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
   const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const showFloatingMessages =
+    pathname === "/me" ||
+    (pathname.startsWith("/me/") && !pathname.startsWith("/me/messages"));
+  const isClientMessagesPage =
+    pathname === "/me/messages" || pathname.startsWith("/me/messages/");
 
   function handleLogout() {
     closeMenu();
@@ -22,7 +28,13 @@ export function Layout() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col md:max-w-3xl lg:max-w-5xl">
+    <div
+      className={`mx-auto flex w-full max-w-lg flex-col md:max-w-3xl lg:max-w-5xl ${
+        isClientMessagesPage
+          ? "h-dvh min-h-0 overflow-hidden"
+          : "min-h-screen"
+      }`}
+    >
       <header className={siteHeaderBarClass} data-testid="app-layout-header">
         <div className="mx-auto flex h-14 w-full items-center justify-between gap-3 px-4">
           <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2" onClick={closeMenu}>
@@ -236,11 +248,21 @@ export function Layout() {
         )}
       </SiteMobileMenuDrawer>
 
-      <main className="flex-1 px-4 py-6 md:px-6 md:py-8">
+      <main
+        className={`min-h-0 flex-1 px-4 py-6 md:px-6 md:py-8 ${
+          isClientMessagesPage ? "flex flex-col overflow-hidden" : ""
+        }`}
+      >
         <Outlet />
       </main>
-      <ClientFloatingMessagesButton />
-      <footer className="border-t border-slate-200 px-4 py-4 pb-24 text-center text-xs text-slate-500 md:pb-4">
+      {showFloatingMessages ? <ClientFloatingMessagesButton /> : null}
+      <footer
+        className={`border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-500 ${
+          isClientMessagesPage
+            ? "hidden"
+            : "pb-24 md:pb-4"
+        }`}
+      >
         <p className="mb-2">Service Platform · Bookings &amp; requests</p>
         <nav
           aria-label="Legal"

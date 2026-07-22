@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   archiveAdminConversation,
@@ -69,6 +69,9 @@ function MessageBubble({
 export function AdminMessagesPage() {
   const { businessId } = useAdminBusiness();
   const queryClient = useQueryClient();
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const threadScrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<ConversationFilter>("all");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -76,6 +79,23 @@ export function AdminMessagesPage() {
   const [draft, setDraft] = useState("");
   const [sendError, setSendError] = useState<string | null>(null);
   const [mobileShowThread, setMobileShowThread] = useState(false);
+
+  function focusComposer() {
+    requestAnimationFrame(() => {
+      composerRef.current?.focus();
+    });
+  }
+
+  function scrollThreadToBottom() {
+    requestAnimationFrame(() => {
+      const scroller = threadScrollRef.current;
+      if (scroller) {
+        scroller.scrollTop = scroller.scrollHeight;
+        return;
+      }
+      messagesEndRef.current?.scrollIntoView({ block: "end" });
+    });
+  }
 
   const listQuery = useQuery({
     queryKey: ["admin-messages", businessId, filter, search],
@@ -108,6 +128,13 @@ export function AdminMessagesPage() {
     }
   }, [detailQuery.dataUpdatedAt, detailQuery.isSuccess, businessId, queryClient]);
 
+  useEffect(() => {
+    if (!selectedId || !detailQuery.data) {
+      return;
+    }
+    scrollThreadToBottom();
+  }, [selectedId, detailQuery.data?.messages.length, detailQuery.dataUpdatedAt]);
+
   const sendMutation = useMutation({
     mutationFn: (body: string) => sendAdminMessage(businessId!, selectedId!, body),
     onSuccess: async () => {
@@ -117,9 +144,12 @@ export function AdminMessagesPage() {
         queryKey: ["admin-messages-detail", businessId, selectedId],
       });
       await queryClient.invalidateQueries({ queryKey: ["admin-messages", businessId] });
+      scrollThreadToBottom();
+      focusComposer();
     },
     onError: (error) => {
       setSendError(getAdminSettingsErrorMessage(error, "Could not send message."));
+      focusComposer();
     },
   });
 
@@ -184,18 +214,21 @@ export function AdminMessagesPage() {
   }
 
   return (
-    <section className="flex min-h-0 flex-col gap-4" data-testid="admin-messages-page">
-      <div>
+    <section
+      className="flex min-h-0 flex-col gap-4"
+      data-testid="admin-messages-page"
+    >
+      <div className="shrink-0">
         <h2 className="text-3xl font-bold tracking-tight text-gray-900">Messages</h2>
         <p className="mt-1 text-sm text-gray-500">
           Manage conversations with your clients in one place.
         </p>
       </div>
 
-      <div className="grid min-h-[560px] grid-cols-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:grid-cols-[280px_minmax(0,1fr)_280px] xl:grid-cols-[300px_minmax(0,1fr)_300px]">
+      <div className="grid h-[calc(100dvh-12rem)] min-h-[420px] max-h-[calc(100dvh-12rem)] grid-cols-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:grid-cols-[280px_minmax(0,1fr)_280px] xl:grid-cols-[300px_minmax(0,1fr)_300px]">
         {/* List */}
         <div
-          className={`flex min-h-0 flex-col border-slate-200 lg:border-r ${
+          className={`flex h-full min-h-0 flex-col border-slate-200 lg:border-r ${
             mobileShowThread ? "hidden lg:flex" : "flex"
           }`}
           data-testid="admin-messages-conversation-list"
@@ -313,7 +346,7 @@ export function AdminMessagesPage() {
 
         {/* Thread */}
         <div
-          className={`flex min-h-0 min-w-0 flex-col border-slate-200 lg:border-r ${
+          className={`flex h-full min-h-0 min-w-0 flex-col border-slate-200 lg:border-r ${
             mobileShowThread ? "flex" : "hidden lg:flex"
           }`}
           data-testid="admin-messages-thread"
@@ -334,7 +367,7 @@ export function AdminMessagesPage() {
             />
           ) : selected ? (
             <>
-              <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
+              <div className="flex shrink-0 items-center gap-3 border-b border-slate-100 px-4 py-3">
                 <button
                   type="button"
                   className="rounded-md px-2 py-1 text-sm text-slate-600 hover:bg-slate-50 lg:hidden"
@@ -353,7 +386,11 @@ export function AdminMessagesPage() {
                   </p>
                 </div>
               </div>
-              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-slate-50/80 px-4 py-4">
+              <div
+                ref={threadScrollRef}
+                className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-slate-50/80 px-4 py-4"
+                data-testid="admin-messages-thread-scroll"
+              >
                 {selected.messages.length === 0 ? (
                   <p className="text-center text-sm text-slate-500">No messages yet.</p>
                 ) : (
@@ -365,56 +402,62 @@ export function AdminMessagesPage() {
                     />
                   ))
                 )}
+                <div ref={messagesEndRef} aria-hidden="true" />
               </div>
               <div
-                className="border-t border-slate-100 bg-white p-3"
-                data-testid="admin-messages-composer"
+                className="shrink-0 border-t border-slate-100 bg-white p-3"
+                data-testid="admin-messages-composer-shell"
               >
-                {sendError ? (
-                  <p className="mb-2 text-xs text-red-600" role="alert">
-                    {sendError}
-                  </p>
-                ) : null}
-                <textarea
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  onKeyDown={handleComposerKeyDown}
-                  rows={3}
-                  maxLength={5000}
-                  placeholder="Type your message…"
-                  disabled={sendMutation.isPending || selected.status === "archived"}
-                  className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:bg-slate-50"
-                />
-                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex gap-2">
+                <div data-testid="admin-messages-composer">
+                  {sendError ? (
+                    <p className="mb-2 text-xs text-red-600" role="alert">
+                      {sendError}
+                    </p>
+                  ) : null}
+                  <textarea
+                    ref={composerRef}
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    onKeyDown={handleComposerKeyDown}
+                    rows={3}
+                    maxLength={5000}
+                    placeholder="Type your message…"
+                    disabled={sendMutation.isPending || selected.status === "archived"}
+                    className="w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:bg-slate-50"
+                  />
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        disabled
+                        title="Photo/video attachments coming soon"
+                        className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-400"
+                        data-testid="admin-messages-attach-image"
+                      >
+                        Photo · Coming soon
+                      </button>
+                      <button
+                        type="button"
+                        disabled
+                        title="Photo/video attachments coming soon"
+                        className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-400"
+                        data-testid="admin-messages-attach-video"
+                      >
+                        Video · Coming soon
+                      </button>
+                    </div>
                     <button
                       type="button"
-                      disabled
-                      title="Photo/video attachments coming soon"
-                      className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-400"
-                      data-testid="admin-messages-attach-image"
+                      onClick={handleSend}
+                      disabled={
+                        !draft.trim() || sendMutation.isPending || selected.status === "archived"
+                      }
+                      className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                      data-testid="admin-messages-send"
                     >
-                      Photo · Coming soon
-                    </button>
-                    <button
-                      type="button"
-                      disabled
-                      title="Photo/video attachments coming soon"
-                      className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-400"
-                      data-testid="admin-messages-attach-video"
-                    >
-                      Video · Coming soon
+                      {sendMutation.isPending ? "Sending…" : "Send"}
                     </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleSend}
-                    disabled={!draft.trim() || sendMutation.isPending || selected.status === "archived"}
-                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-                    data-testid="admin-messages-send"
-                  >
-                    {sendMutation.isPending ? "Sending…" : "Send"}
-                  </button>
                 </div>
               </div>
             </>
@@ -423,7 +466,7 @@ export function AdminMessagesPage() {
 
         {/* Details */}
         <aside
-          className={`min-h-0 overflow-y-auto p-4 ${
+          className={`h-full min-h-0 overflow-y-auto p-4 ${
             mobileShowThread && selectedId ? "hidden lg:block" : "hidden lg:block"
           }`}
           data-testid="admin-messages-details-panel"

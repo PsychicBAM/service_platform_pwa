@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, Link } from "react-router-dom";
 import { useAdminBusiness } from "@/hooks/useAdminBusiness";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -77,6 +77,13 @@ export function AdminLayout() {
             </h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <Link
+              to="/me"
+              className="hidden text-sm font-medium text-slate-600 hover:text-brand-700 lg:inline"
+              data-testid="admin-client-area-link"
+            >
+              Client area
+            </Link>
             <button
               type="button"
               onClick={logout}
@@ -169,6 +176,14 @@ export function AdminLayout() {
                     </NavLink>
                   ) : null}
                   <div className="my-2 border-t border-slate-100" />
+                  <NavLink
+                    to="/me"
+                    className={({ isActive }) => drawerNavClass(isActive)}
+                    onClick={closeMenu}
+                    data-testid="admin-mobile-link-client-area"
+                  >
+                    Client area
+                  </NavLink>
                   <button
                     type="button"
                     className="rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
@@ -210,6 +225,15 @@ export function AdminLayout() {
                 </NavLink>
               ))}
             </nav>
+            <div className="mt-6 border-t border-slate-100 px-3 pt-4">
+              <Link
+                to="/me"
+                className="block text-sm font-medium text-slate-600 hover:text-brand-700"
+                data-testid="admin-sidebar-client-area-link"
+              >
+                Client area
+              </Link>
+            </div>
           </aside>
           <main className="min-w-0 flex-1 px-4 py-6 md:px-6 md:py-8 xl:px-8 xl:py-8 2xl:px-10">
             <Outlet />

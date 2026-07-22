@@ -3,37 +3,45 @@ import { useQuery } from "@tanstack/react-query";
 import { getMyMessagesUnreadCount } from "@/api/messagesApi";
 import { useAuth } from "@/hooks/useAuth";
 
+function shouldShowFloatingMessagesButton(pathname: string, isAuthenticated: boolean): boolean {
+  if (!isAuthenticated) {
+    return false;
+  }
+  if (pathname.startsWith("/admin") || pathname.startsWith("/superadmin")) {
+    return false;
+  }
+  if (!(pathname === "/me" || pathname.startsWith("/me/"))) {
+    return false;
+  }
+  if (pathname === "/me/messages" || pathname.startsWith("/me/messages/")) {
+    return false;
+  }
+  return true;
+}
+
 /**
- * Floating messages entry point for signed-in clients on /me/* pages.
- * Hidden on /me/messages to avoid covering the composer.
+ * Floating messages entry for signed-in clients on /me/* pages only.
+ * Outer gate never calls useQuery, so public/legal Layout renders stay safe
+ * without QueryClientProvider.
  */
 export function ClientFloatingMessagesButton() {
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
-
-  const isClientArea = location.pathname === "/me" || location.pathname.startsWith("/me/");
-  const isMessagesPage = location.pathname.startsWith("/me/messages");
-  const isAdminOrSuper =
-    location.pathname.startsWith("/admin") || location.pathname.startsWith("/superadmin");
-
-  const show =
-    isAuthenticated &&
-    isClientArea &&
-    !isMessagesPage &&
-    !isAdminOrSuper &&
-    // Prefer clients without a business membership; owners may still use /me
-    true;
-
-  const unreadQuery = useQuery({
-    queryKey: ["client-messages-unread"],
-    queryFn: () => getMyMessagesUnreadCount(),
-    enabled: show,
-    refetchInterval: 30_000,
-  });
+  const show = shouldShowFloatingMessagesButton(location.pathname, isAuthenticated);
 
   if (!show || !user) {
     return null;
   }
+
+  return <ClientFloatingMessagesButtonActive />;
+}
+
+function ClientFloatingMessagesButtonActive() {
+  const unreadQuery = useQuery({
+    queryKey: ["client-messages-unread"],
+    queryFn: () => getMyMessagesUnreadCount(),
+    refetchInterval: 30_000,
+  });
 
   const unread = unreadQuery.data?.unread_total ?? 0;
 
@@ -58,3 +66,5 @@ export function ClientFloatingMessagesButton() {
     </Link>
   );
 }
+
+export { shouldShowFloatingMessagesButton };

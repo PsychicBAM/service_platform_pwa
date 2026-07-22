@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Outlet, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminBusinessProvider } from "@/hooks/useAdminBusiness";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminMessagesPage } from "@/pages/admin/AdminMessagesPage";
 import { ClientMessagesPage } from "@/pages/ClientMessagesPage";
-import { ClientFloatingMessagesButton } from "@/components/ClientFloatingMessagesButton";
 import { DashboardMessagesWidget } from "@/components/admin/DashboardMessagesWidget";
 import { Layout } from "@/components/Layout";
 import * as messagesApi from "@/api/messagesApi";
@@ -147,10 +146,50 @@ describe("Admin messages", () => {
       );
     });
 
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Type your message…")).toHaveFocus();
+    });
+
     expect(screen.getByTestId("admin-messages-attach-image")).toBeDisabled();
     expect(screen.getByTestId("admin-messages-attach-video")).toBeDisabled();
     expect(screen.getByTestId("admin-messages-archive")).toBeInTheDocument();
     expect(screen.getByTestId("admin-messages-mark-unread")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-messages-thread-scroll")).toHaveClass("overflow-y-auto");
+    expect(screen.getByTestId("admin-messages-composer-shell")).toBeInTheDocument();
+  });
+
+  it("keeps admin composer visible with a long thread", async () => {
+    const user = userEvent.setup();
+    const longThread = {
+      ...sampleDetail,
+      messages: Array.from({ length: 40 }, (_, index) => ({
+        id: `msg-long-${index}`,
+        conversation_id: "conv-1",
+        sender_type: index % 2 === 0 ? ("client" as const) : ("business" as const),
+        sender_user_id: index % 2 === 0 ? "user-client" : "user-admin",
+        body: `Message number ${index + 1}`,
+        read_at: null,
+        created_at: `2026-07-22T10:${String(index).padStart(2, "0")}:00Z`,
+      })),
+    };
+    vi.mocked(messagesApi.listAdminConversations).mockResolvedValue({
+      items: [sampleConversation],
+      meta: { total: 1, page: 1, limit: 50, unread_total: 0 },
+    });
+    vi.mocked(messagesApi.getAdminConversation).mockResolvedValue(longThread);
+
+    renderRoute(
+      <AdminBusinessProvider businesses={mockOwnerUser.businesses}>
+        <AdminMessagesPage />
+      </AdminBusinessProvider>,
+      { route: "/admin/messages", path: "/admin/messages" },
+    );
+
+    await user.click(await screen.findByTestId("admin-messages-conversation-row"));
+    expect(await screen.findByTestId("admin-messages-thread-scroll")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-messages-composer-shell")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Type your message…")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-messages-send")).toBeInTheDocument();
   });
 
   it("sends admin message when Enter is pressed", async () => {
@@ -188,6 +227,9 @@ describe("Admin messages", () => {
         "conv-1",
         "Sent with Enter",
       );
+    });
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Type your message…")).toHaveFocus();
     });
   });
 
@@ -368,7 +410,48 @@ describe("Client messages", () => {
     await waitFor(() => {
       expect(messagesApi.sendMyMessage).toHaveBeenCalledWith("conv-1", "I need to reschedule");
     });
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Type your message…")).toHaveFocus();
+    });
     expect(screen.getByTestId("client-messages-attach-image")).toBeDisabled();
+    expect(screen.getByTestId("client-messages-thread-scroll")).toHaveClass("overflow-y-auto");
+    expect(screen.getByTestId("client-messages-composer-shell")).toBeInTheDocument();
+    expect(screen.getByTestId("client-messages-thread-scroll")).not.toContainElement(
+      screen.getByTestId("client-messages-composer-shell"),
+    );
+  });
+
+  it("keeps client composer visible with a long thread", async () => {
+    const user = userEvent.setup();
+    const longThread = {
+      ...sampleDetail,
+      messages: Array.from({ length: 40 }, (_, index) => ({
+        id: `msg-client-long-${index}`,
+        conversation_id: "conv-1",
+        sender_type: index % 2 === 0 ? ("business" as const) : ("client" as const),
+        sender_user_id: index % 2 === 0 ? null : "u1",
+        body: `Client thread message ${index + 1}`,
+        read_at: null,
+        created_at: `2026-07-22T11:${String(index).padStart(2, "0")}:00Z`,
+      })),
+    };
+    vi.mocked(messagesApi.listMyConversations).mockResolvedValue({
+      items: [sampleConversation],
+      meta: { total: 1, page: 1, limit: 50, unread_total: 0 },
+    });
+    vi.mocked(messagesApi.getMyConversation).mockResolvedValue(longThread);
+
+    renderRoute(<ClientMessagesPage />, { route: "/me/messages", path: "/me/messages" });
+
+    await user.click(await screen.findByTestId("client-messages-conversation-row"));
+    const scroll = await screen.findByTestId("client-messages-thread-scroll");
+    const composerShell = screen.getByTestId("client-messages-composer-shell");
+    expect(scroll).toBeInTheDocument();
+    expect(composerShell).toBeInTheDocument();
+    expect(scroll).not.toContainElement(composerShell);
+    expect(screen.getByPlaceholderText("Type your message…")).toBeInTheDocument();
+    expect(screen.getByTestId("client-messages-send")).toBeInTheDocument();
+    expect(screen.getAllByTestId("client-messages-message-bubble")).toHaveLength(40);
   });
 
   it("sends client message when Enter is pressed", async () => {
@@ -457,22 +540,73 @@ describe("Client messages", () => {
   it("hides floating button on messages page", async () => {
     renderRoute(
       <Routes>
-        <Route
-          element={
-            <>
-              <Outlet />
-              <ClientFloatingMessagesButton />
-            </>
-          }
-        >
+        <Route element={<Layout />}>
           <Route path="me/messages" element={<div>Messages page</div>} />
         </Route>
       </Routes>,
       { route: "/me/messages", path: "/*" },
     );
 
-    await waitFor(() => {
-      expect(screen.queryByTestId("client-floating-messages-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("client-floating-messages-button")).not.toBeInTheDocument();
+  });
+
+  it("hides floating button on public/legal Layout pages", () => {
+    vi.mocked(useAuth).mockReturnValue(mockAuthenticatedAuth(mockClientUser));
+
+    renderRoute(
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="legal/terms" element={<div>Terms</div>} />
+        </Route>
+      </Routes>,
+      { route: "/legal/terms", path: "/*" },
+    );
+
+    expect(screen.queryByTestId("client-floating-messages-button")).not.toBeInTheDocument();
+  });
+
+  it("renders business logo avatar when logo_url is present", async () => {
+    const withLogo = {
+      ...sampleConversation,
+      business: {
+        ...sampleConversation.business!,
+        logo_url: "/uploads/businesses/demo/logo.webp",
+      },
+    };
+    vi.mocked(messagesApi.listMyConversations).mockResolvedValue({
+      items: [withLogo],
+      meta: { total: 1, page: 1, limit: 50, unread_total: 0 },
     });
+    vi.mocked(messagesApi.getMyConversation).mockResolvedValue({
+      ...sampleDetail,
+      business: withLogo.business,
+    });
+
+    renderRoute(<ClientMessagesPage />, { route: "/me/messages", path: "/me/messages" });
+
+    const avatar = await screen.findByTestId("client-messages-business-avatar");
+    expect(avatar).toHaveAttribute("src", "/uploads/businesses/demo/logo.webp");
+    expect(avatar).toHaveAttribute("alt", "Demo Business logo");
+    expect(screen.queryByTestId("client-messages-business-avatar-fallback")).not.toBeInTheDocument();
+
+    await userEvent.setup().click(screen.getByTestId("client-messages-conversation-row"));
+    expect(await screen.findByTestId("client-messages-thread-business-avatar")).toHaveAttribute(
+      "src",
+      "/uploads/businesses/demo/logo.webp",
+    );
+  });
+
+  it("falls back to initials when business logo is missing", async () => {
+    vi.mocked(messagesApi.listMyConversations).mockResolvedValue({
+      items: [sampleConversation],
+      meta: { total: 1, page: 1, limit: 50, unread_total: 0 },
+    });
+
+    renderRoute(<ClientMessagesPage />, { route: "/me/messages", path: "/me/messages" });
+
+    expect(await screen.findByTestId("client-messages-business-avatar-fallback")).toHaveTextContent(
+      "DB",
+    );
+    expect(screen.queryByTestId("client-messages-business-avatar")).not.toBeInTheDocument();
   });
 });

@@ -72,5 +72,6 @@ describe("legal footer links", () => {
       "/legal/consent",
     );
     expect(screen.getByRole("link", { name: "Cookies" })).toHaveAttribute("href", "/legal/cookies");
+    expect(screen.queryByTestId("client-floating-messages-button")).not.toBeInTheDocument();
   });
 });
