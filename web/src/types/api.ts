@@ -451,6 +451,70 @@ export interface ChangePasswordResponse {
   changed: boolean;
 }
 
+export type ConversationStatus = "open" | "archived";
+export type ConversationContextType = "general" | "booking" | "order" | "request";
+export type InboxMessageSenderType = "business" | "client" | "system";
+export type ConversationFilter = "all" | "unread" | "archived";
+
+export interface ConversationClientSummary {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+}
+
+export interface ConversationBusinessSummary {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+}
+
+export interface InboxMessageRead {
+  id: string;
+  conversation_id: string;
+  sender_type: InboxMessageSenderType;
+  sender_user_id: string | null;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface ConversationListItem {
+  id: string;
+  status: ConversationStatus;
+  context_type: ConversationContextType;
+  context_id: string | null;
+  subject: string | null;
+  last_message_at: string | null;
+  last_message_preview: string | null;
+  unread_count: number;
+  client: ConversationClientSummary | null;
+  business: ConversationBusinessSummary | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConversationDetail extends ConversationListItem {
+  messages: InboxMessageRead[];
+}
+
+export interface ConversationListMeta {
+  total: number;
+  page: number;
+  limit: number;
+  unread_total: number;
+}
+
+export interface ConversationListResponse {
+  items: ConversationListItem[];
+  meta: ConversationListMeta;
+}
+
+export interface MessagesUnreadCount {
+  unread_total: number;
+}
+
 export type MyBookingStatusFilter = "upcoming" | "past" | "cancelled";
 export type MyOrderStatusFilter = "active" | "completed" | "declined" | "cancelled";
 

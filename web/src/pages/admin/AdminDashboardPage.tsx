@@ -18,6 +18,7 @@ import {
   type DashboardRecentItem,
 } from "@/components/admin/DashboardRecentList";
 import { DashboardUpgradeCard } from "@/components/admin/DashboardUpgradeCard";
+import { DashboardMessagesWidget } from "@/components/admin/DashboardMessagesWidget";
 import { AdminOnboardingChecklist } from "@/components/admin/AdminOnboardingChecklist";
 import { CurrentPlanCard } from "@/components/admin/CurrentPlanCard";
 import { DashboardStatCard } from "@/components/admin/DashboardStatCard";
@@ -34,6 +35,7 @@ const QUICK_ACTIONS = [
   { to: "/admin/schedule", label: "Manage schedule" },
   { to: "/admin/bookings", label: "View bookings" },
   { to: "/admin/orders", label: "View orders" },
+  { to: "/admin/messages", label: "View messages" },
   { to: "/admin/clients", label: "View clients" },
 ] as const;
 
@@ -291,6 +293,8 @@ export function AdminDashboardPage() {
           />
 
           <CurrentPlanCard plan={plan} status={business.subscription?.status} />
+
+          <DashboardMessagesWidget businessId={business.id} />
 
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">

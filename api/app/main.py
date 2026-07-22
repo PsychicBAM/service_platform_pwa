@@ -6,7 +6,7 @@ from pathlib import Path
 
 from app.config import get_settings
 from app.exceptions.auth import AppError
-from app.routers import admin_email, auth, billing, bookings, businesses, claims, clients, health, me_bookings, me_orders, orders, plan_change_requests, public, public_directory, review_requests, reviews, schedule, services, superadmin, waitlist
+from app.routers import admin_email, admin_messages, auth, billing, bookings, businesses, claims, clients, health, me_bookings, me_messages, me_orders, orders, plan_change_requests, public, public_directory, review_requests, reviews, schedule, services, superadmin, waitlist
 from app.services.review_request_email_scheduler import app_lifespan
 
 settings = get_settings()
@@ -43,6 +43,7 @@ app.include_router(auth.router, prefix=settings.api_v1_prefix)
 app.include_router(admin_email.router, prefix=settings.api_v1_prefix)
 app.include_router(me_bookings.router, prefix=settings.api_v1_prefix)
 app.include_router(me_orders.router, prefix=settings.api_v1_prefix)
+app.include_router(me_messages.router, prefix=settings.api_v1_prefix)
 app.include_router(claims.router, prefix=settings.api_v1_prefix)
 app.include_router(services.router, prefix=settings.api_v1_prefix)
 app.include_router(businesses.router, prefix=settings.api_v1_prefix)
@@ -56,6 +57,7 @@ app.include_router(waitlist.router, prefix=settings.api_v1_prefix)
 app.include_router(reviews.router, prefix=settings.api_v1_prefix)
 app.include_router(review_requests.router, prefix=settings.api_v1_prefix)
 app.include_router(orders.router, prefix=settings.api_v1_prefix)
+app.include_router(admin_messages.router, prefix=settings.api_v1_prefix)
 app.include_router(clients.router, prefix=settings.api_v1_prefix)
 app.include_router(superadmin.router, prefix=settings.api_v1_prefix)
 app.include_router(public.router, prefix=settings.api_v1_prefix)

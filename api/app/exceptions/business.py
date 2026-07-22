@@ -101,6 +101,11 @@ class OrderNotFoundError(AppError):
         super().__init__(message=message, code="NOT_FOUND", status_code=404)
 
 
+class ConversationNotFoundError(AppError):
+    def __init__(self, message: str = "Conversation not found.") -> None:
+        super().__init__(message=message, code="NOT_FOUND", status_code=404)
+
+
 class InvalidOrderStatusTransitionError(AppError):
     def __init__(self, message: str = "Invalid order status transition.") -> None:
         super().__init__(

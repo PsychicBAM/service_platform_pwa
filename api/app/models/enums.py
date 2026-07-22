@@ -118,6 +118,24 @@ class OrderMessageSenderType(str, enum.Enum):
     admin = "admin"
 
 
+class ConversationStatus(str, enum.Enum):
+    open = "open"
+    archived = "archived"
+
+
+class ConversationContextType(str, enum.Enum):
+    general = "general"
+    booking = "booking"
+    order = "order"
+    request = "request"
+
+
+class InboxMessageSenderType(str, enum.Enum):
+    business = "business"
+    client = "client"
+    system = "system"
+
+
 class ConsentSource(str, enum.Enum):
     registration = "registration"
     public_booking = "public_booking"

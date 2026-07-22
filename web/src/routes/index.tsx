@@ -9,6 +9,7 @@ import { AdminBookingsPage } from "@/pages/admin/AdminBookingsPage";
 import { AdminClientsPage } from "@/pages/admin/AdminClientsPage";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { AdminLegalConsentsPage } from "@/pages/admin/AdminLegalConsentsPage";
+import { AdminMessagesPage } from "@/pages/admin/AdminMessagesPage";
 import { AdminOrdersPage } from "@/pages/admin/AdminOrdersPage";
 import { AdminReviewsPage } from "@/pages/admin/AdminReviewsPage";
 import { AdminSchedulePage } from "@/pages/admin/AdminSchedulePage";
@@ -19,6 +20,7 @@ import { BillingSuccessPage } from "@/pages/BillingSuccessPage";
 import { BookingPage } from "@/pages/BookingPage";
 import { CheckEmailPage } from "@/pages/CheckEmailPage";
 import { ClaimGuestPage } from "@/pages/ClaimGuestPage";
+import { ClientMessagesPage } from "@/pages/ClientMessagesPage";
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { MeAccountPage } from "@/pages/MeAccountPage";
@@ -87,6 +89,7 @@ export const routes = [
       { path: "me", element: <MeAccountPage /> },
       { path: "me/bookings", element: <MyBookingsPage /> },
       { path: "me/orders", element: <MyOrdersPage /> },
+      { path: "me/messages", element: <ClientMessagesPage /> },
       { path: "me/claim", element: <ClaimGuestPage /> },
       { path: "me/orders/:orderId", element: <MyOrderDetailPage /> },
       { path: "legal/terms", element: <TermsPage /> },
@@ -105,6 +108,7 @@ export const routes = [
         children: [
           { index: true, element: <AdminDashboardPage /> },
           { path: "analytics", element: <AdminAnalyticsPage /> },
+          { path: "messages", element: <AdminMessagesPage /> },
           { path: "services", element: <AdminServicesPage /> },
           { path: "bookings", element: <AdminBookingsPage /> },
           { path: "orders", element: <AdminOrdersPage /> },

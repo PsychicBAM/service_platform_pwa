@@ -1,5 +1,6 @@
 import { useCallback, useId, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
+import { ClientFloatingMessagesButton } from "@/components/ClientFloatingMessagesButton";
 import { useAuth } from "@/hooks/useAuth";
 import {
   SiteMobileMenuButton,
@@ -55,6 +56,9 @@ export function Layout() {
                 </Link>
                 <Link to="/me/orders" className="py-1 text-slate-600 hover:text-brand-700">
                   Requests
+                </Link>
+                <Link to="/me/messages" className="py-1 text-slate-600 hover:text-brand-700">
+                  Messages
                 </Link>
                 <button
                   type="button"
@@ -139,6 +143,14 @@ export function Layout() {
               data-testid="app-layout-mobile-link-requests"
             >
               Requests
+            </Link>
+            <Link
+              to="/me/messages"
+              className={siteMobileMenuLinkClass}
+              onClick={closeMenu}
+              data-testid="app-layout-mobile-link-messages"
+            >
+              Messages
             </Link>
             <Link
               to="/businesses"
@@ -227,6 +239,7 @@ export function Layout() {
       <main className="flex-1 px-4 py-6 md:px-6 md:py-8">
         <Outlet />
       </main>
+      <ClientFloatingMessagesButton />
       <footer className="border-t border-slate-200 px-4 py-4 pb-24 text-center text-xs text-slate-500 md:pb-4">
         <p className="mb-2">Service Platform · Bookings &amp; requests</p>
         <nav

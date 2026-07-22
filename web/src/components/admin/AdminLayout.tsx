@@ -4,9 +4,10 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAdminBusiness } from "@/hooks/useAdminBusiness";
 import { useAuth } from "@/hooks/useAuth";
 
-const NAV_ITEMS: Array<{ to: string; label: string; end?: boolean }> = [
+const NAV_ITEMS: Array<{ to: string; label: string; end?: boolean; testId?: string }> = [
   { to: "/admin", label: "Dashboard", end: true },
   { to: "/admin/analytics", label: "Analytics" },
+  { to: "/admin/messages", label: "Messages", testId: "admin-messages-sidebar-link" },
   { to: "/admin/services", label: "Services" },
   { to: "/admin/bookings", label: "Bookings" },
   { to: "/admin/orders", label: "Orders" },
@@ -149,7 +150,10 @@ export function AdminLayout() {
                       end={item.end}
                       className={({ isActive }) => drawerNavClass(isActive)}
                       onClick={closeMenu}
-                      data-testid={`admin-mobile-link-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                      data-testid={
+                        item.testId ??
+                        `admin-mobile-link-${item.label.toLowerCase().replace(/\s+/g, "-")}`
+                      }
                     >
                       {item.label}
                     </NavLink>
@@ -200,6 +204,7 @@ export function AdminLayout() {
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) => navClass(isActive)}
+                  data-testid={item.testId}
                 >
                   {item.label}
                 </NavLink>

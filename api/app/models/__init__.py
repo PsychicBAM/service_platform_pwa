@@ -12,6 +12,8 @@ from app.models.password_reset_token import PasswordResetToken
 from app.models.enums import (
     BookingStatus,
     WaitlistStatus,
+    ConversationContextType,
+    ConversationStatus,
     ReviewStatus,
     BusinessMemberRole,
     BusinessStatus,
@@ -20,6 +22,7 @@ from app.models.enums import (
     ConsentEntityType,
     ConsentSource,
     OperatingMode,
+    InboxMessageSenderType,
     OrderMessageSenderType,
     OrderStatus,
     PlanChangeDirection,
@@ -30,6 +33,8 @@ from app.models.enums import (
     SubscriptionStatus,
     UserRole,
 )
+from app.models.conversation import Conversation
+from app.models.inbox_message import InboxMessage
 from app.models.order import Order
 from app.models.order_message import OrderMessage
 from app.models.plan_change_request import PlanChangeRequest
@@ -58,9 +63,14 @@ __all__ = [
     "CancelledBy",
     "Client",
     "ClientSource",
+    "Conversation",
+    "ConversationContextType",
+    "ConversationStatus",
     "ConsentEntityType",
     "ConsentSource",
     "OperatingMode",
+    "InboxMessage",
+    "InboxMessageSenderType",
     "Order",
     "OrderMessage",
     "OrderMessageSenderType",
