@@ -9,6 +9,8 @@ from sqlalchemy import select
 from app.models.business import Business
 from app.repositories.business_repository import DEFAULT_BUSINESS_SETTINGS
 from app.utils.mini_site_config import MINI_SITE_SETTINGS_KEY
+from app.models.enums import SubscriptionPlan, SubscriptionStatus
+from app.repositories.business_repository import BusinessRepository
 from tests.conftest import activate_business, register_and_get_context
 
 ALLOWED_TOP_LEVEL_KEYS = {
@@ -25,6 +27,20 @@ ALLOWED_TOP_LEVEL_KEYS = {
 def _mini_site_config_path(business_id: str) -> str:
     return f"/api/v1/businesses/{business_id}/mini-site-config"
 
+async def _set_subscription_plan(db_session, business_id: str, plan: SubscriptionPlan) -> None:
+    import uuid
+
+    repo = BusinessRepository(db_session)
+    subscription = await repo.get_subscription(uuid.UUID(business_id))
+    assert subscription is not None
+    await repo.update_subscription(
+        subscription,
+        {"plan": plan, "status": SubscriptionStatus.active},
+    )
+    await db_session.commit()
+    db_session.expire_all()
+
+
 
 @pytest.mark.asyncio
 async def test_admin_can_get_default_mini_site_config_when_none_saved(
@@ -33,6 +49,7 @@ async def test_admin_can_get_default_mini_site_config_when_none_saved(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-get-default")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     response = await async_client.get(
         _mini_site_config_path(ctx["business_id"]),
@@ -60,6 +77,7 @@ async def test_get_mini_site_config_does_not_expose_unrelated_settings_keys(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-get-isolated")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     response = await async_client.get(
         _mini_site_config_path(ctx["business_id"]),
@@ -80,6 +98,7 @@ async def test_admin_can_save_mini_site_config(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-save")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     response = await async_client.put(
         _mini_site_config_path(ctx["business_id"]),
@@ -122,6 +141,7 @@ async def test_save_mini_site_config_normalizes_and_sanitizes_payload(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-sanitize")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     response = await async_client.put(
         _mini_site_config_path(ctx["business_id"]),
@@ -162,6 +182,7 @@ async def test_save_mini_site_config_preserves_unrelated_settings_keys(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-preserve-settings")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     result = await db_session.execute(
         select(Business).where(Business.slug == ctx["slug"]),
@@ -216,6 +237,7 @@ async def test_save_ignores_unknown_section_types(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-unknown-section")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     response = await async_client.put(
         _mini_site_config_path(ctx["business_id"]),
@@ -300,6 +322,7 @@ async def test_save_mini_site_config_persists_for_subsequent_get(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-persist-get")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     result = await db_session.execute(
         select(Business).where(Business.slug == ctx["slug"]),
@@ -385,6 +408,7 @@ async def test_save_mini_site_config_preserves_explicitly_empty_faq_items(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-empty-faq")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     empty_faq_items = [
         {"question": "", "answer": ""},

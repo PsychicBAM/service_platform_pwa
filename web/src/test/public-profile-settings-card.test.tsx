@@ -88,6 +88,17 @@ describe("PublicProfileSettingsCard", () => {
     await screen.findByTestId("mini-site-editor");
   });
 
+  it("locks Appearance editor for Free/Starter and links to full builder", async () => {
+    renderPublicProfileCard("free");
+
+    expect(screen.getByTestId("public-profile-mini-site-locked")).toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-editor")).not.toBeInTheDocument();
+    expect(screen.getByTestId("public-profile-open-mini-site-builder")).toHaveAttribute(
+      "href",
+      "/admin/mini-site",
+    );
+  });
+
   it("loads mini-site config from API", async () => {
     renderPublicProfileCard("pro");
 
@@ -98,7 +109,7 @@ describe("PublicProfileSettingsCard", () => {
   });
 
   it("renders editable theme and content fields", async () => {
-    renderPublicProfileCard("starter");
+    renderPublicProfileCard("pro");
 
     expect(await screen.findByTestId("mini-site-template")).toBeEnabled();
     expect(screen.getByTestId("mini-site-primary-color")).toBeEnabled();

@@ -786,6 +786,7 @@ export interface BusinessAdminRead {
   status: BusinessStatus;
   settings: BusinessSettingsRead;
   subscription: BusinessSubscriptionSummary | null;
+  public_page_variant?: PublicPageVariant;
   created_at: string;
   updated_at: string;
   marketplace_cover_image?: import("@/lib/serviceImage").ServiceImageMedia | null;

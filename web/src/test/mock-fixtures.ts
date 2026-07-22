@@ -285,6 +285,7 @@ export const mockAdminBusiness: BusinessAdminRead = {
     usage_bookings_count: 1,
     usage_orders_count: 1,
   },
+  public_page_variant: "standard",
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
 };

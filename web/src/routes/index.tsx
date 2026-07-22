@@ -10,6 +10,7 @@ import { AdminClientsPage } from "@/pages/admin/AdminClientsPage";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { AdminLegalConsentsPage } from "@/pages/admin/AdminLegalConsentsPage";
 import { AdminMessagesPage } from "@/pages/admin/AdminMessagesPage";
+import { AdminMiniSitePage } from "@/pages/admin/AdminMiniSitePage";
 import { AdminOrdersPage } from "@/pages/admin/AdminOrdersPage";
 import { AdminReviewsPage } from "@/pages/admin/AdminReviewsPage";
 import { AdminSchedulePage } from "@/pages/admin/AdminSchedulePage";
@@ -115,6 +116,7 @@ export const routes = [
           { path: "reviews", element: <AdminReviewsPage /> },
           { path: "clients", element: <AdminClientsPage /> },
           { path: "schedule", element: <AdminSchedulePage /> },
+          { path: "mini-site", element: <AdminMiniSitePage /> },
           { path: "legal-consents", element: <AdminLegalConsentsPage /> },
           { path: "settings", element: <AdminSettingsPage /> },
         ],

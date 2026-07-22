@@ -36,6 +36,30 @@ def test_resolve_public_page_variant_active_pro() -> None:
         status=SubscriptionStatus.active,
     )
     assert resolve_public_page_variant(subscription).value == "mini_site"
+    assert resolve_public_page_variant(subscription, {}).value == "mini_site"
+
+
+def test_resolve_public_page_variant_active_business() -> None:
+    subscription = SimpleNamespace(
+        plan=SubscriptionPlan.business,
+        status=SubscriptionStatus.active,
+    )
+    assert resolve_public_page_variant(subscription).value == "mini_site"
+
+
+def test_resolve_public_page_variant_explicit_standard_overrides_plan() -> None:
+    subscription = SimpleNamespace(
+        plan=SubscriptionPlan.business,
+        status=SubscriptionStatus.active,
+    )
+    settings = {"public_page_variant": "standard"}
+    assert resolve_public_page_variant(subscription, settings).value == "standard"
+
+
+def test_resolve_public_page_variant_explicit_mini_site_requires_eligible_plan() -> None:
+    free = SimpleNamespace(plan=SubscriptionPlan.free, status=SubscriptionStatus.active)
+    settings = {"public_page_variant": "mini_site"}
+    assert resolve_public_page_variant(free, settings).value == "standard"
 
 
 @pytest.mark.parametrize(
@@ -43,10 +67,10 @@ def test_resolve_public_page_variant_active_pro() -> None:
     [
         (SubscriptionPlan.free, SubscriptionStatus.active),
         (SubscriptionPlan.starter, SubscriptionStatus.active),
-        (SubscriptionPlan.business, SubscriptionStatus.active),
         (SubscriptionPlan.pro, SubscriptionStatus.trialing),
         (SubscriptionPlan.pro, SubscriptionStatus.cancelled),
         (SubscriptionPlan.pro, SubscriptionStatus.past_due),
+        (SubscriptionPlan.business, SubscriptionStatus.cancelled),
     ],
 )
 def test_resolve_public_page_variant_standard_cases(
@@ -98,7 +122,7 @@ async def test_public_business_mini_site_for_active_pro(
 
 
 @pytest.mark.asyncio
-async def test_public_business_standard_for_business_plan(
+async def test_public_business_mini_site_for_business_plan(
     async_client: AsyncClient,
     db_session: AsyncSession,
 ) -> None:
@@ -113,8 +137,9 @@ async def test_public_business_standard_for_business_plan(
     response = await async_client.get(f"/api/v1/public/b/{ctx['slug']}")
     assert response.status_code == 200
     body = response.json()
-    assert body["public_page_variant"] == "standard"
-    assert body["mini_site_config"] is None
+    assert body["public_page_variant"] == "mini_site"
+    assert body["mini_site_config"] is not None
+    assert body["mini_site_config"]["theme"]["template"] == "clean"
 
 
 @pytest.mark.asyncio

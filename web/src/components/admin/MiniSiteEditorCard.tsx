@@ -29,12 +29,6 @@ import {
 } from "@/types/miniSite";
 import { getAdminSettingsErrorMessage } from "@/utils/errors";
 
-type MiniSiteEditorCardProps = {
-  businessId: string;
-  businessName?: string;
-  businessSlug?: string;
-};
-
 const REORDERABLE_SECTION_TYPES = ["about", "services", "trust", "faq", "contact"] as const;
 type ReorderableSectionType = (typeof REORDERABLE_SECTION_TYPES)[number];
 
@@ -484,7 +478,32 @@ function AppearanceSectionCard({
   );
 }
 
-export function MiniSiteEditorCard({ businessId, businessName, businessSlug }: MiniSiteEditorCardProps) {
+type MiniSiteEditorCardProps = {
+  businessId: string;
+  businessName?: string;
+  businessSlug?: string;
+  /** When set, only these templates are selectable in the editor. */
+  allowedTemplates?: MiniSiteTemplate[];
+  /** Disable editing controls (Free/Starter locked shell). */
+  readOnly?: boolean;
+  /** Notify parent when save status changes (builder status strip). */
+  onSaveStatusChange?: (status: "idle" | "saved" | "error") => void;
+  /** Notify parent of the active draft template. */
+  onTemplateChange?: (template: MiniSiteTemplate) => void;
+  /** Imperative template selection from the template library. */
+  requestedTemplate?: MiniSiteTemplate | null;
+};
+
+export function MiniSiteEditorCard({
+  businessId,
+  businessName,
+  businessSlug,
+  allowedTemplates,
+  readOnly = false,
+  onSaveStatusChange,
+  onTemplateChange,
+  requestedTemplate,
+}: MiniSiteEditorCardProps) {
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState<MiniSiteConfig | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -500,30 +519,102 @@ export function MiniSiteEditorCard({ businessId, businessName, businessSlug }: M
     enabled: Boolean(businessId),
   });
 
+  function applyAllowedTemplate(config: MiniSiteConfig): MiniSiteConfig {
+    if (allowedTemplates === undefined) {
+      return config;
+    }
+    if (allowedTemplates.length === 0) {
+      return config;
+    }
+    const current = config.theme.template;
+    if (allowedTemplates.includes(current)) {
+      return config;
+    }
+    return {
+      ...config,
+      theme: {
+        ...config.theme,
+        template: allowedTemplates[0],
+      },
+    };
+  }
+
   useEffect(() => {
     if (configQuery.data) {
-      setDraft(normalizeMiniSiteConfig(configQuery.data));
+      const normalized = normalizeMiniSiteConfig(configQuery.data);
+      setDraft(applyAllowedTemplate(normalized));
     }
-  }, [configQuery.data]);
+  }, [configQuery.data, allowedTemplates]);
+
+  useEffect(() => {
+    if (!draft) {
+      return;
+    }
+    onTemplateChange?.(draft.theme.template);
+  }, [draft?.theme.template, onTemplateChange]);
+
+  useEffect(() => {
+    if (!requestedTemplate) {
+      return;
+    }
+    setDraft((current) => {
+      if (!current || current.theme.template === requestedTemplate) {
+        return current;
+      }
+      if (allowedTemplates && !allowedTemplates.includes(requestedTemplate)) {
+        return current;
+      }
+      return {
+        ...current,
+        theme: { ...current.theme, template: requestedTemplate },
+      };
+    });
+  }, [requestedTemplate, allowedTemplates]);
 
   const saveMutation = useMutation({
     mutationFn: (config: MiniSiteConfig) => updateMiniSiteConfig(businessId, config),
     onSuccess: async (data) => {
-      setDraft(normalizeMiniSiteConfig(data));
+      setDraft(applyAllowedTemplate(normalizeMiniSiteConfig(data)));
       await queryClient.invalidateQueries({ queryKey: ["mini-site-config", businessId] });
+      onSaveStatusChange?.("saved");
+    },
+    onError: () => {
+      onSaveStatusChange?.("error");
     },
   });
 
-  const saving = saveMutation.isPending;
-  const canSave = Boolean(draft) && !configQuery.isLoading && !saving;
+  const saving = saveMutation.isPending || readOnly;
+  const templateAllowed =
+    allowedTemplates === undefined
+      ? true
+      : Boolean(draft && allowedTemplates.includes(draft.theme.template));
+  const canSave =
+    Boolean(draft) &&
+    !configQuery.isLoading &&
+    !saveMutation.isPending &&
+    !readOnly &&
+    templateAllowed;
+  const templateOptions =
+    allowedTemplates === undefined
+      ? [...MINI_SITE_TEMPLATES]
+      : allowedTemplates.length > 0
+        ? [...allowedTemplates]
+        : [];
 
   async function handleSave() {
-    if (!draft) {
+    if (!draft || readOnly) {
       return;
     }
     setSaveSuccess(false);
     setSaveError(null);
-    const normalized = normalizeMiniSiteConfig(draft);
+    onSaveStatusChange?.("idle");
+    const normalized = applyAllowedTemplate(normalizeMiniSiteConfig(draft));
+    if (allowedTemplates && !allowedTemplates.includes(normalized.theme.template)) {
+      setSaveError("This template is not available on your current plan.");
+      onSaveStatusChange?.("error");
+      return;
+    }
+    setDraft(normalized);
     try {
       await saveMutation.mutateAsync(normalized);
       setSaveSuccess(true);
@@ -531,6 +622,7 @@ export function MiniSiteEditorCard({ businessId, businessName, businessSlug }: M
       setSaveError(
         getAdminSettingsErrorMessage(error, "Could not save mini-site profile."),
       );
+      onSaveStatusChange?.("error");
     }
   }
 
@@ -640,20 +732,24 @@ export function MiniSiteEditorCard({ businessId, businessName, businessSlug }: M
               <select
                 id="mini-site-template"
                 value={config.theme.template}
-                disabled={saving}
-                onChange={(event) =>
+                disabled={saving || readOnly || templateOptions.length <= 1}
+                onChange={(event) => {
+                  const next = event.target.value as MiniSiteTemplate;
+                  if (allowedTemplates && !allowedTemplates.includes(next)) {
+                    return;
+                  }
                   setDraft({
                     ...config,
                     theme: {
                       ...config.theme,
-                      template: event.target.value as MiniSiteTemplate,
+                      template: next,
                     },
-                  })
-                }
+                  });
+                }}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
                 data-testid="mini-site-template"
               >
-                {MINI_SITE_TEMPLATES.map((template) => (
+                {templateOptions.map((template) => (
                   <option key={template} value={template}>
                     {template.charAt(0).toUpperCase() + template.slice(1)}
                   </option>

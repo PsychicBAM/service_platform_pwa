@@ -14,6 +14,7 @@ const NAV_ITEMS: Array<{ to: string; label: string; end?: boolean; testId?: stri
   { to: "/admin/reviews", label: "Reviews" },
   { to: "/admin/clients", label: "Clients" },
   { to: "/admin/schedule", label: "Schedule" },
+  { to: "/admin/mini-site", label: "Mini-site", testId: "admin-mini-site-sidebar-link" },
   { to: "/admin/legal-consents", label: "Legal consent" },
   { to: "/admin/settings", label: "Settings" },
 ];

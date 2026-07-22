@@ -7,7 +7,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from app.exceptions.business import BusinessNotFoundError, InvalidTimezoneError, ValidationAppError
 from app.models.business import Business
-from app.models.enums import PublicPageVariant
+from app.models.enums import PublicPageVariant, SubscriptionPlan
 from app.models.enums import PriceType, ServiceType
 from app.models.subscription import Subscription
 from app.repositories.business_repository import BusinessRepository
@@ -17,7 +17,10 @@ from app.utils.mini_site_config import (
     normalize_mini_site_config,
     read_mini_site_config_from_settings,
 )
-from app.utils.public_page_variant import resolve_public_page_variant
+from app.utils.public_page_variant import (
+    resolve_public_page_variant,
+    set_public_page_variant_preference,
+)
 from app.schemas.business import (
     BusinessAdminRead,
     BusinessSettingsRead,
@@ -28,6 +31,7 @@ from app.schemas.business import (
     PublicBusinessDirectoryResponse,
     PublicBusinessDirectoryServicePreview,
     PublicBusinessRead,
+    PublicPageVariantUpdate,
 )
 from app.schemas.mini_site import MiniSiteConfig, MiniSiteConfigWrite, MiniSiteTemplate
 from app.schemas.mini_site_media import MiniSiteImageMedia, MiniSiteMediaRemoveResponse, MiniSiteMediaUploadResponse
@@ -285,13 +289,45 @@ class BusinessService:
         business: Business,
         payload: MiniSiteConfigWrite,
     ) -> MiniSiteConfig:
+        from app.utils.mini_site_plan_access import assert_mini_site_template_allowed
+
         normalized = normalize_mini_site_config(payload.model_dump(exclude_unset=True))
+        subscription = await self.repo.get_subscription(business.id)
+        plan = subscription.plan if subscription is not None else None
+        assert_mini_site_template_allowed(plan, normalized.theme.template)
         business.settings = merge_mini_site_config_into_settings(business.settings, normalized)
+        # Selecting/saving a mini-site template activates the mini-site public layout.
+        business.settings = set_public_page_variant_preference(
+            business.settings,
+            PublicPageVariant.mini_site,
+        )
         flag_modified(business, "settings")
         await self.session.flush()
         await self.session.commit()
         await self.session.refresh(business)
         return read_mini_site_config_from_settings(business.settings)
+
+    async def set_public_page_variant(
+        self,
+        business: Business,
+        payload: PublicPageVariantUpdate,
+    ) -> BusinessAdminRead:
+        """Switch Default business profile (standard) vs mini-site without deleting config."""
+        from app.utils.mini_site_plan_access import assert_public_page_variant_allowed
+
+        subscription = await self.repo.get_subscription(business.id)
+        plan = subscription.plan if subscription is not None else None
+        assert_public_page_variant_allowed(plan, payload.public_page_variant)
+        business.settings = set_public_page_variant_preference(
+            business.settings,
+            payload.public_page_variant,
+        )
+        flag_modified(business, "settings")
+        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(business)
+        subscription = await self.repo.get_subscription(business.id)
+        return self._to_admin_read(business, subscription)
 
     async def upload_mini_site_media(
         self,
@@ -306,6 +342,11 @@ class BusinessService:
     ) -> MiniSiteMediaUploadResponse:
         if not is_allowed_mini_site_image_slot(template, slot):
             raise ValidationAppError("Invalid template media slot.")
+        from app.utils.mini_site_plan_access import assert_mini_site_template_allowed
+
+        subscription = await self.repo.get_subscription(business.id)
+        plan = subscription.plan if subscription is not None else None
+        assert_mini_site_template_allowed(plan, template)
         if not content:
             raise ValidationAppError("Image file is required.")
         if len(content) > MINI_SITE_IMAGE_MAX_BYTES:
@@ -492,12 +533,24 @@ class BusinessService:
             business.id
         )
         subscription = await self.repo.get_subscription(business.id)
-        public_page_variant = resolve_public_page_variant(subscription)
+        public_page_variant = resolve_public_page_variant(subscription, business.settings)
         mini_site_config = (
             read_mini_site_config_from_settings(business.settings)
             if public_page_variant == PublicPageVariant.mini_site
             else None
         )
+        if (
+            mini_site_config is not None
+            and subscription is not None
+            and subscription.plan == SubscriptionPlan.business
+            and mini_site_config.theme.template != "clean"
+        ):
+            # Business may only publish Clean; coerce display without mutating storage.
+            mini_site_config = mini_site_config.model_copy(
+                update={
+                    "theme": mini_site_config.theme.model_copy(update={"template": "clean"}),
+                }
+            )
         services = await ServiceService(self.session).list_public(business)
         cover_image_url = resolve_public_cover_image_url(
             settings=business.settings,
@@ -554,6 +607,7 @@ class BusinessService:
             settings=BusinessSettingsRead.from_settings(business.settings),
             marketplace_cover_image=read_marketplace_cover_image(business.settings),
             public_location=read_public_location(business.settings),
+            public_page_variant=resolve_public_page_variant(subscription, business.settings),
             subscription=(
                 BusinessSubscriptionSummary.model_validate(subscription)
                 if subscription is not None

@@ -23,6 +23,7 @@ import type {
   OrderMessageRead,
   PlanChangeRequestCreatePayload,
   PlanChangeRequestRead,
+  PublicPageVariant,
   ScheduleRead,
   ServiceCreatePayload,
   ServiceSlotCapacityOverrideCreatePayload,
@@ -61,6 +62,16 @@ export function updateBusiness(businessId: string, payload: BusinessUpdatePayloa
   return apiClient.patch<BusinessAdminRead>(
     `/businesses/${encodeURIComponent(businessId)}`,
     payload,
+  );
+}
+
+export function updatePublicPageVariant(
+  businessId: string,
+  public_page_variant: PublicPageVariant,
+) {
+  return apiClient.put<BusinessAdminRead>(
+    `/businesses/${encodeURIComponent(businessId)}/public-page-variant`,
+    { public_page_variant },
   );
 }
 

@@ -341,9 +341,16 @@ class BusinessAdminRead(BaseModel):
     settings: BusinessSettingsRead
     marketplace_cover_image: ServiceImageMedia | None = None
     public_location: PublicLocation | None = None
+    public_page_variant: PublicPageVariant = PublicPageVariant.standard
     subscription: BusinessSubscriptionSummary | None
     created_at: datetime
     updated_at: datetime
+
+
+class PublicPageVariantUpdate(BaseModel):
+    """Owner preference: Default business profile (standard) or mini-site layout."""
+
+    public_page_variant: PublicPageVariant
 
 
 class BusinessUpdate(BaseModel):

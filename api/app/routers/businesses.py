@@ -7,7 +7,7 @@ from app.database import get_db
 from app.dependencies.business import get_business_for_admin_or_403
 from app.models.business import Business
 from app.models.enums import ConsentEntityType, ConsentSource
-from app.schemas.business import BusinessAdminRead, BusinessUpdate
+from app.schemas.business import BusinessAdminRead, BusinessUpdate, PublicPageVariantUpdate
 from app.schemas.legal_consent_records import LegalConsentRecordListResponse
 from app.schemas.business_logo_image import (
     BusinessLogoImageRemoveResponse,
@@ -46,6 +46,18 @@ async def update_business_profile(
     if business.id != business_id:
         raise ValueError("business mismatch")  # pragma: no cover
     return await BusinessService(db).update_admin_business(business, payload)
+
+
+@router.put("/{business_id}/public-page-variant", response_model=BusinessAdminRead)
+async def set_public_page_variant(
+    business_id: uuid.UUID,
+    payload: PublicPageVariantUpdate,
+    business: Business = Depends(get_business_for_admin_or_403),
+    db: AsyncSession = Depends(get_db),
+) -> BusinessAdminRead:
+    if business.id != business_id:
+        raise ValueError("business mismatch")  # pragma: no cover
+    return await BusinessService(db).set_public_page_variant(business, payload)
 
 
 @router.get("/{business_id}/mini-site-config", response_model=MiniSiteConfig)

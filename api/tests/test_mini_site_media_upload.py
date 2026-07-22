@@ -19,6 +19,8 @@ from app.utils.mini_site_media_slots import (
     MINI_SITE_IMAGE_MEDIA_SLOTS,
     is_allowed_mini_site_image_slot,
 )
+from app.models.enums import SubscriptionPlan, SubscriptionStatus
+from app.repositories.business_repository import BusinessRepository
 from tests.conftest import activate_business, register_and_get_context
 
 
@@ -45,6 +47,20 @@ def mini_site_upload_root(tmp_path, monkeypatch: pytest.MonkeyPatch):
 def _upload_path(business_id: str) -> str:
     return f"/api/v1/businesses/{business_id}/mini-site-media/upload"
 
+async def _set_subscription_plan(db_session, business_id: str, plan: SubscriptionPlan) -> None:
+    import uuid
+
+    repo = BusinessRepository(db_session)
+    subscription = await repo.get_subscription(uuid.UUID(business_id))
+    assert subscription is not None
+    await repo.update_subscription(
+        subscription,
+        {"plan": plan, "status": SubscriptionStatus.active},
+    )
+    await db_session.commit()
+    db_session.expire_all()
+
+
 
 def _remove_path(business_id: str, template: str, slot: str) -> str:
     return f"/api/v1/businesses/{business_id}/mini-site-media?template={template}&slot={slot}"
@@ -58,6 +74,7 @@ async def test_upload_rejects_unauthenticated_user(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-media-unauth")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     response = await async_client.post(
         _upload_path(ctx["business_id"]),
@@ -76,6 +93,7 @@ async def test_upload_rejects_invalid_slot(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-media-invalid-slot")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     response = await async_client.post(
         _upload_path(ctx["business_id"]),
@@ -95,6 +113,7 @@ async def test_upload_rejects_non_image_content_type(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-media-non-image")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     response = await async_client.post(
         _upload_path(ctx["business_id"]),
@@ -114,6 +133,7 @@ async def test_upload_creates_optimized_webp_with_thumbnail_metadata(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-media-upload-ok")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
     original_bytes = _make_test_image_bytes("PNG", (2000, 1200))
 
     response = await async_client.post(
@@ -164,6 +184,7 @@ async def test_remove_clears_slot_and_deletes_optimized_files(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-media-remove")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     upload_response = await async_client.post(
         _upload_path(ctx["business_id"]),
@@ -200,6 +221,7 @@ async def test_legacy_config_without_template_media_normalizes_safely(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-media-legacy")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     response = await async_client.get(
         f"/api/v1/businesses/{ctx['business_id']}/mini-site-config",
@@ -252,6 +274,7 @@ async def test_upload_rejects_oversized_image_with_clear_message(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-media-oversized")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     oversized = b"x" * (MINI_SITE_IMAGE_MAX_BYTES + 1)
     response = await async_client.post(
@@ -273,6 +296,7 @@ async def test_upload_rejects_invalid_image_bytes(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-media-invalid-bytes")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     response = await async_client.post(
         _upload_path(ctx["business_id"]),
@@ -292,6 +316,7 @@ async def test_upload_accepts_jpeg_and_png_under_limit_and_optimizes_to_webp(
 ) -> None:
     ctx = await register_and_get_context(async_client, "mini-site-media-jpeg-png")
     await activate_business(db_session, ctx["slug"])
+    await _set_subscription_plan(db_session, ctx["business_id"], SubscriptionPlan.pro)
 
     for filename, content_type, image_format in (
         ("photo.jpg", "image/jpeg", "JPEG"),

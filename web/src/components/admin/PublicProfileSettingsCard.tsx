@@ -1,5 +1,10 @@
+import { Link } from "react-router-dom";
 import { PlanBadge, isProPlan } from "@/components/admin/PlanBadge";
 import { MiniSiteEditorCard } from "@/components/admin/MiniSiteEditorCard";
+import {
+  canUseMiniSite,
+  getAllowedMiniSiteTemplates,
+} from "@/lib/miniSitePlanAccess";
 
 export const PUBLIC_PROFILE_TITLE = "Public profile";
 export const PUBLIC_PROFILE_DESCRIPTION =
@@ -25,6 +30,8 @@ export function PublicProfileSettingsCard({
   currentPlan,
 }: PublicProfileSettingsCardProps) {
   const onPro = isProPlan(currentPlan);
+  const editorUnlocked = canUseMiniSite(currentPlan);
+  const allowedTemplates = getAllowedMiniSiteTemplates(currentPlan);
 
   return (
     <div
@@ -45,13 +52,39 @@ export function PublicProfileSettingsCard({
         <p className="text-sm text-slate-600" data-testid="public-profile-plan-message">
           {onPro ? PUBLIC_PROFILE_ON_PRO_MESSAGE : PUBLIC_PROFILE_COMING_SOON_MESSAGE}
         </p>
+        <Link
+          to="/admin/mini-site"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-medium text-violet-800 hover:bg-violet-100"
+          data-testid="public-profile-open-mini-site-builder"
+        >
+          Open full Mini-site Builder
+          <span aria-hidden="true">→</span>
+        </Link>
       </div>
 
-      <MiniSiteEditorCard
-        businessId={businessId}
-        businessName={businessName}
-        businessSlug={businessSlug}
-      />
+      {editorUnlocked ? (
+        <MiniSiteEditorCard
+          businessId={businessId}
+          businessName={businessName}
+          businessSlug={businessSlug}
+          allowedTemplates={allowedTemplates}
+        />
+      ) : (
+        <div
+          className="rounded-2xl border border-dashed border-violet-200 bg-violet-50/40 p-6 text-center"
+          data-testid="public-profile-mini-site-locked"
+        >
+          <p className="text-sm font-medium text-slate-800">
+            Mini-site editing unlocks on Business (Clean) or Pro.
+          </p>
+          <Link
+            to="/admin/settings?tab=payments"
+            className="mt-3 inline-flex rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
+          >
+            View plans
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
