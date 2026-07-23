@@ -34,8 +34,17 @@ describe("miniSiteTemplateEditorRegistry", () => {
     expect(service.imageMediaSlots.map((slot) => slot.id)).toEqual([
       "heroImage",
       "serviceImage",
+      "whyChooseUsImage",
       "requestImage",
     ]);
+    expect(service.imageMediaSlots.map((slot) => slot.label)).toEqual([
+      "Hero image",
+      "Services section image",
+      "Why choose us image",
+      "Booking / request image",
+    ]);
+    expect(service.videoMediaSlots.map((slot) => slot.id)).toEqual(["introVideo"]);
+    expect(service.videoMediaSlots[0]?.label).toBe("Intro video");
 
     const clinic = getMiniSiteTemplateEditorDefinition("clinic");
     expect(clinic.imageMediaSlots.map((slot) => slot.id)).toEqual([

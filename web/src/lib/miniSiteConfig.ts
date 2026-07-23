@@ -20,6 +20,7 @@ import {
 } from "@/types/miniSite";
 import { normalizeHexColorInput } from "./miniSiteTemplatePresentation";
 import { normalizeTemplateMediaMap } from "./miniSiteMedia";
+import { normalizeServiceTemplateContent } from "./serviceTemplateConfig";
 
 function sanitizePlainText(value: string): string {
   return value.replace(/[<>]/g, "").trim();
@@ -696,6 +697,15 @@ export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
   const source = input as Record<string, unknown>;
   const version = source.version === MINI_SITE_CONFIG_VERSION ? MINI_SITE_CONFIG_VERSION : MINI_SITE_CONFIG_VERSION;
   const theme = normalizeTheme(source.theme);
+  const templateContent = normalizeTemplateFoundationMap(
+    source.templateContent ?? source.template_content,
+  );
+  if (theme.template === "service" || templateContent.service) {
+    templateContent.service = normalizeServiceTemplateContent(templateContent.service) as unknown as Record<
+      string,
+      unknown
+    >;
+  }
 
   return {
     version,
@@ -703,7 +713,7 @@ export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
     sections: normalizeSections(source.sections),
     socialLinks: normalizeSocialLinks(source.socialLinks ?? source.social_links),
     copy: normalizeCopy(source.copy, theme.template),
-    templateContent: normalizeTemplateFoundationMap(source.templateContent ?? source.template_content),
+    templateContent,
     templateMedia: normalizeTemplateMediaMap(source.templateMedia ?? source.template_media),
   };
 }

@@ -58,7 +58,13 @@ describe("miniSiteTemplateBuilders", () => {
     );
     expect(
       getAvailableSectionsForTemplate("service").find((s) => s.id === "why-choose-us")?.editorFocus,
-    ).toBe("trust");
+    ).toBe("why-choose-us");
+    expect(
+      getAvailableSectionsForTemplate("service").find((s) => s.id === "how-it-works")?.mode,
+    ).toBe("editable");
+    expect(getAvailableSectionsForTemplate("service").every((s) => s.mode !== "coming_soon")).toBe(
+      true,
+    );
     expect(getDefaultSectionIdForTemplate("coach")).toBe("hero");
     expect(getTemplateBuilderLabel("teacher")).toBe("Teacher");
   });

@@ -54,6 +54,10 @@ describe("Admin Mini-site Builder", () => {
     vi.mocked(adminApi.updatePublicPageVariant).mockImplementation(async (_id, variant) =>
       businessWithPlan("business", variant),
     );
+    vi.mocked(adminApi.listAdminServices).mockResolvedValue({
+      data: [],
+      meta: { total: 0, limit: 100, offset: 0 },
+    } as never);
   });
 
   it("shows Mini-site sidebar link", () => {
@@ -464,32 +468,57 @@ describe("Admin Mini-site Builder", () => {
     expect(screen.queryByTestId("admin-appearance-section-active-list")).not.toBeInTheDocument();
   });
 
-  it("Pro Service: How it works shows Coming soon; Services is section-focused", async () => {
+  it("Pro Service: all sections editable with no Coming soon; Services uses real catalog controls", async () => {
     const user = userEvent.setup();
     renderMiniSitePage("pro", "mini_site");
     await screen.findByTestId("admin-mini-site-template-builder");
     await selectProTemplate(user, "service");
 
+    const nav = screen.getByTestId("admin-mini-site-template-section-nav");
+    expect(nav).toHaveTextContent("How it works");
+    expect(nav).toHaveTextContent("Pricing");
+    expect(nav).toHaveTextContent("Footer");
+    expect(nav).not.toHaveTextContent("Soon");
+
     const howItWorks = screen
       .getAllByTestId("admin-mini-site-builder-section")
       .find((entry) => entry.getAttribute("data-section") === "how-it-works");
     await user.click(howItWorks!);
-    expect(await screen.findByTestId("admin-mini-site-coming-soon-panel")).toHaveTextContent(
-      "How it works coming soon",
-    );
-    expect(screen.queryByTestId("mini-site-editor")).not.toBeInTheDocument();
+    expect(await screen.findByTestId("service-editor")).toHaveAttribute("data-section", "how-it-works");
+    expect(screen.getByTestId("service-editor-how-it-works-title")).toBeInTheDocument();
+    expect(screen.queryByTestId("admin-mini-site-coming-soon-panel")).not.toBeInTheDocument();
 
     const services = screen
       .getAllByTestId("admin-mini-site-builder-section")
       .find((entry) => entry.getAttribute("data-section") === "services");
     await user.click(services!);
+    expect(await screen.findByTestId("service-editor")).toHaveAttribute("data-section", "services");
+    expect(screen.getByTestId("service-editor-services-title")).toBeInTheDocument();
+    expect(screen.getByTestId("service-editor-managed-services-link")).toHaveAttribute(
+      "href",
+      "/admin/services",
+    );
+  });
 
-    const editor = await screen.findByTestId("mini-site-editor");
-    expect(editor).toHaveAttribute("data-mode", "section");
-    expect(editor).toHaveAttribute("data-active-section", "services");
-    expect(screen.getByTestId("mini-site-services-section-title")).toBeInTheDocument();
-    expect(screen.getByTestId("mini-site-services-managed-note")).toBeInTheDocument();
-    expect(screen.queryByTestId("admin-appearance-section-active-list")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("mini-site-hero-title")).not.toBeInTheDocument();
+  it("Pro Service: Hero and theme preset editors are real", async () => {
+    const user = userEvent.setup();
+    renderMiniSitePage("pro", "mini_site");
+    await screen.findByTestId("admin-mini-site-template-builder");
+    await selectProTemplate(user, "service");
+
+    const hero = screen
+      .getAllByTestId("admin-mini-site-builder-section")
+      .find((entry) => entry.getAttribute("data-section") === "hero");
+    await user.click(hero!);
+    expect(await screen.findByTestId("service-editor-hero-headline")).toBeInTheDocument();
+
+    const settings = screen
+      .getAllByTestId("admin-mini-site-builder-section")
+      .find((entry) => entry.getAttribute("data-section") === "settings");
+    await user.click(settings!);
+    expect(await screen.findByTestId("service-editor-theme-preset")).toBeInTheDocument();
+    expect(screen.getByTestId("service-editor-theme-preset")).toHaveTextContent("Premium Dark");
+    expect(screen.getByTestId("service-editor-theme-preset")).toHaveTextContent("Modern Green");
+    expect(screen.getByTestId("service-editor-theme-preset")).toHaveTextContent("Clean White");
   });
 });

@@ -255,7 +255,7 @@ describe("PublicProfileSettingsCard", () => {
     await screen.findByTestId("mini-site-template");
     await user.selectOptions(screen.getByTestId("mini-site-template"), "service");
 
-    expect(screen.getByTestId("mini-site-media-slot-requestImage")).toHaveTextContent("Request / booking image");
+    expect(screen.getByTestId("mini-site-media-slot-requestImage")).toHaveTextContent("Booking / request image");
   });
 
   it("shows portfolio image slots and hides clinic slots when portfolio is selected", async () => {

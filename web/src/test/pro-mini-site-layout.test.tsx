@@ -171,7 +171,10 @@ describe("ProMiniSiteLayout", () => {
     const serviceLayout = screen.getByTestId("pro-mini-site-layout");
     expect(serviceLayout).toHaveAttribute("data-template", "service");
     expect(serviceLayout).toHaveClass("template-service");
-    expect(screen.getByText("Service business")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-hero")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-how-it-works")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-pricing")).toBeInTheDocument();
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
   });
 
   it("applies expert template centered hero presentation", () => {
@@ -186,13 +189,16 @@ describe("ProMiniSiteLayout", () => {
     expect(screen.getByTestId("pro-mini-site-hero-cta-group")).toHaveClass("sm:justify-center");
   });
 
-  it("renders editable copy hero badge text", () => {
+  it("renders service template hero eyebrow from service content", () => {
     renderProMiniSiteLayout({
       config: normalizeMiniSiteConfig({
         ...createSavedMiniSiteConfig({ template: "service" }),
-        copy: {
-          ...createSavedMiniSiteConfig({ template: "service" }).copy,
-          heroBadgeText: "Custom badge",
+        templateContent: {
+          service: {
+            hero: {
+              eyebrow: "Custom badge",
+            },
+          },
         },
       }),
     });
@@ -275,36 +281,38 @@ describe("ProMiniSiteLayout", () => {
     );
   });
 
-  it("hides configured sections (including Benefits/Trust) on Pro mini-site", () => {
+  it("hides configured Service template sections via sectionVisibility", () => {
     const config = normalizeMiniSiteConfig({
       version: 1,
       theme: {
         ...DEFAULT_MINI_SITE_CONFIG.theme,
         template: "service",
       },
-      sections: [
-        { id: "hero", type: "hero", enabled: true, order: 0, title: "Saved hero title" },
-        { id: "about", type: "about", enabled: false, order: 1, title: "About our team" },
-        { id: "services", type: "services", enabled: false, order: 2, title: "Services" },
-        { id: "trust", type: "trust", enabled: false, order: 2.5 },
-        { id: "benefits", type: "benefits", enabled: false, order: 3, title: "Why choose us" },
-        { id: "booking_cta", type: "booking_cta", enabled: false, order: 4 },
-        { id: "gallery", type: "gallery", enabled: true, order: 5, title: "Gallery" },
-        { id: "contact", type: "contact", enabled: false, order: 7, title: "Contact" },
-      ],
+      sections: DEFAULT_MINI_SITE_CONFIG.sections,
       socialLinks: {},
+      templateContent: {
+        service: {
+          sectionVisibility: {
+            hero: true,
+            services: false,
+            "how-it-works": false,
+            "why-choose-us": false,
+            pricing: false,
+            reviews: false,
+            faq: false,
+            contact: false,
+            footer: false,
+          },
+        },
+      },
     });
 
     renderProMiniSiteLayout({ config });
 
     expect(screen.getByTestId("pro-mini-site-hero")).toBeInTheDocument();
-
-    expect(screen.queryByTestId("pro-mini-site-about")).not.toBeInTheDocument();
     expect(screen.queryByTestId("pro-mini-site-services")).not.toBeInTheDocument();
     expect(screen.queryByTestId("pro-mini-site-contact")).not.toBeInTheDocument();
-
-    expect(screen.queryByTestId("pro-mini-site-trust-stats")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("pro-mini-site-benefits-strip")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pro-mini-site-pricing")).not.toBeInTheDocument();
   });
 
   it("renders FAQ section when enabled with saved copy", () => {

@@ -6,7 +6,7 @@ from app.schemas.mini_site import MiniSiteTemplate
 
 MINI_SITE_IMAGE_MEDIA_SLOTS: dict[MiniSiteTemplate, tuple[str, ...]] = {
     "clean": ("heroImage", "servicesImage", "ctaImage"),
-    "service": ("heroImage", "serviceImage", "requestImage"),
+    "service": ("heroImage", "serviceImage", "whyChooseUsImage", "requestImage"),
     "expert": ("profileImage", "heroImage", "servicesImage", "bookingImage"),
     "clinic": ("heroImage", "doctorOrClinicImage", "servicesImage", "appointmentImage"),
     "portfolio": ("heroVisual", "featuredWorkImage", "servicesImage", "collaborationImage"),

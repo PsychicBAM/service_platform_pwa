@@ -46,6 +46,7 @@ import {
   ServiceServicesSection,
   ServiceTrustSection,
 } from "@/components/public/ServiceProMiniSiteSections";
+import { ServiceTemplatePublicView } from "@/components/public/ServiceTemplatePublicView";
 import {
   CleanAboutSection,
   CleanContactSection,
@@ -54,7 +55,7 @@ import {
   CleanServicesSection,
   CleanTrustSection,
 } from "@/components/public/CleanProMiniSiteSections";
-import type { PublicBusiness } from "@/types/api";
+import type { PublicBusiness, PublicService } from "@/types/api";
 import {
   formatServicesSectionBadge,
   getEnabledMiniSiteSections,
@@ -63,6 +64,7 @@ import {
   hasMeaningfulText,
   isFaqItemFilled,
 } from "@/lib/miniSiteConfig";
+import { getServiceTemplateContent } from "@/lib/serviceTemplateConfig";
 import { getTemplateImageSlots } from "@/lib/miniSiteMedia";
 import { getTemplateVideoSlots } from "@/lib/miniSiteVideo";
 import {
@@ -87,6 +89,10 @@ import type {
 export type MiniSiteLivePreviewProps = {
   config: MiniSiteConfig;
   businessName?: string;
+  /** Optional real services for Service template preview. */
+  services?: PublicService[];
+  /** Forces Service layout columns for admin device frames (viewport breakpoints ignore frame width). */
+  previewDevice?: "desktop" | "tablet" | "mobile";
 };
 
 function getSectionField(
@@ -110,8 +116,45 @@ function previewCardClass(backgroundStyle: MiniSiteBackgroundStyle, extra = ""):
   return `rounded-lg border p-3 ${surface} ${extra}`;
 }
 
-export function MiniSiteLivePreview({ config, businessName = "Your business" }: MiniSiteLivePreviewProps) {
+export function MiniSiteLivePreview({
+  config,
+  businessName = "Your business",
+  services,
+  previewDevice,
+}: MiniSiteLivePreviewProps) {
   const { theme, socialLinks, copy } = config;
+  if ((theme.template as string) === "service") {
+    return (
+      <div
+        className="overflow-hidden rounded-xl border border-slate-200"
+        data-testid="mini-site-live-preview"
+        data-template="service"
+        data-preset={getServiceTemplateContent(config).themePreset}
+        data-preview-device={previewDevice ?? "desktop"}
+      >
+        <ServiceTemplatePublicView
+          variant="preview"
+          previewDevice={previewDevice ?? "desktop"}
+          testIdPrefix="mini-site-preview"
+          config={config}
+          publicSlug=""
+          services={services}
+          business={{
+            id: "preview",
+            name: businessName,
+            slug: "",
+            description: null,
+            logo_url: null,
+            operating_mode: "both",
+            contact_phone: null,
+            address: null,
+            public_page_variant: "mini_site",
+            miniSiteConfig: config,
+          }}
+        />
+      </div>
+    );
+  }
   const enabledSections = getEnabledMiniSiteSections(config);
   const heroTitle = getSectionField(config, "hero", "title") || businessName;
   const heroSubtitle = getSectionField(config, "hero", "subtitle");

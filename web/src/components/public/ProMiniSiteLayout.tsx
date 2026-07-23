@@ -82,6 +82,7 @@ import {
   ServiceServicesSection,
   ServiceTrustSection,
 } from "@/components/public/ServiceProMiniSiteSections";
+import { ServiceTemplatePublicView } from "@/components/public/ServiceTemplatePublicView";
 import {
   getMiniSitePageShellClass,
   getMiniSitePageShellStyle,
@@ -89,7 +90,13 @@ import {
   getMiniSiteTemplatePresentation,
   type MiniSiteTemplatePresentation,
 } from "@/lib/miniSiteTemplatePresentation";
-import type { OperatingMode, PublicBusiness, PublicService } from "@/types/api";
+import type {
+  OperatingMode,
+  PublicBusiness,
+  PublicReviewItem,
+  PublicReviewSummary,
+  PublicService,
+} from "@/types/api";
 import type {
   MiniSiteBackgroundStyle,
   MiniSiteConfig,
@@ -105,6 +112,8 @@ export type ProMiniSiteLayoutProps = {
   bookingHref?: string;
   orderHref?: string;
   config?: MiniSiteConfig | null;
+  reviews?: PublicReviewItem[];
+  reviewSummary?: PublicReviewSummary | null;
 };
 
 export function getProMiniSiteCtas(
@@ -312,8 +321,23 @@ export function ProMiniSiteLayout({
   bookingHref,
   orderHref,
   config,
+  reviews,
+  reviewSummary,
 }: ProMiniSiteLayoutProps) {
   const siteConfig = normalizeMiniSiteConfig(config ?? DEFAULT_MINI_SITE_CONFIG);
+  if (siteConfig.theme.template === "service") {
+    return (
+      <ServiceTemplatePublicView
+        business={business}
+        publicSlug={publicSlug}
+        services={services}
+        config={siteConfig}
+        reviews={reviews}
+        reviewSummary={reviewSummary}
+        testIdPrefix="pro-mini-site"
+      />
+    );
+  }
   const { theme, socialLinks, copy } = siteConfig;
   const templateImages = getTemplateImageSlots(siteConfig.templateMedia, theme.template);
   const templateVideos = getTemplateVideoSlots(siteConfig.templateMedia, theme.template);

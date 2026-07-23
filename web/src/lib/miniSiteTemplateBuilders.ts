@@ -12,7 +12,12 @@ export type MiniSiteEditorFocus =
   | "trust"
   | "faq"
   | "contact"
-  | "social";
+  | "social"
+  | "how-it-works"
+  | "why-choose-us"
+  | "pricing"
+  | "reviews"
+  | "footer";
 
 /** Honest section status for the template builder nav. */
 export type TemplateBuilderSectionMode =
@@ -168,35 +173,29 @@ const SERVICE_BUILDER: TemplateBuilderConfig = {
       id: "how-it-works",
       label: "How it works",
       helperText: "Step-by-step booking or request flow.",
-      mode: "coming_soon",
-      comingSoonTitle: "How it works coming soon",
-      comingSoonBody:
-        "A dedicated process section will be added later. Use Benefits and FAQ for now to explain your workflow.",
+      mode: "editable",
+      editorFocus: "how-it-works",
     },
     {
       id: "why-choose-us",
       label: "Why choose us",
       helperText: "Benefits and trust stats for local service buyers.",
       mode: "editable",
-      editorFocus: "trust",
-    },
-    {
-      id: "testimonials",
-      label: "Testimonials / reviews",
-      helperText: "Social proof for service quality.",
-      mode: "coming_soon",
-      comingSoonTitle: "Testimonials coming soon",
-      comingSoonBody:
-        "Template-specific testimonial cards will arrive later. Published reviews still appear on your public page when available.",
+      editorFocus: "why-choose-us",
     },
     {
       id: "pricing",
       label: "Pricing / packages",
       helperText: "Package-style pricing presentation.",
-      mode: "coming_soon",
-      comingSoonTitle: "Pricing packages coming soon",
-      comingSoonBody:
-        "Dedicated package editing is not available yet. Service prices continue to come from Admin → Services.",
+      mode: "editable",
+      editorFocus: "pricing",
+    },
+    {
+      id: "reviews",
+      label: "Testimonials / reviews",
+      helperText: "Social proof for service quality.",
+      mode: "editable",
+      editorFocus: "reviews",
     },
     {
       id: "faq",
@@ -211,6 +210,13 @@ const SERVICE_BUILDER: TemplateBuilderConfig = {
       helperText: "Phone, address, and social links.",
       mode: "editable",
       editorFocus: "contact",
+    },
+    {
+      id: "footer",
+      label: "Footer",
+      helperText: "Footer description, links, and social profiles.",
+      mode: "editable",
+      editorFocus: "footer",
     },
     {
       id: "settings",

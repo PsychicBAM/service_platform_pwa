@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getPublicBusiness, listPublicServices } from "@/api/publicApi";
+import { getPublicBusiness, listPublicReviews, listPublicServices } from "@/api/publicApi";
 import { ProMiniSiteLayout } from "@/components/public/ProMiniSiteLayout";
 import { StandardPublicBusinessHome } from "@/components/public/StandardPublicBusinessHome";
 import { PublicServiceTaxFromBusiness } from "@/components/PublicServiceTaxProvider";
@@ -15,16 +15,22 @@ function BusinessHomeContent({ slug }: { slug: string }) {
   });
 
   const isMiniSite = businessQuery.data?.public_page_variant === "mini_site";
+  const isServiceMiniSite = isMiniSite && businessQuery.data?.miniSiteConfig?.theme?.template === "service";
 
   const servicesQuery = useQuery({
     queryKey: ["public-services", slug],
     queryFn: () => listPublicServices(slug),
     enabled: isMiniSite,
   });
+  const reviewsQuery = useQuery({
+    queryKey: ["public-reviews", slug],
+    queryFn: () => listPublicReviews(slug),
+    enabled: isServiceMiniSite,
+  });
 
   const { data, isLoading, isError, error } = businessQuery;
 
-  if (isLoading || (isMiniSite && servicesQuery.isLoading)) {
+  if (isLoading || (isMiniSite && servicesQuery.isLoading) || (isServiceMiniSite && reviewsQuery.isLoading)) {
     return <LoadingState message="Loading business…" />;
   }
 
@@ -58,6 +64,8 @@ function BusinessHomeContent({ slug }: { slug: string }) {
           publicSlug={slug}
           services={servicesQuery.data ?? []}
           config={data.miniSiteConfig}
+          reviews={reviewsQuery.data?.reviews}
+          reviewSummary={reviewsQuery.data?.summary ?? null}
         />
       </PublicServiceTaxFromBusiness>
     );
