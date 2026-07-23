@@ -64,6 +64,7 @@ export function PublicProfileSettingsCard({
 
       {editorUnlocked ? (
         <MiniSiteEditorCard
+          mode="full"
           businessId={businessId}
           businessName={businessName}
           businessSlug={businessSlug}

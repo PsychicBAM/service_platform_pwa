@@ -163,6 +163,7 @@ describe("Admin Mini-site Builder", () => {
     expect(lockedCards.length).toBeGreaterThan(0);
     expect(lockedCards.every((card) => card.getAttribute("data-locked") === "true")).toBe(true);
 
+    await selectBuilderSection(user, "settings");
     const templateSelect = await screen.findByTestId("mini-site-template");
     expect(templateSelect).toHaveValue("clean");
 
@@ -247,6 +248,7 @@ describe("Admin Mini-site Builder", () => {
   });
 
   it("coerces Business editor to Clean when stored template is locked", async () => {
+    const user = userEvent.setup();
     vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue({
       ...DEFAULT_MINI_SITE_CONFIG,
       theme: {
@@ -256,9 +258,12 @@ describe("Admin Mini-site Builder", () => {
     });
     renderMiniSitePage("business", "mini_site");
 
-    expect(await screen.findByTestId("mini-site-template")).toHaveValue("clean");
+    expect(await screen.findByTestId("mini-site-editor")).toBeInTheDocument();
     expect(screen.getByTestId("mini-site-live-preview")).toHaveAttribute("data-template", "clean");
     expect(screen.getByTestId("admin-mini-site-locked-template-warning")).toBeInTheDocument();
+
+    await selectBuilderSection(user, "settings");
+    expect(await screen.findByTestId("mini-site-template")).toHaveValue("clean");
   });
 
   it("unlocks Default, Clean, and all templates for Pro", async () => {
@@ -292,5 +297,199 @@ describe("Admin Mini-site Builder", () => {
     );
     expect(screen.getByTestId("admin-mini-site-preview-button")).toBeEnabled();
     expect(screen.getByTestId("admin-mini-site-share-button")).toBeEnabled();
+  });
+
+  it("Pro Clean shows Clean-specific section nav", async () => {
+    renderMiniSitePage("pro", "mini_site");
+
+    expect(await screen.findByTestId("admin-mini-site-template-builder")).toHaveAttribute(
+      "data-builder",
+      "clean",
+    );
+    const nav = screen.getByTestId("admin-mini-site-template-section-nav");
+    expect(nav).toHaveTextContent("Clean sections");
+    expect(nav).toHaveTextContent("Hero");
+    expect(nav).toHaveTextContent("Benefits");
+    expect(nav).not.toHaveTextContent("How it works");
+    expect(screen.getByTestId("admin-mini-site-builder-preview-label")).toHaveTextContent(
+      "Clean mini-site preview",
+    );
+  });
+
+  async function selectProTemplate(user: ReturnType<typeof userEvent.setup>, template: string) {
+    const card = screen
+      .getAllByTestId("admin-mini-site-template-card")
+      .find((entry) => entry.getAttribute("data-template") === template);
+    expect(card).toBeTruthy();
+    await user.click(within(card as HTMLElement).getByRole("button", { name: /Use template/i }));
+  }
+
+  async function selectBuilderSection(user: ReturnType<typeof userEvent.setup>, sectionId: string) {
+    const section = screen
+      .getAllByTestId("admin-mini-site-builder-section")
+      .find((entry) => entry.getAttribute("data-section") === sectionId);
+    expect(section).toBeTruthy();
+    await user.click(section!);
+  }
+
+  it("Pro selecting Service shows Service-specific sections, not Clean sections", async () => {
+    const user = userEvent.setup();
+    renderMiniSitePage("pro", "mini_site");
+    await screen.findByTestId("admin-mini-site-template-builder");
+    await selectProTemplate(user, "service");
+
+    const builder = await screen.findByTestId("admin-mini-site-template-builder");
+    expect(builder).toHaveAttribute("data-builder", "service");
+    const nav = screen.getByTestId("admin-mini-site-template-section-nav");
+    expect(nav).toHaveTextContent("Service sections");
+    expect(nav).toHaveTextContent("How it works");
+    expect(nav).toHaveTextContent("Why choose us");
+    expect(nav).not.toHaveTextContent("Projects / selected work");
+    expect(screen.getByTestId("admin-mini-site-builder-preview-label")).toHaveTextContent(
+      "Service mini-site preview",
+    );
+  });
+
+  it("Pro selecting Expert/Portfolio/Clinic/Teacher/Coach changes section nav", async () => {
+    const user = userEvent.setup();
+    renderMiniSitePage("pro", "mini_site");
+    await screen.findByTestId("admin-mini-site-template-builder");
+
+    const cases: Array<{ template: string; expected: string }> = [
+      { template: "expert", expected: "Case studies" },
+      { template: "portfolio", expected: "Projects / selected work" },
+      { template: "clinic", expected: "Appointment banner" },
+      { template: "teacher", expected: "Courses / lessons" },
+      { template: "coach", expected: "Success stories" },
+    ];
+
+    for (const entry of cases) {
+      await selectProTemplate(user, entry.template);
+      const builder = await screen.findByTestId("admin-mini-site-template-builder");
+      expect(builder).toHaveAttribute("data-builder", entry.template);
+      expect(screen.getByTestId("admin-mini-site-template-section-nav")).toHaveTextContent(
+        entry.expected,
+      );
+    }
+  });
+
+  it("unsupported sections show Coming soon instead of fake controls", async () => {
+    const user = userEvent.setup();
+    renderMiniSitePage("pro", "mini_site");
+    await screen.findByTestId("admin-mini-site-template-builder");
+    await selectProTemplate(user, "portfolio");
+
+    const projects = screen
+      .getAllByTestId("admin-mini-site-builder-section")
+      .find((entry) => entry.getAttribute("data-section") === "projects");
+    expect(projects).toBeTruthy();
+    await user.click(projects!);
+
+    expect(await screen.findByTestId("admin-mini-site-coming-soon-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-mini-site-coming-soon-panel")).toHaveTextContent(
+      "Projects section coming soon",
+    );
+    expect(screen.getByTestId("admin-mini-site-coming-soon-panel")).toHaveTextContent(
+      "No temporary or fake controls",
+    );
+    expect(screen.queryByLabelText(/project title/i)).not.toBeInTheDocument();
+  });
+
+  it("Default builder has no fake section nav and shows overview card", async () => {
+    renderMiniSitePage("free");
+
+    expect(await screen.findByTestId("admin-mini-site-template-builder")).toHaveAttribute(
+      "data-builder",
+      "standard",
+    );
+    expect(screen.queryByTestId("admin-mini-site-template-section-nav")).not.toBeInTheDocument();
+    expect(screen.getByTestId("admin-mini-site-default-preview")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-mini-site-default-managed-links")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-mini-site-builder-preview-label")).toHaveTextContent(
+      "Default public profile",
+    );
+  });
+
+  it("Pro Clean: Hero shows Hero-only editor, not the full all-sections form", async () => {
+    const user = userEvent.setup();
+    renderMiniSitePage("pro", "mini_site");
+    await screen.findByTestId("admin-mini-site-template-builder");
+
+    const hero = screen
+      .getAllByTestId("admin-mini-site-builder-section")
+      .find((entry) => entry.getAttribute("data-section") === "hero");
+    await user.click(hero!);
+
+    const editor = await screen.findByTestId("mini-site-editor");
+    expect(editor).toHaveAttribute("data-mode", "section");
+    expect(editor).toHaveAttribute("data-active-section", "hero");
+    expect(screen.getByTestId("mini-site-hero-title")).toBeInTheDocument();
+    expect(screen.queryByTestId("admin-appearance-section-active-list")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-about-title")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-template")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-website")).not.toBeInTheDocument();
+  });
+
+  it("Pro Clean: About shows About-only editor", async () => {
+    const user = userEvent.setup();
+    renderMiniSitePage("pro", "mini_site");
+    await screen.findByTestId("admin-mini-site-template-builder");
+
+    const about = screen
+      .getAllByTestId("admin-mini-site-builder-section")
+      .find((entry) => entry.getAttribute("data-section") === "about");
+    await user.click(about!);
+
+    const editor = await screen.findByTestId("mini-site-editor");
+    expect(editor).toHaveAttribute("data-active-section", "about");
+    expect(screen.getByTestId("mini-site-about-title")).toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-hero-title")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("admin-appearance-section-active-list")).not.toBeInTheDocument();
+  });
+
+  it("Pro Clean: Contact shows Contact-only editor", async () => {
+    const user = userEvent.setup();
+    renderMiniSitePage("pro", "mini_site");
+    await screen.findByTestId("admin-mini-site-template-builder");
+
+    const contact = screen
+      .getAllByTestId("admin-mini-site-builder-section")
+      .find((entry) => entry.getAttribute("data-section") === "contact");
+    await user.click(contact!);
+
+    const editor = await screen.findByTestId("mini-site-editor");
+    expect(editor).toHaveAttribute("data-active-section", "contact");
+    expect(screen.getByTestId("mini-site-contact-section-title")).toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-hero-title")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("admin-appearance-section-active-list")).not.toBeInTheDocument();
+  });
+
+  it("Pro Service: How it works shows Coming soon; Services is section-focused", async () => {
+    const user = userEvent.setup();
+    renderMiniSitePage("pro", "mini_site");
+    await screen.findByTestId("admin-mini-site-template-builder");
+    await selectProTemplate(user, "service");
+
+    const howItWorks = screen
+      .getAllByTestId("admin-mini-site-builder-section")
+      .find((entry) => entry.getAttribute("data-section") === "how-it-works");
+    await user.click(howItWorks!);
+    expect(await screen.findByTestId("admin-mini-site-coming-soon-panel")).toHaveTextContent(
+      "How it works coming soon",
+    );
+    expect(screen.queryByTestId("mini-site-editor")).not.toBeInTheDocument();
+
+    const services = screen
+      .getAllByTestId("admin-mini-site-builder-section")
+      .find((entry) => entry.getAttribute("data-section") === "services");
+    await user.click(services!);
+
+    const editor = await screen.findByTestId("mini-site-editor");
+    expect(editor).toHaveAttribute("data-mode", "section");
+    expect(editor).toHaveAttribute("data-active-section", "services");
+    expect(screen.getByTestId("mini-site-services-section-title")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-services-managed-note")).toBeInTheDocument();
+    expect(screen.queryByTestId("admin-appearance-section-active-list")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-hero-title")).not.toBeInTheDocument();
   });
 });

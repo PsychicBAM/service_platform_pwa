@@ -2,11 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getBusiness, updatePublicPageVariant } from "@/api/adminApi";
 import { getMiniSiteConfig } from "@/api/miniSiteApi";
-import { MiniSiteEditorCard } from "@/components/admin/MiniSiteEditorCard";
-import { MiniSiteDefaultProfilePreview } from "@/components/admin/miniSiteBuilder/MiniSiteDefaultProfilePreview";
 import { MiniSiteStatusStrip } from "@/components/admin/miniSiteBuilder/MiniSiteStatusStrip";
 import { MiniSiteTemplateLibrary } from "@/components/admin/miniSiteBuilder/MiniSiteTemplateLibrary";
 import { MiniSiteUpgradeBanner } from "@/components/admin/miniSiteBuilder/MiniSiteUpgradeBanner";
+import { TemplateSpecificBuilderPanel } from "@/components/admin/miniSiteBuilder/TemplateSpecificBuilderPanel";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { useAdminBusiness } from "@/hooks/useAdminBusiness";
@@ -190,6 +189,7 @@ export function AdminMiniSitePage() {
   const showingDefault = activeSelection === MINI_SITE_DEFAULT_SELECTION;
   const showingMiniSiteEditor =
     !showingDefault && editorUnlocked && canUseTemplate(plan, activeSelection as MiniSiteTemplate);
+  const showingBuilder = showingDefault || showingMiniSiteEditor;
 
   return (
     <section className="space-y-5" data-testid="admin-mini-site-page">
@@ -212,8 +212,8 @@ export function AdminMiniSitePage() {
             </span>
           </div>
           <p className="max-w-2xl text-sm text-gray-500">
-            Choose the Default business profile or a mini-site template. Your public page follows
-            the selection you save.
+            Choose the Default business profile or a mini-site template. Each template opens its own
+            builder sections, helpers, and preview framing.
           </p>
         </div>
       </header>
@@ -253,57 +253,31 @@ export function AdminMiniSitePage() {
         data-testid="admin-mini-site-builder-shell"
         data-editor={showingMiniSiteEditor ? "unlocked" : showingDefault ? "default" : "locked"}
       >
-        {showingDefault ? (
-          <MiniSiteDefaultProfilePreview
-            businessSlug={business.slug}
-            businessName={business.name}
-            saveStatus={saveStatus}
-            saving={variantMutation.isPending}
-            onSave={() => void handleSaveDefault()}
-          />
-        ) : showingMiniSiteEditor ? (
-          <div
-            className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
-            data-testid="admin-mini-site-editor-panel"
-          >
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p
-                  className="text-sm font-semibold text-slate-800"
-                  data-testid="admin-mini-site-section-nav"
-                >
-                  Section editor
-                </p>
-                <p className="text-xs text-slate-500">
-                  Edit sections, theme, and content. Live preview stays on the right.
-                </p>
-              </div>
-              <span
-                className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600"
-                data-testid="admin-mini-site-live-preview"
-              >
-                Live preview enabled
-              </span>
-            </div>
-            <div data-testid="admin-mini-site-section-row">
-              <MiniSiteEditorCard
-                businessId={business.id}
-                businessName={business.name}
-                businessSlug={business.slug}
-                allowedTemplates={allowedTemplates}
-                requestedTemplate={requestedTemplate}
-                onTemplateChange={handleTemplateChange}
-                onSaveStatusChange={setSaveStatus}
-              />
-            </div>
+        {showingBuilder ? (
+          <div data-testid={showingMiniSiteEditor ? "admin-mini-site-editor-panel" : undefined}>
+            <TemplateSpecificBuilderPanel
+              builderId={activeSelection}
+              businessId={business.id}
+              businessName={business.name}
+              businessSlug={business.slug}
+              allowedTemplates={allowedTemplates}
+              requestedTemplate={requestedTemplate}
+              saveStatus={saveStatus}
+              savingDefault={variantMutation.isPending}
+              onSaveDefault={() => void handleSaveDefault()}
+              onTemplateChange={handleTemplateChange}
+              onSaveStatusChange={setSaveStatus}
+            />
           </div>
         ) : (
-          <MiniSiteDefaultProfilePreview
-            businessSlug={business.slug}
+          <TemplateSpecificBuilderPanel
+            builderId={MINI_SITE_DEFAULT_SELECTION}
+            businessId={business.id}
             businessName={business.name}
+            businessSlug={business.slug}
             saveStatus={saveStatus}
-            saving={variantMutation.isPending}
-            onSave={() => void handleSaveDefault()}
+            savingDefault={variantMutation.isPending}
+            onSaveDefault={() => void handleSaveDefault()}
           />
         )}
       </div>

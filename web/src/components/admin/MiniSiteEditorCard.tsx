@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMiniSiteConfig, updateMiniSiteConfig } from "@/api/miniSiteApi";
 import { MiniSiteLivePreview } from "@/components/admin/MiniSiteLivePreview";
@@ -492,6 +493,39 @@ type MiniSiteEditorCardProps = {
   onTemplateChange?: (template: MiniSiteTemplate) => void;
   /** Imperative template selection from the template library. */
   requestedTemplate?: MiniSiteTemplate | null;
+  /**
+   * full — Settings → Appearance and legacy embeds (all sections).
+   * section — Mini-site Builder single-section mode (only activeSectionId).
+   */
+  mode?: "full" | "section";
+  /** Template-builder focus target from the section nav. */
+  focusSection?:
+    | "settings"
+    | "media"
+    | "hero"
+    | "about"
+    | "services"
+    | "trust"
+    | "faq"
+    | "contact"
+    | "social"
+    | null;
+  /** Preferred alias for section mode; falls back to focusSection. */
+  activeSectionId?:
+    | "settings"
+    | "media"
+    | "hero"
+    | "about"
+    | "services"
+    | "trust"
+    | "faq"
+    | "contact"
+    | "social"
+    | null;
+  /** Optional preview framing label from the template builder registry. */
+  previewBadge?: string;
+  /** Optional tone line shown above the form for template-specific builders. */
+  builderTone?: string;
 };
 
 export function MiniSiteEditorCard({
@@ -503,6 +537,11 @@ export function MiniSiteEditorCard({
   onSaveStatusChange,
   onTemplateChange,
   requestedTemplate,
+  mode = "full",
+  focusSection = null,
+  activeSectionId = null,
+  previewBadge,
+  builderTone,
 }: MiniSiteEditorCardProps) {
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState<MiniSiteConfig | null>(null);
@@ -570,6 +609,19 @@ export function MiniSiteEditorCard({
       };
     });
   }, [requestedTemplate, allowedTemplates]);
+
+  useEffect(() => {
+    const target = activeSectionId ?? focusSection;
+    if (!target) {
+      return;
+    }
+    if (target === "settings" || target === "media") {
+      setHighlightedSection(target);
+      return;
+    }
+    setExpandedSections((current) => ({ ...current, [target]: true }));
+    setHighlightedSection(target);
+  }, [focusSection, activeSectionId]);
 
   const saveMutation = useMutation({
     mutationFn: (config: MiniSiteConfig) => updateMiniSiteConfig(businessId, config),
@@ -717,14 +769,194 @@ export function MiniSiteEditorCard({
   );
   const disabledSections = REORDERABLE_SECTION_TYPES.filter((type) => !activeSections.includes(type));
 
+  const sectionMode = mode === "section";
+  const activeFocus = activeSectionId ?? focusSection;
+  const showBrand = !sectionMode || activeFocus === "settings";
+  const showMedia = !sectionMode || activeFocus === "settings" || activeFocus === "media";
+  const showHero = !sectionMode || activeFocus === "hero";
+  const showSocial = !sectionMode || activeFocus === "social";
+  const showFullSectionLists = !sectionMode;
+  const showFocusedSection = (type: ReorderableSectionType) =>
+    sectionMode && activeFocus === type;
+
+  function renderReorderableFields(type: ReorderableSectionType) {
+    if (type === "about") {
+      return (
+        <>
+          <div>
+            <FieldLabel htmlFor="mini-site-about-title">About title</FieldLabel>
+            <TextInput
+              id="mini-site-about-title"
+              value={getSectionField(config, "about", "title")}
+              disabled={saving}
+              onChange={(value) => setDraft(updateSectionField(config, "about", "title", value))}
+            />
+          </div>
+          <label htmlFor="mini-site-about-body" className="block text-sm">
+            <span className="font-medium text-slate-700">About body</span>
+            <textarea
+              id="mini-site-about-body"
+              rows={3}
+              value={getSectionField(config, "about", "body")}
+              disabled={saving}
+              onChange={(event) =>
+                setDraft(updateSectionField(config, "about", "body", event.target.value))
+              }
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60"
+              data-testid="mini-site-about-body"
+            />
+          </label>
+        </>
+      );
+    }
+    if (type === "services") {
+      return (
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <FieldLabel htmlFor="mini-site-services-section-title">Services title</FieldLabel>
+              <TextInput
+                id="mini-site-services-section-title"
+                value={config.copy.servicesSectionTitle}
+                disabled={saving}
+                onChange={(value) => setDraft(updateCopyField(config, "servicesSectionTitle", value))}
+              />
+            </div>
+            <div>
+              <FieldLabel htmlFor="mini-site-services-section-badge">Services badge</FieldLabel>
+              <TextInput
+                id="mini-site-services-section-badge"
+                value={config.copy.servicesSectionBadgeText}
+                disabled={saving}
+                onChange={(value) =>
+                  setDraft(updateCopyField(config, "servicesSectionBadgeText", value))
+                }
+              />
+            </div>
+          </div>
+          {sectionMode ? (
+            <div
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+              data-testid="mini-site-services-managed-note"
+            >
+              Service cards are pulled from{" "}
+              <Link to="/admin/services" className="font-medium text-emerald-700 hover:underline">
+                Admin → Services
+              </Link>
+              . Edit titles here; manage offers there.
+            </div>
+          ) : null}
+        </div>
+      );
+    }
+    if (type === "trust") {
+      return (
+        <div className="space-y-3">
+          {([0, 1, 2] as const).map((index) => (
+            <div key={index} className="grid grid-cols-2 gap-2">
+              <TextInput
+                id={`mini-site-trust-card-${index}-title`}
+                value={config.copy.trustCards[index].title}
+                disabled={saving}
+                onChange={(value) => setDraft(updateTrustCard(config, index, "title", value))}
+              />
+              <TextInput
+                id={`mini-site-trust-card-${index}-subtitle`}
+                value={config.copy.trustCards[index].subtitle}
+                disabled={saving}
+                onChange={(value) => setDraft(updateTrustCard(config, index, "subtitle", value))}
+              />
+            </div>
+          ))}
+          <div>
+            <FieldLabel htmlFor="mini-site-benefits-section-title">Benefits title</FieldLabel>
+            <TextInput
+              id="mini-site-benefits-section-title"
+              value={config.copy.benefitsSectionTitle}
+              disabled={saving}
+              onChange={(value) => setDraft(updateCopyField(config, "benefitsSectionTitle", value))}
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {([0, 1, 2] as const).map((index) => (
+              <TextInput
+                key={index}
+                id={`mini-site-benefit-item-${index}`}
+                value={config.copy.benefitsItems[index]}
+                disabled={saving}
+                onChange={(value) => setDraft(updateBenefitItem(config, index, value))}
+              />
+            ))}
+          </div>
+        </div>
+      );
+    }
+    if (type === "faq") {
+      return (
+        <div className="space-y-2">
+          <TextInput
+            id="mini-site-faq-section-title"
+            value={config.copy.faqSectionTitle}
+            disabled={saving}
+            onChange={(value) => setDraft(updateCopyField(config, "faqSectionTitle", value))}
+          />
+          {([0, 1, 2] as const).map((index) => (
+            <div key={index} className="space-y-2">
+              <TextInput
+                id={`mini-site-faq-item-${index}-question`}
+                value={config.copy.faqItems[index].question}
+                disabled={saving}
+                onChange={(value) => setDraft(updateFaqItem(config, index, "question", value))}
+              />
+              <textarea
+                id={`mini-site-faq-item-${index}-answer`}
+                rows={2}
+                value={config.copy.faqItems[index].answer}
+                disabled={saving}
+                onChange={(event) =>
+                  setDraft(updateFaqItem(config, index, "answer", event.target.value))
+                }
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                data-testid={`mini-site-faq-item-${index}-answer`}
+              />
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return (
+      <div>
+        <FieldLabel htmlFor="mini-site-contact-section-title">Contact title</FieldLabel>
+        <TextInput
+          id="mini-site-contact-section-title"
+          value={config.copy.contactSectionTitle}
+          disabled={saving}
+          onChange={(value) => setDraft(updateCopyField(config, "contactSectionTitle", value))}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-w-0 space-y-4 overflow-x-hidden" data-testid="mini-site-editor">
+    <div
+      className="min-w-0 space-y-4 overflow-x-hidden"
+      data-testid="mini-site-editor"
+      data-mode={mode}
+      data-focus={activeFocus ?? undefined}
+      data-active-section={activeFocus ?? undefined}
+    >
+      {builderTone ? (
+        <p className="text-xs font-medium text-slate-500" data-testid="mini-site-editor-builder-tone">
+          {builderTone}
+        </p>
+      ) : null}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(300px,360px)] lg:items-start" data-testid="admin-appearance-settings-page">
         <div
           className="mini-site-editor-form min-w-0 space-y-4"
           data-testid="admin-appearance-editor-column"
         >
           <div className="space-y-4" data-testid="mini-site-editor-form">
+          {showBrand ? (
           <EditorSection title="Brand & style" description="Set the visual direction for your public page">
             <div data-testid="admin-appearance-brand-card" className="space-y-3">
             <label htmlFor="mini-site-template" className="block text-sm">
@@ -859,7 +1091,9 @@ export function MiniSiteEditorCard({
             <p className="text-xs text-slate-500" data-testid="admin-appearance-font-family">Typography uses the selected template's optimized font pairing.</p>
             </div>
           </EditorSection>
+          ) : null}
 
+          {showMedia ? (
           <EditorSection title="Media" description="Template-specific images for the selected mini-site layout">
             <MiniSiteTemplateMediaSection
               businessId={businessId}
@@ -869,7 +1103,9 @@ export function MiniSiteEditorCard({
               onTemplateMediaChange={(templateMedia) => setDraft({ ...config, templateMedia })}
             />
           </EditorSection>
+          ) : null}
 
+          {showHero ? (
           <AppearanceSectionCard type="hero" title="Hero" description="Set the first impression for visitors." icon="✦" alwaysOn expanded={expandedSections.hero} disabled={saving} highlight={false} onCollapse={() => setExpandedSections((current) => ({ ...current, hero: !current.hero }))}>
             <div>
               <FieldLabel htmlFor="mini-site-hero-badge-text">Hero badge</FieldLabel>
@@ -939,16 +1175,15 @@ export function MiniSiteEditorCard({
               </div>
             </div>
           </AppearanceSectionCard>
+          ) : null}
 
+          {showFullSectionLists ? (
+          <>
           <div className="space-y-3" data-testid="admin-appearance-section-active-list">
             {activeSections.map((type, index) => {
               const metadata = SECTION_METADATA[type];
               return <AppearanceSectionCard key={type} type={type} title={metadata.title} description={metadata.description} icon={metadata.icon} expanded={expandedSections[type]} enabled disabled={saving} highlight={highlightedSection === type} onToggle={(enabled) => setSectionEnabled(type, enabled)} onMove={(direction) => moveSectionAmongActive(type, direction)} canMoveUp={index > 0} canMoveDown={index < activeSections.length - 1} onCollapse={() => setExpandedSections((current) => ({ ...current, [type]: !current[type] }))}>
-                {type === "about" ? <><div><FieldLabel htmlFor="mini-site-about-title">About title</FieldLabel><TextInput id="mini-site-about-title" value={getSectionField(config, "about", "title")} disabled={saving} onChange={(value) => setDraft(updateSectionField(config, "about", "title", value))} /></div><label htmlFor="mini-site-about-body" className="block text-sm"><span className="font-medium text-slate-700">About body</span><textarea id="mini-site-about-body" rows={3} value={getSectionField(config, "about", "body")} disabled={saving} onChange={(event) => setDraft(updateSectionField(config, "about", "body", event.target.value))} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-60" data-testid="mini-site-about-body" /></label></> : null}
-                {type === "services" ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><div><FieldLabel htmlFor="mini-site-services-section-title">Services title</FieldLabel><TextInput id="mini-site-services-section-title" value={config.copy.servicesSectionTitle} disabled={saving} onChange={(value) => setDraft(updateCopyField(config, "servicesSectionTitle", value))} /></div><div><FieldLabel htmlFor="mini-site-services-section-badge">Services badge</FieldLabel><TextInput id="mini-site-services-section-badge" value={config.copy.servicesSectionBadgeText} disabled={saving} onChange={(value) => setDraft(updateCopyField(config, "servicesSectionBadgeText", value))} /></div></div> : null}
-                {type === "trust" ? <div className="space-y-3">{([0, 1, 2] as const).map((index) => <div key={index} className="grid grid-cols-2 gap-2"><TextInput id={`mini-site-trust-card-${index}-title`} value={config.copy.trustCards[index].title} disabled={saving} onChange={(value) => setDraft(updateTrustCard(config, index, "title", value))} /><TextInput id={`mini-site-trust-card-${index}-subtitle`} value={config.copy.trustCards[index].subtitle} disabled={saving} onChange={(value) => setDraft(updateTrustCard(config, index, "subtitle", value))} /></div>)}<div><FieldLabel htmlFor="mini-site-benefits-section-title">Benefits title</FieldLabel><TextInput id="mini-site-benefits-section-title" value={config.copy.benefitsSectionTitle} disabled={saving} onChange={(value) => setDraft(updateCopyField(config, "benefitsSectionTitle", value))} /></div><div className="grid grid-cols-1 gap-2 sm:grid-cols-3">{([0, 1, 2] as const).map((index) => <TextInput key={index} id={`mini-site-benefit-item-${index}`} value={config.copy.benefitsItems[index]} disabled={saving} onChange={(value) => setDraft(updateBenefitItem(config, index, value))} />)}</div></div> : null}
-                {type === "faq" ? <div className="space-y-2"><TextInput id="mini-site-faq-section-title" value={config.copy.faqSectionTitle} disabled={saving} onChange={(value) => setDraft(updateCopyField(config, "faqSectionTitle", value))} />{([0, 1, 2] as const).map((index) => <div key={index} className="space-y-2"><TextInput id={`mini-site-faq-item-${index}-question`} value={config.copy.faqItems[index].question} disabled={saving} onChange={(value) => setDraft(updateFaqItem(config, index, "question", value))} /><textarea id={`mini-site-faq-item-${index}-answer`} rows={2} value={config.copy.faqItems[index].answer} disabled={saving} onChange={(event) => setDraft(updateFaqItem(config, index, "answer", event.target.value))} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" data-testid={`mini-site-faq-item-${index}-answer`} /></div>)}</div> : null}
-                {type === "contact" ? <div><FieldLabel htmlFor="mini-site-contact-section-title">Contact title</FieldLabel><TextInput id="mini-site-contact-section-title" value={config.copy.contactSectionTitle} disabled={saving} onChange={(value) => setDraft(updateCopyField(config, "contactSectionTitle", value))} /></div> : null}
+                {renderReorderableFields(type)}
               </AppearanceSectionCard>;
             })}
           </div>
@@ -961,7 +1196,43 @@ export function MiniSiteEditorCard({
             })}
           </div>
           ) : null}
+          </>
+          ) : null}
 
+          {REORDERABLE_SECTION_TYPES.map((type) => {
+            if (!showFocusedSection(type)) {
+              return null;
+            }
+            const metadata = SECTION_METADATA[type];
+            const enabled = config.sections.some(
+              (section) => section.type === type && section.enabled,
+            );
+            return (
+              <AppearanceSectionCard
+                key={`focused-${type}`}
+                type={type}
+                title={metadata.title}
+                description={metadata.description}
+                icon={metadata.icon}
+                expanded
+                enabled={enabled}
+                disabled={saving}
+                highlight={false}
+                onToggle={(nextEnabled) => setSectionEnabled(type, nextEnabled)}
+                onCollapse={() => undefined}
+              >
+                {enabled ? (
+                  renderReorderableFields(type)
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    Enable this section to edit its content and show it in the preview.
+                  </p>
+                )}
+              </AppearanceSectionCard>
+            );
+          })}
+
+          {showSocial ? (
           <AppearanceSectionCard type="social" title="Social" description="Links shown alongside your contact details." icon="↗" expanded={expandedSections.social} disabled={saving} highlight={false} onCollapse={() => setExpandedSections((current) => ({ ...current, social: !current.social }))}>
             <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2">
               <div>
@@ -996,6 +1267,7 @@ export function MiniSiteEditorCard({
               </div>
             </div>
           </AppearanceSectionCard>
+          ) : null}
           </div>
         </div>
 
@@ -1007,7 +1279,12 @@ export function MiniSiteEditorCard({
             <div className="mb-3 flex shrink-0 items-start justify-between gap-2">
               <div>
                 <p className="text-sm font-semibold text-slate-800">Live preview</p>
-                <p className="text-xs text-slate-500">Your mini-site on mobile</p>
+                <p
+                  className="text-xs text-slate-500"
+                  data-testid="mini-site-editor-preview-badge"
+                >
+                  {previewBadge ?? "Your mini-site on mobile"}
+                </p>
               </div>
               {businessSlug ? (
                 <a

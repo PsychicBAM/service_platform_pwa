@@ -79,6 +79,8 @@ describe("Appearance mini-site builder layout", () => {
     const preview = within(page).getByTestId("admin-appearance-preview-column");
     expect(editor.compareDocumentPosition(preview) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(preview.className).not.toMatch(/order-first/);
+    expect(screen.getByTestId("mini-site-editor")).toHaveAttribute("data-mode", "full");
+    expect(screen.getByTestId("admin-appearance-section-active-list")).toBeInTheDocument();
   });
 
   it("puts section toggle, reorder, and collapse controls in each section header", async () => {

@@ -6,9 +6,32 @@ type MiniSiteDefaultProfilePreviewProps = {
   onSave?: () => void;
 };
 
+const MANAGED_LINKS = [
+  {
+    label: "Business profile & location",
+    href: "/admin/settings?tab=business",
+    detail: "Settings → Business",
+  },
+  {
+    label: "Services",
+    href: "/admin/services",
+    detail: "Admin → Services",
+  },
+  {
+    label: "Booking & schedule",
+    href: "/admin/schedule",
+    detail: "Admin → Schedule",
+  },
+  {
+    label: "Reviews",
+    href: "/admin/reviews",
+    detail: "Admin → Reviews",
+  },
+] as const;
+
 /**
- * Honest preview for Default business profile (standard public page).
- * Does not fake a mini-site template preview.
+ * Honest overview for Default business profile (standard public page).
+ * No fake section nav — content is managed in existing admin areas.
  */
 export function MiniSiteDefaultProfilePreview({
   businessSlug,
@@ -30,25 +53,29 @@ export function MiniSiteDefaultProfilePreview({
         </p>
         <h3 className="text-lg font-semibold text-slate-900">Original public page layout</h3>
         <p className="max-w-xl text-sm text-slate-600">
-          Your public page uses the standard business profile with bookings, requests, reviews,
-          quick info, and location
+          This page uses your existing business data
           {businessName ? ` for ${businessName}` : ""}. Mini-site customizations stay saved and
           inactive until you switch back to Clean or another template.
         </p>
       </div>
 
-      <ul className="grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-        {[
-          "Hero / business profile card",
-          "Service cards",
-          "Reviews",
-          "Quick info & location",
-        ].map((item) => (
-          <li key={item} className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
-            <span aria-hidden="true" className="text-emerald-600">
-              ✓
-            </span>
-            {item}
+      <ul className="space-y-2" data-testid="admin-mini-site-default-managed-links">
+        {MANAGED_LINKS.map((item) => (
+          <li key={item.href}>
+            <a
+              href={item.href}
+              className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 hover:border-emerald-200 hover:bg-emerald-50/50"
+              data-testid="admin-mini-site-default-managed-link"
+              data-href={item.href}
+            >
+              <span>
+                <span className="font-medium text-slate-900">{item.label}</span>
+                <span className="mt-0.5 block text-xs text-slate-500">{item.detail}</span>
+              </span>
+              <span aria-hidden="true" className="text-emerald-700">
+                →
+              </span>
+            </a>
           </li>
         ))}
       </ul>
