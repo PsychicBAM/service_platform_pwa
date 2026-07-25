@@ -110,7 +110,7 @@ function ServiceIntroVideoBlock({
     <button
       type="button"
       onClick={() => setPlaying(true)}
-      className={`mt-8 inline-flex items-center gap-3 rounded-full border px-4 py-2.5 text-left text-sm font-semibold transition ${
+      className={`mt-8 inline-flex items-center gap-3 rounded-full border px-5 py-3 text-left text-sm font-semibold shadow-sm transition ${
         surfaceMode === "dark"
           ? "border-white/25 bg-white/10 text-white hover:bg-white/20"
           : "border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-50"
@@ -211,9 +211,9 @@ export function ServiceTemplatePublicView({
   ) => {
     if (!label.trim()) return null;
     const href = actionHref(action);
-    const className = `${radius} inline-flex min-h-[44px] items-center justify-center px-6 py-3 text-sm font-bold transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+    const className = `${radius} ${ctaWidthClass} inline-flex min-h-[48px] items-center justify-center px-6 py-3 text-sm font-bold transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
       primary
-        ? `${tokenTextClass(typography.buttonTextColor, visuals.primaryButtonText)} shadow-lg hover:brightness-110`
+        ? `${tokenTextClass(typography.buttonTextColor, visuals.primaryButtonText)} shadow-lg shadow-black/10 hover:brightness-110`
         : secondaryClass
     }`;
     const style: CSSProperties = {
@@ -292,8 +292,13 @@ export function ServiceTemplatePublicView({
     .slice(0, content.reviews.maxCount);
 
   const averageRating = reviewSummary?.average_rating ?? business.average_rating ?? null;
-  const sectionClass = isPreview ? "px-4 py-8" : "px-5 py-16 md:px-10 md:py-24";
+  const sectionClass = isPreview
+    ? "px-4 py-9"
+    : "px-5 py-16 sm:px-6 md:px-10 md:py-24 lg:py-28";
   const maxClass = isPreview ? "mx-auto max-w-5xl" : "mx-auto max-w-6xl";
+  const cardSurface = `${visuals.cardClass} shadow-sm ring-1 ring-black/[0.04]`;
+  const isMobileFrame = previewDevice === "mobile";
+  const ctaWidthClass = isMobileFrame || !previewDevice ? "w-full sm:w-auto" : "";
 
   const previewLink = (label: string, href: string, className = "") =>
     isPreview ? (
@@ -330,32 +335,44 @@ export function ServiceTemplatePublicView({
       data-testid={`${testIdPrefix}-services`}
     >
       <div className={maxClass}>
-        <div className="max-w-3xl">
-          <p
-            className="text-xs font-bold uppercase tracking-[0.22em]"
-            style={{ color: theme.primaryColor }}
-          >
-            Our expertise
-          </p>
-          <h2
-            className={`service-typo-heading mt-3 text-3xl font-black tracking-tight md:text-5xl ${sectionHeadingClass}`}
-            style={headingStyle}
-            data-testid={`${testIdPrefix}-services-title`}
-          >
-            {content.servicesCatalog.title}
-          </h2>
-          <p
-            className={`mt-4 text-base leading-relaxed md:text-lg ${mutedTextClass}`}
-            style={mutedStyle}
-            data-testid={`${testIdPrefix}-services-subtitle`}
-          >
-            {content.servicesCatalog.subtitle}
-          </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-3xl">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.22em]"
+              style={{ color: theme.primaryColor }}
+            >
+              Our expertise
+            </p>
+            <h2
+              className={`service-typo-heading mt-3 text-[clamp(1.75rem,4vw,3rem)] font-black tracking-tight ${sectionHeadingClass}`}
+              style={headingStyle}
+              data-testid={`${testIdPrefix}-services-title`}
+            >
+              {content.servicesCatalog.title}
+            </h2>
+            <p
+              className={`mt-4 text-base leading-relaxed md:text-lg ${mutedTextClass}`}
+              style={mutedStyle}
+              data-testid={`${testIdPrefix}-services-subtitle`}
+            >
+              {content.servicesCatalog.subtitle}
+            </p>
+          </div>
+          {!isPreview && orderedServices.length > 0 ? (
+            <Link
+              to={servicesHref}
+              className={`shrink-0 text-sm font-semibold transition hover:opacity-80 ${mutedTextClass}`}
+              style={{ color: theme.primaryColor }}
+              data-testid={`${testIdPrefix}-services-view-all`}
+            >
+              View all services →
+            </Link>
+          ) : null}
         </div>
 
         {images.serviceImage ? (
           <div
-            className={`mt-8 overflow-hidden ${visuals.cardClass} ${radius}`}
+            className={`mt-8 overflow-hidden ${cardSurface} ${radius}`}
             data-testid={`${testIdPrefix}-template-serviceImage`}
           >
             <MiniSiteSectionAccentImage
@@ -371,7 +388,7 @@ export function ServiceTemplatePublicView({
 
         {orderedServices.length ? (
           <div
-            className={`mt-10 grid items-stretch gap-6 ${deviceGrid(previewDevice, {
+            className={`mt-10 grid items-stretch gap-5 sm:gap-6 ${deviceGrid(previewDevice, {
               mobile: "grid-cols-1",
               tablet: "grid-cols-2",
               desktop:
@@ -401,9 +418,9 @@ export function ServiceTemplatePublicView({
               return (
                 <article
                   key={service.id}
-                  className={`group flex h-full min-w-0 overflow-hidden transition duration-300 hover:-translate-y-1 ${visuals.cardClass} ${radius} ${
+                  className={`group flex h-full min-h-[280px] min-w-0 overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-md ${cardSurface} ${radius} ${
                     compact
-                      ? "flex-row gap-3 p-3 md:flex-col md:gap-0 md:p-0"
+                      ? "flex-row gap-3 p-3.5 md:flex-col md:gap-0 md:p-0"
                       : "flex-col"
                   }`}
                   data-testid={`${testIdPrefix}-service-card`}
@@ -415,7 +432,7 @@ export function ServiceTemplatePublicView({
                         alt={service.name}
                         aspectClassName={
                           compact
-                            ? "h-20 w-20 shrink-0 md:h-auto md:w-full md:aspect-[16/10]"
+                            ? "h-20 w-20 shrink-0 rounded-xl md:h-auto md:w-full md:rounded-none md:aspect-[16/10]"
                             : "aspect-[16/10] w-full shrink-0"
                         }
                       />
@@ -427,13 +444,13 @@ export function ServiceTemplatePublicView({
                             : "aspect-[16/10] w-full"
                         }`}
                         style={{
-                          background: `linear-gradient(145deg, ${theme.primaryColor}22, ${theme.accentColor}33)`,
+                          background: `linear-gradient(145deg, ${theme.primaryColor}28, ${theme.accentColor}40)`,
                         }}
                         data-testid={`${testIdPrefix}-service-card-fallback`}
                         aria-hidden="true"
                       >
                         <span
-                          className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black ${visuals.primaryButtonText}`}
+                          className={`flex h-11 w-11 items-center justify-center rounded-xl text-sm font-black shadow-sm ${visuals.primaryButtonText}`}
                           style={{ backgroundColor: theme.primaryColor }}
                         >
                           {service.name.charAt(0)}
@@ -443,12 +460,12 @@ export function ServiceTemplatePublicView({
                   ) : null}
                   <div
                     className={`flex min-h-0 min-w-0 flex-1 flex-col ${
-                      compact ? "md:p-6" : "p-6"
+                      compact ? "md:p-6" : "p-5 sm:p-6"
                     }`}
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       <h3
-                        className={`text-lg font-bold ${cardTitleClass}`}
+                        className={`text-lg font-bold leading-snug ${cardTitleClass}`}
                         style={cardTextStyle}
                         data-service-card-text="true"
                       >
@@ -473,6 +490,7 @@ export function ServiceTemplatePublicView({
                     <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
                       {content.servicesCatalog.showPrice ? (
                         <span
+                          className="text-base font-semibold"
                           style={
                             typography.accentTextColor
                               ? { color: typography.accentTextColor }
@@ -502,7 +520,7 @@ export function ServiceTemplatePublicView({
                         className={`service-typo-button ${radius} ${tokenTextClass(
                           typography.buttonTextColor,
                           visuals.primaryButtonText,
-                        )} mt-auto w-full px-3 py-2.5 text-sm font-bold`}
+                        )} mt-auto w-full px-3 py-3 text-sm font-bold`}
                         style={{
                           backgroundColor: theme.primaryColor,
                           fontFamily: typography.buttonFontFamily,
@@ -521,7 +539,7 @@ export function ServiceTemplatePublicView({
                         className={`service-typo-button ${radius} ${tokenTextClass(
                           typography.buttonTextColor,
                           visuals.primaryButtonText,
-                        )} mt-auto block w-full px-3 py-2.5 text-center text-sm font-bold`}
+                        )} mt-auto block w-full px-3 py-3 text-center text-sm font-bold`}
                         style={{
                           backgroundColor: theme.primaryColor,
                           fontFamily: typography.buttonFontFamily,
@@ -541,13 +559,17 @@ export function ServiceTemplatePublicView({
             })}
           </div>
         ) : (
-          <p
-            className={`mt-10 rounded-2xl border border-dashed p-8 text-sm ${
-              isDarkPage ? "border-slate-600 text-slate-400" : "border-slate-300 text-slate-500"
+          <div
+            className={`mt-10 rounded-2xl border border-dashed px-6 py-12 text-center ${
+              isDarkPage ? "border-slate-600 bg-slate-900/40" : "border-slate-300 bg-slate-50/80"
             }`}
+            data-testid={`${testIdPrefix}-services-empty`}
           >
-            Services from Admin → Services
-          </p>
+            <p className={`text-base font-semibold ${bodyTextClass}`}>No services listed yet</p>
+            <p className={`mx-auto mt-2 max-w-md text-sm ${mutedTextClass}`}>
+              Active services from Admin → Services will appear here automatically.
+            </p>
+          </div>
         )}
       </div>
     </section>
@@ -587,11 +609,13 @@ export function ServiceTemplatePublicView({
             ) : null}
             <div
               className={`relative ${maxClass} ${
-                isPreview ? "p-5" : "px-5 pb-20 pt-5 md:px-10 md:pb-28 md:pt-6"
+                isPreview
+                  ? "p-5"
+                  : "px-5 pb-16 pt-5 sm:px-6 sm:pb-20 md:px-10 md:pb-28 md:pt-7"
               }`}
             >
               <div
-                className={`flex items-center justify-between gap-4 border-b pb-4 ${
+                className={`flex items-center justify-between gap-4 border-b pb-4 md:pb-5 ${
                   heroIsLight ? "border-slate-900/10" : "border-white/15"
                 }`}
               >
@@ -630,14 +654,14 @@ export function ServiceTemplatePublicView({
                 ) : null}
               </div>
               <p
-                className="mt-12 text-xs font-bold uppercase tracking-[0.22em] md:mt-16"
+                className="mt-10 text-xs font-bold uppercase tracking-[0.22em] sm:mt-12 md:mt-16"
                 style={{ color: theme.primaryColor }}
                 data-testid={`${testIdPrefix}-hero-badge`}
               >
                 {content.hero.eyebrow || config.copy.heroBadgeText}
               </p>
               <h1
-                className={`service-typo-heading mt-4 max-w-4xl text-[clamp(1.75rem,5vw,4.25rem)] font-black leading-tight tracking-tight ${heroTextClass}`}
+                className={`service-typo-heading mt-4 max-w-4xl text-[clamp(1.65rem,4.6vw,3.75rem)] font-black leading-[1.12] tracking-tight break-words ${heroTextClass}`}
                 data-testid={`${testIdPrefix}-hero-title`}
                 data-service-hero-heading="true"
                 style={{
@@ -661,7 +685,7 @@ export function ServiceTemplatePublicView({
                 </span>
               </h1>
               <p
-                className={`mt-6 max-w-2xl text-base leading-relaxed md:text-xl ${heroMutedClass}`}
+                className={`mt-5 max-w-2xl text-base leading-relaxed sm:mt-6 md:text-xl ${heroMutedClass}`}
                 data-testid={`${testIdPrefix}-hero-subtitle`}
                 data-service-hero-body="true"
                 style={
@@ -673,17 +697,17 @@ export function ServiceTemplatePublicView({
               <p className="sr-only" data-testid={`${testIdPrefix}-hero-body`}>
                 {content.hero.subtitle}
               </p>
-              <div className="mt-8 flex flex-wrap gap-2">
+              <div className="mt-7 flex flex-wrap gap-2.5 sm:mt-8">
                 {content.hero.trustBadges.map((badge) => (
                   <span
                     key={badge.id}
-                    className={`${radius} border px-3.5 py-1.5 text-xs font-semibold ${
+                    className={`${radius} border px-3.5 py-2 text-xs font-semibold shadow-sm backdrop-blur-sm ${
                       typography.mutedColor || typography.bodyColor
                         ? heroIsLight
-                          ? "border-slate-900/10 bg-white/80"
+                          ? "border-slate-900/10 bg-white/85"
                           : "border-white/15 bg-white/10"
                         : heroIsLight
-                          ? "border-slate-900/10 bg-white/80 text-slate-700"
+                          ? "border-slate-900/10 bg-white/85 text-slate-700"
                           : "border-white/15 bg-white/10 text-white"
                     }`}
                     style={
@@ -699,7 +723,7 @@ export function ServiceTemplatePublicView({
                   </span>
                 ))}
               </div>
-              <div className="mt-9 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap">
                 {renderAction(
                   content.hero.primaryCtaLabel,
                   content.hero.primaryCtaAction,
@@ -717,11 +741,13 @@ export function ServiceTemplatePublicView({
                   ? renderAction("WhatsApp", "whatsapp", false)
                   : null}
               </div>
-              <p className={`mt-7 text-sm ${heroMutedClass}`}>
+              <p className={`mt-6 text-sm sm:mt-7 ${heroMutedClass}`}>
                 ★ {averageRating ? `${averageRating.toFixed(1)} rating` : content.hero.ratingLine}
               </p>
               <div
-                className={`mt-12 grid max-w-4xl gap-px overflow-hidden ${radius} ${visuals.statsClass} ${deviceGrid(previewDevice, {
+                className={`mt-10 grid max-w-4xl gap-px overflow-hidden border shadow-lg ${radius} ${visuals.statsClass} ${
+                  heroIsLight || isDarkPage ? "border-black/5" : "border-white/10"
+                } ${deviceGrid(previewDevice, {
                   mobile: "grid-cols-2",
                   tablet: "grid-cols-4",
                   desktop: "grid-cols-4",
@@ -731,11 +757,11 @@ export function ServiceTemplatePublicView({
                 {content.hero.stats.map((stat) => (
                   <div
                     key={stat.id}
-                    className={`p-5 ${heroIsLight || isDarkPage ? "bg-black/5" : "bg-white/5"}`}
+                    className={`p-4 sm:p-5 ${heroIsLight || isDarkPage ? "bg-black/[0.03]" : "bg-white/5"}`}
                     data-testid={`${testIdPrefix}-hero-stat`}
                   >
                     <p
-                      className="text-2xl font-black md:text-3xl"
+                      className="text-xl font-black tracking-tight sm:text-2xl md:text-3xl"
                       data-service-stat-value="true"
                       data-testid={`${testIdPrefix}-hero-stat-value`}
                       style={{
@@ -746,7 +772,7 @@ export function ServiceTemplatePublicView({
                       {stat.value}
                     </p>
                     <p
-                      className={`mt-1.5 text-xs md:text-sm ${
+                      className={`mt-1.5 text-xs leading-snug md:text-sm ${
                         typography.statLabelColor ? "" : heroMutedClass
                       }`}
                       data-service-stat-label="true"
@@ -802,7 +828,7 @@ export function ServiceTemplatePublicView({
                 {content.howItWorks.subtitle}
               </p>
               <div
-                className={`relative mt-10 grid gap-5 ${deviceGrid(previewDevice, {
+                className={`relative mt-10 grid gap-4 sm:gap-5 ${deviceGrid(previewDevice, {
                   mobile: "grid-cols-1",
                   tablet: "grid-cols-2",
                   desktop: "grid-cols-4",
@@ -812,10 +838,11 @@ export function ServiceTemplatePublicView({
                 {content.howItWorks.steps.map((step, index) => (
                   <div
                     key={step.id}
-                    className={`relative min-w-0 ${visuals.cardClass} ${radius} p-6`}
+                    className={`relative min-w-0 ${cardSurface} ${radius} p-5 sm:p-6`}
+                    data-testid={`${testIdPrefix}-how-step`}
                   >
                     <span
-                      className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-black"
+                      className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-black shadow-sm"
                       style={{
                         backgroundColor: `${theme.primaryColor}22`,
                         color: theme.primaryColor,
@@ -826,7 +853,7 @@ export function ServiceTemplatePublicView({
                         : "✦"}
                     </span>
                     <h3
-                      className={`mt-5 text-lg font-bold ${cardTitleClass}`}
+                      className={`mt-5 text-lg font-bold leading-snug ${cardTitleClass}`}
                       style={cardTextStyle}
                       data-service-card-text="true"
                     >
@@ -850,7 +877,7 @@ export function ServiceTemplatePublicView({
             data-testid={`${testIdPrefix}-why-choose-us`}
           >
             <div
-              className={`${maxClass} grid items-center gap-12 ${deviceGrid(previewDevice, {
+              className={`${maxClass} grid items-center gap-10 sm:gap-12 lg:gap-16 ${deviceGrid(previewDevice, {
                 mobile: "grid-cols-1",
                 tablet: "grid-cols-2",
                 desktop: "grid-cols-2",
@@ -859,7 +886,7 @@ export function ServiceTemplatePublicView({
                 content.whyChooseUs.layout === "image_left" ? "md:[&>:first-child]:order-2" : ""
               }`}
             >
-              <div>
+              <div className="min-w-0">
                 <p
                   className="text-xs font-bold uppercase tracking-[0.22em]"
                   style={{ color: theme.primaryColor }}
@@ -867,7 +894,7 @@ export function ServiceTemplatePublicView({
                   {content.whyChooseUs.subtitle}
                 </p>
                 <h2
-                  className={`service-typo-heading mt-3 text-3xl font-black md:text-5xl ${sectionHeadingClass}`}
+                  className={`service-typo-heading mt-3 text-[clamp(1.75rem,3.5vw,3rem)] font-black leading-tight ${sectionHeadingClass}`}
                   style={headingStyle}
                   data-testid={`${testIdPrefix}-why-choose-us-title`}
                 >
@@ -890,12 +917,14 @@ export function ServiceTemplatePublicView({
                   {content.whyChooseUs.benefits.map((benefit) => (
                     <li
                       key={benefit.id}
-                      className={`flex gap-3 rounded-2xl p-3.5 text-sm font-medium ${
-                        isDarkPage ? "bg-white/5 text-slate-200" : "bg-slate-50 text-slate-700"
+                      className={`flex gap-3 rounded-2xl border p-4 text-sm font-medium leading-snug shadow-sm ${
+                        isDarkPage
+                          ? "border-white/10 bg-white/5 text-slate-200"
+                          : "border-slate-200/80 bg-white/80 text-slate-700"
                       }`}
                     >
                       <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs ${visuals.primaryButtonText}`}
+                        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${visuals.primaryButtonText}`}
                         style={{ backgroundColor: theme.primaryColor }}
                       >
                         ✓
@@ -905,12 +934,12 @@ export function ServiceTemplatePublicView({
                   ))}
                 </ul>
                 {content.whyChooseUs.showCta ? (
-                  <div className="mt-8">
+                  <div className="mt-9">
                     {renderAction(content.whyChooseUs.ctaLabel, content.whyChooseUs.ctaAction, true)}
                   </div>
                 ) : null}
               </div>
-              <div className={`${visuals.cardClass} ${radius} overflow-hidden p-2`}>
+              <div className={`${cardSurface} ${radius} overflow-hidden p-2 shadow-md`}>
                 {image ? (
                   <MiniSiteSectionAccentImage
                     media={image}
@@ -921,21 +950,29 @@ export function ServiceTemplatePublicView({
                   />
                 ) : (
                   <div
-                    className="flex aspect-[4/3] flex-col items-center justify-center gap-3 p-8 text-center"
+                    className="relative flex aspect-[4/3] flex-col items-center justify-center gap-3 overflow-hidden p-8 text-center"
                     style={{
-                      background: `linear-gradient(145deg, ${theme.primaryColor}22 0%, ${theme.accentColor}33 45%, ${theme.primaryColor}18 100%)`,
+                      background: `linear-gradient(145deg, ${theme.primaryColor}28 0%, ${theme.accentColor}40 48%, ${theme.primaryColor}1a 100%)`,
                     }}
                     data-testid={`${testIdPrefix}-why-choose-us-fallback`}
                   >
+                    <div
+                      className="pointer-events-none absolute inset-0 opacity-40"
+                      style={{
+                        backgroundImage: `radial-gradient(circle at 20% 20%, ${theme.accentColor}55, transparent 45%), radial-gradient(circle at 80% 75%, ${theme.primaryColor}40, transparent 40%)`,
+                      }}
+                    />
                     <span
-                      className={`flex h-14 w-14 items-center justify-center rounded-2xl text-2xl font-black ${visuals.primaryButtonText}`}
+                      className={`relative z-[1] flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-black shadow-lg ${visuals.primaryButtonText}`}
                       style={{ backgroundColor: theme.primaryColor }}
                     >
                       {business.name.charAt(0)}
                     </span>
-                    <p className={`text-sm font-semibold ${bodyTextClass}`}>{business.name}</p>
-                    <p className={`max-w-xs text-xs ${mutedTextClass}`}>
-                      Add a Why choose us image in Settings → Media for a custom photo.
+                    <p className={`relative z-[1] text-base font-bold ${bodyTextClass}`}>
+                      {business.name}
+                    </p>
+                    <p className={`relative z-[1] max-w-xs text-sm ${mutedTextClass}`}>
+                      Trusted service, delivered with care.
                     </p>
                   </div>
                 )}
@@ -971,7 +1008,7 @@ export function ServiceTemplatePublicView({
                 </p>
               </div>
               <div
-                className={`mt-12 grid items-stretch gap-6 ${deviceGrid(previewDevice, {
+                className={`mt-10 grid items-stretch gap-5 sm:mt-12 sm:gap-6 ${deviceGrid(previewDevice, {
                   mobile: "grid-cols-1",
                   tablet: "grid-cols-2",
                   desktop: "grid-cols-3",
@@ -981,14 +1018,19 @@ export function ServiceTemplatePublicView({
                 {content.pricingPackages.packages.slice(0, 3).map((pkg) => (
                   <article
                     key={pkg.id}
-                    className={`relative flex min-h-[380px] min-w-0 flex-col ${visuals.pricingCardClass} ${radius} p-7 ${
-                      pkg.popular ? "border-2 shadow-xl" : ""
+                    className={`relative flex h-full min-h-[400px] min-w-0 flex-col ring-1 ring-black/[0.04] ${visuals.pricingCardClass} ${radius} p-6 sm:p-7 ${
+                      pkg.popular ? "z-[1] border-2 shadow-xl scale-[1.01] sm:scale-[1.02]" : "shadow-sm"
                     }`}
                     style={pkg.popular ? { borderColor: theme.primaryColor } : undefined}
+                    data-testid={
+                      pkg.popular
+                        ? `${testIdPrefix}-pricing-popular`
+                        : `${testIdPrefix}-pricing-card`
+                    }
                   >
                     {pkg.popular ? (
                       <span
-                        className={`${radius} ${visuals.primaryButtonText} absolute -top-3 left-6 px-3 py-1 text-xs font-bold`}
+                        className={`${radius} ${visuals.primaryButtonText} absolute -top-3 left-6 px-3.5 py-1 text-xs font-bold shadow-sm`}
                         style={{ backgroundColor: theme.primaryColor }}
                       >
                         Most popular
@@ -1003,9 +1045,9 @@ export function ServiceTemplatePublicView({
                     >
                       {pkg.name}
                     </h3>
-                    <p className="mt-4 text-4xl font-black" style={{ color: theme.primaryColor }}>
+                    <p className="mt-5 text-4xl font-black tracking-tight" style={{ color: theme.primaryColor }}>
                       {pkg.price}
-                      <span className={`ml-1 text-sm font-medium ${visuals.pricingCardMutedText}`}>
+                      <span className={`ml-1.5 text-sm font-medium ${visuals.pricingCardMutedText}`}>
                         / {pkg.billingLabel}
                       </span>
                     </p>
@@ -1014,13 +1056,15 @@ export function ServiceTemplatePublicView({
                     </p>
                     <ul className={`mt-7 flex-1 space-y-3.5 text-sm ${visuals.pricingCardText}`}>
                       {pkg.includes.map((item) => (
-                        <li key={item} className="flex gap-2.5">
-                          <span style={{ color: theme.primaryColor }}>✓</span>
+                        <li key={item} className="flex gap-2.5 leading-snug">
+                          <span className="shrink-0 font-bold" style={{ color: theme.primaryColor }}>
+                            ✓
+                          </span>
                           {item}
                         </li>
                       ))}
                     </ul>
-                    <div className="mt-8">{renderAction(pkg.ctaLabel, pkg.ctaAction, true)}</div>
+                    <div className="mt-auto pt-8">{renderAction(pkg.ctaLabel, pkg.ctaAction, true)}</div>
                   </article>
                 ))}
               </div>
@@ -1055,7 +1099,7 @@ export function ServiceTemplatePublicView({
               ) : null}
               {reviewCards.length ? (
                 <div
-                  className={`mt-10 grid gap-6 ${deviceGrid(previewDevice, {
+                  className={`mt-10 grid items-stretch gap-5 sm:gap-6 ${deviceGrid(previewDevice, {
                     mobile: "grid-cols-1",
                     tablet: "grid-cols-2",
                     desktop: "grid-cols-3",
@@ -1063,11 +1107,14 @@ export function ServiceTemplatePublicView({
                   })}`}
                 >
                   {reviewCards.map((review) => (
-                    <figure key={review.id} className={`${visuals.cardClass} ${radius} p-6`}>
+                    <figure
+                      key={review.id}
+                      className={`flex h-full min-w-0 flex-col ${cardSurface} ${radius} p-5 sm:p-6`}
+                    >
                       <div className="flex items-center gap-3">
                         {content.reviews.showAvatar ? (
                           <span
-                            className={`flex h-10 w-10 items-center justify-center rounded-full font-bold ${visuals.primaryButtonText}`}
+                            className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold shadow-sm ${visuals.primaryButtonText}`}
                             style={{ backgroundColor: theme.primaryColor }}
                           >
                             {review.name.charAt(0)}
@@ -1076,31 +1123,35 @@ export function ServiceTemplatePublicView({
                         <figcaption className={`font-bold ${bodyTextClass}`}>{review.name}</figcaption>
                       </div>
                       {content.reviews.showRating ? (
-                        <p className="mt-4 text-sm" style={{ color: theme.primaryColor }}>
-                          {"★".repeat(review.rating)}
+                        <p
+                          className="mt-4 text-sm tracking-wide"
+                          style={{ color: theme.primaryColor }}
+                          aria-label={`${review.rating} out of 5 stars`}
+                        >
+                          {"★".repeat(Math.max(0, Math.min(5, review.rating)))}
+                          <span className={mutedTextClass}>
+                            {"☆".repeat(Math.max(0, 5 - Math.min(5, review.rating)))}
+                          </span>
                         </p>
                       ) : null}
-                      <blockquote className={`mt-3 text-sm leading-relaxed ${mutedTextClass}`}>
+                      <blockquote className={`mt-3 flex-1 text-sm leading-relaxed ${mutedTextClass}`}>
                         “{review.quote}”
                       </blockquote>
                       {review.service ? (
-                        <p className={`mt-4 text-xs ${mutedTextClass}`}>{review.service}</p>
+                        <p className={`mt-4 text-xs font-medium ${mutedTextClass}`}>{review.service}</p>
                       ) : null}
                     </figure>
                   ))}
                 </div>
               ) : (
                 <div
-                  className={`mt-10 rounded-2xl border border-dashed p-10 text-center ${
-                    isDarkPage ? "border-slate-600" : "border-slate-300"
+                  className={`mt-8 max-w-xl rounded-2xl border border-dashed px-5 py-6 text-left sm:px-6 ${
+                    isDarkPage ? "border-slate-600/80 bg-white/[0.03]" : "border-slate-300 bg-slate-50/60"
                   }`}
                   data-testid={`${testIdPrefix}-reviews-empty`}
                 >
-                  <p className={`text-base font-semibold ${bodyTextClass}`}>
-                    No published reviews yet
-                  </p>
-                  <p className={`mx-auto mt-2 max-w-md text-sm ${mutedTextClass}`}>
-                    Approved reviews and custom testimonials will appear here once available.
+                  <p className={`text-sm leading-relaxed ${mutedTextClass}`}>
+                    Reviews will appear here after customers leave feedback.
                   </p>
                 </div>
               )}
@@ -1126,24 +1177,34 @@ export function ServiceTemplatePublicView({
                 {content.faq.subtitle}
               </p>
               <div
-                className={`mt-8 divide-y ${isDarkPage ? "divide-slate-700" : "divide-slate-200"} ${visuals.cardClass} ${radius} px-5 md:px-6`}
+                className={`mt-8 w-full divide-y shadow-sm ring-1 ring-black/[0.04] ${
+                  isDarkPage ? "divide-slate-700" : "divide-slate-200"
+                } ${visuals.cardClass} ${radius} px-4 sm:px-5 md:px-6`}
               >
                 {content.faq.items.map((item) => (
-                  <div key={item.id}>
+                  <div key={item.id} className="min-w-0">
                     <button
                       type="button"
-                      className={`flex w-full items-center justify-between gap-4 py-5 text-left text-base font-bold ${visuals.faqText}`}
+                      className={`flex w-full items-center justify-between gap-4 py-5 text-left text-[15px] font-bold leading-snug sm:text-base ${visuals.faqText}`}
                       onClick={() => setOpenFaqId(openFaqId === item.id ? null : item.id)}
                       aria-expanded={openFaqId === item.id}
                       disabled={isPreview}
                     >
-                      {item.question}
-                      <span className="text-xl" style={{ color: theme.primaryColor }}>
+                      <span className="min-w-0 flex-1 break-words">{item.question}</span>
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg font-bold ${
+                          isDarkPage ? "bg-white/10" : "bg-slate-100"
+                        }`}
+                        style={{ color: theme.primaryColor }}
+                        aria-hidden
+                      >
                         {openFaqId === item.id ? "−" : "+"}
                       </span>
                     </button>
                     {openFaqId === item.id ? (
-                      <p className={`pb-5 text-sm leading-relaxed md:text-base ${visuals.faqMutedText}`}>
+                      <p
+                        className={`pb-5 pr-10 text-sm leading-relaxed md:text-base ${visuals.faqMutedText}`}
+                      >
                         {item.answer}
                       </p>
                     ) : null}
@@ -1185,13 +1246,15 @@ export function ServiceTemplatePublicView({
               })}`}
             >
               <div className="min-w-0">
-                <h2 className={`text-3xl font-black md:text-4xl ${contactText}`}>
+                <h2
+                  className={`text-[clamp(1.75rem,3.5vw,2.5rem)] font-black leading-tight ${contactText}`}
+                >
                   {content.contactCta.headline}
                 </h2>
-                <p className={`mt-4 max-w-2xl text-base md:text-lg ${contactMuted}`}>
+                <p className={`mt-4 max-w-2xl text-base leading-relaxed md:text-lg ${contactMuted}`}>
                   {content.contactCta.subtitle}
                 </p>
-                <div className="mt-8 flex flex-wrap gap-3">
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   {renderAction(
                     content.contactCta.primaryCtaLabel,
                     content.contactCta.primaryCtaAction,
@@ -1208,64 +1271,80 @@ export function ServiceTemplatePublicView({
                   )}
                 </div>
                 <div
-                  className={`mt-10 grid gap-4 ${deviceGrid(previewDevice, {
+                  className={`mt-10 grid gap-3 sm:gap-4 ${deviceGrid(previewDevice, {
                     mobile: "grid-cols-1",
                     tablet: "grid-cols-3",
                     desktop: "grid-cols-3",
-                    responsive: "grid-cols-1 md:grid-cols-3",
+                    responsive: "grid-cols-1 sm:grid-cols-3",
                   })}`}
                 >
                   {content.contactCta.showPhone && phone ? (
                     isPreview ? (
                       <div
-                        className={`${radius} p-5 text-sm ${
-                          contactIsSoft ? "bg-black/5" : "bg-white/10 text-white"
+                        className={`${radius} border p-5 text-sm leading-relaxed shadow-sm ${
+                          contactIsSoft
+                            ? "border-black/5 bg-black/[0.04]"
+                            : "border-white/15 bg-white/10 text-white"
                         }`}
                       >
-                        <b>Call</b>
-                        <br />
-                        {phone}
+                        <b className="block text-xs font-bold uppercase tracking-wide opacity-80">
+                          Call
+                        </b>
+                        <span className="mt-1.5 block text-base font-semibold">{phone}</span>
                       </div>
                     ) : (
                       <a
                         href={`tel:${phone}`}
-                        className={`${radius} p-5 text-sm ${
-                          contactIsSoft ? "bg-black/5" : "bg-white/10 text-white"
+                        className={`${radius} border p-5 text-sm leading-relaxed shadow-sm transition hover:opacity-90 ${
+                          contactIsSoft
+                            ? "border-black/5 bg-black/[0.04]"
+                            : "border-white/15 bg-white/10 text-white"
                         }`}
                       >
-                        <b>Call</b>
-                        <br />
-                        {phone}
+                        <b className="block text-xs font-bold uppercase tracking-wide opacity-80">
+                          Call
+                        </b>
+                        <span className="mt-1.5 block text-base font-semibold">{phone}</span>
                       </a>
                     )
                   ) : null}
                   {content.contactCta.showLocation && location ? (
                     <div
-                      className={`${radius} p-5 text-sm ${
-                        contactIsSoft ? "bg-black/5" : "bg-white/10 text-white"
+                      className={`${radius} border p-5 text-sm leading-relaxed shadow-sm ${
+                        contactIsSoft
+                          ? "border-black/5 bg-black/[0.04]"
+                          : "border-white/15 bg-white/10 text-white"
                       }`}
                     >
-                      <b>Location</b>
-                      <br />
-                      {location}
+                      <b className="block text-xs font-bold uppercase tracking-wide opacity-80">
+                        Location
+                      </b>
+                      <span className="mt-1.5 block text-base font-semibold">{location}</span>
                     </div>
                   ) : null}
                   {content.contactCta.showHours ? (
                     <div
-                      className={`${radius} p-5 text-sm ${
-                        contactIsSoft ? "bg-black/5" : "bg-white/10 text-white"
+                      className={`${radius} border p-5 text-sm leading-relaxed shadow-sm ${
+                        contactIsSoft
+                          ? "border-black/5 bg-black/[0.04]"
+                          : "border-white/15 bg-white/10 text-white"
                       }`}
                     >
-                      <b>Hours</b>
-                      <br />
-                      Contact us for availability
+                      <b className="block text-xs font-bold uppercase tracking-wide opacity-80">
+                        Hours
+                      </b>
+                      <span className="mt-1.5 block text-base font-semibold">
+                        Contact us for availability
+                      </span>
                     </div>
                   ) : null}
                 </div>
               </div>
               {images.requestImage ? (
                 <div
-                  className={`${radius} overflow-hidden border border-white/20 bg-white/10 shadow-lg`}
+                  className={`${radius} overflow-hidden border shadow-lg ${
+                    contactIsSoft ? "border-slate-200 bg-white" : "border-white/20 bg-white/10"
+                  }`}
                   data-testid={`${testIdPrefix}-template-requestImage`}
                 >
                   <MiniSiteSectionAccentImage
@@ -1284,27 +1363,27 @@ export function ServiceTemplatePublicView({
       case "footer":
         return (
           <footer
-            className={`${visuals.footerClass} px-5 py-12 md:px-10 md:py-14`}
+            className={`${visuals.footerClass} px-5 py-12 sm:px-6 md:px-10 md:py-16`}
             data-testid={`${testIdPrefix}-footer`}
           >
             <div
-              className={`${maxClass} grid gap-10 ${deviceGrid(previewDevice, {
+              className={`${maxClass} grid gap-10 sm:gap-12 ${deviceGrid(previewDevice, {
                 mobile: "grid-cols-1",
                 tablet: "grid-cols-2",
                 desktop: "grid-cols-4",
-                responsive: "grid-cols-1 md:grid-cols-4",
+                responsive: "grid-cols-1 sm:grid-cols-2 md:grid-cols-4",
               })}`}
             >
               <div className="md:col-span-1">
-                <p className="text-lg font-black">{business.name}</p>
-                <p className="mt-4 text-sm leading-relaxed opacity-80">
+                <p className="text-lg font-black tracking-tight">{business.name}</p>
+                <p className="mt-4 max-w-sm text-sm leading-relaxed opacity-80">
                   {content.footer.description}
                 </p>
               </div>
               {content.footer.showQuickLinks ? (
                 <div>
-                  <p className="font-bold">Quick links</p>
-                  <div className="mt-4 grid gap-2.5 text-sm opacity-80">
+                  <p className="text-sm font-bold uppercase tracking-wide opacity-90">Quick links</p>
+                  <div className="mt-4 grid gap-3 text-sm opacity-80">
                     {navLinks.map((link) => (
                       <span key={link.id}>
                         {previewLink(link.label, `#${link.id}`, "transition hover:opacity-100")}
@@ -1315,8 +1394,8 @@ export function ServiceTemplatePublicView({
               ) : null}
               {content.footer.showServicesLinks ? (
                 <div>
-                  <p className="font-bold">Services</p>
-                  <div className="mt-4 grid gap-2.5 text-sm opacity-80">
+                  <p className="text-sm font-bold uppercase tracking-wide opacity-90">Services</p>
+                  <div className="mt-4 grid gap-3 text-sm opacity-80">
                     {orderedServices.slice(0, 5).map((service) =>
                       isPreview ? (
                         <span key={service.id}>{service.name}</span>
@@ -1336,8 +1415,8 @@ export function ServiceTemplatePublicView({
               <div>
                 {content.footer.showSocialLinks ? (
                   <>
-                    <p className="font-bold">Connect</p>
-                    <div className="mt-4 grid gap-2.5 text-sm opacity-80">
+                    <p className="text-sm font-bold uppercase tracking-wide opacity-90">Connect</p>
+                    <div className="mt-4 grid gap-3 text-sm opacity-80">
                       {getVisibleSocialLinks(socialLinks).map((entry) => (
                         <span key={entry.key}>
                           {previewLink(
@@ -1351,11 +1430,11 @@ export function ServiceTemplatePublicView({
                   </>
                 ) : null}
                 {content.footer.showContactInfo && phone ? (
-                  <p className="mt-5 text-sm opacity-80">{phone}</p>
+                  <p className="mt-6 text-sm font-medium opacity-80">{phone}</p>
                 ) : null}
               </div>
             </div>
-            <p className="mx-auto mt-12 max-w-6xl border-t border-current/15 pt-6 text-xs opacity-60">
+            <p className="mx-auto mt-12 max-w-6xl border-t border-current/15 pt-6 text-xs leading-relaxed opacity-60">
               {content.footer.copyrightText ||
                 `© ${new Date().getFullYear()} ${business.name}. All rights reserved.`}
             </p>

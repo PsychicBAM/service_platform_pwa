@@ -261,6 +261,73 @@ describe("ServiceTemplatePublicView", () => {
     expect(screen.getByTestId("service-site-services-grid").className).toMatch(/items-stretch/);
   });
 
+  it("uses service image fallback and equal-height pricing with popular package", () => {
+    const config = normalizeMiniSiteConfig({
+      ...DEFAULT_MINI_SITE_CONFIG,
+      theme: { ...DEFAULT_MINI_SITE_CONFIG.theme, template: "service" },
+    });
+    const serviceWithoutImage = {
+      ...mockBookingService,
+      id: "svc-no-image",
+      name: "Window Cleaning",
+      image: null,
+    };
+    renderRoute(
+      <ServiceTemplatePublicView
+        business={mockPublicBusiness}
+        publicSlug="demo-business"
+        services={[serviceWithoutImage, mockOrderService]}
+        config={config}
+        testIdPrefix="service-site"
+      />,
+      { route: "/b/demo-business", path: "/b/:slug" },
+    );
+
+    expect(screen.getAllByTestId("service-site-service-card-fallback").length).toBeGreaterThan(0);
+    expect(screen.getByTestId("service-site-pricing-popular")).toBeInTheDocument();
+    expect(screen.getByTestId("service-site-pricing-popular").className).toMatch(/h-full/);
+    expect(screen.getByTestId("service-site-pricing-popular").className).toMatch(/flex-col/);
+    const popularCta = screen
+      .getByTestId("service-site-pricing-popular")
+      .querySelector("a, button");
+    expect(popularCta?.parentElement?.className).toMatch(/mt-auto/);
+  });
+
+  it("shows an elegant reviews empty state without fake reviews", () => {
+    const defaults = createDefaultServiceTemplateContent();
+    const config = normalizeMiniSiteConfig({
+      ...DEFAULT_MINI_SITE_CONFIG,
+      theme: { ...DEFAULT_MINI_SITE_CONFIG.theme, template: "service" },
+      templateContent: {
+        service: {
+          ...defaults,
+          reviews: {
+            ...defaults.reviews,
+            source: "approved",
+            customTestimonials: [],
+          },
+        },
+      },
+    });
+    renderRoute(
+      <ServiceTemplatePublicView
+        business={{ ...mockPublicBusiness, average_rating: null, review_count: 0 }}
+        publicSlug="demo-business"
+        services={[mockBookingService]}
+        config={config}
+        reviewSummary={null}
+        reviews={[]}
+        testIdPrefix="service-site"
+      />,
+      { route: "/b/demo-business", path: "/b/:slug" },
+    );
+
+    expect(screen.getByTestId("service-site-reviews-empty")).toHaveTextContent(
+      /Reviews will appear here after customers leave feedback/i,
+    );
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
+  });
+
   it("hides Pricing when sectionVisibility.pricing is false", () => {
     const config = normalizeMiniSiteConfig({
       ...DEFAULT_MINI_SITE_CONFIG,
@@ -394,6 +461,10 @@ describe("ServiceTemplatePublicView", () => {
       { route: "/b/demo-business", path: "/b/:slug" },
     );
     expect(screen.getByTestId("service-site-why-choose-us-fallback")).toBeInTheDocument();
+    expect(screen.getByTestId("service-site-why-choose-us-fallback")).toHaveTextContent(
+      /Trusted service/i,
+    );
+    expect(screen.queryByText(/Settings → Media/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId("service-site-template-whyChooseUsImage")).not.toBeInTheDocument();
   });
 

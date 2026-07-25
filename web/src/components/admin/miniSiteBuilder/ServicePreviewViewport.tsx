@@ -76,7 +76,7 @@ function SidePanelFrame({
   return (
     <div
       ref={scrollRef}
-      className="overflow-auto rounded-xl border border-slate-200 bg-slate-100/70 shadow-inner"
+      className="service-preview-scroll overflow-auto rounded-xl border border-slate-200 bg-slate-100/70 shadow-inner [scrollbar-width:thin] [scrollbar-color:rgb(203_213_225)_transparent]"
       style={{ maxHeight: PREVIEW_MAX_HEIGHT }}
       data-testid="service-preview-scroll"
       data-max-height={PREVIEW_MAX_HEIGHT}
@@ -158,7 +158,7 @@ function DesktopPreviewModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-3 sm:p-6"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4 sm:p-6 md:p-8"
       data-testid="service-desktop-preview-modal"
       role="dialog"
       aria-modal="true"
@@ -171,7 +171,7 @@ function DesktopPreviewModal({
         data-testid="service-desktop-preview-dialog"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-3.5 sm:px-6">
           <div>
             <p
               id={titleId}
@@ -180,21 +180,21 @@ function DesktopPreviewModal({
             >
               Desktop preview
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-slate-500">
               Full-width Service layout · scrolls inside this window
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="rounded-lg border border-slate-300 px-3.5 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
             data-testid="service-desktop-preview-close"
           >
             Close
           </button>
         </div>
         <div
-          className="min-h-0 flex-1 overflow-auto bg-slate-100"
+          className="min-h-0 flex-1 overflow-auto bg-slate-100 [scrollbar-width:thin] [scrollbar-color:rgb(203_213_225)_transparent]"
           data-testid="service-desktop-preview-scroll"
         >
           <div
