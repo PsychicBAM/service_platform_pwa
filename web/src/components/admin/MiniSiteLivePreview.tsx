@@ -125,6 +125,14 @@ export function MiniSiteLivePreview({
   previewDevice,
 }: MiniSiteLivePreviewProps) {
   const { theme, socialLinks, copy } = config;
+  /**
+   * Expert/Service public views use responsive CSS when previewDevice is omitted.
+   * Inside a narrow side panel that becomes letter-by-letter wrap. Prefer a fixed
+   * mobile frame when callers (e.g. MiniSiteEditorCard) forget to pass a device.
+   * ServicePreviewViewport always passes an explicit device.
+   */
+  const typedPreviewDevice = previewDevice ?? "mobile";
+
   if ((theme.template as string) === "service") {
     return (
       <div
@@ -132,11 +140,11 @@ export function MiniSiteLivePreview({
         data-testid="mini-site-live-preview"
         data-template="service"
         data-preset={getServiceTemplateContent(config).themePreset}
-        data-preview-device={previewDevice ?? "desktop"}
+        data-preview-device={typedPreviewDevice}
       >
         <ServiceTemplatePublicView
           variant="preview"
-          previewDevice={previewDevice ?? "desktop"}
+          previewDevice={typedPreviewDevice}
           testIdPrefix="mini-site-preview"
           config={config}
           publicSlug=""
@@ -165,11 +173,11 @@ export function MiniSiteLivePreview({
         data-template="expert"
         data-template-presentation="expert"
         data-preset={getExpertTemplateContent(config).themePreset}
-        data-preview-device={previewDevice ?? "desktop"}
+        data-preview-device={typedPreviewDevice}
       >
         <ExpertTemplatePublicView
           variant="preview"
-          previewDevice={previewDevice ?? "desktop"}
+          previewDevice={typedPreviewDevice}
           testIdPrefix="mini-site-preview"
           config={config}
           publicSlug=""

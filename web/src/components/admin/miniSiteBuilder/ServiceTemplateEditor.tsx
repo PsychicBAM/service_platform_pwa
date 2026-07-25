@@ -125,11 +125,12 @@ export function ServiceTemplateEditor({
   }, [draft?.theme.template, onTemplateChange]);
 
   useEffect(() => {
-    if (!requestedTemplate) return;
+    // Dedicated Service editor must stay on service — ignore stale requestedTemplate from other templates.
+    if (!requestedTemplate || requestedTemplate !== "service") return;
     setDraft((current) => {
-      if (!current || current.theme.template === requestedTemplate) return current;
-      if (allowedTemplates && !allowedTemplates.includes(requestedTemplate)) return current;
-      return { ...current, theme: { ...current.theme, template: requestedTemplate } };
+      if (!current || current.theme.template === "service") return current;
+      if (allowedTemplates && !allowedTemplates.includes("service")) return current;
+      return { ...current, theme: { ...current.theme, template: "service" } };
     });
   }, [requestedTemplate, allowedTemplates]);
 

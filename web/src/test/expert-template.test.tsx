@@ -472,6 +472,32 @@ describe("ExpertTemplateEditor", () => {
     } as never);
   });
 
+  it("keeps Expert draft template even when requestedTemplate is stale", async () => {
+    const sections = getAvailableSectionsForTemplate("expert");
+    renderRoute(
+      <ExpertTemplateEditor
+        businessId="biz-1"
+        businessName="Demo"
+        activeSectionId="hero"
+        onSelectSection={() => undefined}
+        sections={sections}
+        allowedTemplates={["expert", "service", "clean"]}
+        requestedTemplate="clean"
+        previewBadge="Expert preview"
+      />,
+    );
+    expect(await screen.findByTestId("expert-editor")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-site-live-preview")).toHaveAttribute("data-template", "expert");
+    expect(screen.getByTestId("service-preview-viewport")).toHaveAttribute(
+      "data-side-panel-mode",
+      "mobile",
+    );
+    expect(screen.getByTestId("mini-site-live-preview")).toHaveAttribute(
+      "data-preview-device",
+      "mobile",
+    );
+  });
+
   it("renders section navigation and article CRUD", async () => {
     const user = userEvent.setup();
     const sections = getAvailableSectionsForTemplate("expert");

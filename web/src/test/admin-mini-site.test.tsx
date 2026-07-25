@@ -521,4 +521,82 @@ describe("Admin Mini-site Builder", () => {
     expect(screen.getByTestId("service-editor-theme-preset")).toHaveTextContent("Modern Green");
     expect(screen.getByTestId("service-editor-theme-preset")).toHaveTextContent("Clean White");
   });
+
+  it("waits for config and opens Expert preview without sticky Clean fallback", async () => {
+    let resolveConfig!: (value: typeof DEFAULT_MINI_SITE_CONFIG) => void;
+    const deferred = new Promise<typeof DEFAULT_MINI_SITE_CONFIG>((resolve) => {
+      resolveConfig = resolve;
+    });
+    vi.mocked(adminApi.getBusiness).mockResolvedValue(businessWithPlan("pro", "mini_site"));
+    vi.mocked(miniSiteApi.getMiniSiteConfig).mockReturnValue(deferred as never);
+
+    renderRoute(
+      <AdminBusinessProvider businesses={mockOwnerUser.businesses}>
+        <AdminMiniSitePage />
+      </AdminBusinessProvider>,
+      { route: "/admin/mini-site", path: "/admin/mini-site" },
+    );
+
+    expect(await screen.findByTestId("admin-mini-site-config-loading")).toBeInTheDocument();
+    expect(screen.queryByTestId("admin-mini-site-template-builder")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("mini-site-editor")).not.toBeInTheDocument();
+
+    resolveConfig({
+      ...DEFAULT_MINI_SITE_CONFIG,
+      theme: { ...DEFAULT_MINI_SITE_CONFIG.theme, template: "expert" },
+    });
+
+    const builder = await screen.findByTestId("admin-mini-site-template-builder");
+    expect(builder).toHaveAttribute("data-builder", "expert");
+    expect(screen.getByTestId("admin-mini-site-builder-shell")).toHaveAttribute(
+      "data-active-template",
+      "expert",
+    );
+    expect(await screen.findByTestId("expert-editor")).toBeInTheDocument();
+    expect(screen.getByTestId("service-preview-viewport")).toBeInTheDocument();
+    expect(screen.getByTestId("service-preview-viewport")).toHaveAttribute(
+      "data-side-panel-mode",
+      "mobile",
+    );
+    expect(screen.getByTestId("mini-site-live-preview")).toHaveAttribute("data-template", "expert");
+    expect(screen.getByTestId("mini-site-live-preview")).toHaveAttribute(
+      "data-preview-device",
+      "mobile",
+    );
+    expect(screen.queryByTestId("admin-mini-site-config-loading")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("admin-mini-site-coming-soon-panel")).not.toBeInTheDocument();
+  });
+
+  it("waits for config and opens Service preview with device frame", async () => {
+    let resolveConfig!: (value: typeof DEFAULT_MINI_SITE_CONFIG) => void;
+    const deferred = new Promise<typeof DEFAULT_MINI_SITE_CONFIG>((resolve) => {
+      resolveConfig = resolve;
+    });
+    vi.mocked(adminApi.getBusiness).mockResolvedValue(businessWithPlan("pro", "mini_site"));
+    vi.mocked(miniSiteApi.getMiniSiteConfig).mockReturnValue(deferred as never);
+
+    renderRoute(
+      <AdminBusinessProvider businesses={mockOwnerUser.businesses}>
+        <AdminMiniSitePage />
+      </AdminBusinessProvider>,
+      { route: "/admin/mini-site", path: "/admin/mini-site" },
+    );
+
+    expect(await screen.findByTestId("admin-mini-site-config-loading")).toBeInTheDocument();
+
+    resolveConfig({
+      ...DEFAULT_MINI_SITE_CONFIG,
+      theme: { ...DEFAULT_MINI_SITE_CONFIG.theme, template: "service" },
+    });
+
+    const builder = await screen.findByTestId("admin-mini-site-template-builder");
+    expect(builder).toHaveAttribute("data-builder", "service");
+    expect(await screen.findByTestId("service-editor")).toBeInTheDocument();
+    expect(screen.getByTestId("service-preview-viewport")).toHaveAttribute(
+      "data-side-panel-mode",
+      "mobile",
+    );
+    expect(screen.getByTestId("mini-site-live-preview")).toHaveAttribute("data-template", "service");
+    expect(screen.getByTestId("service-preview-device-desktop")).toBeInTheDocument();
+  });
 });

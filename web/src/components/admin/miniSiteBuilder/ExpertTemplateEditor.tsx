@@ -283,11 +283,12 @@ export function ExpertTemplateEditor({
   }, [draft?.theme.template, onTemplateChange]);
 
   useEffect(() => {
-    if (!requestedTemplate) return;
+    // Dedicated Expert editor must stay on expert — ignore stale requestedTemplate from other templates.
+    if (!requestedTemplate || requestedTemplate !== "expert") return;
     setDraft((current) => {
-      if (!current || current.theme.template === requestedTemplate) return current;
-      if (allowedTemplates && !allowedTemplates.includes(requestedTemplate)) return current;
-      return { ...current, theme: { ...current.theme, template: requestedTemplate } };
+      if (!current || current.theme.template === "expert") return current;
+      if (allowedTemplates && !allowedTemplates.includes("expert")) return current;
+      return { ...current, theme: { ...current.theme, template: "expert" } };
     });
   }, [requestedTemplate, allowedTemplates]);
 

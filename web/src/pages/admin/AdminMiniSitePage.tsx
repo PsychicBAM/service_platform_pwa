@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getBusiness, updatePublicPageVariant } from "@/api/adminApi";
 import { getMiniSiteConfig } from "@/api/miniSiteApi";
@@ -30,6 +30,8 @@ export function AdminMiniSitePage() {
   const [currentTemplate, setCurrentTemplate] = useState<MiniSiteTemplate | null>(null);
   const [requestedTemplate, setRequestedTemplate] = useState<MiniSiteTemplate | null>(null);
   const [selection, setSelection] = useState<MiniSiteLibrarySelection | null>(null);
+  /** Once the user picks from the library, do not auto-overwrite with server template. */
+  const userPickedSelectionRef = useRef(false);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   const businessQuery = useQuery({
@@ -55,17 +57,31 @@ export function AdminMiniSitePage() {
       ? storedTemplate
       : null;
 
+  /**
+   * Resolve library selection only after mini-site config is available when variant is mini_site.
+   * Avoids locking onto Clean (allowed[0]) before Expert/Service template is known.
+   */
   useEffect(() => {
     if (!businessQuery.data) {
       return;
     }
+    const variant = businessQuery.data.public_page_variant;
+    if (variant === "mini_site" && !configQuery.data) {
+      // Wait for config so we do not sticky-select Clean while Expert/Service is loading.
+      return;
+    }
     const next = librarySelectionFromVariant(
-      businessQuery.data.public_page_variant,
+      variant,
       configQuery.data?.theme.template ?? currentTemplate,
       plan,
     );
-    setSelection((current) => current ?? next);
-  }, [businessQuery.data, configQuery.data?.theme.template, currentTemplate, plan]);
+    setSelection((current) => {
+      if (userPickedSelectionRef.current && current !== null) {
+        return current;
+      }
+      return next;
+    });
+  }, [businessQuery.data, configQuery.data, currentTemplate, plan]);
 
   const variantMutation = useMutation({
     mutationFn: (variant: "standard" | "mini_site") =>
@@ -73,6 +89,7 @@ export function AdminMiniSitePage() {
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ["admin-business", businessId] });
       await queryClient.invalidateQueries({ queryKey: ["mini-site-config", businessId] });
+      userPickedSelectionRef.current = false;
       setSelection(
         librarySelectionFromVariant(
           data.public_page_variant,
@@ -97,8 +114,10 @@ export function AdminMiniSitePage() {
         return;
       }
       setSaveStatus("idle");
+      userPickedSelectionRef.current = true;
       setSelection(next);
       if (next === MINI_SITE_DEFAULT_SELECTION) {
+        setRequestedTemplate(null);
         return;
       }
       setRequestedTemplate(next);
@@ -178,6 +197,34 @@ export function AdminMiniSitePage() {
   }
 
   const business = businessQuery.data;
+  const waitingForMiniSiteConfig =
+    business.public_page_variant === "mini_site" &&
+    editorUnlocked &&
+    !configQuery.data &&
+    (configQuery.isLoading || configQuery.isFetching);
+
+  if (waitingForMiniSiteConfig) {
+    return (
+      <section className="space-y-5" data-testid="admin-mini-site-page">
+        <div data-testid="admin-mini-site-config-loading">
+          <LoadingState message="Loading mini-site template…" />
+        </div>
+      </section>
+    );
+  }
+
+  if (business.public_page_variant === "mini_site" && editorUnlocked && configQuery.isError) {
+    return (
+      <ErrorState
+        title="Could not load mini-site config"
+        message={getAdminSettingsErrorMessage(
+          configQuery.error,
+          "Unable to load saved template settings.",
+        )}
+      />
+    );
+  }
+
   const planLabel = getMiniSitePlanLabel(plan).toUpperCase();
   const activeSelection =
     selection ??
@@ -252,6 +299,9 @@ export function AdminMiniSitePage() {
         className="space-y-4"
         data-testid="admin-mini-site-builder-shell"
         data-editor={showingMiniSiteEditor ? "unlocked" : showingDefault ? "default" : "locked"}
+        data-active-template={
+          showingMiniSiteEditor ? String(activeSelection) : showingDefault ? "standard" : "locked"
+        }
       >
         {showingBuilder ? (
           <div data-testid={showingMiniSiteEditor ? "admin-mini-site-editor-panel" : undefined}>
