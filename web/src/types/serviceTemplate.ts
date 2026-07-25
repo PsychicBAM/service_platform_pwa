@@ -176,14 +176,13 @@ export type ServiceFooterSettings = {
 
 export type ServiceFontPresetId =
   | "system_sans"
-  | "inter"
-  | "manrope"
-  | "poppins"
-  | "montserrat"
-  | "roboto"
-  | "lato"
-  | "merriweather"
-  | "playfair_display"
+  | "modern_sans"
+  | "rounded_sans"
+  | "corporate_sans"
+  | "elegant_serif"
+  | "editorial_serif"
+  | "mono_tech"
+  | "display_bold"
   | "custom";
 
 /** Manual typography / text-color overrides under templateContent.service. */

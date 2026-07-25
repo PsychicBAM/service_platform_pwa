@@ -29,12 +29,14 @@ import {
 export {
   SERVICE_FONT_PRESET_OPTIONS,
   buildServiceTypographyCss,
+  buildServiceTypographyCssVars,
   coerceTypographyColorInput,
   createDefaultServiceTypography,
   normalizeServiceTypography,
   resolveServiceTypography,
   sanitizeCustomFontFamily,
   sanitizeOptionalHexColor,
+  tokenTextClass,
 } from "@/lib/serviceTemplateTypography";
 
 export type ServiceThemePresetDefinition = {

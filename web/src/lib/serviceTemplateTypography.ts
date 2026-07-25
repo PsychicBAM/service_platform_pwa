@@ -5,71 +5,87 @@ import type {
 
 export const SERVICE_FONT_PRESET_IDS = [
   "system_sans",
-  "inter",
-  "manrope",
-  "poppins",
-  "montserrat",
-  "roboto",
-  "lato",
-  "merriweather",
-  "playfair_display",
+  "modern_sans",
+  "rounded_sans",
+  "corporate_sans",
+  "elegant_serif",
+  "editorial_serif",
+  "mono_tech",
+  "display_bold",
   "custom",
 ] as const satisfies readonly ServiceFontPresetId[];
+
+/** Legacy preset ids mapped to reliable stacks (saved configs stay readable). */
+const LEGACY_FONT_PRESET_MAP: Record<string, ServiceFontPresetId> = {
+  inter: "modern_sans",
+  manrope: "modern_sans",
+  poppins: "modern_sans",
+  montserrat: "modern_sans",
+  roboto: "corporate_sans",
+  lato: "corporate_sans",
+  merriweather: "elegant_serif",
+  playfair_display: "editorial_serif",
+};
 
 export const SERVICE_FONT_PRESET_OPTIONS: ReadonlyArray<{
   id: ServiceFontPresetId;
   label: string;
   stack: string;
+  sample: string;
 }> = [
   {
     id: "system_sans",
     label: "System Sans",
     stack: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    sample: "Professional services",
   },
   {
-    id: "inter",
-    label: "Inter / UI Sans",
-    stack: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+    id: "modern_sans",
+    label: "Modern Sans",
+    stack: '"Inter", "Segoe UI", Roboto, Arial, sans-serif',
+    sample: "Professional services",
   },
   {
-    id: "manrope",
-    label: "Manrope",
-    stack: 'Manrope, ui-sans-serif, system-ui, sans-serif',
+    id: "rounded_sans",
+    label: "Rounded Sans",
+    stack: '"Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif',
+    sample: "Professional services",
   },
   {
-    id: "poppins",
-    label: "Poppins",
-    stack: 'Poppins, ui-sans-serif, system-ui, sans-serif',
+    id: "corporate_sans",
+    label: "Corporate Sans",
+    stack: "Arial, Helvetica, sans-serif",
+    sample: "Professional services",
   },
   {
-    id: "montserrat",
-    label: "Montserrat",
-    stack: 'Montserrat, ui-sans-serif, system-ui, sans-serif',
+    id: "elegant_serif",
+    label: "Elegant Serif",
+    stack: 'Georgia, "Times New Roman", serif',
+    sample: "Professional services",
   },
   {
-    id: "roboto",
-    label: "Roboto",
-    stack: 'Roboto, ui-sans-serif, system-ui, sans-serif',
+    id: "editorial_serif",
+    label: "Editorial Serif",
+    stack: '"Palatino Linotype", Palatino, Georgia, serif',
+    sample: "Professional services",
   },
   {
-    id: "lato",
-    label: "Lato",
-    stack: 'Lato, ui-sans-serif, system-ui, sans-serif',
+    id: "mono_tech",
+    label: "Mono Tech",
+    stack: '"SFMono-Regular", Consolas, "Liberation Mono", monospace',
+    sample: "Professional services",
   },
   {
-    id: "merriweather",
-    label: "Merriweather",
-    stack: 'Merriweather, Georgia, "Times New Roman", serif',
-  },
-  {
-    id: "playfair_display",
-    label: "Playfair Display",
-    stack: '"Playfair Display", Georgia, "Times New Roman", serif',
+    id: "display_bold",
+    label: "Display Bold",
+    stack: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif',
+    sample: "Professional services",
   },
   {
     id: "custom",
     label: "Custom",
     stack: "",
+    sample: "Professional services",
   },
 ];
 
@@ -127,9 +143,13 @@ export function coerceTypographyColorInput(raw: unknown): string {
 
 function asFontPreset(raw: unknown, fallback: ServiceFontPresetId): ServiceFontPresetId {
   const value = typeof raw === "string" ? raw.trim() : "";
-  return (SERVICE_FONT_PRESET_IDS as readonly string[]).includes(value)
-    ? (value as ServiceFontPresetId)
-    : fallback;
+  if ((SERVICE_FONT_PRESET_IDS as readonly string[]).includes(value)) {
+    return value as ServiceFontPresetId;
+  }
+  if (value in LEGACY_FONT_PRESET_MAP) {
+    return LEGACY_FONT_PRESET_MAP[value];
+  }
+  return fallback;
 }
 
 function asHeadingWeight(raw: unknown, fallback: ServiceTypographySettings["headingWeight"]) {
@@ -241,6 +261,10 @@ export type ResolvedServiceTypography = {
   accentTextColor: string | null;
   buttonTextColor: string | null;
   cardTextColor: string | null;
+  /** accentTextColor → headingColor → null (theme fallback) */
+  statValueColor: string | null;
+  /** mutedColor → null (theme fallback) */
+  statLabelColor: string | null;
   presets: Pick<
     ServiceTypographySettings,
     "headingFontPreset" | "bodyFontPreset" | "buttonFontPreset"
@@ -256,6 +280,9 @@ export function resolveServiceTypography(
     const complete = sanitizeOptionalHexColor(value);
     return complete || null;
   };
+  const accentTextColor = colorOrNull(typography.accentTextColor);
+  const headingColor = colorOrNull(typography.headingColor);
+  const mutedColor = colorOrNull(typography.mutedColor);
   return {
     headingFontFamily: resolveFontFamily(
       typography.headingFontPreset,
@@ -269,14 +296,16 @@ export function resolveServiceTypography(
     headingWeight: typography.headingWeight,
     bodyWeight: typography.bodyWeight,
     buttonWeight: typography.buttonWeight,
-    headingColor: colorOrNull(typography.headingColor),
+    headingColor,
     bodyColor: colorOrNull(typography.bodyColor),
-    mutedColor: colorOrNull(typography.mutedColor),
+    mutedColor,
     heroHeadingColor: colorOrNull(typography.heroHeadingColor),
     heroBodyColor: colorOrNull(typography.heroBodyColor),
-    accentTextColor: colorOrNull(typography.accentTextColor),
+    accentTextColor,
     buttonTextColor: colorOrNull(typography.buttonTextColor),
     cardTextColor: colorOrNull(typography.cardTextColor),
+    statValueColor: accentTextColor ?? headingColor,
+    statLabelColor: mutedColor,
     presets: {
       headingFontPreset: typography.headingFontPreset,
       bodyFontPreset: typography.bodyFontPreset,
@@ -286,7 +315,35 @@ export function resolveServiceTypography(
   };
 }
 
-/** Scoped CSS that applies typography overrides without rewriting every node. */
+/** CSS custom properties for the Service template root (only set when override is valid). */
+export function buildServiceTypographyCssVars(
+  typo: ResolvedServiceTypography,
+): Record<string, string> {
+  const vars: Record<string, string> = {
+    "--service-font-heading": typo.headingFontFamily,
+    "--service-font-body": typo.bodyFontFamily,
+    "--service-font-button": typo.buttonFontFamily,
+    "--service-heading-weight": String(typo.headingWeight),
+    "--service-body-weight": String(typo.bodyWeight),
+    "--service-button-weight": String(typo.buttonWeight),
+  };
+  if (typo.headingColor) vars["--service-heading-color"] = typo.headingColor;
+  if (typo.bodyColor) vars["--service-body-color"] = typo.bodyColor;
+  if (typo.mutedColor) vars["--service-muted-color"] = typo.mutedColor;
+  if (typo.heroHeadingColor) vars["--service-hero-heading-color"] = typo.heroHeadingColor;
+  if (typo.heroBodyColor) vars["--service-hero-body-color"] = typo.heroBodyColor;
+  if (typo.accentTextColor) vars["--service-accent-text-color"] = typo.accentTextColor;
+  if (typo.buttonTextColor) vars["--service-button-text-color"] = typo.buttonTextColor;
+  if (typo.cardTextColor) vars["--service-card-text-color"] = typo.cardTextColor;
+  if (typo.statValueColor) vars["--service-stat-value-color"] = typo.statValueColor;
+  if (typo.statLabelColor) vars["--service-stat-label-color"] = typo.statLabelColor;
+  return vars;
+}
+
+/**
+ * Scoped CSS using CSS variables. Color rules only emit when overrides exist so
+ * theme token Tailwind classes remain the fallback.
+ */
 export function buildServiceTypographyCss(
   rootAttrValue: string,
   typo: ResolvedServiceTypography,
@@ -294,49 +351,81 @@ export function buildServiceTypographyCss(
   const root = `[data-service-root="${rootAttrValue}"]`;
   const lines: string[] = [
     `${root} {`,
-    `  font-family: ${typo.bodyFontFamily};`,
-    `  font-weight: ${typo.bodyWeight};`,
+    `  font-family: var(--service-font-body, inherit);`,
+    `  font-weight: var(--service-body-weight, 400);`,
   ];
   if (typo.bodyColor) {
-    lines.push(`  color: ${typo.bodyColor};`);
+    lines.push(`  color: var(--service-body-color);`);
   }
   lines.push(`}`);
+
   lines.push(
-    `${root} h1, ${root} h2, ${root} h3 {`,
-    `  font-family: ${typo.headingFontFamily};`,
-    `  font-weight: ${typo.headingWeight};`,
+    `${root} .service-typo-heading, ${root} h1.service-typo-heading, ${root} h2.service-typo-heading, ${root} h3.service-typo-heading {`,
+    `  font-family: var(--service-font-heading, inherit);`,
+    `  font-weight: var(--service-heading-weight, 800);`,
   );
   if (typo.headingColor) {
-    lines.push(`  color: ${typo.headingColor} !important;`);
+    lines.push(`  color: var(--service-heading-color) !important;`);
   }
   lines.push(`}`);
+
   if (typo.heroHeadingColor) {
     lines.push(
-      `${root} [data-testid$="-hero-title"] { color: ${typo.heroHeadingColor} !important; }`,
+      `${root} [data-service-hero-heading="true"], ${root} [data-testid$="-hero-title"] {`,
+      `  color: var(--service-hero-heading-color) !important;`,
+      `}`,
     );
   }
   if (typo.heroBodyColor) {
     lines.push(
-      `${root} [data-testid$="-hero-subtitle"] { color: ${typo.heroBodyColor} !important; }`,
+      `${root} [data-service-hero-body="true"], ${root} [data-testid$="-hero-subtitle"] {`,
+      `  color: var(--service-hero-body-color) !important;`,
+      `}`,
     );
   }
   if (typo.mutedColor) {
-    lines.push(`${root} .service-typo-muted { color: ${typo.mutedColor} !important; }`);
+    lines.push(
+      `${root} .service-typo-muted { color: var(--service-muted-color) !important; }`,
+    );
   }
   if (typo.accentTextColor) {
-    lines.push(`${root} .service-typo-accent { color: ${typo.accentTextColor} !important; }`);
+    lines.push(
+      `${root} .service-typo-accent, ${root} [data-service-accent-text="true"] {`,
+      `  color: var(--service-accent-text-color) !important;`,
+      `}`,
+    );
   }
   if (typo.cardTextColor) {
-    lines.push(`${root} .service-typo-card { color: ${typo.cardTextColor} !important; }`);
+    lines.push(
+      `${root} .service-typo-card, ${root} [data-service-card-text="true"] {`,
+      `  color: var(--service-card-text-color) !important;`,
+      `}`,
+    );
   }
+  if (typo.statValueColor) {
+    lines.push(
+      `${root} [data-service-stat-value="true"] { color: var(--service-stat-value-color) !important; }`,
+    );
+  }
+  if (typo.statLabelColor) {
+    lines.push(
+      `${root} [data-service-stat-label="true"] { color: var(--service-stat-label-color) !important; }`,
+    );
+  }
+
   lines.push(
     `${root} [data-service-button="true"], ${root} .service-typo-button {`,
-    `  font-family: ${typo.buttonFontFamily};`,
-    `  font-weight: ${typo.buttonWeight};`,
+    `  font-family: var(--service-font-button, inherit);`,
+    `  font-weight: var(--service-button-weight, 700);`,
   );
   if (typo.buttonTextColor) {
-    lines.push(`  color: ${typo.buttonTextColor} !important;`);
+    lines.push(`  color: var(--service-button-text-color) !important;`);
   }
   lines.push(`}`);
   return lines.join("\n");
+}
+
+/** Drop theme token text-color class when a manual override is active. */
+export function tokenTextClass(override: string | null, tokenClass: string): string {
+  return override ? "" : tokenClass;
 }

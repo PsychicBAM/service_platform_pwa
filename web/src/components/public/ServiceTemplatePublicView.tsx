@@ -14,7 +14,9 @@ import {
   resolveServicePresetVisuals,
   getServiceTemplateContent,
   buildServiceTypographyCss,
+  buildServiceTypographyCssVars,
   resolveServiceTypography,
+  tokenTextClass,
 } from "@/lib/serviceTemplateConfig";
 import { formatPublicLocationDisplay } from "@/lib/publicLocation";
 import { formatDuration } from "@/utils/format";
@@ -161,11 +163,27 @@ export function ServiceTemplatePublicView({
   const isPreview = variant === "preview";
   const radius = buttonRadius(theme.buttonStyle);
   const heroIsLight = visuals.heroText.includes("slate-900");
-  const heroTextClass = visuals.heroText;
-  const heroMutedClass = `${visuals.heroMutedText} service-typo-muted`;
-  const bodyTextClass = visuals.bodyText;
-  const mutedTextClass = `${visuals.mutedText} service-typo-muted`;
-  const cardTitleClass = `${visuals.cardText} min-w-0 break-words service-typo-card`;
+  const heroTextClass = tokenTextClass(typography.heroHeadingColor, visuals.heroText);
+  const heroMutedClass = tokenTextClass(typography.heroBodyColor, visuals.heroMutedText);
+  const bodyTextClass = tokenTextClass(typography.bodyColor, visuals.bodyText);
+  const sectionHeadingClass = tokenTextClass(typography.headingColor, visuals.bodyText);
+  const mutedTextClass = typography.mutedColor
+    ? "service-typo-muted"
+    : `${visuals.mutedText} service-typo-muted`;
+  const cardTitleClass = typography.cardTextColor
+    ? "min-w-0 break-words service-typo-card"
+    : `${visuals.cardText} min-w-0 break-words service-typo-card`;
+  const mutedStyle: CSSProperties | undefined = typography.mutedColor
+    ? { color: typography.mutedColor }
+    : undefined;
+  const headingStyle: CSSProperties = {
+    fontFamily: typography.headingFontFamily,
+    fontWeight: typography.headingWeight,
+    ...(typography.headingColor ? { color: typography.headingColor } : {}),
+  };
+  const cardTextStyle: CSSProperties | undefined = typography.cardTextColor
+    ? { color: typography.cardTextColor }
+    : undefined;
   const ghostButtonClass = visuals.secondaryButtonBg;
   const phone = business.contact_phone?.trim() || "";
   const location = formatPublicLocationDisplay(business);
@@ -194,7 +212,9 @@ export function ServiceTemplatePublicView({
     if (!label.trim()) return null;
     const href = actionHref(action);
     const className = `${radius} inline-flex min-h-[44px] items-center justify-center px-6 py-3 text-sm font-bold transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-      primary ? `${visuals.primaryButtonText} shadow-lg hover:brightness-110` : secondaryClass
+      primary
+        ? `${tokenTextClass(typography.buttonTextColor, visuals.primaryButtonText)} shadow-lg hover:brightness-110`
+        : secondaryClass
     }`;
     const style: CSSProperties = {
       fontFamily: typography.buttonFontFamily,
@@ -317,10 +337,18 @@ export function ServiceTemplatePublicView({
           >
             Our expertise
           </p>
-          <h2 className={`mt-3 text-3xl font-black tracking-tight md:text-5xl ${bodyTextClass}`}>
+          <h2
+            className={`service-typo-heading mt-3 text-3xl font-black tracking-tight md:text-5xl ${sectionHeadingClass}`}
+            style={headingStyle}
+            data-testid={`${testIdPrefix}-services-title`}
+          >
             {content.servicesCatalog.title}
           </h2>
-          <p className={`mt-4 text-base leading-relaxed md:text-lg ${mutedTextClass}`}>
+          <p
+            className={`mt-4 text-base leading-relaxed md:text-lg ${mutedTextClass}`}
+            style={mutedStyle}
+            data-testid={`${testIdPrefix}-services-subtitle`}
+          >
             {content.servicesCatalog.subtitle}
           </p>
         </div>
@@ -419,22 +447,51 @@ export function ServiceTemplatePublicView({
                     }`}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className={`text-lg font-bold ${cardTitleClass}`}>{service.name}</h3>
+                      <h3
+                        className={`text-lg font-bold ${cardTitleClass}`}
+                        style={cardTextStyle}
+                        data-service-card-text="true"
+                      >
+                        {service.name}
+                      </h3>
                       {content.servicesCatalog.showCategory && (service.category || service.type) ? (
                         <TypeBadge type={service.type} />
                       ) : null}
                     </div>
                     {content.servicesCatalog.showDescription && service.description ? (
-                      <p className={`mt-3 line-clamp-3 flex-1 text-sm leading-relaxed service-typo-muted ${visuals.cardMutedText}`}>
+                      <p
+                        className={`mt-3 line-clamp-3 flex-1 text-sm leading-relaxed ${
+                          typography.mutedColor ? "service-typo-muted" : visuals.cardMutedText
+                        }`}
+                        style={mutedStyle}
+                      >
                         {service.description}
                       </p>
                     ) : (
                       <div className="flex-1" />
                     )}
                     <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                      {content.servicesCatalog.showPrice ? <PriceLabel service={service} /> : null}
+                      {content.servicesCatalog.showPrice ? (
+                        <span
+                          style={
+                            typography.accentTextColor
+                              ? { color: typography.accentTextColor }
+                              : typography.cardTextColor
+                                ? { color: typography.cardTextColor }
+                                : undefined
+                          }
+                          data-testid={`${testIdPrefix}-service-price`}
+                        >
+                          <PriceLabel service={service} />
+                        </span>
+                      ) : null}
                       {content.servicesCatalog.showDuration && duration ? (
-                        <span className={`text-xs font-semibold ${visuals.cardMutedText}`}>
+                        <span
+                          className={`text-xs font-semibold ${
+                            typography.mutedColor ? "service-typo-muted" : visuals.cardMutedText
+                          }`}
+                          style={mutedStyle}
+                        >
                           {duration}
                         </span>
                       ) : null}
@@ -442,7 +499,10 @@ export function ServiceTemplatePublicView({
                     {isPreview ? (
                       <button
                         disabled
-                        className={`service-typo-button ${radius} ${visuals.primaryButtonText} mt-auto w-full px-3 py-2.5 text-sm font-bold`}
+                        className={`service-typo-button ${radius} ${tokenTextClass(
+                          typography.buttonTextColor,
+                          visuals.primaryButtonText,
+                        )} mt-auto w-full px-3 py-2.5 text-sm font-bold`}
                         style={{
                           backgroundColor: theme.primaryColor,
                           fontFamily: typography.buttonFontFamily,
@@ -458,7 +518,10 @@ export function ServiceTemplatePublicView({
                     ) : (
                       <Link
                         to={serviceHref}
-                        className={`service-typo-button ${radius} ${visuals.primaryButtonText} mt-auto block w-full px-3 py-2.5 text-center text-sm font-bold`}
+                        className={`service-typo-button ${radius} ${tokenTextClass(
+                          typography.buttonTextColor,
+                          visuals.primaryButtonText,
+                        )} mt-auto block w-full px-3 py-2.5 text-center text-sm font-bold`}
                         style={{
                           backgroundColor: theme.primaryColor,
                           fontFamily: typography.buttonFontFamily,
@@ -574,13 +637,25 @@ export function ServiceTemplatePublicView({
                 {content.hero.eyebrow || config.copy.heroBadgeText}
               </p>
               <h1
-                className={`mt-4 max-w-4xl text-[clamp(1.75rem,5vw,4.25rem)] font-black leading-tight tracking-tight ${heroTextClass}`}
+                className={`service-typo-heading mt-4 max-w-4xl text-[clamp(1.75rem,5vw,4.25rem)] font-black leading-tight tracking-tight ${heroTextClass}`}
                 data-testid={`${testIdPrefix}-hero-title`}
+                data-service-hero-heading="true"
+                style={{
+                  fontFamily: typography.headingFontFamily,
+                  fontWeight: typography.headingWeight,
+                  ...(typography.heroHeadingColor
+                    ? { color: typography.heroHeadingColor }
+                    : {}),
+                }}
               >
                 {content.hero.headline}{" "}
                 <span
                   className="service-typo-accent"
-                  style={{ color: theme.primaryColor }}
+                  data-service-accent-text="true"
+                  data-testid={`${testIdPrefix}-hero-accent`}
+                  style={{
+                    color: typography.accentTextColor ?? theme.primaryColor,
+                  }}
                 >
                   {content.hero.headlineHighlight}
                 </span>
@@ -588,6 +663,10 @@ export function ServiceTemplatePublicView({
               <p
                 className={`mt-6 max-w-2xl text-base leading-relaxed md:text-xl ${heroMutedClass}`}
                 data-testid={`${testIdPrefix}-hero-subtitle`}
+                data-service-hero-body="true"
+                style={
+                  typography.heroBodyColor ? { color: typography.heroBodyColor } : undefined
+                }
               >
                 {content.hero.subtitle}
               </p>
@@ -599,10 +678,22 @@ export function ServiceTemplatePublicView({
                   <span
                     key={badge.id}
                     className={`${radius} border px-3.5 py-1.5 text-xs font-semibold ${
-                      heroIsLight
-                        ? "border-slate-900/10 bg-white/80 text-slate-700"
-                        : "border-white/15 bg-white/10 text-white"
+                      typography.mutedColor || typography.bodyColor
+                        ? heroIsLight
+                          ? "border-slate-900/10 bg-white/80"
+                          : "border-white/15 bg-white/10"
+                        : heroIsLight
+                          ? "border-slate-900/10 bg-white/80 text-slate-700"
+                          : "border-white/15 bg-white/10 text-white"
                     }`}
+                    style={
+                      typography.mutedColor
+                        ? { color: typography.mutedColor }
+                        : typography.bodyColor
+                          ? { color: typography.bodyColor }
+                          : undefined
+                    }
+                    data-testid={`${testIdPrefix}-trust-badge`}
                   >
                     ✓ {badge.label}
                   </span>
@@ -641,11 +732,33 @@ export function ServiceTemplatePublicView({
                   <div
                     key={stat.id}
                     className={`p-5 ${heroIsLight || isDarkPage ? "bg-black/5" : "bg-white/5"}`}
+                    data-testid={`${testIdPrefix}-hero-stat`}
                   >
-                    <p className="text-2xl font-black md:text-3xl" style={{ color: theme.primaryColor }}>
+                    <p
+                      className="text-2xl font-black md:text-3xl"
+                      data-service-stat-value="true"
+                      data-testid={`${testIdPrefix}-hero-stat-value`}
+                      style={{
+                        color: typography.statValueColor ?? theme.primaryColor,
+                        fontFamily: typography.headingFontFamily,
+                      }}
+                    >
                       {stat.value}
                     </p>
-                    <p className={`mt-1.5 text-xs md:text-sm ${heroMutedClass}`}>{stat.label}</p>
+                    <p
+                      className={`mt-1.5 text-xs md:text-sm ${
+                        typography.statLabelColor ? "" : heroMutedClass
+                      }`}
+                      data-service-stat-label="true"
+                      data-testid={`${testIdPrefix}-hero-stat-label`}
+                      style={
+                        typography.statLabelColor
+                          ? { color: typography.statLabelColor }
+                          : undefined
+                      }
+                    >
+                      {stat.label}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -678,10 +791,14 @@ export function ServiceTemplatePublicView({
               >
                 The process
               </p>
-              <h2 className={`mt-3 text-3xl font-black md:text-4xl ${bodyTextClass}`}>
+              <h2
+                className={`service-typo-heading mt-3 text-3xl font-black md:text-4xl ${sectionHeadingClass}`}
+                style={headingStyle}
+                data-testid={`${testIdPrefix}-how-it-works-title`}
+              >
                 {content.howItWorks.title}
               </h2>
-              <p className={`mt-3 max-w-2xl text-base ${mutedTextClass}`}>
+              <p className={`mt-3 max-w-2xl text-base ${mutedTextClass}`} style={mutedStyle}>
                 {content.howItWorks.subtitle}
               </p>
               <div
@@ -708,8 +825,14 @@ export function ServiceTemplatePublicView({
                         ? String(index + 1).padStart(2, "0")
                         : "✦"}
                     </span>
-                    <h3 className={`mt-5 text-lg font-bold ${cardTitleClass}`}>{step.title}</h3>
-                    <p className={`mt-2.5 text-sm leading-relaxed ${mutedTextClass}`}>
+                    <h3
+                      className={`mt-5 text-lg font-bold ${cardTitleClass}`}
+                      style={cardTextStyle}
+                      data-service-card-text="true"
+                    >
+                      {step.title}
+                    </h3>
+                    <p className={`mt-2.5 text-sm leading-relaxed ${mutedTextClass}`} style={mutedStyle}>
                       {step.description}
                     </p>
                   </div>
@@ -743,10 +866,17 @@ export function ServiceTemplatePublicView({
                 >
                   {content.whyChooseUs.subtitle}
                 </p>
-                <h2 className={`mt-3 text-3xl font-black md:text-5xl ${bodyTextClass}`}>
+                <h2
+                  className={`service-typo-heading mt-3 text-3xl font-black md:text-5xl ${sectionHeadingClass}`}
+                  style={headingStyle}
+                  data-testid={`${testIdPrefix}-why-choose-us-title`}
+                >
                   {content.whyChooseUs.title}
                 </h2>
-                <p className={`mt-5 max-w-xl text-base leading-relaxed md:text-lg ${mutedTextClass}`}>
+                <p
+                  className={`mt-5 max-w-xl text-base leading-relaxed md:text-lg ${mutedTextClass}`}
+                  style={mutedStyle}
+                >
                   {content.whyChooseUs.description}
                 </p>
                 <ul
@@ -829,10 +959,14 @@ export function ServiceTemplatePublicView({
                 >
                   Clear choices
                 </p>
-                <h2 className={`mt-3 text-3xl font-black md:text-4xl ${bodyTextClass}`}>
+                <h2
+                  className={`service-typo-heading mt-3 text-3xl font-black md:text-4xl ${sectionHeadingClass}`}
+                  style={headingStyle}
+                  data-testid={`${testIdPrefix}-pricing-title`}
+                >
                   {content.pricingPackages.title}
                 </h2>
-                <p className={`mt-3 text-base ${mutedTextClass}`}>
+                <p className={`mt-3 text-base ${mutedTextClass}`} style={mutedStyle}>
                   {content.pricingPackages.subtitle}
                 </p>
               </div>
@@ -860,7 +994,15 @@ export function ServiceTemplatePublicView({
                         Most popular
                       </span>
                     ) : null}
-                    <h3 className={`text-xl font-black ${visuals.pricingCardText}`}>{pkg.name}</h3>
+                    <h3
+                      className={`service-typo-card text-xl font-black ${
+                        typography.cardTextColor ? "" : visuals.pricingCardText
+                      }`}
+                      style={cardTextStyle}
+                      data-service-card-text="true"
+                    >
+                      {pkg.name}
+                    </h3>
                     <p className="mt-4 text-4xl font-black" style={{ color: theme.primaryColor }}>
                       {pkg.price}
                       <span className={`ml-1 text-sm font-medium ${visuals.pricingCardMutedText}`}>
@@ -893,10 +1035,16 @@ export function ServiceTemplatePublicView({
             data-testid={`${testIdPrefix}-reviews`}
           >
             <div className={maxClass}>
-              <h2 className={`text-3xl font-black md:text-4xl ${bodyTextClass}`}>
+              <h2
+                className={`service-typo-heading text-3xl font-black md:text-4xl ${sectionHeadingClass}`}
+                style={headingStyle}
+                data-testid={`${testIdPrefix}-reviews-title`}
+              >
                 {content.reviews.title}
               </h2>
-              <p className={`mt-3 text-base ${mutedTextClass}`}>{content.reviews.subtitle}</p>
+              <p className={`mt-3 text-base ${mutedTextClass}`} style={mutedStyle}>
+                {content.reviews.subtitle}
+              </p>
               {content.reviews.showRating && averageRating ? (
                 <p className={`mt-5 text-lg font-bold ${bodyTextClass}`}>
                   ★ {averageRating.toFixed(1)}{" "}
@@ -967,10 +1115,16 @@ export function ServiceTemplatePublicView({
             data-testid={`${testIdPrefix}-faq`}
           >
             <div className={`${maxClass} max-w-3xl`}>
-              <h2 className={`text-3xl font-black md:text-4xl ${bodyTextClass}`}>
+              <h2
+                className={`service-typo-heading text-3xl font-black md:text-4xl ${sectionHeadingClass}`}
+                style={headingStyle}
+                data-testid={`${testIdPrefix}-faq-title`}
+              >
                 {content.faq.title}
               </h2>
-              <p className={`mt-3 text-base ${mutedTextClass}`}>{content.faq.subtitle}</p>
+              <p className={`mt-3 text-base ${mutedTextClass}`} style={mutedStyle}>
+                {content.faq.subtitle}
+              </p>
               <div
                 className={`mt-8 divide-y ${isDarkPage ? "divide-slate-700" : "divide-slate-200"} ${visuals.cardClass} ${radius} px-5 md:px-6`}
               >
@@ -1224,12 +1378,16 @@ export function ServiceTemplatePublicView({
       data-heading-font={typography.presets.headingFontPreset}
       data-body-font={typography.presets.bodyFontPreset}
       data-button-font={typography.presets.buttonFontPreset}
+      data-has-heading-color={typography.headingColor ? "true" : "false"}
+      data-has-hero-heading-color={typography.heroHeadingColor ? "true" : "false"}
+      data-has-accent-text-color={typography.accentTextColor ? "true" : "false"}
       className={`template-service overflow-hidden ${visuals.pageShellClass}`}
       style={{
         backgroundColor: visuals.pageBg || visuals.backgroundColor,
         fontFamily: typography.bodyFontFamily,
         fontWeight: typography.bodyWeight,
         ...(typography.bodyColor ? { color: typography.bodyColor } : {}),
+        ...(buildServiceTypographyCssVars(typography) as CSSProperties),
       }}
     >
       <style

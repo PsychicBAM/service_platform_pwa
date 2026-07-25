@@ -71,20 +71,37 @@ describe("serviceTemplateConfig", () => {
   it("resolves typography fonts and color overrides", () => {
     const resolved = resolveServiceTypography({
       ...createDefaultServiceTypography(),
-      headingFontPreset: "playfair_display",
+      headingFontPreset: "elegant_serif",
       bodyFontPreset: "custom",
-      buttonFontPreset: "poppins",
+      buttonFontPreset: "mono_tech",
       customFontFamily: "Avenir, Helvetica, sans-serif",
       headingColor: "#112233",
       bodyColor: "bad",
       heroHeadingColor: "#fff",
+      accentTextColor: "#ff5500",
+      mutedColor: "#667788",
     });
-    expect(resolved.headingFontFamily).toContain("Playfair Display");
+    expect(resolved.headingFontFamily).toContain("Georgia");
     expect(resolved.bodyFontFamily).toContain("Avenir");
-    expect(resolved.buttonFontFamily).toContain("Poppins");
+    expect(resolved.buttonFontFamily).toContain("Consolas");
     expect(resolved.headingColor).toBe("#112233");
     expect(resolved.bodyColor).toBeNull();
     expect(resolved.heroHeadingColor).toBe("#ffffff");
+    expect(resolved.statValueColor).toBe("#ff5500");
+    expect(resolved.statLabelColor).toBe("#667788");
+  });
+
+  it("maps legacy font presets to reliable stacks", () => {
+    const resolved = resolveServiceTypography({
+      ...createDefaultServiceTypography(),
+      headingFontPreset: "playfair_display" as never,
+      bodyFontPreset: "poppins" as never,
+      buttonFontPreset: "merriweather" as never,
+    });
+    expect(resolved.presets.headingFontPreset).toBe("editorial_serif");
+    expect(resolved.presets.bodyFontPreset).toBe("modern_sans");
+    expect(resolved.presets.buttonFontPreset).toBe("elegant_serif");
+    expect(resolved.headingFontFamily).toContain("Palatino");
   });
 
   it("orders selected services and falls back to all when empty", () => {
@@ -672,24 +689,33 @@ describe("ServiceTemplateEditor UX", () => {
     expect(screen.getByTestId("service-editor-button-font")).toBeInTheDocument();
     expect(screen.queryByTestId("service-editor-custom-font")).not.toBeInTheDocument();
 
-    await user.selectOptions(screen.getByTestId("service-editor-heading-font"), "merriweather");
+    await user.selectOptions(screen.getByTestId("service-editor-heading-font"), "elegant_serif");
     await waitFor(() => {
       expect(screen.getByTestId("mini-site-preview-layout")).toHaveAttribute(
         "data-heading-font",
-        "merriweather",
+        "elegant_serif",
       );
+      expect(
+        screen.getByTestId("mini-site-preview-hero-title").style.fontFamily,
+      ).toMatch(/Georgia/i);
     });
 
-    await user.selectOptions(screen.getByTestId("service-editor-body-font"), "lato");
+    await user.selectOptions(screen.getByTestId("service-editor-body-font"), "mono_tech");
     await waitFor(() => {
       expect(screen.getByTestId("mini-site-preview-layout")).toHaveAttribute(
         "data-body-font",
-        "lato",
+        "mono_tech",
+      );
+      expect(screen.getByTestId("mini-site-preview-layout").style.fontFamily).toMatch(
+        /Consolas|monospace/i,
       );
     });
 
     await user.selectOptions(screen.getByTestId("service-editor-button-font"), "custom");
     expect(await screen.findByTestId("service-editor-custom-font")).toBeInTheDocument();
+    expect(screen.getByTestId("service-editor-heading-font-sample")).toHaveTextContent(
+      "Professional services",
+    );
     await user.clear(screen.getByTestId("service-editor-custom-font"));
     await user.type(screen.getByTestId("service-editor-custom-font"), "Avenir, Helvetica, sans-serif");
     await waitFor(() => {
@@ -697,7 +723,6 @@ describe("ServiceTemplateEditor UX", () => {
         "data-button-font",
         "custom",
       );
-      expect(screen.getByTestId("mini-site-preview-layout").style.fontFamily).toMatch(/Lato/i);
     });
 
     fireEvent.change(screen.getByTestId("service-editor-heading-color"), {
@@ -706,8 +731,34 @@ describe("ServiceTemplateEditor UX", () => {
     await waitFor(() => {
       expect(screen.getByTestId("service-editor-heading-color")).toHaveValue("#224466");
       expect(screen.getByTestId("mini-site-preview-typography-style").innerHTML).toContain(
-        "#224466",
+        "--service-heading-color",
       );
+      expect(screen.getByTestId("mini-site-preview-services-title")).toHaveStyle({
+        color: "#224466",
+      });
+    });
+
+    fireEvent.change(screen.getByTestId("service-editor-hero-heading-color"), {
+      target: { value: "#ff0000" },
+    });
+    fireEvent.change(screen.getByTestId("service-editor-accent-text-color"), {
+      target: { value: "#00ff00" },
+    });
+    fireEvent.change(screen.getByTestId("service-editor-muted-color"), {
+      target: { value: "#888888" },
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("mini-site-preview-hero-title")).toHaveStyle({ color: "#ff0000" });
+      expect(screen.getByTestId("mini-site-preview-hero-accent")).toHaveStyle({ color: "#00ff00" });
+      const statValues = screen.getAllByTestId("mini-site-preview-hero-stat-value");
+      expect(statValues.length).toBeGreaterThan(0);
+      for (const value of statValues) {
+        expect(value).toHaveStyle({ color: "#00ff00" });
+      }
+      const statLabels = screen.getAllByTestId("mini-site-preview-hero-stat-label");
+      for (const label of statLabels) {
+        expect(label).toHaveStyle({ color: "#888888" });
+      }
     });
 
     await user.click(screen.getByTestId("service-editor-typography-reset"));
@@ -718,6 +769,10 @@ describe("ServiceTemplateEditor UX", () => {
         "system_sans",
       );
       expect(screen.queryByTestId("service-editor-custom-font")).not.toBeInTheDocument();
+      const resetValues = screen.getAllByTestId("mini-site-preview-hero-stat-value");
+      for (const value of resetValues) {
+        expect(value).not.toHaveStyle({ color: "#00ff00" });
+      }
     });
   });
 
@@ -742,7 +797,7 @@ describe("ServiceTemplateEditor UX", () => {
     );
 
     expect(await screen.findByTestId("service-editor-typography")).toBeInTheDocument();
-    await user.selectOptions(screen.getByTestId("service-editor-heading-font"), "montserrat");
+    await user.selectOptions(screen.getByTestId("service-editor-heading-font"), "display_bold");
     fireEvent.change(screen.getByTestId("service-editor-body-color"), {
       target: { value: "#334455" },
     });
@@ -753,7 +808,7 @@ describe("ServiceTemplateEditor UX", () => {
       expect(saved).not.toBeNull();
     });
     const typography = getServiceTemplateContent(saved!).typography;
-    expect(typography.headingFontPreset).toBe("montserrat");
+    expect(typography.headingFontPreset).toBe("display_bold");
     expect(typography.bodyColor).toBe("#334455");
 
     vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue(saved!);
@@ -767,13 +822,13 @@ describe("ServiceTemplateEditor UX", () => {
       />,
       { route: "/admin/mini-site", path: "/admin/mini-site" },
     );
-    expect(await screen.findByTestId("service-editor-heading-font")).toHaveValue("montserrat");
+    expect(await screen.findByTestId("service-editor-heading-font")).toHaveValue("display_bold");
     expect(screen.getByTestId("service-editor-body-color")).toHaveValue("#334455");
   });
 });
 
 describe("ServiceTemplatePublicView typography", () => {
-  it("applies heading/body/hero color overrides on the public Service page", () => {
+  it("applies heading/body/hero/accent/card/button color overrides on real DOM styles", () => {
     const base = normalizeMiniSiteConfig({
       ...DEFAULT_MINI_SITE_CONFIG,
       theme: { ...DEFAULT_MINI_SITE_CONFIG.theme, template: "service" },
@@ -782,14 +837,15 @@ describe("ServiceTemplatePublicView typography", () => {
       ...getServiceTemplateContent(base),
       typography: {
         ...createDefaultServiceTypography(),
-        headingFontPreset: "playfair_display",
-        bodyFontPreset: "roboto",
-        buttonFontPreset: "poppins",
+        headingFontPreset: "elegant_serif",
+        bodyFontPreset: "mono_tech",
+        buttonFontPreset: "display_bold",
         headingColor: "#111111",
         bodyColor: "#222222",
         mutedColor: "#333333",
         heroHeadingColor: "#abcdef",
         heroBodyColor: "#fedcba",
+        accentTextColor: "#00aa55",
         buttonTextColor: "#010101",
         cardTextColor: "#020202",
       },
@@ -807,17 +863,119 @@ describe("ServiceTemplatePublicView typography", () => {
     );
 
     const layout = screen.getByTestId("service-site-layout");
-    expect(layout).toHaveAttribute("data-heading-font", "playfair_display");
-    expect(layout).toHaveAttribute("data-body-font", "roboto");
-    expect(layout).toHaveAttribute("data-button-font", "poppins");
-    expect(layout.style.fontFamily).toMatch(/Roboto/i);
+    expect(layout).toHaveAttribute("data-heading-font", "elegant_serif");
+    expect(layout).toHaveAttribute("data-body-font", "mono_tech");
+    expect(layout).toHaveAttribute("data-button-font", "display_bold");
+    expect(layout).toHaveAttribute("data-has-hero-heading-color", "true");
+    expect(layout).toHaveAttribute("data-has-accent-text-color", "true");
+    expect(layout.style.fontFamily).toMatch(/Consolas|monospace/i);
+    expect(layout.style.color).toBe("rgb(34, 34, 34)");
+    expect(layout.style.getPropertyValue("--service-hero-heading-color")).toBe("#abcdef");
+    expect(layout.style.getPropertyValue("--service-accent-text-color")).toBe("#00aa55");
+    expect(layout.style.getPropertyValue("--service-stat-value-color")).toBe("#00aa55");
+    expect(layout.style.getPropertyValue("--service-stat-label-color")).toBe("#333333");
+
+    expect(screen.getByTestId("service-site-hero-title")).toHaveStyle({ color: "#abcdef" });
+    expect(screen.getByTestId("service-site-hero-subtitle")).toHaveStyle({ color: "#fedcba" });
+    expect(screen.getByTestId("service-site-hero-accent")).toHaveStyle({ color: "#00aa55" });
+    expect(screen.getByTestId("service-site-services-title")).toHaveStyle({ color: "#111111" });
+    expect(screen.getByTestId("service-site-services-subtitle")).toHaveStyle({ color: "#333333" });
+    expect(screen.getByTestId("service-site-how-it-works-title")).toHaveStyle({ color: "#111111" });
+    expect(screen.getByTestId("service-site-pricing-title")).toHaveStyle({ color: "#111111" });
+    expect(screen.getByTestId("service-site-faq-title")).toHaveStyle({ color: "#111111" });
+
+    const statValues = screen.getAllByTestId("service-site-hero-stat-value");
+    expect(statValues.length).toBeGreaterThanOrEqual(4);
+    for (const value of statValues) {
+      expect(value).toHaveStyle({ color: "#00aa55" });
+    }
+    const statLabels = screen.getAllByTestId("service-site-hero-stat-label");
+    for (const label of statLabels) {
+      expect(label).toHaveStyle({ color: "#333333" });
+    }
+
+    const serviceCardTitle = screen
+      .getByTestId("service-site-services")
+      .querySelector("[data-service-card-text='true']");
+    expect(serviceCardTitle).toHaveStyle({ color: "#020202" });
+
+    const primaryCta = screen.getByTestId("service-site-book-cta");
+    expect(primaryCta).toHaveStyle({ color: "#010101" });
+
     const css = screen.getByTestId("service-site-typography-style").innerHTML;
-    expect(css).toContain("Playfair Display");
-    expect(css).toContain("#111111");
-    expect(css).toContain("#222222");
-    expect(css).toContain("#abcdef");
-    expect(css).toContain("#fedcba");
-    expect(css).toContain("Poppins");
+    expect(css).toContain("--service-heading-color");
+    expect(css).toContain("--service-hero-heading-color");
+    expect(css).toContain("--service-stat-value-color");
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
+  });
+
+  it("uses headingColor for stats values when accentTextColor is empty", () => {
+    const base = normalizeMiniSiteConfig({
+      ...DEFAULT_MINI_SITE_CONFIG,
+      theme: { ...DEFAULT_MINI_SITE_CONFIG.theme, template: "service" },
+    });
+    const config = setServiceTemplateContent(base, {
+      ...getServiceTemplateContent(base),
+      typography: {
+        ...createDefaultServiceTypography(),
+        headingColor: "#445566",
+        accentTextColor: "",
+        mutedColor: "",
+      },
+    });
+
+    renderRoute(
+      <ServiceTemplatePublicView
+        business={mockPublicBusiness}
+        publicSlug="demo-business"
+        config={config}
+        testIdPrefix="service-site"
+      />,
+      { route: "/b/demo-business", path: "/b/:slug" },
+    );
+
+    for (const value of screen.getAllByTestId("service-site-hero-stat-value")) {
+      expect(value).toHaveStyle({ color: "#445566" });
+    }
+  });
+
+  it("falls back to theme tokens when color overrides are empty or invalid", () => {
+    const base = normalizeMiniSiteConfig({
+      ...DEFAULT_MINI_SITE_CONFIG,
+      theme: { ...DEFAULT_MINI_SITE_CONFIG.theme, template: "service" },
+    });
+    const config = setServiceTemplateContent(base, {
+      ...getServiceTemplateContent(base),
+      typography: {
+        ...createDefaultServiceTypography(),
+        headingColor: "",
+        heroHeadingColor: "not-a-color",
+        accentTextColor: "red",
+        bodyColor: "",
+      },
+    });
+
+    renderRoute(
+      <ServiceTemplatePublicView
+        business={mockPublicBusiness}
+        publicSlug="demo-business"
+        services={[mockBookingService]}
+        config={config}
+        testIdPrefix="service-site"
+      />,
+      { route: "/b/demo-business", path: "/b/:slug" },
+    );
+
+    const layout = screen.getByTestId("service-site-layout");
+    expect(layout).toHaveAttribute("data-has-hero-heading-color", "false");
+    expect(layout).toHaveAttribute("data-has-accent-text-color", "false");
+    expect(layout.style.getPropertyValue("--service-hero-heading-color")).toBe("");
+    expect(screen.getByTestId("service-site-hero-title").getAttribute("style") || "").not.toMatch(
+      /color:\s*not-a-color/i,
+    );
+    // Accent falls back to theme primary (inline), not an invalid override
+    expect(screen.getByTestId("service-site-hero-accent")).toHaveStyle({
+      color: config.theme.primaryColor,
+    });
   });
 });

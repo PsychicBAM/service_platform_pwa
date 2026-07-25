@@ -534,9 +534,27 @@ function SettingsEditor({ content, draft, setDraft, businessId, updateService }:
       >
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <p className="text-sm font-semibold text-slate-800">Typography</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-semibold text-slate-800">Typography</p>
+              <button
+                type="button"
+                className="group relative inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 bg-white text-[11px] font-bold text-slate-500 hover:border-emerald-400 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                data-testid="service-editor-typography-font-help"
+                aria-label="Font presets help"
+              >
+                ?
+                <span
+                  role="tooltip"
+                  data-testid="service-editor-typography-font-tooltip"
+                  className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-64 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-3 text-left text-[11px] font-normal leading-relaxed text-slate-600 opacity-0 shadow-lg transition group-hover:opacity-100 group-focus-visible:opacity-100"
+                >
+                  These are safe font stacks. Custom fonts work only if available on the visitor’s
+                  device or loaded by your site.
+                </span>
+              </button>
+            </div>
             <p className="text-xs text-slate-500">
-              Fonts and text colors for this Service mini-site. Empty colors use theme defaults.
+              Safe font stacks and text colors. Empty colors use theme defaults.
             </p>
           </div>
           <button
@@ -568,6 +586,19 @@ function SettingsEditor({ content, draft, setDraft, businessId, updateService }:
                 </option>
               ))}
             </select>
+            <p
+              className="mt-1 truncate text-xs text-slate-500"
+              style={{
+                fontFamily:
+                  typography.headingFontPreset === "custom"
+                    ? typography.customFontFamily || undefined
+                    : SERVICE_FONT_PRESET_OPTIONS.find((o) => o.id === typography.headingFontPreset)
+                        ?.stack || undefined,
+              }}
+              data-testid="service-editor-heading-font-sample"
+            >
+              Professional services
+            </p>
           </Field>
           <Field label="Body font">
             <select
@@ -582,6 +613,19 @@ function SettingsEditor({ content, draft, setDraft, businessId, updateService }:
                 </option>
               ))}
             </select>
+            <p
+              className="mt-1 truncate text-xs text-slate-500"
+              style={{
+                fontFamily:
+                  typography.bodyFontPreset === "custom"
+                    ? typography.customFontFamily || undefined
+                    : SERVICE_FONT_PRESET_OPTIONS.find((o) => o.id === typography.bodyFontPreset)
+                        ?.stack || undefined,
+              }}
+              data-testid="service-editor-body-font-sample"
+            >
+              Professional services
+            </p>
           </Field>
           <Field label="Button font">
             <select
@@ -596,6 +640,19 @@ function SettingsEditor({ content, draft, setDraft, businessId, updateService }:
                 </option>
               ))}
             </select>
+            <p
+              className="mt-1 truncate text-xs text-slate-500"
+              style={{
+                fontFamily:
+                  typography.buttonFontPreset === "custom"
+                    ? typography.customFontFamily || undefined
+                    : SERVICE_FONT_PRESET_OPTIONS.find((o) => o.id === typography.buttonFontPreset)
+                        ?.stack || undefined,
+              }}
+              data-testid="service-editor-button-font-sample"
+            >
+              Professional services
+            </p>
           </Field>
           {showCustomFont ? (
             <Field label="Custom font family">
