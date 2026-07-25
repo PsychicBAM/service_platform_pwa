@@ -92,23 +92,25 @@ function ExpertIntroVideoBlock({
     <button
       type="button"
       onClick={() => setPlaying(true)}
-      className={`mt-8 inline-flex items-center gap-3 rounded-full border px-5 py-3 text-left text-sm font-semibold shadow-sm transition ${
+      className={`mt-8 inline-flex max-w-full items-center gap-3 rounded-full border px-5 py-3.5 text-left text-sm font-semibold shadow-md transition ${
         surfaceMode === "dark"
-          ? "border-white/25 bg-white/10 text-white hover:bg-white/20"
-          : "border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-50"
+          ? "border-white/25 bg-white/12 text-white hover:bg-white/20"
+          : "border-slate-200/90 bg-white text-slate-800 hover:bg-slate-50"
       }`}
       data-testid={testId}
     >
       <span
-        className="flex h-9 w-9 items-center justify-center rounded-full text-white"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white shadow-sm"
         style={{ backgroundColor: primaryColor }}
         aria-hidden="true"
       >
         ▶
       </span>
-      <span>
-        <span className="block text-xs font-bold uppercase tracking-wide opacity-70">Watch intro</span>
-        <span className="block">{media.title || "Play introduction video"}</span>
+      <span className="min-w-0">
+        <span className="block text-[11px] font-bold uppercase tracking-wide opacity-70">
+          Watch intro
+        </span>
+        <span className="block truncate">{media.title || "Play introduction video"}</span>
       </span>
     </button>
   );
@@ -189,23 +191,80 @@ function ProfilePortraitFallback({
     <div
       className={`relative flex items-center justify-center overflow-hidden ${className}`}
       style={{
-        background: `linear-gradient(145deg, ${primaryColor}35 0%, ${accentColor}45 48%, ${primaryColor}1f 100%)`,
+        background: `linear-gradient(155deg, ${primaryColor}42 0%, ${accentColor}38 42%, ${primaryColor}22 100%)`,
       }}
       data-testid={testId}
       aria-hidden="true"
     >
       <div
-        className="pointer-events-none absolute inset-0 opacity-50"
+        className="pointer-events-none absolute inset-0 opacity-60"
         style={{
-          backgroundImage: `radial-gradient(circle at 25% 20%, ${accentColor}55, transparent 45%), radial-gradient(circle at 80% 80%, ${primaryColor}40, transparent 42%)`,
+          backgroundImage: `radial-gradient(circle at 22% 18%, ${accentColor}66, transparent 42%), radial-gradient(circle at 82% 78%, ${primaryColor}50, transparent 44%)`,
         }}
       />
+      <div
+        className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full opacity-30"
+        style={{ backgroundColor: accentColor }}
+      />
       <span
-        className="relative z-[1] flex h-24 w-24 items-center justify-center rounded-full text-3xl font-black text-white shadow-lg sm:h-28 sm:w-28 sm:text-4xl"
+        className="relative z-[1] flex h-24 w-24 items-center justify-center rounded-full text-3xl font-black text-white shadow-xl ring-4 ring-white/25 sm:h-28 sm:w-28 sm:text-4xl"
         style={{ backgroundColor: primaryColor }}
       >
         {initials}
       </span>
+    </div>
+  );
+}
+
+const ARTICLE_TYPE_LABELS: Record<ExpertArticleItem["type"], string> = {
+  article: "Article",
+  publication: "Publication",
+  media: "Media",
+  research: "Research",
+  guide: "Guide",
+};
+
+function brandedCoverFallback({
+  title,
+  primaryColor,
+  accentColor,
+  aspectClass,
+  testId,
+  buttonTextClass,
+}: {
+  title: string;
+  primaryColor: string;
+  accentColor: string;
+  aspectClass: string;
+  testId: string;
+  buttonTextClass: string;
+}) {
+  return (
+    <div
+      className={`relative flex ${aspectClass} w-full items-end overflow-hidden`}
+      style={{
+        background: `linear-gradient(145deg, ${primaryColor}32, ${accentColor}48 55%, ${primaryColor}1a)`,
+      }}
+      aria-hidden="true"
+      data-testid={testId}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-70"
+        style={{
+          backgroundImage: `radial-gradient(circle at 18% 20%, ${accentColor}55, transparent 40%), radial-gradient(circle at 88% 75%, ${primaryColor}40, transparent 45%)`,
+        }}
+      />
+      <div className="relative z-[1] flex w-full items-center gap-3 p-4 sm:p-5">
+        <span
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-black shadow-md ${buttonTextClass}`}
+          style={{ backgroundColor: primaryColor }}
+        >
+          {title.charAt(0)}
+        </span>
+        <span className="line-clamp-2 min-w-0 text-sm font-semibold text-white/95 drop-shadow-sm">
+          {title}
+        </span>
+      </div>
     </div>
   );
 }
@@ -373,6 +432,7 @@ export function ExpertTemplatePublicView({
             rating: review.rating,
             initials: review.customer_name.charAt(0).toUpperCase() || "C",
             avatarUrl: "",
+            date: "",
           }));
 
   const manualCards =
@@ -389,6 +449,7 @@ export function ExpertTemplatePublicView({
             rating: item.rating,
             initials: item.avatarInitials || item.name.charAt(0).toUpperCase() || "C",
             avatarUrl: item.avatarUrl?.trim() || "",
+            date: item.date || "",
           }));
 
   const testimonialCards = [...approvedCards, ...manualCards].slice(
@@ -398,10 +459,20 @@ export function ExpertTemplatePublicView({
 
   const averageRating = reviewSummary?.average_rating ?? business.average_rating ?? null;
   const sectionClass = isPreview
-    ? "px-4 py-9"
-    : "px-5 py-16 sm:px-6 md:px-10 md:py-24 lg:py-28";
+    ? "px-4 py-8"
+    : "px-5 py-14 sm:px-6 md:px-10 md:py-20 lg:py-24";
   const maxClass = isPreview ? "mx-auto max-w-5xl" : "mx-auto max-w-6xl";
-  const cardSurface = `${visuals.cardClass} shadow-sm ring-1 ring-black/[0.04]`;
+  const cardSurface = `${visuals.cardClass} shadow-sm ring-1 ring-black/[0.035]`;
+  const elevatedCard = `${cardSurface} transition duration-300 hover:-translate-y-0.5 hover:shadow-md`;
+  const chipClass = isDarkPage
+    ? "rounded-full border border-white/12 bg-white/[0.06] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide"
+    : "rounded-full border border-black/[0.06] bg-black/[0.03] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide";
+  const emptyStateClass = `mt-8 max-w-md rounded-2xl border border-dashed px-5 py-5 text-left sm:px-6 ${
+    isDarkPage ? "border-slate-600/70 bg-white/[0.03]" : "border-slate-300/90 bg-slate-50/50"
+  }`;
+  const contentLinkClass = `inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-bold transition hover:opacity-90 ${
+    isDarkPage ? "border-white/15 bg-white/5" : "border-black/[0.08] bg-white/80"
+  }`;
 
   const previewLink = (label: string, href: string, className = "") =>
     isPreview ? (
@@ -574,18 +645,18 @@ export function ExpertTemplatePublicView({
                   >
                     {content.hero.subtitle}
                   </p>
-                  <div className="mt-7 flex flex-wrap gap-2.5 sm:mt-8">
+                  <div className="mt-7 flex flex-wrap gap-2 sm:mt-8">
                     {content.hero.trustBadges.map((badge) => (
                       <span
                         key={badge}
-                        className={`${radius} border px-3.5 py-2 text-xs font-semibold shadow-sm backdrop-blur-sm ${
+                        className={`${radius} inline-flex items-center gap-1.5 border px-3.5 py-2 text-xs font-semibold shadow-sm backdrop-blur-md ${
                           typography.mutedColor || typography.bodyColor
                             ? heroIsLight
-                              ? "border-slate-900/10 bg-white/85"
-                              : "border-white/15 bg-white/10"
+                              ? "border-slate-900/10 bg-white/90"
+                              : "border-white/20 bg-white/12"
                             : heroIsLight
-                              ? "border-slate-900/10 bg-white/85 text-slate-700"
-                              : "border-white/15 bg-white/10 text-white"
+                              ? "border-slate-900/10 bg-white/90 text-slate-700"
+                              : "border-white/20 bg-white/12 text-white"
                         }`}
                         style={
                           typography.mutedColor
@@ -596,7 +667,14 @@ export function ExpertTemplatePublicView({
                         }
                         data-testid={`${testIdPrefix}-trust-badge`}
                       >
-                        ✓ {badge}
+                        <span
+                          className="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-black text-white"
+                          style={{ backgroundColor: theme.primaryColor }}
+                          aria-hidden
+                        >
+                          ✓
+                        </span>
+                        {badge}
                       </span>
                     ))}
                   </div>
@@ -627,9 +705,7 @@ export function ExpertTemplatePublicView({
                   ) : null}
                   {content.hero.stats.length ? (
                     <div
-                      className={`mt-10 grid max-w-2xl gap-px overflow-hidden border shadow-lg ${radius} ${visuals.statsClass} ${
-                        heroIsLight || isDarkPage ? "border-black/5" : "border-white/10"
-                      } ${deviceGrid(previewDevice, {
+                      className={`mt-9 grid max-w-2xl gap-3 ${deviceGrid(previewDevice, {
                         mobile: "grid-cols-2",
                         tablet: "grid-cols-4",
                         desktop: "grid-cols-4",
@@ -639,8 +715,8 @@ export function ExpertTemplatePublicView({
                       {content.hero.stats.map((stat) => (
                         <div
                           key={stat.id}
-                          className={`p-4 sm:p-5 ${
-                            heroIsLight || isDarkPage ? "bg-black/[0.03]" : "bg-white/5"
+                          className={`border p-4 shadow-sm backdrop-blur-sm sm:p-5 ${radius} ${visuals.statsClass} ${
+                            heroIsLight || isDarkPage ? "" : "border-white/10 bg-white/8"
                           }`}
                           data-testid={`${testIdPrefix}-hero-stat`}
                         >
@@ -684,7 +760,9 @@ export function ExpertTemplatePublicView({
                   ) : null}
                 </div>
 
-                <div className={`${cardSurface} ${radius} overflow-hidden p-2 shadow-md`}>
+                <div
+                  className={`${cardSurface} ${radius} overflow-hidden p-1.5 shadow-lg ring-1 ring-black/[0.04] sm:p-2`}
+                >
                   {images.profileImage ? (
                     <MiniSiteSectionAccentImage
                       media={images.profileImage}
@@ -742,30 +820,30 @@ export function ExpertTemplatePublicView({
                   {content.about.title}
                 </h2>
                 <p
-                  className={`mt-5 max-w-xl text-base leading-relaxed md:text-lg ${mutedTextClass}`}
+                  className={`mt-5 max-w-xl text-base leading-[1.75] md:text-lg ${mutedTextClass}`}
                   style={mutedStyle}
                   data-testid={`${testIdPrefix}-about-bio`}
                 >
                   {content.about.bio}
                 </p>
-                <ul className="mt-8 space-y-3">
+                <ul className="mt-8 flex flex-wrap gap-2.5">
                   {content.about.credentials.map((credential) => (
                     <li
                       key={credential.id}
-                      className={`flex gap-3 rounded-2xl border p-4 text-sm font-medium leading-snug shadow-sm ${
+                      className={`inline-flex max-w-full items-start gap-2.5 rounded-2xl border px-3.5 py-2.5 text-sm font-medium leading-snug shadow-sm ${
                         isDarkPage
-                          ? "border-white/10 bg-white/5 text-slate-200"
-                          : "border-slate-200/80 bg-white/80 text-slate-700"
+                          ? "border-white/10 bg-white/[0.06] text-slate-200"
+                          : "border-slate-200/90 bg-white/90 text-slate-700"
                       }`}
                       data-testid={`${testIdPrefix}-credential`}
                     >
                       <span
-                        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${visuals.primaryButtonText}`}
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] ${visuals.primaryButtonText}`}
                         style={{ backgroundColor: theme.primaryColor }}
                       >
                         ✓
                       </span>
-                      {credential.text}
+                      <span className="min-w-0 break-words">{credential.text}</span>
                     </li>
                   ))}
                 </ul>
@@ -775,7 +853,9 @@ export function ExpertTemplatePublicView({
                   </div>
                 ) : null}
               </div>
-              <div className={`${cardSurface} ${radius} overflow-hidden p-2 shadow-md`}>
+              <div
+                className={`${cardSurface} ${radius} overflow-hidden p-1.5 shadow-lg ring-1 ring-black/[0.04] sm:p-2`}
+              >
                 {images.profileImage ? (
                   <MiniSiteSectionAccentImage
                     media={images.profileImage}
@@ -877,7 +957,7 @@ export function ExpertTemplatePublicView({
                     return (
                       <article
                         key={service.id}
-                        className={`group flex h-full min-h-[280px] min-w-0 flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-md ${cardSurface} ${radius}`}
+                        className={`group flex h-full min-h-[280px] min-w-0 flex-col overflow-hidden ${elevatedCard} ${radius}`}
                         data-testid={`${testIdPrefix}-service-card`}
                       >
                         {content.services.showImage ? (
@@ -1005,17 +1085,17 @@ export function ExpertTemplatePublicView({
                 </div>
               ) : (
                 <div
-                  className={`mt-10 rounded-2xl border border-dashed px-6 py-12 text-center ${
+                  className={`mt-8 rounded-2xl border border-dashed px-5 py-8 text-left sm:px-6 ${
                     isDarkPage
-                      ? "border-slate-600 bg-slate-900/40"
-                      : "border-slate-300 bg-slate-50/80"
+                      ? "border-slate-600/70 bg-slate-900/30"
+                      : "border-slate-300/90 bg-slate-50/50"
                   }`}
                   data-testid={`${testIdPrefix}-services-empty`}
                 >
-                  <p className={`text-base font-semibold ${bodyTextClass}`}>
+                  <p className={`text-sm font-semibold ${bodyTextClass}`}>
                     No services listed yet
                   </p>
-                  <p className={`mx-auto mt-2 max-w-md text-sm ${mutedTextClass}`}>
+                  <p className={`mt-1.5 max-w-md text-sm leading-relaxed ${mutedTextClass}`}>
                     Active services from Admin → Services will appear here automatically.
                   </p>
                 </div>
@@ -1045,7 +1125,7 @@ export function ExpertTemplatePublicView({
               >
                 {content.expertise.title}
               </h2>
-              <p className={`mt-3 max-w-2xl text-base ${mutedTextClass}`} style={mutedStyle}>
+              <p className={`mt-3 max-w-2xl text-base leading-relaxed ${mutedTextClass}`} style={mutedStyle}>
                 {content.expertise.subtitle}
               </p>
               <div
@@ -1059,11 +1139,11 @@ export function ExpertTemplatePublicView({
                 {visibleExpertise.map((item) => (
                   <div
                     key={item.id}
-                    className={`min-w-0 ${cardSurface} ${radius} p-5 sm:p-6`}
+                    className={`min-w-0 ${elevatedCard} ${radius} p-5 sm:p-6`}
                     data-testid={`${testIdPrefix}-expertise-card`}
                   >
                     <span
-                      className="inline-flex rounded-full px-3 py-1 text-xs font-bold"
+                      className="inline-flex rounded-full px-3 py-1.5 text-xs font-bold tracking-wide"
                       style={{
                         backgroundColor: `${theme.primaryColor}18`,
                         color: theme.primaryColor,
@@ -1121,11 +1201,11 @@ export function ExpertTemplatePublicView({
                 {content.process.steps.map((step, index) => (
                   <div
                     key={step.id}
-                    className={`relative min-w-0 ${cardSurface} ${radius} p-5 sm:p-6`}
+                    className={`relative min-w-0 ${elevatedCard} ${radius} p-5 sm:p-6`}
                     data-testid={`${testIdPrefix}-process-step`}
                   >
                     <span
-                      className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-black shadow-sm"
+                      className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-black shadow-sm tabular-nums"
                       style={{
                         backgroundColor: `${theme.primaryColor}22`,
                         color: theme.primaryColor,
@@ -1136,14 +1216,14 @@ export function ExpertTemplatePublicView({
                         : "✦"}
                     </span>
                     <h3
-                      className={`mt-5 text-lg font-bold leading-snug ${cardTitleClass}`}
+                      className={`mt-5 text-lg font-bold leading-snug break-words ${cardTitleClass}`}
                       style={cardTextStyle}
                       data-service-card-text="true"
                     >
                       {step.title}
                     </h3>
                     <p
-                      className={`mt-2.5 text-sm leading-relaxed ${mutedTextClass}`}
+                      className={`mt-2.5 text-sm leading-relaxed break-words ${mutedTextClass}`}
                       style={mutedStyle}
                     >
                       {step.description}
@@ -1190,11 +1270,11 @@ export function ExpertTemplatePublicView({
                 {content.results.items.map((item) => (
                   <div
                     key={item.id}
-                    className={`${cardSurface} ${radius} p-6 text-center sm:p-8`}
+                    className={`${elevatedCard} ${radius} p-6 text-center sm:p-7`}
                     data-testid={`${testIdPrefix}-result-card`}
                   >
                     <p
-                      className="text-3xl font-black tracking-tight md:text-4xl"
+                      className="text-2xl font-black tracking-tight sm:text-3xl md:text-[2rem]"
                       data-service-stat-value="true"
                       style={{
                         color: typography.statValueColor ?? theme.primaryColor,
@@ -1244,105 +1324,124 @@ export function ExpertTemplatePublicView({
 
               {visibleArticles.length ? (
                 <div className="mt-10 space-y-6">
-                  {featuredArticles.map((article) => (
-                    <article
-                      key={article.id}
-                      className={`overflow-hidden ${cardSurface} ${radius}`}
-                      data-testid={`${testIdPrefix}-article-card`}
-                      data-featured="true"
-                    >
-                      {article.coverImageUrl ? (
-                        <img
-                          src={article.coverImageUrl}
-                          alt=""
-                          className="aspect-[21/9] w-full object-cover"
-                          data-testid={`${testIdPrefix}-article-cover`}
-                        />
-                      ) : (
-                        <div
-                          className="flex aspect-[21/9] w-full items-center justify-center"
-                          style={{
-                            background: `linear-gradient(145deg, ${theme.primaryColor}28, ${theme.accentColor}40)`,
-                          }}
-                          aria-hidden="true"
-                          data-testid={`${testIdPrefix}-article-cover-fallback`}
-                        >
-                          <span
-                            className={`flex h-12 w-12 items-center justify-center rounded-xl text-base font-black shadow-sm ${visuals.primaryButtonText}`}
-                            style={{ backgroundColor: theme.primaryColor }}
-                          >
-                            {article.title.charAt(0)}
-                          </span>
-                        </div>
-                      )}
-                      <div className="p-6 sm:p-8">
-                      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-                        {article.category ? (
-                          <span style={{ color: theme.primaryColor }}>{article.category}</span>
-                        ) : null}
-                        {article.date ? (
-                          <span className={mutedTextClass} style={mutedStyle}>
-                            {article.date}
-                          </span>
-                        ) : null}
-                        {article.readingTime ? (
-                          <span className={mutedTextClass} style={mutedStyle}>
-                            {article.readingTime}
-                          </span>
-                        ) : null}
-                      </div>
-                      <h3
-                        className={`mt-3 text-2xl font-black leading-snug ${cardTitleClass}`}
-                        style={cardTextStyle}
-                        data-service-card-text="true"
+                  {featuredArticles.map((article) => {
+                    const previewText =
+                      article.excerpt?.trim() ||
+                      (article.body ? article.body.trim().slice(0, 180) : "");
+                    return (
+                      <article
+                        key={article.id}
+                        className={`overflow-hidden ${elevatedCard} ${radius}`}
+                        data-testid={`${testIdPrefix}-article-card`}
+                        data-featured="true"
                       >
-                        {article.title}
-                      </h3>
-                      {article.excerpt ? (
-                        <p
-                          className={`mt-3 max-w-3xl text-base leading-relaxed ${mutedTextClass}`}
-                          style={mutedStyle}
+                        <div
+                          className={`grid items-stretch ${deviceGrid(previewDevice, {
+                            mobile: "grid-cols-1",
+                            tablet: "grid-cols-[1.05fr_1fr]",
+                            desktop: "grid-cols-[1.1fr_1fr]",
+                            responsive: "grid-cols-1 md:grid-cols-[1.1fr_1fr]",
+                          })}`}
                         >
-                          {article.excerpt}
-                        </p>
-                      ) : null}
-                      <div className="mt-5">
-                        {article.externalUrl.trim() ? (
-                          isPreview ? (
-                            <button
-                              type="button"
-                              disabled
-                              className="text-sm font-bold"
-                              style={{ color: theme.primaryColor }}
+                          <div className="min-h-0 min-w-0">
+                            {article.coverImageUrl ? (
+                              <img
+                                src={article.coverImageUrl}
+                                alt=""
+                                className="h-full min-h-[180px] w-full object-cover md:min-h-[240px]"
+                                data-testid={`${testIdPrefix}-article-cover`}
+                              />
+                            ) : (
+                              brandedCoverFallback({
+                                title: article.title,
+                                primaryColor: theme.primaryColor,
+                                accentColor: theme.accentColor,
+                                aspectClass: "min-h-[180px] md:min-h-full md:aspect-auto aspect-[21/9]",
+                                testId: `${testIdPrefix}-article-cover-fallback`,
+                                buttonTextClass: visuals.primaryButtonText,
+                              })
+                            )}
+                          </div>
+                          <div className="flex flex-col p-6 sm:p-8">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span
+                                className={chipClass}
+                                style={{ color: theme.primaryColor }}
+                              >
+                                {ARTICLE_TYPE_LABELS[article.type]}
+                              </span>
+                              {article.category ? (
+                                <span className={chipClass} style={mutedStyle}>
+                                  {article.category}
+                                </span>
+                              ) : null}
+                              {article.date ? (
+                                <span className={`text-xs font-medium ${mutedTextClass}`} style={mutedStyle}>
+                                  {article.date}
+                                </span>
+                              ) : null}
+                              {article.readingTime ? (
+                                <span className={`text-xs font-medium ${mutedTextClass}`} style={mutedStyle}>
+                                  {article.readingTime}
+                                </span>
+                              ) : null}
+                            </div>
+                            <h3
+                              className={`mt-4 text-2xl font-black leading-snug ${cardTitleClass}`}
+                              style={cardTextStyle}
+                              data-service-card-text="true"
                             >
-                              Read more →
-                            </button>
-                          ) : (
-                            <a
-                              href={article.externalUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm font-bold hover:opacity-80"
-                              style={{ color: theme.primaryColor }}
-                            >
-                              Read more →
-                            </a>
-                          )
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={isPreview}
-                            onClick={() => openArticle(article)}
-                            className="text-sm font-bold disabled:opacity-60"
-                            style={{ color: theme.primaryColor }}
-                          >
-                            Read more →
-                          </button>
-                        )}
-                      </div>
-                      </div>
-                    </article>
-                  ))}
+                              {article.title}
+                            </h3>
+                            {previewText ? (
+                              <p
+                                className={`mt-3 line-clamp-4 flex-1 text-base leading-relaxed ${mutedTextClass}`}
+                                style={mutedStyle}
+                              >
+                                {previewText}
+                              </p>
+                            ) : (
+                              <div className="flex-1" />
+                            )}
+                            <div className="mt-6">
+                              {article.externalUrl.trim() ? (
+                                isPreview ? (
+                                  <button
+                                    type="button"
+                                    disabled
+                                    className={contentLinkClass}
+                                    style={{ color: theme.primaryColor }}
+                                  >
+                                    Read more →
+                                  </button>
+                                ) : (
+                                  <a
+                                    href={article.externalUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={contentLinkClass}
+                                    style={{ color: theme.primaryColor }}
+                                  >
+                                    Read more →
+                                  </a>
+                                )
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={isPreview}
+                                  onClick={() => openArticle(article)}
+                                  className={`${contentLinkClass} disabled:opacity-60`}
+                                  style={{ color: theme.primaryColor }}
+                                >
+                                  Read more →
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
 
                   {regularArticles.length ? (
                     <div
@@ -1353,113 +1452,117 @@ export function ExpertTemplatePublicView({
                         responsive: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
                       })}`}
                     >
-                      {regularArticles.map((article) => (
-                        <article
-                          key={article.id}
-                          className={`flex h-full min-w-0 flex-col overflow-hidden ${cardSurface} ${radius}`}
-                          data-testid={`${testIdPrefix}-article-card`}
-                        >
-                          {article.coverImageUrl ? (
-                            <img
-                              src={article.coverImageUrl}
-                              alt=""
-                              className="aspect-[16/10] w-full object-cover"
-                              data-testid={`${testIdPrefix}-article-cover`}
-                            />
-                          ) : (
-                            <div
-                              className="flex aspect-[16/10] w-full items-center justify-center"
-                              style={{
-                                background: `linear-gradient(145deg, ${theme.primaryColor}28, ${theme.accentColor}40)`,
-                              }}
-                              aria-hidden="true"
-                              data-testid={`${testIdPrefix}-article-cover-fallback`}
-                            >
-                              <span
-                                className={`flex h-11 w-11 items-center justify-center rounded-xl text-sm font-black shadow-sm ${visuals.primaryButtonText}`}
-                                style={{ backgroundColor: theme.primaryColor }}
-                              >
-                                {article.title.charAt(0)}
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex flex-1 flex-col p-5 sm:p-6">
-                          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-                            {article.category ? (
-                              <span style={{ color: theme.primaryColor }}>{article.category}</span>
-                            ) : null}
-                            {article.date ? (
-                              <span className={mutedTextClass} style={mutedStyle}>
-                                {article.date}
-                              </span>
-                            ) : null}
-                          </div>
-                          <h3
-                            className={`mt-3 text-lg font-bold leading-snug ${cardTitleClass}`}
-                            style={cardTextStyle}
-                            data-service-card-text="true"
+                      {regularArticles.map((article) => {
+                        const previewText =
+                          article.excerpt?.trim() ||
+                          (article.body ? article.body.trim().slice(0, 120) : "");
+                        return (
+                          <article
+                            key={article.id}
+                            className={`flex h-full min-w-0 flex-col overflow-hidden ${elevatedCard} ${radius}`}
+                            data-testid={`${testIdPrefix}-article-card`}
                           >
-                            {article.title}
-                          </h3>
-                          {article.excerpt ? (
-                            <p
-                              className={`mt-3 line-clamp-3 flex-1 text-sm leading-relaxed ${mutedTextClass}`}
-                              style={mutedStyle}
-                            >
-                              {article.excerpt}
-                            </p>
-                          ) : (
-                            <div className="flex-1" />
-                          )}
-                          <div className="mt-5">
-                            {article.externalUrl.trim() ? (
-                              isPreview ? (
-                                <button
-                                  type="button"
-                                  disabled
-                                  className="text-sm font-bold"
-                                  style={{ color: theme.primaryColor }}
-                                >
-                                  Read more →
-                                </button>
-                              ) : (
-                                <a
-                                  href={article.externalUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sm font-bold hover:opacity-80"
-                                  style={{ color: theme.primaryColor }}
-                                >
-                                  Read more →
-                                </a>
-                              )
+                            {article.coverImageUrl ? (
+                              <img
+                                src={article.coverImageUrl}
+                                alt=""
+                                className="aspect-[16/10] w-full object-cover"
+                                data-testid={`${testIdPrefix}-article-cover`}
+                              />
                             ) : (
-                              <button
-                                type="button"
-                                disabled={isPreview}
-                                onClick={() => openArticle(article)}
-                                className="text-sm font-bold disabled:opacity-60"
-                                style={{ color: theme.primaryColor }}
-                              >
-                                Read more →
-                              </button>
+                              brandedCoverFallback({
+                                title: article.title,
+                                primaryColor: theme.primaryColor,
+                                accentColor: theme.accentColor,
+                                aspectClass: "aspect-[16/10]",
+                                testId: `${testIdPrefix}-article-cover-fallback`,
+                                buttonTextClass: visuals.primaryButtonText,
+                              })
                             )}
-                          </div>
-                          </div>
-                        </article>
-                      ))}
+                            <div className="flex flex-1 flex-col p-5 sm:p-6">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span
+                                  className={chipClass}
+                                  style={{ color: theme.primaryColor }}
+                                >
+                                  {ARTICLE_TYPE_LABELS[article.type]}
+                                </span>
+                                {article.category ? (
+                                  <span className={`text-xs font-semibold ${mutedTextClass}`} style={mutedStyle}>
+                                    {article.category}
+                                  </span>
+                                ) : null}
+                                {article.date ? (
+                                  <span className={`text-xs ${mutedTextClass}`} style={mutedStyle}>
+                                    {article.date}
+                                  </span>
+                                ) : null}
+                                {article.readingTime ? (
+                                  <span className={`text-xs ${mutedTextClass}`} style={mutedStyle}>
+                                    {article.readingTime}
+                                  </span>
+                                ) : null}
+                              </div>
+                              <h3
+                                className={`mt-3 text-lg font-bold leading-snug ${cardTitleClass}`}
+                                style={cardTextStyle}
+                                data-service-card-text="true"
+                              >
+                                {article.title}
+                              </h3>
+                              {previewText ? (
+                                <p
+                                  className={`mt-3 line-clamp-3 flex-1 text-sm leading-relaxed ${mutedTextClass}`}
+                                  style={mutedStyle}
+                                >
+                                  {previewText}
+                                </p>
+                              ) : (
+                                <div className="flex-1" />
+                              )}
+                              <div className="mt-5">
+                                {article.externalUrl.trim() ? (
+                                  isPreview ? (
+                                    <button
+                                      type="button"
+                                      disabled
+                                      className={contentLinkClass}
+                                      style={{ color: theme.primaryColor }}
+                                    >
+                                      Read more →
+                                    </button>
+                                  ) : (
+                                    <a
+                                      href={article.externalUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={contentLinkClass}
+                                      style={{ color: theme.primaryColor }}
+                                    >
+                                      Read more →
+                                    </a>
+                                  )
+                                ) : (
+                                  <button
+                                    type="button"
+                                    disabled={isPreview}
+                                    onClick={() => openArticle(article)}
+                                    className={`${contentLinkClass} disabled:opacity-60`}
+                                    style={{ color: theme.primaryColor }}
+                                  >
+                                    Read more →
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
                   ) : null}
                 </div>
               ) : (
-                <div
-                  className={`mt-8 max-w-xl rounded-2xl border border-dashed px-5 py-6 text-left sm:px-6 ${
-                    isDarkPage
-                      ? "border-slate-600/80 bg-white/[0.03]"
-                      : "border-slate-300 bg-slate-50/60"
-                  }`}
-                  data-testid={`${testIdPrefix}-articles-empty`}
-                >
+                <div className={emptyStateClass} data-testid={`${testIdPrefix}-articles-empty`}>
                   <p className={`text-sm leading-relaxed ${mutedTextClass}`}>
                     Articles and publications will appear here soon.
                   </p>
@@ -1506,7 +1609,7 @@ export function ExpertTemplatePublicView({
                   {visibleWorks.map((work) => (
                     <article
                       key={work.id}
-                      className={`flex h-full min-w-0 flex-col overflow-hidden ${cardSurface} ${radius}`}
+                      className={`flex h-full min-w-0 flex-col overflow-hidden ${elevatedCard} ${radius}`}
                       data-testid={`${testIdPrefix}-work-card`}
                     >
                       {work.coverImageUrl ? (
@@ -1517,30 +1620,30 @@ export function ExpertTemplatePublicView({
                           data-testid={`${testIdPrefix}-work-cover`}
                         />
                       ) : (
-                        <div
-                          className="flex aspect-[16/10] w-full items-center justify-center"
-                          style={{
-                            background: `linear-gradient(145deg, ${theme.primaryColor}28, ${theme.accentColor}40)`,
-                          }}
-                          aria-hidden="true"
-                          data-testid={`${testIdPrefix}-work-cover-fallback`}
-                        >
-                          <span
-                            className={`flex h-11 w-11 items-center justify-center rounded-xl text-sm font-black shadow-sm ${visuals.primaryButtonText}`}
-                            style={{ backgroundColor: theme.primaryColor }}
-                          >
-                            {work.title.charAt(0)}
-                          </span>
-                        </div>
+                        brandedCoverFallback({
+                          title: work.title,
+                          primaryColor: theme.primaryColor,
+                          accentColor: theme.accentColor,
+                          aspectClass: "aspect-[16/10]",
+                          testId: `${testIdPrefix}-work-cover-fallback`,
+                          buttonTextClass: visuals.primaryButtonText,
+                        })
                       )}
                       <div className="flex flex-1 flex-col p-5 sm:p-6">
-                        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide">
+                        <div className="flex flex-wrap items-center gap-2">
                           {work.category ? (
-                            <span style={{ color: theme.primaryColor }}>{work.category}</span>
+                            <span className={chipClass} style={{ color: theme.primaryColor }}>
+                              {work.category}
+                            </span>
                           ) : null}
                           {work.year ? (
-                            <span className={mutedTextClass} style={mutedStyle}>
+                            <span className={`text-xs font-medium ${mutedTextClass}`} style={mutedStyle}>
                               {work.year}
+                            </span>
+                          ) : null}
+                          {work.clientName ? (
+                            <span className={`text-xs font-medium ${mutedTextClass}`} style={mutedStyle}>
+                              {work.clientName}
                             </span>
                           ) : null}
                         </div>
@@ -1551,23 +1654,33 @@ export function ExpertTemplatePublicView({
                         >
                           {work.title}
                         </h3>
-                        {work.result ? (
+                        {work.shortDescription ? (
                           <p
-                            className={`mt-3 line-clamp-3 flex-1 text-sm leading-relaxed ${mutedTextClass}`}
-                            style={mutedStyle}
-                          >
-                            {work.result}
-                          </p>
-                        ) : work.shortDescription ? (
-                          <p
-                            className={`mt-3 line-clamp-3 flex-1 text-sm leading-relaxed ${mutedTextClass}`}
+                            className={`mt-3 line-clamp-2 text-sm leading-relaxed ${mutedTextClass}`}
                             style={mutedStyle}
                           >
                             {work.shortDescription}
                           </p>
+                        ) : null}
+                        {work.challenge || work.result ? (
+                          <div className={`mt-3 space-y-1.5 text-xs leading-relaxed ${mutedTextClass}`} style={mutedStyle}>
+                            {work.challenge ? (
+                              <p className="line-clamp-2">
+                                <span className="font-semibold opacity-80">Challenge · </span>
+                                {work.challenge}
+                              </p>
+                            ) : null}
+                            {work.result ? (
+                              <p className="line-clamp-2">
+                                <span className="font-semibold opacity-80">Result · </span>
+                                {work.result}
+                              </p>
+                            ) : null}
+                          </div>
                         ) : (
                           <div className="flex-1" />
                         )}
+                        <div className="flex-1" />
                         {work.metrics.length ? (
                           <div className="mt-4 flex flex-wrap gap-2">
                             {work.metrics.map((metric) => (
@@ -1578,6 +1691,7 @@ export function ExpertTemplatePublicView({
                                     ? "border-white/15 bg-white/5"
                                     : "border-slate-200 bg-slate-50"
                                 }`}
+                                style={{ color: theme.primaryColor }}
                               >
                                 {metric}
                               </span>
@@ -1590,7 +1704,7 @@ export function ExpertTemplatePublicView({
                               <button
                                 type="button"
                                 disabled
-                                className="text-sm font-bold"
+                                className={contentLinkClass}
                                 style={{ color: theme.primaryColor }}
                               >
                                 View case →
@@ -1600,7 +1714,7 @@ export function ExpertTemplatePublicView({
                                 href={work.linkUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm font-bold hover:opacity-80"
+                                className={contentLinkClass}
                                 style={{ color: theme.primaryColor }}
                               >
                                 View case →
@@ -1611,7 +1725,7 @@ export function ExpertTemplatePublicView({
                               type="button"
                               disabled={isPreview}
                               onClick={() => openWork(work)}
-                              className="text-sm font-bold disabled:opacity-60"
+                              className={`${contentLinkClass} disabled:opacity-60`}
                               style={{ color: theme.primaryColor }}
                             >
                               View case →
@@ -1623,14 +1737,7 @@ export function ExpertTemplatePublicView({
                   ))}
                 </div>
               ) : (
-                <div
-                  className={`mt-8 max-w-xl rounded-2xl border border-dashed px-5 py-6 text-left sm:px-6 ${
-                    isDarkPage
-                      ? "border-slate-600/80 bg-white/[0.03]"
-                      : "border-slate-300 bg-slate-50/60"
-                  }`}
-                  data-testid={`${testIdPrefix}-works-empty`}
-                >
+                <div className={emptyStateClass} data-testid={`${testIdPrefix}-works-empty`}>
                   <p className={`text-sm leading-relaxed ${mutedTextClass}`}>
                     Works and case studies will appear here soon.
                   </p>
@@ -1679,37 +1786,49 @@ export function ExpertTemplatePublicView({
                   {testimonialCards.map((review) => (
                     <figure
                       key={`${review.kind}-${review.id}`}
-                      className={`flex h-full min-w-0 flex-col ${cardSurface} ${radius} p-5 sm:p-6`}
+                      className={`relative flex h-full min-w-0 flex-col ${elevatedCard} ${radius} p-5 sm:p-6`}
                       data-testid={
                         review.kind === "manual"
                           ? `${testIdPrefix}-testimonial-card`
                           : `${testIdPrefix}-review-card`
                       }
                     >
+                      <span
+                        className="pointer-events-none absolute right-4 top-3 text-4xl font-black leading-none opacity-[0.12]"
+                        style={{ color: theme.primaryColor }}
+                        aria-hidden
+                      >
+                        “
+                      </span>
                       <div className="flex items-center gap-3">
                         {review.avatarUrl ? (
                           <img
                             src={review.avatarUrl}
                             alt=""
-                            className="h-11 w-11 rounded-full object-cover shadow-sm"
+                            className="h-12 w-12 rounded-full object-cover shadow-sm ring-2 ring-black/[0.04]"
                             data-testid={`${testIdPrefix}-testimonial-avatar`}
                           />
                         ) : (
                           <span
-                            className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold shadow-sm ${visuals.primaryButtonText}`}
+                            className={`flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold shadow-sm ${visuals.primaryButtonText}`}
                             style={{ backgroundColor: theme.primaryColor }}
                             data-testid={`${testIdPrefix}-testimonial-initials`}
                           >
                             {review.initials}
                           </span>
                         )}
-                        <div>
-                          <figcaption className={`font-bold ${bodyTextClass}`}>
+                        <div className="min-w-0">
+                          <figcaption className={`truncate font-bold ${bodyTextClass}`}>
                             {review.name}
                           </figcaption>
                           {review.role ? (
-                            <p className={`text-xs ${mutedTextClass}`} style={mutedStyle}>
+                            <p className={`truncate text-xs ${mutedTextClass}`} style={mutedStyle}>
                               {review.role}
+                            </p>
+                          ) : null}
+                          {review.date ? (
+                            <p className={`mt-0.5 text-[11px] ${mutedTextClass}`} style={mutedStyle}>
+                              {review.date}
                             </p>
                           ) : null}
                         </div>
@@ -1727,23 +1846,17 @@ export function ExpertTemplatePublicView({
                         </p>
                       ) : null}
                       <blockquote
-                        className={`mt-3 flex-1 text-sm leading-relaxed ${mutedTextClass}`}
-                        style={mutedStyle}
+                        className={`mt-3 flex-1 text-sm leading-relaxed ${bodyTextClass}`}
                       >
-                        “{review.quote}”
+                        <span className={mutedTextClass} style={mutedStyle}>
+                          “{review.quote}”
+                        </span>
                       </blockquote>
                     </figure>
                   ))}
                 </div>
               ) : (
-                <div
-                  className={`mt-8 max-w-xl rounded-2xl border border-dashed px-5 py-6 text-left sm:px-6 ${
-                    isDarkPage
-                      ? "border-slate-600/80 bg-white/[0.03]"
-                      : "border-slate-300 bg-slate-50/60"
-                  }`}
-                  data-testid={`${testIdPrefix}-testimonials-empty`}
-                >
+                <div className={emptyStateClass} data-testid={`${testIdPrefix}-testimonials-empty`}>
                   <p className={`text-sm leading-relaxed ${mutedTextClass}`}>
                     Reviews will appear here after clients leave feedback.
                   </p>
@@ -1773,7 +1886,7 @@ export function ExpertTemplatePublicView({
               </p>
               <div
                 className={`mt-8 w-full divide-y shadow-sm ring-1 ring-black/[0.04] ${
-                  isDarkPage ? "divide-slate-700" : "divide-slate-200"
+                  isDarkPage ? "divide-slate-700/80" : "divide-slate-200/90"
                 } ${visuals.cardClass} ${radius} px-4 sm:px-5 md:px-6`}
               >
                 {content.faq.items.map((item) => (
@@ -1785,9 +1898,9 @@ export function ExpertTemplatePublicView({
                       aria-expanded={openFaqId === item.id}
                       disabled={isPreview}
                     >
-                      <span className="min-w-0 flex-1 break-words">{item.question}</span>
+                      <span className="min-w-0 flex-1 break-words pr-2">{item.question}</span>
                       <span
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg font-bold ${
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg font-bold leading-none ${
                           isDarkPage ? "bg-white/10" : "bg-slate-100"
                         }`}
                         style={{ color: theme.primaryColor }}
@@ -1798,7 +1911,7 @@ export function ExpertTemplatePublicView({
                     </button>
                     {openFaqId === item.id ? (
                       <p
-                        className={`pb-5 pr-10 text-sm leading-relaxed md:text-base ${visuals.faqMutedText}`}
+                        className={`pb-5 pr-8 text-sm leading-relaxed md:pr-12 md:text-base ${visuals.faqMutedText}`}
                       >
                         {item.answer}
                       </p>
@@ -1945,7 +2058,7 @@ export function ExpertTemplatePublicView({
       case "footer":
         return (
           <footer
-            className={`${visuals.footerClass} px-5 py-12 sm:px-6 md:px-10 md:py-16`}
+            className={`${visuals.footerClass} px-5 py-12 sm:px-6 md:px-10 md:py-14`}
             data-testid={`${testIdPrefix}-footer`}
           >
             <div

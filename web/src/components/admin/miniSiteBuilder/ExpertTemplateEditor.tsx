@@ -63,6 +63,9 @@ const INPUT =
   "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
 const BUTTON =
   "rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50";
+const ITEM_CARD =
+  "space-y-2.5 rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm";
+const LIST_HEADER = "flex flex-wrap items-center justify-between gap-2";
 
 const CTA_ACTIONS: { value: ExpertCtaAction; label: string }[] = [
   { value: "booking", label: "Booking" },
@@ -940,8 +943,8 @@ function ArticlesEditor({ content, updateExpert, businessId }: EditorProps) {
         value={section.subtitle}
         onChange={(value) => set("subtitle", value)}
       />
-      <div className="space-y-2" data-testid="expert-articles-list">
-        <div className="flex items-center justify-between">
+      <div className="space-y-2.5" data-testid="expert-articles-list">
+        <div className={LIST_HEADER}>
           <p className="text-sm font-medium text-slate-700">
             Articles <span className="font-normal text-slate-500">({items.length}/{MAX_ARTICLES})</span>
           </p>
@@ -958,10 +961,15 @@ function ArticlesEditor({ content, updateExpert, businessId }: EditorProps) {
             Add Article
           </button>
         </div>
+        {items.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50/80 px-3 py-2.5 text-xs text-slate-500">
+            Add publications, guides, or research pieces. Upload a cover image for each item.
+          </p>
+        ) : null}
         {items.map((item, index) => (
           <div
             key={item.id}
-            className="space-y-2 rounded-lg border border-slate-200 p-3"
+            className={ITEM_CARD}
             data-testid="expert-article-item"
           >
             <div className="grid gap-2 sm:grid-cols-2">
@@ -1139,8 +1147,8 @@ function WorksEditor({ content, updateExpert, businessId }: EditorProps) {
         value={section.subtitle}
         onChange={(value) => set("subtitle", value)}
       />
-      <div className="space-y-2" data-testid="expert-works-list">
-        <div className="flex items-center justify-between">
+      <div className="space-y-2.5" data-testid="expert-works-list">
+        <div className={LIST_HEADER}>
           <p className="text-sm font-medium text-slate-700">
             Works <span className="font-normal text-slate-500">({items.length}/{MAX_WORKS})</span>
           </p>
@@ -1157,10 +1165,15 @@ function WorksEditor({ content, updateExpert, businessId }: EditorProps) {
             Add Work
           </button>
         </div>
+        {items.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50/80 px-3 py-2.5 text-xs text-slate-500">
+            Add case studies with a short story, metrics, and an optional cover image.
+          </p>
+        ) : null}
         {items.map((item, index) => (
           <div
             key={item.id}
-            className="space-y-2 rounded-lg border border-slate-200 p-3"
+            className={ITEM_CARD}
             data-testid="expert-work-item"
           >
             <div className="grid gap-2 sm:grid-cols-2">
@@ -1414,8 +1427,8 @@ function TestimonialsEditor({ content, updateExpert, businessId }: EditorProps) 
         onChange={(value) => set("showRating", value)}
       />
       {section.source !== "approved" ? (
-        <div className="space-y-2" data-testid="expert-testimonials-list">
-          <div className="flex items-center justify-between">
+        <div className="space-y-2.5" data-testid="expert-testimonials-list">
+          <div className={LIST_HEADER}>
             <p className="text-sm font-medium text-slate-700">
               Manual testimonials{" "}
               <span className="font-normal text-slate-500">
@@ -1435,8 +1448,13 @@ function TestimonialsEditor({ content, updateExpert, businessId }: EditorProps) 
               Add testimonial
             </button>
           </div>
+          {items.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50/80 px-3 py-2.5 text-xs text-slate-500">
+              Add quotes with optional avatar upload. Initials are used when no avatar is set.
+            </p>
+          ) : null}
           {items.map((item, index) => (
-            <div key={item.id} className="space-y-2 rounded-lg border border-slate-200 p-3">
+            <div key={item.id} className={ITEM_CARD}>
               <div className="grid gap-2 sm:grid-cols-2">
                 <input
                   className={INPUT}

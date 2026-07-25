@@ -181,7 +181,7 @@ function DesktopPreviewModal({
               Desktop preview
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
-              Full-width Service layout · scrolls inside this window
+              Full-width layout · scrolls inside this window
             </p>
           </div>
           <button
@@ -194,11 +194,11 @@ function DesktopPreviewModal({
           </button>
         </div>
         <div
-          className="min-h-0 flex-1 overflow-auto bg-slate-100 [scrollbar-width:thin] [scrollbar-color:rgb(203_213_225)_transparent]"
+          className="min-h-0 flex-1 overflow-auto bg-slate-100/90 p-3 [scrollbar-width:thin] [scrollbar-color:rgb(203_213_225)_transparent]"
           data-testid="service-desktop-preview-scroll"
         >
           <div
-            className="mx-auto min-h-full bg-white shadow-sm"
+            className="mx-auto min-h-full overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/[0.04]"
             style={{ width: DESKTOP_MODAL_WIDTH, maxWidth: "100%" }}
             data-testid="service-desktop-preview-frame"
             data-frame-width={DESKTOP_MODAL_WIDTH}
@@ -238,7 +238,7 @@ export function ServicePreviewViewport({
   return (
     <>
       <aside
-        className="sticky top-4 w-full min-w-0 max-w-full space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5"
+        className="sticky top-4 w-full min-w-0 max-w-full space-y-2.5 rounded-xl border border-slate-200 bg-slate-50/90 p-3"
         data-testid="service-preview-viewport"
         data-device={device}
         data-preview-max-height={PREVIEW_MAX_HEIGHT}

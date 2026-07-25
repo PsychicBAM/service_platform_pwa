@@ -255,17 +255,24 @@ describe("ExpertTemplatePublicView", () => {
 
     expect(screen.getAllByTestId("expert-site-article-card").length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByTestId("expert-site-article-cover-fallback").length).toBeGreaterThanOrEqual(2);
+    const featuredCard = screen.getAllByTestId("expert-site-article-card").find(
+      (el) => el.getAttribute("data-featured") === "true",
+    );
+    expect(featuredCard?.className).toMatch(/overflow-hidden/);
     expect(screen.getByRole("link", { name: /Read more/ })).toHaveAttribute(
       "href",
       "https://example.com/post",
     );
     expect(screen.getByTestId("expert-site-work-card")).toBeInTheDocument();
+    expect(screen.getByTestId("expert-site-work-card").className).toMatch(/overflow-hidden/);
     expect(screen.getByTestId("expert-site-work-cover-fallback")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View case/ })).toHaveAttribute(
       "href",
       "https://example.com/case",
     );
     expect(screen.getAllByText("+40% bookings").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Challenge ·/)).toBeInTheDocument();
+    expect(screen.getByText(/Result ·/)).toBeInTheDocument();
     unmount();
 
     renderRoute(
