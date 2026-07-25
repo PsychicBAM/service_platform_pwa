@@ -21,6 +21,7 @@ import {
 import { normalizeHexColorInput } from "./miniSiteTemplatePresentation";
 import { normalizeTemplateMediaMap } from "./miniSiteMedia";
 import { normalizeServiceTemplateContent } from "./serviceTemplateConfig";
+import { normalizeExpertTemplateContent } from "./expertTemplateConfig";
 
 function sanitizePlainText(value: string): string {
   return value.replace(/[<>]/g, "").trim();
@@ -702,6 +703,12 @@ export function normalizeMiniSiteConfig(input: unknown): MiniSiteConfig {
   );
   if (theme.template === "service" || templateContent.service) {
     templateContent.service = normalizeServiceTemplateContent(templateContent.service) as unknown as Record<
+      string,
+      unknown
+    >;
+  }
+  if (theme.template === "expert" || templateContent.expert) {
+    templateContent.expert = normalizeExpertTemplateContent(templateContent.expert) as unknown as Record<
       string,
       unknown
     >;

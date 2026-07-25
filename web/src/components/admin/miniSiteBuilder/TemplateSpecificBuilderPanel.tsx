@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MiniSiteEditorCard } from "@/components/admin/MiniSiteEditorCard";
 import { MiniSiteDefaultProfilePreview } from "@/components/admin/miniSiteBuilder/MiniSiteDefaultProfilePreview";
 import { ServiceTemplateEditor } from "@/components/admin/miniSiteBuilder/ServiceTemplateEditor";
+import { ExpertTemplateEditor } from "@/components/admin/miniSiteBuilder/ExpertTemplateEditor";
 import { TemplateComingSoonPanel } from "@/components/admin/miniSiteBuilder/TemplateComingSoonPanel";
 import { TemplateManagedElsewherePanel } from "@/components/admin/miniSiteBuilder/TemplateManagedElsewherePanel";
 import { TemplateSectionNav } from "@/components/admin/miniSiteBuilder/TemplateSectionNav";
@@ -45,7 +46,8 @@ export function TemplateSpecificBuilderPanel({
 }: TemplateSpecificBuilderPanelProps) {
   const config = getTemplateBuilderConfig(builderId);
   const isDefault = builderId === MINI_SITE_DEFAULT_SELECTION;
-  const hasSectionNav = !isDefault && builderId !== "service" && config.sections.length > 0;
+  const hasSectionNav =
+    !isDefault && builderId !== "service" && builderId !== "expert" && config.sections.length > 0;
   const [selectedSectionId, setSelectedSectionId] = useState(() =>
     getDefaultSectionIdForTemplate(builderId),
   );
@@ -178,6 +180,23 @@ export function TemplateSpecificBuilderPanel({
           ) : builderId === "service" && selectedSection?.mode === "editable" ? (
             <div data-testid="admin-mini-site-section-row">
               <ServiceTemplateEditor
+                activeSectionId={selectedSection.id}
+                onSelectSection={setSelectedSectionId}
+                sections={config.sections}
+                templateLabel={config.label}
+                businessId={businessId}
+                businessName={businessName}
+                businessSlug={businessSlug}
+                allowedTemplates={allowedTemplates}
+                requestedTemplate={requestedTemplate}
+                onTemplateChange={onTemplateChange}
+                onSaveStatusChange={onSaveStatusChange}
+                previewBadge={config.previewLabel}
+              />
+            </div>
+          ) : builderId === "expert" && selectedSection?.mode === "editable" ? (
+            <div data-testid="admin-mini-site-section-row">
+              <ExpertTemplateEditor
                 activeSectionId={selectedSection.id}
                 onSelectSection={setSelectedSectionId}
                 sections={config.sections}

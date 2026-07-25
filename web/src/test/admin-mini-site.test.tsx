@@ -360,7 +360,7 @@ describe("Admin Mini-site Builder", () => {
     await screen.findByTestId("admin-mini-site-template-builder");
 
     const cases: Array<{ template: string; expected: string }> = [
-      { template: "expert", expected: "Case studies" },
+      { template: "expert", expected: "Articles" },
       { template: "portfolio", expected: "Projects / selected work" },
       { template: "clinic", expected: "Appointment banner" },
       { template: "teacher", expected: "Courses / lessons" },

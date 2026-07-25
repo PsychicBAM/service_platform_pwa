@@ -616,11 +616,9 @@ describe("PublicProfileSettingsCard", () => {
     expect(preview).toHaveAttribute("data-template", "expert");
     expect(preview).toHaveAttribute("data-template-presentation", "expert");
     expect(screen.getByTestId("mini-site-preview-hero")).toBeInTheDocument();
-    expect(screen.getByTestId("mini-site-preview-hero-content")).toBeInTheDocument();
-    expect(screen.getByTestId("mini-site-preview-logo-placeholder")).toBeInTheDocument();
-    expect(screen.getByTestId("mini-site-preview-hero-badge")).toHaveTextContent(
-      DEFAULT_MINI_SITE_CONFIG.copy.heroBadgeText,
-    );
+    expect(screen.getByTestId("mini-site-preview-hero-badge")).toHaveTextContent("Expert profile");
+    expect(screen.getByTestId("mini-site-preview-articles")).toBeInTheDocument();
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
   });
 
   it("does not render media upload fields in live preview", async () => {

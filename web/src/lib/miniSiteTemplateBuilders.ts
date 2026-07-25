@@ -17,7 +17,13 @@ export type MiniSiteEditorFocus =
   | "why-choose-us"
   | "pricing"
   | "reviews"
-  | "footer";
+  | "footer"
+  | "expertise"
+  | "process"
+  | "results"
+  | "articles"
+  | "works"
+  | "testimonials";
 
 /** Honest section status for the template builder nav. */
 export type TemplateBuilderSectionMode =
@@ -233,77 +239,99 @@ const EXPERT_BUILDER: TemplateBuilderConfig = {
   label: "Expert",
   badge: "Expert",
   category: "Personal brand",
-  description: "Personal consultant or advisor layout with session-focused offers.",
+  description: "Personal specialist layout with articles, works, and testimonials.",
   previewLabel: "Expert mini-site preview",
   tone: "Credibility-first personal brand",
   mediaSlotHints: mediaHintsFor("expert"),
   sections: [
     {
       id: "hero",
-      label: "Hero / profile",
-      helperText: "Centered credibility hero with session CTAs.",
+      label: "Hero",
+      helperText: "Profile intro, credentials, and primary CTAs.",
       mode: "editable",
       editorFocus: "hero",
     },
     {
       id: "about",
       label: "About",
-      helperText: "Personal expertise and positioning.",
+      helperText: "Biography and credentials.",
       mode: "editable",
       editorFocus: "about",
     },
     {
       id: "services",
       label: "Services",
-      helperText: "Consultation and booking offers.",
+      helperText: "Real session offers from Admin Services.",
       mode: "editable",
       editorFocus: "services",
     },
     {
-      id: "approach",
-      label: "Approach",
-      helperText: "How you work with clients.",
+      id: "expertise",
+      label: "Expertise",
+      helperText: "Specializations and focus areas.",
       mode: "editable",
-      editorFocus: "trust",
+      editorFocus: "expertise",
     },
     {
-      id: "case-studies",
-      label: "Case studies",
-      helperText: "Selected client outcomes and examples.",
-      mode: "coming_soon",
-      comingSoonTitle: "Case studies coming soon",
-      comingSoonBody:
-        "Case study cards are not available yet. Use About and Benefits to highlight your approach for now.",
+      id: "process",
+      label: "Process",
+      helperText: "How clients work with you.",
+      mode: "editable",
+      editorFocus: "process",
+    },
+    {
+      id: "results",
+      label: "Results",
+      helperText: "Proof points and outcomes.",
+      mode: "editable",
+      editorFocus: "results",
+    },
+    {
+      id: "articles",
+      label: "Articles",
+      helperText: "Publications and thought leadership cards.",
+      mode: "editable",
+      editorFocus: "articles",
+    },
+    {
+      id: "works",
+      label: "Works",
+      helperText: "Case studies and portfolio outcomes.",
+      mode: "editable",
+      editorFocus: "works",
     },
     {
       id: "testimonials",
-      label: "Testimonials",
-      helperText: "Client quotes and credibility.",
-      mode: "coming_soon",
-      comingSoonTitle: "Testimonials coming soon",
-      comingSoonBody:
-        "Expert testimonial blocks will be added later. Existing published reviews remain available on the public page.",
+      label: "Reviews",
+      helperText: "Approved reviews and manual testimonials.",
+      mode: "editable",
+      editorFocus: "testimonials",
     },
     {
-      id: "blog",
-      label: "Blog / content",
-      helperText: "Thought leadership and content links.",
-      mode: "coming_soon",
-      comingSoonTitle: "Blog / content coming soon",
-      comingSoonBody:
-        "Content and blog modules are not part of mini_site_config yet. No fake posts will be invented.",
+      id: "faq",
+      label: "FAQ",
+      helperText: "Common questions before booking.",
+      mode: "editable",
+      editorFocus: "faq",
     },
     {
-      id: "cta",
-      label: "CTA",
-      helperText: "Primary session booking call-to-action.",
+      id: "contact",
+      label: "Contact",
+      helperText: "Final booking call-to-action.",
       mode: "editable",
       editorFocus: "contact",
     },
     {
+      id: "footer",
+      label: "Footer",
+      helperText: "Links, contact, and copyright.",
+      mode: "editable",
+      editorFocus: "footer",
+    },
+    {
       id: "settings",
       label: "Settings",
-      helperText: "Profile media, colors, and style.",
+      helperText: "Theme, typography, and media.",
       mode: "editable",
       editorFocus: "settings",
     },

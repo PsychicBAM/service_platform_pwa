@@ -177,7 +177,7 @@ describe("ProMiniSiteLayout", () => {
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
   });
 
-  it("applies expert template centered hero presentation", () => {
+  it("applies expert template presentation via ExpertTemplatePublicView", () => {
     renderProMiniSiteLayout({
       config: createSavedMiniSiteConfig({ template: "expert" }),
     });
@@ -185,8 +185,10 @@ describe("ProMiniSiteLayout", () => {
     expect(expertLayout).toHaveAttribute("data-template", "expert");
     expect(expertLayout).toHaveClass("template-expert");
     expect(screen.getByText("Expert profile")).toBeInTheDocument();
-    expect(screen.getByTestId("pro-mini-site-hero-content")).toHaveClass("text-center");
-    expect(screen.getByTestId("pro-mini-site-hero-cta-group")).toHaveClass("sm:justify-center");
+    expect(screen.getByTestId("pro-mini-site-hero")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-articles")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-works")).toBeInTheDocument();
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
   });
 
   it("renders service template hero eyebrow from service content", () => {

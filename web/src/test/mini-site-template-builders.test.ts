@@ -65,6 +65,9 @@ describe("miniSiteTemplateBuilders", () => {
     expect(getAvailableSectionsForTemplate("service").every((s) => s.mode !== "coming_soon")).toBe(
       true,
     );
+    expect(getAvailableSectionsForTemplate("expert").every((s) => s.mode !== "coming_soon")).toBe(
+      true,
+    );
     expect(getDefaultSectionIdForTemplate("coach")).toBe("hero");
     expect(getTemplateBuilderLabel("teacher")).toBe("Teacher");
   });
