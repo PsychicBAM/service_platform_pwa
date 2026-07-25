@@ -483,6 +483,7 @@ function normalizeTestimonials(input: unknown): ExpertTestimonialItem[] {
             .slice(0, 2)
             .toUpperCase() || "C",
         ),
+        avatarUrl: asString(row.avatarUrl ?? row.avatar_url, ""),
         visible: asBoolean(row.visible, true),
       };
     })

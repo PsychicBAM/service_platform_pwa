@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ExpertTemplatePublicView } from "@/components/public/ExpertTemplatePublicView";
 import { ExpertTemplateEditor } from "@/components/admin/miniSiteBuilder/ExpertTemplateEditor";
@@ -14,6 +14,7 @@ import {
   setExpertTemplateContent,
   EXPERT_THEME_PRESETS,
 } from "@/lib/expertTemplateConfig";
+import { buildExpertItemImageSlot } from "@/lib/expertItemMediaSlots";
 import { DEFAULT_MINI_SITE_CONFIG, normalizeMiniSiteConfig } from "@/lib/miniSiteConfig";
 import { getAvailableSectionsForTemplate } from "@/lib/miniSiteTemplateBuilders";
 import { getMiniSiteTemplateEditorDefinition } from "@/lib/miniSiteTemplateEditorRegistry";
@@ -25,6 +26,7 @@ import { mockBookingService, mockOrderService, mockPublicBusiness } from "@/test
 import { renderRoute } from "@/test/test-utils";
 import * as miniSiteApi from "@/api/miniSiteApi";
 import * as adminApi from "@/api/adminApi";
+import * as miniSiteMediaApi from "@/api/miniSiteMediaApi";
 import { EXPERT_THEME_PRESET_IDS } from "@/types/expertTemplate";
 
 vi.mock("@/api/miniSiteApi", () => ({
@@ -34,6 +36,11 @@ vi.mock("@/api/miniSiteApi", () => ({
 
 vi.mock("@/api/adminApi", () => ({
   listAdminServices: vi.fn(),
+}));
+
+vi.mock("@/api/miniSiteMediaApi", () => ({
+  uploadMiniSiteMedia: vi.fn(),
+  removeMiniSiteMedia: vi.fn(),
 }));
 
 function expertConfig(overrides: Record<string, unknown> = {}) {
@@ -247,11 +254,13 @@ describe("ExpertTemplatePublicView", () => {
     );
 
     expect(screen.getAllByTestId("expert-site-article-card").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByTestId("expert-site-article-cover-fallback").length).toBeGreaterThanOrEqual(2);
     expect(screen.getByRole("link", { name: /Read more/ })).toHaveAttribute(
       "href",
       "https://example.com/post",
     );
     expect(screen.getByTestId("expert-site-work-card")).toBeInTheDocument();
+    expect(screen.getByTestId("expert-site-work-cover-fallback")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View case/ })).toHaveAttribute(
       "href",
       "https://example.com/case",
@@ -293,6 +302,7 @@ describe("ExpertTemplatePublicView", () => {
             rating: 5,
             date: "2026-03-01",
             avatarInitials: "J",
+            avatarUrl: "",
             visible: true,
           },
         ],
@@ -311,6 +321,7 @@ describe("ExpertTemplatePublicView", () => {
     expect(screen.getByTestId("expert-site-testimonial-card")).toHaveTextContent(
       /Clear and practical guidance/i,
     );
+    expect(screen.getByTestId("expert-site-testimonial-initials")).toHaveTextContent("J");
     unmount();
 
     renderRoute(
@@ -546,5 +557,308 @@ describe("ExpertTemplateEditor", () => {
     await waitFor(() => {
       expect(screen.getAllByTestId("expert-article-item").length).toBeGreaterThan(0);
     });
+  });
+
+  it("uses compact image uploads instead of Cover/Avatar URL fields", async () => {
+    const user = userEvent.setup();
+    const uploadedUrl = "/uploads/mini_site/biz-1/article-cover.webp";
+    vi.mocked(miniSiteMediaApi.uploadMiniSiteMedia).mockResolvedValue({
+      template: "expert",
+      slot: "articleCover__article1",
+      media: {
+        kind: "image",
+        url: uploadedUrl,
+        thumbnailUrl: uploadedUrl,
+        alt: "",
+        filename: "cover.webp",
+        contentType: "image/webp",
+        size: 1000,
+        originalSize: 1000,
+        width: 800,
+        height: 600,
+      },
+    });
+    vi.mocked(miniSiteMediaApi.removeMiniSiteMedia).mockResolvedValue(undefined);
+
+    const seeded = expertConfig({
+      articles: {
+        title: "Articles",
+        subtitle: "",
+        items: [
+          {
+            id: "article1",
+            title: "Seeded article",
+            type: "article",
+            category: "",
+            date: "",
+            excerpt: "",
+            body: "",
+            externalUrl: "https://example.com/seeded",
+            readingTime: "",
+            featured: false,
+            coverImageUrl: "",
+            visible: true,
+          },
+        ],
+      },
+      works: {
+        title: "Works",
+        subtitle: "",
+        items: [
+          {
+            id: "work1",
+            title: "Seeded work",
+            clientName: "",
+            category: "",
+            year: "",
+            shortDescription: "",
+            challenge: "",
+            result: "",
+            linkUrl: "https://example.com/work",
+            coverImageUrl: "/uploads/mini_site/biz-1/work-a.webp",
+            metrics: [],
+            visible: true,
+          },
+          {
+            id: "work2",
+            title: "Second work",
+            clientName: "",
+            category: "",
+            year: "",
+            shortDescription: "",
+            challenge: "",
+            result: "",
+            linkUrl: "",
+            coverImageUrl: "/uploads/mini_site/biz-1/work-b.webp",
+            metrics: [],
+            visible: true,
+          },
+        ],
+      },
+      testimonials: {
+        ...createDefaultExpertTemplateContent().testimonials,
+        source: "manual",
+        items: [
+          {
+            id: "testimonial1",
+            name: "Alex",
+            role: "CEO",
+            quote: "Great help.",
+            rating: 5,
+            date: "",
+            avatarInitials: "A",
+            avatarUrl: "",
+            visible: true,
+          },
+        ],
+      },
+    });
+    vi.mocked(miniSiteApi.getMiniSiteConfig).mockResolvedValue(seeded);
+
+    const sections = getAvailableSectionsForTemplate("expert");
+    const { rerender } = renderRoute(
+      <ExpertTemplateEditor
+        businessId="biz-1"
+        businessName="Demo"
+        activeSectionId="articles"
+        onSelectSection={() => undefined}
+        sections={sections}
+        allowedTemplates={["expert", "service", "clean"]}
+      />,
+    );
+
+    expect(await screen.findByTestId("expert-article-cover-article1")).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/Cover image URL/i)).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/Image URL/i)).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/Avatar URL/i)).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText("External URL")).toHaveValue("https://example.com/seeded");
+
+    const file = new File([new Uint8Array([1, 2, 3])], "cover.png", { type: "image/png" });
+    await user.upload(screen.getByTestId("expert-article-cover-article1-input"), file);
+    await waitFor(() => {
+      expect(miniSiteMediaApi.uploadMiniSiteMedia).toHaveBeenCalledWith(
+        "biz-1",
+        file,
+        expect.objectContaining({
+          template: "expert",
+          slot: buildExpertItemImageSlot("articleCover", "article1"),
+        }),
+      );
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("expert-article-cover-article1").querySelector("img")).toHaveAttribute(
+        "src",
+        uploadedUrl,
+      );
+    });
+    expect(screen.getByTestId("service-preview-viewport")).toBeInTheDocument();
+    await waitFor(() => {
+      const preview = screen.getByTestId("service-preview-viewport");
+      expect(within(preview).getByTestId("mini-site-preview-article-cover")).toHaveAttribute(
+        "src",
+        uploadedUrl,
+      );
+    });
+
+    await user.click(screen.getByTestId("expert-article-cover-article1-remove"));
+    await waitFor(() => {
+      expect(miniSiteMediaApi.removeMiniSiteMedia).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("expert-article-cover-article1").querySelector("img")).toBeNull();
+    });
+
+    rerender(
+      <ExpertTemplateEditor
+        businessId="biz-1"
+        businessName="Demo"
+        activeSectionId="works"
+        onSelectSection={() => undefined}
+        sections={sections}
+        allowedTemplates={["expert", "service", "clean"]}
+      />,
+    );
+    expect(await screen.findByTestId("expert-work-cover-work1")).toBeInTheDocument();
+    expect(screen.getAllByPlaceholderText("Link URL")[0]).toHaveValue("https://example.com/work");
+    expect(screen.queryByPlaceholderText(/Cover image URL/i)).not.toBeInTheDocument();
+
+    const workItems = screen.getAllByTestId("expert-work-item");
+    expect(within(workItems[0]).getByTestId("expert-work-cover-work1").querySelector("img")).toHaveAttribute(
+      "src",
+      "/uploads/mini_site/biz-1/work-a.webp",
+    );
+    expect(within(workItems[1]).getByTestId("expert-work-cover-work2").querySelector("img")).toHaveAttribute(
+      "src",
+      "/uploads/mini_site/biz-1/work-b.webp",
+    );
+    await user.click(within(workItems[1]).getByRole("button", { name: /Move up/i }));
+    const reordered = screen.getAllByTestId("expert-work-item");
+    expect(within(reordered[0]).getByTestId("expert-work-cover-work2").querySelector("img")).toHaveAttribute(
+      "src",
+      "/uploads/mini_site/biz-1/work-b.webp",
+    );
+    expect(within(reordered[1]).getByTestId("expert-work-cover-work1").querySelector("img")).toHaveAttribute(
+      "src",
+      "/uploads/mini_site/biz-1/work-a.webp",
+    );
+
+    rerender(
+      <ExpertTemplateEditor
+        businessId="biz-1"
+        businessName="Demo"
+        activeSectionId="testimonials"
+        onSelectSection={() => undefined}
+        sections={sections}
+        allowedTemplates={["expert", "service", "clean"]}
+      />,
+    );
+    expect(await screen.findByTestId("expert-testimonial-avatar-testimonial1")).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/Avatar URL/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Save changes/i }));
+    await waitFor(() => {
+      expect(miniSiteApi.updateMiniSiteConfig).toHaveBeenCalled();
+    });
+    const saved = vi.mocked(miniSiteApi.updateMiniSiteConfig).mock.calls.at(-1)?.[1];
+    const expert = getExpertTemplateContent(normalizeMiniSiteConfig(saved!));
+    expect(expert.works.items.map((item) => item.id)).toEqual(["work2", "work1"]);
+    expect(expert.works.items[0].coverImageUrl).toBe("/uploads/mini_site/biz-1/work-b.webp");
+    expect(expert.works.items[1].coverImageUrl).toBe("/uploads/mini_site/biz-1/work-a.webp");
+    expect(expert.articles.items[0].externalUrl).toBe("https://example.com/seeded");
+  });
+});
+
+describe("Expert public uploaded images", () => {
+  it("renders uploaded article/work covers and testimonial avatars", () => {
+    const withMedia = expertConfig({
+      articles: {
+        title: "Articles",
+        subtitle: "",
+        items: [
+          {
+            id: "a1",
+            title: "Covered article",
+            type: "article",
+            category: "",
+            date: "",
+            excerpt: "Excerpt",
+            body: "",
+            externalUrl: "https://example.com/a",
+            readingTime: "",
+            featured: true,
+            coverImageUrl: "/uploads/mini_site/1/article.webp",
+            visible: true,
+          },
+        ],
+      },
+      works: {
+        title: "Works",
+        subtitle: "",
+        items: [
+          {
+            id: "w1",
+            title: "Covered work",
+            clientName: "",
+            category: "",
+            year: "",
+            shortDescription: "",
+            challenge: "",
+            result: "",
+            linkUrl: "",
+            coverImageUrl: "/uploads/mini_site/1/work.webp",
+            metrics: [],
+            visible: true,
+          },
+        ],
+      },
+      testimonials: {
+        title: "Reviews",
+        subtitle: "",
+        source: "manual",
+        maxCount: 6,
+        showRating: true,
+        items: [
+          {
+            id: "t1",
+            name: "Sam",
+            role: "Lead",
+            quote: "Excellent.",
+            rating: 5,
+            date: "",
+            avatarInitials: "S",
+            avatarUrl: "/uploads/mini_site/1/avatar.webp",
+            visible: true,
+          },
+        ],
+      },
+    });
+
+    renderRoute(
+      <ExpertTemplatePublicView
+        business={mockPublicBusiness}
+        publicSlug="demo-business"
+        config={withMedia}
+        reviews={[]}
+        testIdPrefix="expert-site"
+      />,
+      { route: "/b/demo-business", path: "/b/:slug" },
+    );
+
+    expect(screen.getByTestId("expert-site-article-cover")).toHaveAttribute(
+      "src",
+      "/uploads/mini_site/1/article.webp",
+    );
+    expect(screen.getByTestId("expert-site-work-cover")).toHaveAttribute(
+      "src",
+      "/uploads/mini_site/1/work.webp",
+    );
+    expect(screen.getByTestId("expert-site-testimonial-avatar")).toHaveAttribute(
+      "src",
+      "/uploads/mini_site/1/avatar.webp",
+    );
+    expect(screen.getByRole("link", { name: /Read more/ })).toHaveAttribute(
+      "href",
+      "https://example.com/a",
+    );
   });
 });

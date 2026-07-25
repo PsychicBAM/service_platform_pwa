@@ -372,6 +372,7 @@ export function ExpertTemplatePublicView({
             quote: review.comment || "",
             rating: review.rating,
             initials: review.customer_name.charAt(0).toUpperCase() || "C",
+            avatarUrl: "",
           }));
 
   const manualCards =
@@ -387,6 +388,7 @@ export function ExpertTemplatePublicView({
             quote: item.quote,
             rating: item.rating,
             initials: item.avatarInitials || item.name.charAt(0).toUpperCase() || "C",
+            avatarUrl: item.avatarUrl?.trim() || "",
           }));
 
   const testimonialCards = [...approvedCards, ...manualCards].slice(
@@ -1245,10 +1247,35 @@ export function ExpertTemplatePublicView({
                   {featuredArticles.map((article) => (
                     <article
                       key={article.id}
-                      className={`${cardSurface} ${radius} p-6 sm:p-8`}
+                      className={`overflow-hidden ${cardSurface} ${radius}`}
                       data-testid={`${testIdPrefix}-article-card`}
                       data-featured="true"
                     >
+                      {article.coverImageUrl ? (
+                        <img
+                          src={article.coverImageUrl}
+                          alt=""
+                          className="aspect-[21/9] w-full object-cover"
+                          data-testid={`${testIdPrefix}-article-cover`}
+                        />
+                      ) : (
+                        <div
+                          className="flex aspect-[21/9] w-full items-center justify-center"
+                          style={{
+                            background: `linear-gradient(145deg, ${theme.primaryColor}28, ${theme.accentColor}40)`,
+                          }}
+                          aria-hidden="true"
+                          data-testid={`${testIdPrefix}-article-cover-fallback`}
+                        >
+                          <span
+                            className={`flex h-12 w-12 items-center justify-center rounded-xl text-base font-black shadow-sm ${visuals.primaryButtonText}`}
+                            style={{ backgroundColor: theme.primaryColor }}
+                          >
+                            {article.title.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="p-6 sm:p-8">
                       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide">
                         {article.category ? (
                           <span style={{ color: theme.primaryColor }}>{article.category}</span>
@@ -1313,6 +1340,7 @@ export function ExpertTemplatePublicView({
                           </button>
                         )}
                       </div>
+                      </div>
                     </article>
                   ))}
 
@@ -1328,9 +1356,34 @@ export function ExpertTemplatePublicView({
                       {regularArticles.map((article) => (
                         <article
                           key={article.id}
-                          className={`flex h-full min-w-0 flex-col ${cardSurface} ${radius} p-5 sm:p-6`}
+                          className={`flex h-full min-w-0 flex-col overflow-hidden ${cardSurface} ${radius}`}
                           data-testid={`${testIdPrefix}-article-card`}
                         >
+                          {article.coverImageUrl ? (
+                            <img
+                              src={article.coverImageUrl}
+                              alt=""
+                              className="aspect-[16/10] w-full object-cover"
+                              data-testid={`${testIdPrefix}-article-cover`}
+                            />
+                          ) : (
+                            <div
+                              className="flex aspect-[16/10] w-full items-center justify-center"
+                              style={{
+                                background: `linear-gradient(145deg, ${theme.primaryColor}28, ${theme.accentColor}40)`,
+                              }}
+                              aria-hidden="true"
+                              data-testid={`${testIdPrefix}-article-cover-fallback`}
+                            >
+                              <span
+                                className={`flex h-11 w-11 items-center justify-center rounded-xl text-sm font-black shadow-sm ${visuals.primaryButtonText}`}
+                                style={{ backgroundColor: theme.primaryColor }}
+                              >
+                                {article.title.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex flex-1 flex-col p-5 sm:p-6">
                           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide">
                             {article.category ? (
                               <span style={{ color: theme.primaryColor }}>{article.category}</span>
@@ -1391,6 +1444,7 @@ export function ExpertTemplatePublicView({
                                 Read more →
                               </button>
                             )}
+                          </div>
                           </div>
                         </article>
                       ))}
@@ -1460,6 +1514,7 @@ export function ExpertTemplatePublicView({
                           src={work.coverImageUrl}
                           alt=""
                           className="aspect-[16/10] w-full object-cover"
+                          data-testid={`${testIdPrefix}-work-cover`}
                         />
                       ) : (
                         <div
@@ -1468,6 +1523,7 @@ export function ExpertTemplatePublicView({
                             background: `linear-gradient(145deg, ${theme.primaryColor}28, ${theme.accentColor}40)`,
                           }}
                           aria-hidden="true"
+                          data-testid={`${testIdPrefix}-work-cover-fallback`}
                         >
                           <span
                             className={`flex h-11 w-11 items-center justify-center rounded-xl text-sm font-black shadow-sm ${visuals.primaryButtonText}`}
@@ -1631,12 +1687,22 @@ export function ExpertTemplatePublicView({
                       }
                     >
                       <div className="flex items-center gap-3">
-                        <span
-                          className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold shadow-sm ${visuals.primaryButtonText}`}
-                          style={{ backgroundColor: theme.primaryColor }}
-                        >
-                          {review.initials}
-                        </span>
+                        {review.avatarUrl ? (
+                          <img
+                            src={review.avatarUrl}
+                            alt=""
+                            className="h-11 w-11 rounded-full object-cover shadow-sm"
+                            data-testid={`${testIdPrefix}-testimonial-avatar`}
+                          />
+                        ) : (
+                          <span
+                            className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold shadow-sm ${visuals.primaryButtonText}`}
+                            style={{ backgroundColor: theme.primaryColor }}
+                            data-testid={`${testIdPrefix}-testimonial-initials`}
+                          >
+                            {review.initials}
+                          </span>
+                        )}
                         <div>
                           <figcaption className={`font-bold ${bodyTextClass}`}>
                             {review.name}

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listAdminServices } from "@/api/adminApi";
 import { getMiniSiteConfig, updateMiniSiteConfig } from "@/api/miniSiteApi";
+import { MiniSiteCompactImageUpload } from "@/components/admin/MiniSiteCompactImageUpload";
 import { ServicePreviewViewport } from "@/components/admin/miniSiteBuilder/ServicePreviewViewport";
 import { TemplateSectionNav } from "@/components/admin/miniSiteBuilder/TemplateSectionNav";
 import { MiniSiteTemplateMediaSection } from "@/components/admin/MiniSiteTemplateMediaSection";
@@ -20,6 +21,7 @@ import {
   setExpertTemplateContent,
   coerceTypographyColorInput,
 } from "@/lib/expertTemplateConfig";
+import { buildExpertItemImageSlot } from "@/lib/expertItemMediaSlots";
 import { hexColorForPicker } from "@/lib/miniSiteTemplatePresentation";
 import type { TemplateBuilderSection } from "@/lib/miniSiteTemplateBuilders";
 import {
@@ -276,7 +278,10 @@ export function ExpertTemplateEditor({
 
   useEffect(() => {
     if (configQuery.data) setDraft(prepare(configQuery.data));
-  }, [configQuery.data, allowedTemplates]);
+    // allowedTemplates is compared by membership, not array identity — inline arrays from parents
+    // must not wipe in-progress Expert edits on every re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- prepare closes over allowedTemplates
+  }, [configQuery.data, allowedTemplates?.join(",")]);
 
   useEffect(() => {
     if (draft) onTemplateChange?.(draft.theme.template);
@@ -330,7 +335,7 @@ export function ExpertTemplateEditor({
   const content = getExpertTemplateContent(draft);
   const update = <K extends keyof ExpertTemplateContent>(key: K, value: ExpertTemplateContent[K]) =>
     updateExpert((current) => ({ ...current, [key]: value }));
-  const sectionProps = { content, updateExpert, update };
+  const sectionProps = { content, updateExpert, update, businessId };
   const isToggleable = (EXPERT_SECTION_IDS as readonly string[]).includes(activeSectionId);
   const sectionHidden =
     isToggleable && content.sectionVisibility[activeSectionId as ExpertSectionId] === false;
@@ -449,6 +454,7 @@ type EditorProps = {
   content: ExpertTemplateContent;
   updateExpert: (updater: (content: ExpertTemplateContent) => ExpertTemplateContent) => void;
   update: <K extends keyof ExpertTemplateContent>(key: K, value: ExpertTemplateContent[K]) => void;
+  businessId: string;
 };
 
 function HeroEditor({ content, updateExpert }: EditorProps) {
@@ -897,7 +903,7 @@ function createEmptyArticle(): ExpertArticleItem {
   };
 }
 
-function ArticlesEditor({ content, updateExpert }: EditorProps) {
+function ArticlesEditor({ content, updateExpert, businessId }: EditorProps) {
   const section = content.articles;
   const set = <K extends keyof typeof section>(key: K, value: (typeof section)[K]) =>
     updateExpert((current) => ({
@@ -1004,22 +1010,23 @@ function ArticlesEditor({ content, updateExpert }: EditorProps) {
                 }
               />
               <input
-                className={INPUT}
+                className={`${INPUT} sm:col-span-2`}
                 placeholder="External URL"
                 value={item.externalUrl}
                 onChange={(event) =>
                   updateItem(item.id, { ...item, externalUrl: event.target.value })
                 }
               />
-              <input
-                className={`${INPUT} sm:col-span-2`}
-                placeholder="Cover image URL"
-                value={item.coverImageUrl}
-                onChange={(event) =>
-                  updateItem(item.id, { ...item, coverImageUrl: event.target.value })
-                }
-              />
             </div>
+            <MiniSiteCompactImageUpload
+              businessId={businessId}
+              template="expert"
+              slot={buildExpertItemImageSlot("articleCover", item.id)}
+              label="Article cover"
+              imageUrl={item.coverImageUrl}
+              testId={`expert-article-cover-${item.id}`}
+              onImageUrlChange={(url) => updateItem(item.id, { ...item, coverImageUrl: url })}
+            />
             <textarea
               className={INPUT}
               rows={2}
@@ -1095,7 +1102,7 @@ function createEmptyWork(): ExpertWorkItem {
   };
 }
 
-function WorksEditor({ content, updateExpert }: EditorProps) {
+function WorksEditor({ content, updateExpert, businessId }: EditorProps) {
   const section = content.works;
   const set = <K extends keyof typeof section>(key: K, value: (typeof section)[K]) =>
     updateExpert((current) => ({
@@ -1191,15 +1198,16 @@ function WorksEditor({ content, updateExpert }: EditorProps) {
                 value={item.linkUrl}
                 onChange={(event) => updateItem(item.id, { ...item, linkUrl: event.target.value })}
               />
-              <input
-                className={`${INPUT} sm:col-span-2`}
-                placeholder="Cover image URL"
-                value={item.coverImageUrl}
-                onChange={(event) =>
-                  updateItem(item.id, { ...item, coverImageUrl: event.target.value })
-                }
-              />
             </div>
+            <MiniSiteCompactImageUpload
+              businessId={businessId}
+              template="expert"
+              slot={buildExpertItemImageSlot("workCover", item.id)}
+              label="Work cover"
+              imageUrl={item.coverImageUrl}
+              testId={`expert-work-cover-${item.id}`}
+              onImageUrlChange={(url) => updateItem(item.id, { ...item, coverImageUrl: url })}
+            />
             <textarea
               className={INPUT}
               rows={2}
@@ -1333,11 +1341,12 @@ function createEmptyTestimonial(): ExpertTestimonialItem {
     rating: 5,
     date: "",
     avatarInitials: "C",
+    avatarUrl: "",
     visible: true,
   };
 }
 
-function TestimonialsEditor({ content, updateExpert }: EditorProps) {
+function TestimonialsEditor({ content, updateExpert, businessId }: EditorProps) {
   const section = content.testimonials;
   const set = <K extends keyof typeof section>(key: K, value: (typeof section)[K]) =>
     updateExpert((current) => ({
@@ -1476,6 +1485,15 @@ function TestimonialsEditor({ content, updateExpert }: EditorProps) {
                   }
                 />
               </div>
+              <MiniSiteCompactImageUpload
+                businessId={businessId}
+                template="expert"
+                slot={buildExpertItemImageSlot("testimonialAvatar", item.id)}
+                label="Avatar"
+                imageUrl={item.avatarUrl}
+                testId={`expert-testimonial-avatar-${item.id}`}
+                onImageUrlChange={(url) => updateItem(item.id, { ...item, avatarUrl: url })}
+              />
               <textarea
                 className={INPUT}
                 rows={2}

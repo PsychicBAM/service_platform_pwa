@@ -105,6 +105,8 @@ export type ExpertTestimonialItem = {
   rating: number;
   date: string;
   avatarInitials: string;
+  /** Optional uploaded avatar; when empty, public view uses initials. */
+  avatarUrl: string;
   visible: boolean;
 };
 

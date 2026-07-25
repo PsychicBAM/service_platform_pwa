@@ -246,6 +246,19 @@ def test_mini_site_slot_allowlist_includes_service_and_booking_slots() -> None:
     assert "servicesImage" in MINI_SITE_IMAGE_MEDIA_SLOTS["teacher"]
 
 
+def test_expert_item_image_slots_are_allowed_and_validated() -> None:
+    assert is_allowed_mini_site_image_slot("expert", "articleCover__article-abc123")
+    assert is_allowed_mini_site_image_slot("expert", "workCover__work_1")
+    assert is_allowed_mini_site_image_slot("expert", "testimonialAvatar__t1")
+    assert is_allowed_mini_site_image_slot("expert", "profileImage")
+    assert is_allowed_mini_site_image_slot("expert", "heroImage")
+    assert not is_allowed_mini_site_image_slot("expert", "articleCover__")
+    assert not is_allowed_mini_site_image_slot("expert", "articleCover__bad slot!")
+    assert not is_allowed_mini_site_image_slot("expert", "randomSlot")
+    assert not is_allowed_mini_site_image_slot("service", "articleCover__article1")
+    assert not is_allowed_mini_site_image_slot("clean", "workCover__work1")
+
+
 def test_normalize_legacy_media_without_thumbnail_url() -> None:
     config = normalize_mini_site_config(
         {
