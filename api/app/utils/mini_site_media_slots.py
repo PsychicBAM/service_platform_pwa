@@ -21,6 +21,9 @@ MINI_SITE_IMAGE_MEDIA_SLOTS: dict[MiniSiteTemplate, tuple[str, ...]] = {
 _EXPERT_ITEM_IMAGE_SLOT_RE = re.compile(
     r"^(articleCover|workCover|testimonialAvatar)__[A-Za-z0-9_-]{1,64}$"
 )
+_PORTFOLIO_ITEM_IMAGE_SLOT_RE = re.compile(
+    r"^(portfolioProjectCover|portfolioTestimonialAvatar)__[A-Za-z0-9_-]{1,64}$"
+)
 
 ALLOWED_IMAGE_CONTENT_TYPES: dict[str, str] = {
     "image/jpeg": ".jpg",
@@ -36,5 +39,7 @@ def is_allowed_mini_site_image_slot(template: MiniSiteTemplate, slot: str) -> bo
     if slot in MINI_SITE_IMAGE_MEDIA_SLOTS.get(template, ()):
         return True
     if template == "expert" and _EXPERT_ITEM_IMAGE_SLOT_RE.fullmatch(slot):
+        return True
+    if template == "portfolio" and _PORTFOLIO_ITEM_IMAGE_SLOT_RE.fullmatch(slot):
         return True
     return False

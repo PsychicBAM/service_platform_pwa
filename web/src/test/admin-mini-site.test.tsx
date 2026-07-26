@@ -377,7 +377,7 @@ describe("Admin Mini-site Builder", () => {
     }
   });
 
-  it("unsupported sections show Coming soon instead of fake controls", async () => {
+  it("Portfolio projects section opens real editor instead of Coming soon", async () => {
     const user = userEvent.setup();
     renderMiniSitePage("pro", "mini_site");
     await screen.findByTestId("admin-mini-site-template-builder");
@@ -389,14 +389,27 @@ describe("Admin Mini-site Builder", () => {
     expect(projects).toBeTruthy();
     await user.click(projects!);
 
+    expect(await screen.findByTestId("portfolio-template-editor")).toBeInTheDocument();
+    expect(screen.queryByTestId("admin-mini-site-coming-soon-panel")).not.toBeInTheDocument();
+    expect(screen.getByTestId("portfolio-editor-projects")).toBeInTheDocument();
+  });
+
+  it("unsupported clinic team section shows Coming soon instead of fake controls", async () => {
+    const user = userEvent.setup();
+    renderMiniSitePage("pro", "mini_site");
+    await screen.findByTestId("admin-mini-site-template-builder");
+    await selectProTemplate(user, "clinic");
+
+    const team = screen
+      .getAllByTestId("admin-mini-site-builder-section")
+      .find((entry) => entry.getAttribute("data-section") === "team");
+    expect(team).toBeTruthy();
+    await user.click(team!);
+
     expect(await screen.findByTestId("admin-mini-site-coming-soon-panel")).toBeInTheDocument();
     expect(screen.getByTestId("admin-mini-site-coming-soon-panel")).toHaveTextContent(
-      "Projects section coming soon",
+      /coming soon/i,
     );
-    expect(screen.getByTestId("admin-mini-site-coming-soon-panel")).toHaveTextContent(
-      "No temporary or fake controls",
-    );
-    expect(screen.queryByLabelText(/project title/i)).not.toBeInTheDocument();
   });
 
   it("Default builder has no fake section nav and shows overview card", async () => {

@@ -594,27 +594,20 @@ describe("public pages smoke", () => {
         backgroundStyle: "dark",
         buttonStyle: "pill",
       },
-      sections: [
-        {
-          id: "hero",
-          type: "hero",
-          enabled: true,
-          order: 0,
-          title: "Wire hero title",
-          body: "Wire hero body text",
+      templateContent: {
+        portfolio: {
+          hero: {
+            eyebrow: "Wire studio",
+            headline: "Design. Create.",
+            headlineHighlight: "Inspire.",
+            subtitle: "Wire hero body text",
+          },
+          about: {
+            title: "About",
+            bio: "Wire about body",
+          },
         },
-        {
-          id: "about",
-          type: "about",
-          enabled: true,
-          order: 1,
-          title: "About",
-          body: "Wire about body",
-        },
-        { id: "services", type: "services", enabled: true, order: 2 },
-        { id: "contact", type: "contact", enabled: true, order: 3 },
-        { id: "booking_cta", type: "booking_cta", enabled: false, order: 4 },
-      ],
+      },
       socialLinks: {
         website: "https://portfolio.example.com",
         instagram: "@portfolio",
@@ -637,20 +630,16 @@ describe("public pages smoke", () => {
     expect(layout).toHaveAttribute("data-template", "portfolio");
     expect(layout).toHaveAttribute("data-background-style", "dark");
     expect(layout).toHaveAttribute("data-button-style", "pill");
-
-    const pageShell = screen.getByTestId("pro-mini-site-page-shell");
-    expect(pageShell).toHaveAttribute("data-background-color", "#1e293b");
-    expect(pageShell).toHaveStyle({ backgroundColor: "#1e293b" });
+    expect(layout).toHaveClass("template-portfolio");
 
     const bookCta = screen.getByTestId("pro-mini-site-book-cta");
     expect(bookCta).toHaveStyle({ backgroundColor: "rgb(235, 37, 37)" });
     expect(bookCta.className).toContain("rounded-full");
 
-    expect(screen.getByTestId("pro-mini-site-hero-body")).toHaveTextContent("Wire hero body text");
-    expect(screen.getByTestId("pro-mini-site-about-body")).toHaveTextContent("Wire about body");
-    expect(screen.getByTestId("pro-mini-site-social-links")).toHaveTextContent(
-      "https://portfolio.example.com",
-    );
+    expect(screen.getByTestId("pro-mini-site-hero-subtitle")).toHaveTextContent("Wire hero body text");
+    expect(screen.getByTestId("pro-mini-site-about-bio")).toHaveTextContent("Wire about body");
+    expect(screen.getByTestId("pro-mini-site-projects")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-contact")).toBeInTheDocument();
   });
 
   it("B. renders booking and order service cards", async () => {

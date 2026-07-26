@@ -40,13 +40,24 @@ describe("miniSiteTemplateBuilders", () => {
     const projects = getAvailableSectionsForTemplate("portfolio").find(
       (section) => section.id === "projects",
     );
-    expect(projects?.mode).toBe("coming_soon");
-    expect(projects?.editorFocus).toBeUndefined();
-    expect(projects?.comingSoonBody).toMatch(/media slots/i);
+    expect(projects?.mode).toBe("editable");
+    expect(projects?.comingSoonBody).toBeUndefined();
 
     const team = getAvailableSectionsForTemplate("clinic").find((section) => section.id === "team");
     expect(team?.mode).toBe("coming_soon");
     expect(team?.comingSoonBody).toMatch(/No fake/i);
+  });
+
+  it("marks Service, Expert, and Portfolio builders as fully editable", () => {
+    expect(getAvailableSectionsForTemplate("service").every((s) => s.mode !== "coming_soon")).toBe(
+      true,
+    );
+    expect(getAvailableSectionsForTemplate("expert").every((s) => s.mode !== "coming_soon")).toBe(
+      true,
+    );
+    expect(getAvailableSectionsForTemplate("portfolio").every((s) => s.mode !== "coming_soon")).toBe(
+      true,
+    );
   });
 
   it("maps editable sections to existing editor focus targets", () => {

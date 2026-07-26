@@ -207,17 +207,17 @@ describe("ProMiniSiteLayout", () => {
     expect(screen.getByText("Custom badge")).toBeInTheDocument();
   });
 
-  it("applies portfolio template presentation", () => {
+  it("applies portfolio template presentation via PortfolioTemplatePublicView", () => {
     renderProMiniSiteLayout({
       config: createSavedMiniSiteConfig({ template: "portfolio", backgroundStyle: "dark" }),
     });
     const layout = screen.getByTestId("pro-mini-site-layout");
     expect(layout).toHaveAttribute("data-template", "portfolio");
     expect(layout).toHaveClass("template-portfolio");
-    expect(screen.getByTestId("pro-mini-site-page-shell")).toBeInTheDocument();
-    expect(screen.getByTestId("pro-mini-site-hero-title")).toBeInTheDocument();
-    expect(screen.getByTestId("pro-mini-site-portfolio-hero")).toBeInTheDocument();
-    expect(screen.getByTestId("pro-mini-site-portfolio-capabilities")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-hero")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-projects")).toBeInTheDocument();
+    expect(screen.getByTestId("pro-mini-site-skills")).toBeInTheDocument();
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
   });
 
   it("applies teacher template presentation", () => {

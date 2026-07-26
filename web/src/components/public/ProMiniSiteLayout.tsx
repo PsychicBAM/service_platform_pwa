@@ -84,6 +84,7 @@ import {
 } from "@/components/public/ServiceProMiniSiteSections";
 import { ServiceTemplatePublicView } from "@/components/public/ServiceTemplatePublicView";
 import { ExpertTemplatePublicView } from "@/components/public/ExpertTemplatePublicView";
+import { PortfolioTemplatePublicView } from "@/components/public/PortfolioTemplatePublicView";
 import {
   getMiniSitePageShellClass,
   getMiniSitePageShellStyle,
@@ -342,6 +343,19 @@ export function ProMiniSiteLayout({
   if (siteConfig.theme.template === "expert") {
     return (
       <ExpertTemplatePublicView
+        business={business}
+        publicSlug={publicSlug}
+        services={services}
+        config={siteConfig}
+        reviews={reviews}
+        reviewSummary={reviewSummary}
+        testIdPrefix="pro-mini-site"
+      />
+    );
+  }
+  if (siteConfig.theme.template === "portfolio") {
+    return (
+      <PortfolioTemplatePublicView
         business={business}
         publicSlug={publicSlug}
         services={services}

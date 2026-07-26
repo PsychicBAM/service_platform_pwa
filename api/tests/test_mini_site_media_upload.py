@@ -259,6 +259,16 @@ def test_expert_item_image_slots_are_allowed_and_validated() -> None:
     assert not is_allowed_mini_site_image_slot("clean", "workCover__work1")
 
 
+def test_portfolio_item_image_slots_are_allowed_and_validated() -> None:
+    assert is_allowed_mini_site_image_slot("portfolio", "portfolioProjectCover__project-abc123")
+    assert is_allowed_mini_site_image_slot("portfolio", "portfolioTestimonialAvatar__t_1")
+    assert is_allowed_mini_site_image_slot("portfolio", "heroVisual")
+    assert not is_allowed_mini_site_image_slot("portfolio", "portfolioProjectCover__")
+    assert not is_allowed_mini_site_image_slot("portfolio", "portfolioProjectCover__bad slot!")
+    assert not is_allowed_mini_site_image_slot("portfolio", "randomSlot")
+    assert not is_allowed_mini_site_image_slot("expert", "portfolioProjectCover__project1")
+
+
 def test_normalize_legacy_media_without_thumbnail_url() -> None:
     config = normalize_mini_site_config(
         {

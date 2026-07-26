@@ -48,6 +48,7 @@ import {
 } from "@/components/public/ServiceProMiniSiteSections";
 import { ServiceTemplatePublicView } from "@/components/public/ServiceTemplatePublicView";
 import { ExpertTemplatePublicView } from "@/components/public/ExpertTemplatePublicView";
+import { PortfolioTemplatePublicView } from "@/components/public/PortfolioTemplatePublicView";
 import {
   CleanAboutSection,
   CleanContactSection,
@@ -67,6 +68,7 @@ import {
 } from "@/lib/miniSiteConfig";
 import { getServiceTemplateContent } from "@/lib/serviceTemplateConfig";
 import { getExpertTemplateContent } from "@/lib/expertTemplateConfig";
+import { getPortfolioTemplateContent } from "@/lib/portfolioTemplateConfig";
 import { getTemplateImageSlots } from "@/lib/miniSiteMedia";
 import { getTemplateVideoSlots } from "@/lib/miniSiteVideo";
 import {
@@ -195,6 +197,13 @@ export function MiniSiteLivePreview({
             miniSiteConfig: config,
           }}
         />
+      </div>
+    );
+  }
+  if ((theme.template as string) === "portfolio") {
+    return (
+      <div className="overflow-hidden rounded-xl border border-slate-200" data-testid="mini-site-live-preview" data-template="portfolio" data-template-presentation="portfolio" data-preset={getPortfolioTemplateContent(config).themePreset} data-preview-device={typedPreviewDevice}>
+        <PortfolioTemplatePublicView variant="preview" previewDevice={typedPreviewDevice} testIdPrefix="mini-site-preview" config={config} publicSlug="" services={services} business={{ id:"preview", name:businessName, slug:"", description:null, logo_url:null, operating_mode:"both", contact_phone:null, address:null, public_page_variant:"mini_site", miniSiteConfig:config }} />
       </div>
     );
   }

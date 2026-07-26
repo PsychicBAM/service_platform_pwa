@@ -359,10 +359,7 @@ const PORTFOLIO_BUILDER: TemplateBuilderConfig = {
       id: "projects",
       label: "Projects / selected work",
       helperText: "Featured work gallery and project cards.",
-      mode: "coming_soon",
-      comingSoonTitle: "Projects section coming soon",
-      comingSoonBody:
-        "Use existing portfolio media slots for now. Full project gallery editing will be added later.",
+      mode: "editable",
     },
     {
       id: "about",
@@ -376,25 +373,24 @@ const PORTFOLIO_BUILDER: TemplateBuilderConfig = {
       label: "Skills",
       helperText: "Capabilities and craft highlights.",
       mode: "editable",
-      editorFocus: "trust",
+    },
+    {
+      id: "services",
+      label: "Services",
+      helperText: "Services offered by this creative practice.",
+      mode: "editable",
     },
     {
       id: "process",
       label: "Process",
       helperText: "How collaborations usually run.",
-      mode: "coming_soon",
-      comingSoonTitle: "Process section coming soon",
-      comingSoonBody:
-        "A dedicated creative process editor will be added later. Benefits can cover key process points today.",
+      mode: "editable",
     },
     {
       id: "testimonials",
       label: "Testimonials",
       helperText: "Client feedback on delivered work.",
-      mode: "coming_soon",
-      comingSoonTitle: "Testimonials coming soon",
-      comingSoonBody:
-        "Portfolio testimonials are not editable yet. No fake project quotes will be shown.",
+      mode: "editable",
     },
     {
       id: "contact",
@@ -402,6 +398,12 @@ const PORTFOLIO_BUILDER: TemplateBuilderConfig = {
       helperText: "Collaboration inquiry details.",
       mode: "editable",
       editorFocus: "contact",
+    },
+    {
+      id: "footer",
+      label: "Footer",
+      helperText: "Footer links and contact information.",
+      mode: "editable",
     },
     {
       id: "settings",
