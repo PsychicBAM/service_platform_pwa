@@ -1,0 +1,35 @@
+# Exact Gitleaks fingerprints for historical test/demo/doc placeholders.
+# These are redacted findings from full-history scans (not live credentials).
+# Do not add broad patterns or .env secrets here — only exact fingerprints from CI.
+
+# STRIPE_TEST_MODE_RUNBOOK.md — historical sk_test_placeholder wording (stripe-access-token)
+d4badf0d68b1c7ff348d87cd03c5c33401979b10:STRIPE_TEST_MODE_RUNBOOK.md:stripe-access-token:43
+c9106d7ed6a19f792f913d087996b1a36e97ac53:STRIPE_TEST_MODE_RUNBOOK.md:stripe-access-token:52
+
+# api/tests/test_production_env_script.py — historical hex JWT test fixtures (generic-api-key)
+2e5a7bcab63e40d3fe106b94edae01d964237e96:api/tests/test_production_env_script.py:generic-api-key:235
+cad3715f6985a58c1c5c2b09306def9a38109a30:api/tests/test_production_env_script.py:generic-api-key:77
+cad3715f6985a58c1c5c2b09306def9a38109a30:api/tests/test_production_env_script.py:generic-api-key:104
+0d20faebfd3f62a28ed9a521d6bc897781245cea:api/tests/test_production_env_script.py:generic-api-key:12
+0d20faebfd3f62a28ed9a521d6bc897781245cea:api/tests/test_production_env_script.py:generic-api-key:85
+689641005a4dd4dfbba413f4b95dd0451aeb7ad5:api/tests/test_production_env_script.py:generic-api-key:133
+
+# api/tests/test_production_security.py — historical hex JWT test fixture (generic-api-key)
+ae53dadeed2c6309a47be98dec661cb2b1a495c1:api/tests/test_production_security.py:generic-api-key:97
+
+# README_BACKEND.md — historical curl Authorization: Bearer doc placeholders (curl-auth-header)
+2dd75da48f62ffb4af2c6b33f2794cac0ae83b69:README_BACKEND.md:curl-auth-header:584
+2dd75da48f62ffb4af2c6b33f2794cac0ae83b69:README_BACKEND.md:curl-auth-header:593
+c9e4e15d22b87e4e80f8e4fbaa64263ce7a7e686:README_BACKEND.md:curl-auth-header:609
+c9e4e15d22b87e4e80f8e4fbaa64263ce7a7e686:README_BACKEND.md:curl-auth-header:616
+c9e4e15d22b87e4e80f8e4fbaa64263ce7a7e686:README_BACKEND.md:curl-auth-header:625
+c9e4e15d22b87e4e80f8e4fbaa64263ce7a7e686:README_BACKEND.md:curl-auth-header:634
+32450a076a02d932f94f2088b79c0a8fb3081f35:README_BACKEND.md:curl-auth-header:473
+32450a076a02d932f94f2088b79c0a8fb3081f35:README_BACKEND.md:curl-auth-header:480
+32450a076a02d932f94f2088b79c0a8fb3081f35:README_BACKEND.md:curl-auth-header:487
+c69ad183f135311f30a444ca0379c016d3d97671:README_BACKEND.md:curl-auth-header:499
+c69ad183f135311f30a444ca0379c016d3d97671:README_BACKEND.md:curl-auth-header:506
+6381daf470e63502cefa0f34ec4e6376357d0088:README_BACKEND.md:curl-auth-header:358
+6381daf470e63502cefa0f34ec4e6376357d0088:README_BACKEND.md:curl-auth-header:365
+6381daf470e63502cefa0f34ec4e6376357d0088:README_BACKEND.md:curl-auth-header:372
+6381daf470e63502cefa0f34ec4e6376357d0088:README_BACKEND.md:curl-auth-header:381

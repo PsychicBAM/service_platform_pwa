@@ -1,6 +1,8 @@
 # Minimal Gitleaks config — skip build/cache paths only (not source or env files).
 # Do not allowlist .env or broad secret patterns.
-# Historical findings below are documented test/doc placeholders (full-history scan).
+# Exact historical finding fingerprints live in .gitleaksignore (preferred for
+# full-history scans). Path+regex allowlists below are defense-in-depth for the
+# same documented test/doc placeholders only.
 
 title = "service_platform_pwa gitleaks"
 
@@ -25,6 +27,7 @@ paths = [
 
 # README_BACKEND.md historically used literal Bearer CLIENT_TOKEN / SUPERADMIN_TOKEN
 # in curl examples (not live credentials). Current tree removed Authorization headers.
+# Prefer .gitleaksignore fingerprints for history; keep narrow regex for working tree.
 [[allowlists]]
 description = "README_BACKEND.md historical curl Bearer doc placeholders only"
 paths = [
